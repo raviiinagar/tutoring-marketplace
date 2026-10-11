@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, ArrowUpRight, Sparkles, Heart, Search, Compass, ChevronRight } from "lucide-react";
-import { SiteHeader } from "@/components/account/ui";
+import { SiteHeader, BrandWordmark } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { CatalogueBrowser } from "@/components/catalogue-browser";
 import { Reveal } from "@/components/reveal";
@@ -67,7 +67,7 @@ function Index() {
         </section>
         <section className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-12 lg:px-8"><div><h2 className="text-3xl font-semibold">A new chapter starts with you.</h2><p className="mt-2 text-sm text-muted-foreground">Student or tutor, there's room for you here.</p></div><Button asChild className="h-12 px-6 font-semibold"><Link to="/auth/signup">Create your account <ChevronRight /></Link></Button></section>
       </main>
-      <footer className="border-t"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-7 text-xs text-muted-foreground sm:flex-row sm:items-center lg:px-8"><Link to="/" className="font-display text-base font-semibold text-foreground">Tutor Marketplace<span className="text-coral-strong">.</span></Link><p>Made for curious minds across India.</p><Link to="/auth/signin" className="hover:text-foreground">Already a member? Sign in <span aria-hidden>↗</span></Link></div></footer>
+      <footer className="border-t"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-7 text-xs text-muted-foreground sm:flex-row sm:items-center lg:px-8"><Link to="/" aria-label="Tutor Marketplace home" className="brand-link"><BrandWordmark className="brand-wordmark-footer" /></Link><p>Made for curious minds across India.</p><Link to="/auth/signin" className="hover:text-foreground">Already a member? Sign in <span aria-hidden>↗</span></Link></div></footer>
 
     </div>
   );
