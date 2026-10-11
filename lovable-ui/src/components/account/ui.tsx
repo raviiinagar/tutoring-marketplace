@@ -8,7 +8,7 @@ const AccountReady = createContext(false);
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="relative z-20 border-b bg-background">
+    <header className="site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-5 lg:flex lg:justify-between lg:px-8">
         <Link to="/" className="flex min-w-0 items-center gap-2.5 rounded-md">
           <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary font-display text-lg font-bold text-primary-foreground">T</span>
