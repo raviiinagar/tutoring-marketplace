@@ -1,0 +1,3 @@
+# Use a TypeScript modular backend with PostgreSQL
+
+The tutoring marketplace's first production application uses Next.js for the web interface, NestJS for a modular backend and PostgreSQL as the authoritative store for requests, payments, access and messages. Keeping the business modules together permits transactional enforcement of payment and contact-access invariants while avoiding the operational and consistency work of independent microservices at launch. The user accepted this architecture on 10 October 2026; hosting and provider choices remain unresolved, and caches or search projections do not authorise access.

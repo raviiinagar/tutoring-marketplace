@@ -1,0 +1,9 @@
+{
+  "name": "@tutoring/worker",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node ../api/dist/worker.js"
+  }
+}
+

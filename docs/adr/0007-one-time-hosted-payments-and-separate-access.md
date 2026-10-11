@@ -1,0 +1,3 @@
+# Use one-time hosted payments with separate contact-access activation
+
+Adopt Razorpay Standard hosted Checkout with server-created Orders and verified automatic capture, subject to live merchant approval, while storing payment, matching, Access Pass activation and refunds as distinct facts. Capture precedes first-purchase requests, and the 72-hour capture-based matching deadline leads to a full refund if no eligible acceptance occurs; the 30-day access clock starts only on qualifying acceptance. This avoids coupling delayed capture to a tutor-response deadline and requires funded refund reserves, idempotency, locked transitions and reconciliation rather than trusting browser or webhook arrival order.

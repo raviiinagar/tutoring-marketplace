@@ -1,0 +1,3 @@
+# Support a broad India learning catalogue at launch
+
+The owner requires a broad launch catalogue across student domains in India, explicitly including JEE and NEET, rather than the earlier three-subject or CBSE-only pilot scope. Use a common tutor discovery and contact product across these domains so breadth does not require a separate application per examination; domain-specific testing, courses and classroom tools remain separate product decisions. This choice trades a narrower supply pilot for broader catalogue and onboarding requirements, so demand evidence, subject/exam distinctions and actual available tutor coverage must guide publication and launch readiness.

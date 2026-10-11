@@ -1,0 +1,3 @@
+# Start with a budgeted Mumbai pilot and measured recovery
+
+Use a provisional AWS Lightsail Mumbai application VM with encrypted managed PostgreSQL for the first controlled production pilot, with independent encrypted exports and a verified total cost within the owner's ₹10,000 monthly planning ceiling. The small layout trades automatic application/database failover for lower initial cost and owner-operated recovery; plan for at most 24 hours of independent-export data loss and a four-hour complete recovery, and require restore/load evidence before launch. Backup location, tax/exchange/usage costs and actual provisioning remain release dependencies; this decision does not claim the older 99.9% availability or five-minute regional recovery-point objectives.

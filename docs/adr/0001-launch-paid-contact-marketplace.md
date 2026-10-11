@@ -1,0 +1,3 @@
+# Launch a paid contact marketplace with direct tuition settlement
+
+For the first production release, provide tutor onboarding and approval, search, paid contact access, messaging, reviews, refunds, and staff support tools. Tuition remains settled directly between learners or guardians and tutors; native apps, video classrooms, lesson collection and tutor payouts follow later because they introduce separate delivery, financial and operational responsibilities. The user confirmed this release boundary on 10 October 2026; purchasing platform access and paying for teaching remain distinct concepts.

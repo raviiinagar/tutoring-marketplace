@@ -1,0 +1,38 @@
+{
+  "name": "tutoring-marketplace",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup:local": "node scripts/setup-local.mjs",
+    "setup:ui": "npm ci --prefix lovable-ui --ignore-scripts",
+    "db:local": "node --env-file=.env scripts/local-db.mjs",
+    "db:migrate": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/migrate.ts",
+    "dev": "node --env-file=.env scripts/dev.mjs",
+    "dev:api": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/main.ts",
+    "dev:worker": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/worker.ts",
+    "staff:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/staff-operator.ts",
+    "build": "npm run build -w @tutoring/contracts && npm run build -w @tutoring/api && npm --prefix lovable-ui run build",
+    "typecheck": "npm run typecheck --workspaces --if-present && npm --prefix lovable-ui run typecheck",
+    "test": "npm run build -w @tutoring/contracts && tsx --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/*.test.ts && npm --prefix lovable-ui test",
+    "test:browser": "playwright test",
+    "start:api": "node --env-file=.env apps/api/dist/main.js",
+    "start:worker": "node --env-file=.env apps/api/dist/worker.js",
+    "start:ui": "npm --prefix lovable-ui start"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.0",
+    "embedded-postgres": "18.4.0-beta.17",
+    "tsx": "^4.20.0",
+    "typescript": "5.9.3"
+  }
+}
+
