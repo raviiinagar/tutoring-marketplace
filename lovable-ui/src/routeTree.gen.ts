@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as AuthCheckEmailRouteImport } from './routes/auth.check-email'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
@@ -22,6 +23,7 @@ import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
+import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,6 +43,11 @@ const LearnersRoute = LearnersRouteImport.update({
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorRoute = TutorRouteImport.update({
+  id: '/tutor',
+  path: '/tutor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCheckEmailRoute = AuthCheckEmailRouteImport.update({
@@ -88,12 +95,18 @@ const StaffGuardiansRoute = StaffGuardiansRouteImport.update({
   path: '/staff/guardians',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffTutorsRoute = StaffTutorsRouteImport.update({
+  id: '/staff_/tutors',
+  path: '/staff/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
   '/staff': typeof StaffRoute
+  '/tutor': typeof TutorRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -103,12 +116,14 @@ export interface FileRoutesByFullPath {
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
+  '/staff/tutors': typeof StaffTutorsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
   '/staff': typeof StaffRoute
+  '/tutor': typeof TutorRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -118,6 +133,7 @@ export interface FileRoutesByTo {
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
+  '/staff/tutors': typeof StaffTutorsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +141,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
   '/staff': typeof StaffRoute
+  '/tutor': typeof TutorRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -134,6 +151,7 @@ export interface FileRoutesById {
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
+  '/staff_/tutors': typeof StaffTutorsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,6 +160,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/learners'
     | '/staff'
+    | '/tutor'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -151,12 +170,14 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
+    | '/staff/tutors'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
     | '/learners'
     | '/staff'
+    | '/tutor'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -166,12 +187,14 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
+    | '/staff/tutors'
   id:
     | '__root__'
     | '/'
     | '/account'
     | '/learners'
     | '/staff'
+    | '/tutor'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -181,6 +204,7 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff_/catalogue'
     | '/staff_/guardians'
+    | '/staff_/tutors'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,6 +212,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   LearnersRoute: typeof LearnersRoute
   StaffRoute: typeof StaffRoute
+  TutorRoute: typeof TutorRoute
   AuthCheckEmailRoute: typeof AuthCheckEmailRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
@@ -197,6 +222,7 @@ export interface RootRouteChildren {
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
+  StaffTutorsRoute: typeof StaffTutorsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -227,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor': {
+      id: '/tutor'
+      path: '/tutor'
+      fullPath: '/tutor'
+      preLoaderRoute: typeof TutorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/check-email': {
@@ -292,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffGuardiansRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/tutors': {
+      id: '/staff_/tutors'
+      path: '/staff/tutors'
+      fullPath: '/staff/tutors'
+      preLoaderRoute: typeof StaffTutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -300,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   LearnersRoute: LearnersRoute,
   StaffRoute: StaffRoute,
+  TutorRoute: TutorRoute,
   AuthCheckEmailRoute: AuthCheckEmailRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
@@ -309,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
+  StaffTutorsRoute: StaffTutorsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,6 +11,7 @@ import {Database,migrate} from '../src/database.js';
 import {decrypt,tokenHash} from '../src/security.js';
 import {assignStaff,type StaffScope} from '../src/staff.js';
 import {base32,totp} from '../src/totp.js';
+import {AuthService} from '../src/auth.js';
 // @ts-expect-error Local JavaScript helper has no declaration.
 import {startDatabase} from '../../../scripts/postgres.mjs';
 
@@ -39,6 +40,20 @@ async function enroll(cookie:string){
   const confirmed=await post('/v1/staff/mfa/confirmations',{code:totp(secret,clock)},cookie).expect(200);
   return {secret,codes:confirmed.body.recovery_codes as string[],staffCookie:confirmed.headers['set-cookie'][0] as string,cookie:combine(cookie,confirmed.headers['set-cookie'][0])};
 }
+test('logout and an overlapping authenticated read use a consistent lock order',async()=>{
+  const user=await fixture(null);const token=user.cookie.split(';')[0].slice('tm_session='.length);const blocker=await database.pool.connect();
+  let released=false;
+  try{
+    await blocker.query('BEGIN');await blocker.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[user.id]);
+    const logout=del('/v1/auth/sessions/current',user.cookie).then(response=>response);
+    const deadline=Date.now()+5000;let waiting=false;
+    while(Date.now()<deadline){const result=await database.pool.query("SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND pid<>$1",[blocker.processID]);if(Number(result.rows[0].count)>0){waiting=true;break;}await new Promise(resolve=>setTimeout(resolve,20));}
+    assert.ok(waiting,'Logout must overlap the held identity lock');
+    const read=new AuthService(database,config,now).authenticated(blocker,token).finally(async()=>{await blocker.query('ROLLBACK');blocker.release();released=true;});
+    const results=await Promise.allSettled([logout,read]);assert.equal(results[0].status,'fulfilled');assert.equal(results[1].status,'fulfilled');if(results[0].status==='fulfilled')assert.equal(results[0].value.status,204);
+    await get('/v1/me',user.cookie).expect(401);
+  }finally{if(!released){await blocker.query('ROLLBACK');blocker.release();}}
+});
 test('TOTP matches RFC 6238 SHA1 vectors including dates beyond 2038',()=>{
   const secret='GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';assert.equal(base32(Buffer.from('12345678901234567890')),secret);
   for(const [time,expected] of [[59,'94287082'],[1111111109,'07081804'],[1111111111,'14050471'],[1234567890,'89005924'],[2000000000,'69279037'],[20000000000,'65353130']] as const)assert.equal(totp(secret,new Date(time*1000),8),expected);

@@ -103,6 +103,11 @@ export class AuthService {
   async logout(token: string | undefined, correlation: string) {
     if (!token) return;
     await this.database.transaction(async client => {
+      // Match authenticated operations' user -> session order. The audit event's
+      // user foreign key otherwise acquires a user lock after revoking the session.
+      const found = (await client.query("SELECT user_id FROM sessions WHERE token_hash=$1", [tokenHash(token)])).rows[0];
+      if (!found) return;
+      await client.query("SELECT id FROM users WHERE id=$1 FOR UPDATE", [found.user_id]);
       const result = await client.query("UPDATE sessions SET revoked_at=$2 WHERE token_hash=$1 AND revoked_at IS NULL RETURNING user_id", [tokenHash(token),this.now()]);
       if (result.rows[0]) await client.query("INSERT INTO audit_events(id,user_id,event_type,correlation_id) VALUES($1,$2,'SESSION_REVOKED',$3)", [randomUUID(),result.rows[0].user_id,correlation]);
     });

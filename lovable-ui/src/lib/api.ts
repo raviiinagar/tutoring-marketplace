@@ -24,6 +24,11 @@ export type LearnerConsent={accepted:true;notice_version:string;consent_version:
 export type CatalogueKind='SUBJECT'|'LEVEL'|'CURRICULUM'|'EXAM'|'LANGUAGE';
 export type CatalogueTerm={id:string;kind:CatalogueKind;label:string;aliases:string[];domain_ids:string[];active:boolean};
 export type Catalogue={domains:{id:string;label:string}[];terms:CatalogueTerm[]};
+export type TutorPolicy={uploads_enabled:boolean;test_only:boolean;max_bytes:number;media_types:string[]};
+export type TutorEvidence={id:string;media_type:string;byte_length:number;scan_status:'QUARANTINED'|'CLEAN'|'REJECTED'|'ERROR'|'WITHDRAWN';test_only:boolean};
+export type TutorClaim={id:string;kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';subject_id:string|null;description:string;evidence_id:string;status:string;reviewed_by:string|null;reviewed_at:string|null;expires_at:string|null;review_reason:string|null;reviewed_check:string|null};
+export type TutorProfile={display_name:string;biography:string;birth_date:string;revision:number;status:string;eligible:boolean};
+export type TutorState={profile:TutorProfile|null;claims:TutorClaim[];evidence:TutorEvidence[]};
 
 export type CodeMessage = { code: string; message: string };
 export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; captured_at: string; development_only: true };
@@ -52,6 +57,7 @@ async function request<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
   body?: unknown,
+  binary=false,
 ): Promise<ApiResult<T>> {
   const init: RequestInit = { method, credentials: "include", headers: { Accept: "application/json" } };
   if (method !== "GET") {
@@ -66,6 +72,7 @@ async function request<T>(
   }
 
   if (res.status === 204) return { ok: true, status: 204, data: undefined as T };
+  if(res.ok&&binary)return {ok:true,status:res.status,data:await res.blob() as T};
 
   const isJson = (res.headers.get("content-type") ?? "").includes("application/json");
   let json: unknown = null;
@@ -106,6 +113,18 @@ async function request<T>(
 }
 
 export const api = {
+  tutorPolicy: () => request<TutorPolicy>('GET','/v1/tutor-policy'),
+  tutor: () => request<TutorState>('GET','/v1/me/tutor'),
+  saveTutor: (display_name:string,biography:string,birth_date:string,adult_confirmed:boolean) => request<TutorState>('POST','/v1/me/tutor',{display_name,biography,birth_date,adult_confirmed}),
+  uploadTutorEvidence: (media_type:string,data:string) => request<{evidence:TutorEvidence}>('POST','/v1/me/tutor/evidence',{media_type,data}),
+  withdrawTutorEvidence: (id:string) => request<void>('DELETE','/v1/me/tutor/evidence/'+encodeURIComponent(id)),
+  tutorClaim: (kind:TutorClaim['kind'],description:string,evidence_id:string,subject_id?:string) => request<TutorState>('POST','/v1/me/tutor/claims',{kind,description,evidence_id,...(subject_id?{subject_id}:{})}),
+  submitTutor: () => request<TutorState>('POST','/v1/me/tutor/submissions'),
+  tutorQueue: () => request<{profiles:{user_id:string;display_name:string;revision:number;status:string}[]}>('GET','/v1/staff/tutors'),
+  inspectTutor: (id:string,reason:string) => request<TutorState>('POST','/v1/staff/tutors/'+encodeURIComponent(id)+'/inspections',{reason}),
+  reviewTutorClaim: (id:string,outcome:string,checked_item:string,reason:string,adult_identity_confirmed:boolean,expires_at?:string) => request<TutorState>('POST','/v1/staff/tutor-claims/'+encodeURIComponent(id)+'/reviews',{outcome,checked_item,reason,adult_identity_confirmed,...(expires_at?{expires_at}:{})}),
+  tutorDownloadGrant: (id:string,reason:string) => request<{token:string;expires_at:string}>('POST','/v1/staff/tutor-evidence/'+encodeURIComponent(id)+'/download-grants',{reason}),
+  downloadTutorEvidence: (token:string) => request<Blob>('POST','/v1/staff/tutor-evidence/downloads',{token},true),
   catalogue: () => request<Catalogue>('GET','/v1/catalogue'),
   staffCatalogue: () => request<Catalogue>('GET','/v1/staff/catalogue'),
   saveCatalogueTerm: (term:CatalogueTerm,reason:string) => request<{term:CatalogueTerm}>('POST','/v1/staff/catalogue/terms',{...term,reason}),

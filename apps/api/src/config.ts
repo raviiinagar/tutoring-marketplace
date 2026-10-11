@@ -10,6 +10,8 @@ export interface Config {
   mailTransport: "capture" | "smtp";
   mailDir: string;
   guardianMode: 'disabled' | 'test';
+  evidenceScanner: 'disabled'|'test'|'clamav';
+  clamav?:{host:string;port:number};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
 }
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -43,6 +45,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const guardianMode=env.GUARDIAN_VERIFICATION_MODE||'disabled';
   if(!['disabled','test'].includes(guardianMode))throw new Error('Unknown guardian verification mode');
   if(mode==='production'&&guardianMode==='test')throw new Error('Test guardian verification is forbidden in production');
+  const evidenceScanner=env.EVIDENCE_SCANNER||'disabled';
+  if(!['disabled','test','clamav'].includes(evidenceScanner))throw new Error('Unknown evidence scanner');
+  if(mode==='production'&&evidenceScanner==='test')throw new Error('Test evidence scanning is forbidden in production');
+  let clamav:Config['clamav'];
+  if(evidenceScanner==='clamav'){const scanPort=Number(env.CLAMAV_PORT||3310);if(!env.CLAMAV_HOST||!Number.isInteger(scanPort)||scanPort<1||scanPort>65535)throw new Error('ClamAV host and valid port are required');clamav={host:env.CLAMAV_HOST,port:scanPort};}
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
   let smtp: Config["smtp"];
   if (mailTransport === "smtp") {
@@ -51,7 +58,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if (smtpPort !== 465 && smtpPort !== 587) throw new Error("SMTP must use TLS port 465 or STARTTLS port 587");
     smtp = { host: env.SMTP_HOST, port: smtpPort, user: env.SMTP_USER, password: env.SMTP_PASSWORD, from: env.SMTP_FROM };
   }
-  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'] };
+  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

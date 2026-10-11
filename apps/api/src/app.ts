@@ -19,6 +19,9 @@ import {LearnersController} from './learners-controller.js';
 import {guardianVerifier,type GuardianVerifier} from './guardian-verifier.js';
 import {CatalogueService} from './catalogue.js';
 import {CatalogueController} from './catalogue-controller.js';
+import {TutorsService} from './tutors.js';
+import {TutorsController} from './tutors-controller.js';
+import {evidenceScanner,type EvidenceScanner} from './evidence-scanner.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -134,14 +137,15 @@ class DevelopmentMailController {
     return {development_only:true,messages:messages.sort((a,b)=>b.captured_at.localeCompare(a.captured_at))};
   }
 }
-export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config)): Promise<INestApplication> {
+export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config)): Promise<INestApplication> {
   const auth = new AuthService(database,config,now);
   const staff = new StaffService(database,config,auth,now);
   const learners=new LearnersService(database,config,auth,staff,verifier,now);
   const catalogue=new CatalogueService(database,staff);
+  const tutors=new TutorsService(database,config,auth,staff,scanner,now);
   @Module({
-    controllers:[AccountController,StaffController,LearnersController,CatalogueController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
@@ -166,7 +170,8 @@ export async function createApplication(config: Config,database: Database,now:()
     }
     next();
   });
-  app.use(json({limit:"8kb",strict:true}));
+  const formJson=json({limit:'8kb',strict:true});const uploadJson=json({limit:'1400kb',strict:true});
+  app.use((request:Request,response:Response,next:()=>void)=>{(request.path==='/v1/me/tutor/evidence'&&request.method==='POST'?uploadJson:formJson)(request,response,next);});
   app.useGlobalFilters(new ProblemsFilter());
   await app.init();
   return app;
