@@ -17,6 +17,8 @@ import {StaffController} from './staff-controller.js';
 import {LearnersService} from './learners.js';
 import {LearnersController} from './learners-controller.js';
 import {guardianVerifier,type GuardianVerifier} from './guardian-verifier.js';
+import {CatalogueService} from './catalogue.js';
+import {CatalogueController} from './catalogue-controller.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -136,9 +138,10 @@ export async function createApplication(config: Config,database: Database,now:()
   const auth = new AuthService(database,config,now);
   const staff = new StaffService(database,config,auth,now);
   const learners=new LearnersService(database,config,auth,staff,verifier,now);
+  const catalogue=new CatalogueService(database,staff);
   @Module({
-    controllers:[AccountController,StaffController,LearnersController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[AccountController,StaffController,LearnersController,CatalogueController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();

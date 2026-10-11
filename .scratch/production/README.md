@@ -4,11 +4,11 @@ The [production specification](./spec.md) consolidates the owner's confirmed cho
 
 ## Current state
 
-Latest verification: [ticket 04 evidence](./issues/04-learner-and-guardian-profiles.md). Twenty-eight API tests, nine UI unit tests, four browser journeys and build/typecheck have passing evidence. Private adult profiles, fictional Guardian verification, Trust reviews and versioned child consent are connected to the Lovable UI. Production child collection remains disabled pending the actual approved policy/adapter. See [Learner/Guardian guide](../../docs/api/learners.md). Earlier evidence is retained on each completed ticket.
+Latest verification: [ticket 05 evidence](./issues/05-eight-domain-catalogue.md). Thirty-three API tests, nine UI unit tests, all five browser journeys and build/typecheck passed. The eight-domain catalogue has 65 representative terms, typed aliases, strict selection validation and Trust/MFA maintenance connected to the Lovable UI. See the [catalogue guide](../../docs/api/catalogue.md). Private adult profiles, fictional Guardian verification and versioned child consent remain connected; production child collection stays disabled pending the approved policy/adapter. Earlier evidence is retained on each completed ticket.
 
-Design and research are recorded. There are 28 separate implementation tickets, with acceptance criteria and blocking edges; tickets 01–04 are implemented and verified. Completion evidence is recorded on each ticket; a triage role is distinct from its `Resolution: completed` field.
+Design and research are recorded. There are 28 separate implementation tickets, with acceptance criteria and blocking edges; tickets 01–05 are implemented and verified. Completion evidence is recorded on each ticket; a triage role is distinct from its `Resolution: completed` field.
 
-The next numbered dependency-ready task is [ticket 05: eight-domain catalogue](./issues/05-eight-domain-catalogue.md). Ticket 06 (Tutor evidence) also has completed prerequisites. The owner selected Lovable for the UI; the export in `lovable-ui` is integrated with NestJS/PostgreSQL and local email capture. Next.js reference screens are retained but not started. Live deployment and SMTP remain pending; live child-data processing still requires the approved guardian-verification method and policy integration.
+The next numbered dependency-ready task is [ticket 06: Tutor evidence](./issues/06-adult-tutor-evidence-review.md). Ticket 07 requires both the completed catalogue and Tutor evidence. The owner selected Lovable for the UI; the export in `lovable-ui` is integrated with NestJS/PostgreSQL and local email capture. Next.js reference screens are retained but not started. Live deployment and SMTP remain pending; live child-data processing still requires the approved guardian-verification method and policy integration.
 
 ## Work sequence
 

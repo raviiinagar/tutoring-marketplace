@@ -1,6 +1,6 @@
 # Tutor marketplace
 
-Tasks 01–04 implement verified accounts, roles, account security, a scoped staff console with MFA, and adult/Guardian-controlled Learner profiles. Production child profiles remain gated until the approved verification/consent policy is integrated. The business name is undecided; VEER is the owner. Tuition payments will remain direct to tutors. The remaining production marketplace is tracked as separate tickets.
+Tasks 01–05 implement verified accounts, roles, account security, a scoped staff console with MFA, adult/Guardian-controlled Learner profiles, and the eight-domain learning catalogue. Production child profiles remain gated until the approved verification/consent policy is integrated. The business name is undecided; VEER is the owner. Tuition payments will remain direct to tutors. The remaining production marketplace is tracked as separate tickets.
 
 ## Run locally
 
@@ -40,6 +40,8 @@ The imported UI in `lovable-ui` is integrated into root startup, build, typechec
 Local writes accept both loopback names at explicitly configured ports, only in development. Production origin matching remains exact and requires HTTPS. The Vite development proxy preserves browser Origin and routes `/v1` to the API, with `/dev/mail` available only for local capture. Forms wait for React hydration before allowing input so early typing is not lost.
 
 ## Production configuration
+
+The homepage browses the eight Learning Domains and their subjects, levels, curricula, exam tracks and teaching languages from PostgreSQL. Trust staff with MFA can add, edit, activate and deactivate terms at `/staff/catalogue`. See the [catalogue guide](docs/api/catalogue.md). Tutor discovery and availability follow in later tasks.
 
 Adult Learner profiles are available from the account page. [Learner/Guardian guide](docs/api/learners.md) describes private profiles, Trust review and versioned consent. The default Guardian mode is disabled. `GUARDIAN_VERIFICATION_MODE=test` is only for fictional local fixtures and is forbidden in production; no approved live verification adapter/policy is currently configured.
 

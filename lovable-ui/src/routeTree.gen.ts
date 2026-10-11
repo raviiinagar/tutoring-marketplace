@@ -20,6 +20,7 @@ import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
+import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +78,11 @@ const DevInboxRoute = DevInboxRouteImport.update({
   path: '/dev/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
+  id: '/staff_/catalogue',
+  path: '/staff/catalogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffGuardiansRoute = StaffGuardiansRouteImport.update({
   id: '/staff_/guardians',
   path: '/staff/guardians',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/dev/inbox'
+    | '/staff/catalogue'
     | '/staff/guardians'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/dev/inbox'
+    | '/staff/catalogue'
     | '/staff/guardians'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/dev/inbox'
+    | '/staff_/catalogue'
     | '/staff_/guardians'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyRoute: typeof AuthVerifyRoute
   DevInboxRoute: typeof DevInboxRoute
+  StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
 }
 
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevInboxRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/catalogue': {
+      id: '/staff_/catalogue'
+      path: '/staff/catalogue'
+      fullPath: '/staff/catalogue'
+      preLoaderRoute: typeof StaffCatalogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/guardians': {
       id: '/staff_/guardians'
       path: '/staff/guardians'
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyRoute: AuthVerifyRoute,
   DevInboxRoute: DevInboxRoute,
+  StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
 }
 export const routeTree = rootRouteImport

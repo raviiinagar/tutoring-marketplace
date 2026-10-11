@@ -21,6 +21,9 @@ export type LearnerPolicy={child_profiles_enabled:boolean;test_only:boolean;poli
 export type GuardianCase={id:string;status:'PENDING'|'APPROVED'|'REJECTED'|'REVOKED';policy_id?:string;notice_version?:string;consent_version?:string;created_at?:string;review_reason?:string|null;user_id?:string};
 export type GuardianInspection={id:string;user_id:string;status:GuardianCase['status'];policy_id:string;notice_version:string;consent_version:string;evidence:{adult_reference:string;authority_reference:string}};
 export type LearnerConsent={accepted:true;notice_version:string;consent_version:string};
+export type CatalogueKind='SUBJECT'|'LEVEL'|'CURRICULUM'|'EXAM'|'LANGUAGE';
+export type CatalogueTerm={id:string;kind:CatalogueKind;label:string;aliases:string[];domain_ids:string[];active:boolean};
+export type Catalogue={domains:{id:string;label:string}[];terms:CatalogueTerm[]};
 
 export type CodeMessage = { code: string; message: string };
 export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; captured_at: string; development_only: true };
@@ -103,6 +106,9 @@ async function request<T>(
 }
 
 export const api = {
+  catalogue: () => request<Catalogue>('GET','/v1/catalogue'),
+  staffCatalogue: () => request<Catalogue>('GET','/v1/staff/catalogue'),
+  saveCatalogueTerm: (term:CatalogueTerm,reason:string) => request<{term:CatalogueTerm}>('POST','/v1/staff/catalogue/terms',{...term,reason}),
   capturedMail: () => localMailCapture
     ? request<{development_only:true;messages:CapturedMail[]}>("GET", "/dev/mail")
     : Promise.resolve<ApiResult<{development_only:true;messages:CapturedMail[]}>>({ok:false,error:{kind:"unavailable"}}),
