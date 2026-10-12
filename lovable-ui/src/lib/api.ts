@@ -29,6 +29,9 @@ export type TutorEvidence={id:string;media_type:string;byte_length:number;scan_s
 export type TutorClaim={id:string;kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';subject_id:string|null;description:string;evidence_id:string;status:string;reviewed_by:string|null;reviewed_at:string|null;expires_at:string|null;review_reason:string|null;reviewed_check:string|null};
 export type TutorProfile={display_name:string;biography:string;birth_date:string;revision:number;status:string;eligible:boolean};
 export type TutorState={profile:TutorProfile|null;claims:TutorClaim[];evidence:TutorEvidence[]};
+export type TeachingOffer={title:string;description:string;domain_id:string;subject_id:string;level_id:string;curriculum_id?:string|undefined;exam_id?:string|undefined;language_ids:string[];currency:'INR';teaching_mode:'ONLINE';rate_paise:number;rate_unit:'HOUR'|'LESSON';lesson_minutes?:number|undefined;trial_kind:'NONE'|'FREE'|'PAID';trial_minutes?:number|undefined;trial_price_paise?:number|undefined};
+export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revision:number;profile_revision:number;status:'DRAFT'|'REVIEW'|'CHANGES_REQUESTED'|'PUBLISHED'|'PAUSED'|'SAFETY_SUSPENDED';eligible:boolean;requires_profile_review:boolean;review_reason:string|null;safety_reason:string|null};
+export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
 
 export type CodeMessage = { code: string; message: string };
 export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; captured_at: string; development_only: true };
@@ -113,6 +116,14 @@ async function request<T>(
 }
 
 export const api = {
+  listings: () => request<{listings:TeachingListing[]}>('GET','/v1/me/listings'),
+  createListing: (offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings',offer),
+  editListing: (id:string,revision:number,offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings/'+encodeURIComponent(id),{revision,offer}),
+  listingAction: (id:string,revision:number,action:'SUBMIT'|'PAUSE'|'RESUME') => request<{listing:TeachingListing}>('POST','/v1/me/listings/'+encodeURIComponent(id)+'/actions/'+action,{revision}),
+  listingQueue: () => request<{listings:ListingQueueItem[]}>('GET','/v1/staff/listings'),
+  inspectListing: (id:string,reason:string) => request<{listing:TeachingListing}>('POST','/v1/staff/listings/'+encodeURIComponent(id)+'/inspections',{reason}),
+  reviewListing: (id:string,revision:number,outcome:'APPROVE'|'CHANGES_REQUESTED',reason:string) => request<{listing:TeachingListing}>('POST','/v1/staff/listings/'+encodeURIComponent(id)+'/reviews',{revision,outcome,reason}),
+  listingSafety: (id:string,revision:number,action:'SUSPEND'|'LIFT',reason:string) => request<{listing:TeachingListing}>('POST','/v1/staff/listings/'+encodeURIComponent(id)+'/safety',{revision,action,reason}),
   tutorPolicy: () => request<TutorPolicy>('GET','/v1/tutor-policy'),
   tutor: () => request<TutorState>('GET','/v1/me/tutor'),
   saveTutor: (display_name:string,biography:string,birth_date:string,adult_confirmed:boolean) => request<TutorState>('POST','/v1/me/tutor',{display_name,biography,birth_date,adult_confirmed}),

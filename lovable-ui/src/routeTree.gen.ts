@@ -23,7 +23,9 @@ import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
+import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
+import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,9 +97,19 @@ const StaffGuardiansRoute = StaffGuardiansRouteImport.update({
   path: '/staff/guardians',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffListingsRoute = StaffListingsRouteImport.update({
+  id: '/staff_/listings',
+  path: '/staff/listings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffTutorsRoute = StaffTutorsRouteImport.update({
   id: '/staff_/tutors',
   path: '/staff/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorListingsRoute = TutorListingsRouteImport.update({
+  id: '/tutor_/listings',
+  path: '/tutor/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -116,7 +128,9 @@ export interface FileRoutesByFullPath {
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
+  '/staff/listings': typeof StaffListingsRoute
   '/staff/tutors': typeof StaffTutorsRoute
+  '/tutor/listings': typeof TutorListingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,7 +147,9 @@ export interface FileRoutesByTo {
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
+  '/staff/listings': typeof StaffListingsRoute
   '/staff/tutors': typeof StaffTutorsRoute
+  '/tutor/listings': typeof TutorListingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +167,9 @@ export interface FileRoutesById {
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
+  '/staff_/listings': typeof StaffListingsRoute
   '/staff_/tutors': typeof StaffTutorsRoute
+  '/tutor_/listings': typeof TutorListingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +188,9 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
+    | '/staff/listings'
     | '/staff/tutors'
+    | '/tutor/listings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,7 +207,9 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
+    | '/staff/listings'
     | '/staff/tutors'
+    | '/tutor/listings'
   id:
     | '__root__'
     | '/'
@@ -204,7 +226,9 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/staff_/catalogue'
     | '/staff_/guardians'
+    | '/staff_/listings'
     | '/staff_/tutors'
+    | '/tutor_/listings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,7 +246,9 @@ export interface RootRouteChildren {
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
+  StaffListingsRoute: typeof StaffListingsRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
+  TutorListingsRoute: typeof TutorListingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -325,11 +351,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffGuardiansRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/listings': {
+      id: '/staff_/listings'
+      path: '/staff/listings'
+      fullPath: '/staff/listings'
+      preLoaderRoute: typeof StaffListingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/tutors': {
       id: '/staff_/tutors'
       path: '/staff/tutors'
       fullPath: '/staff/tutors'
       preLoaderRoute: typeof StaffTutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor_/listings': {
+      id: '/tutor_/listings'
+      path: '/tutor/listings'
+      fullPath: '/tutor/listings'
+      preLoaderRoute: typeof TutorListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -350,7 +390,9 @@ const rootRouteChildren: RootRouteChildren = {
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
+  StaffListingsRoute: StaffListingsRoute,
   StaffTutorsRoute: StaffTutorsRoute,
+  TutorListingsRoute: TutorListingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

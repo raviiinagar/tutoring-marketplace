@@ -22,6 +22,8 @@ import {CatalogueController} from './catalogue-controller.js';
 import {TutorsService} from './tutors.js';
 import {TutorsController} from './tutors-controller.js';
 import {evidenceScanner,type EvidenceScanner} from './evidence-scanner.js';
+import {ListingsService} from './listings.js';
+import {ListingsController} from './listings-controller.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -143,9 +145,10 @@ export async function createApplication(config: Config,database: Database,now:()
   const learners=new LearnersService(database,config,auth,staff,verifier,now);
   const catalogue=new CatalogueService(database,staff);
   const tutors=new TutorsService(database,config,auth,staff,scanner,now);
+  const listings=new ListingsService(database,auth,staff,catalogue,tutors,now);
   @Module({
-    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
