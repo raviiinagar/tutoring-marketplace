@@ -13,14 +13,14 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   return (
     <header className="site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-5 lg:flex lg:justify-between lg:px-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-4 lg:flex lg:justify-between lg:px-8">
         <Link to="/" aria-label="Tutor Marketplace home" className="brand-link min-w-0 rounded-md">
           <BrandWordmark />
         </Link>
-        <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm font-medium lg:flex">
-          <Link to="/tutors" className="hover:text-coral-strong">Find Tutors</Link><a href="/#subjects" className="hover:text-coral-strong">Explore subjects</a><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
+        <nav aria-label="Main navigation" className="hidden items-center gap-6 text-sm font-medium lg:flex">
+          <Link to="/tutors" className="hover:text-coral-strong">Find Tutors</Link><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
           <Link to="/auth/signin" className="ml-4 hover:text-coral-strong">Sign in</Link>
-          <Button asChild variant="outline" className="h-11 border-foreground/20 px-5 font-semibold"><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
+          <Button asChild variant="outline" className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
         </nav>
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
       </div>

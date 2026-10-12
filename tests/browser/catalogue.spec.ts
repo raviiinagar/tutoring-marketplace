@@ -33,16 +33,16 @@ await page.getByRole('button',{name:'I saved my recovery codes',exact:true}).cli
     await page.getByRole('button',{name:'Save catalogue term',exact:true}).click();
     await expect(page.getByRole('status')).toContainText('Catalogue term saved');
     await page.goto('/');
-    const domains=page.locator('#subjects');await expect(domains.getByRole('button')).toHaveCount(8);
-    await page.getByLabel('What would you like to learn?').fill('IIT-JEE');await page.getByRole('button',{name:'Explore',exact:true}).click();
+    const domains=page.locator('#subjects');await expect(domains.locator('[data-domain]')).toHaveCount(8);
+    await page.getByLabel('Search learning domains').fill('IIT-JEE');await page.getByRole('button',{name:'Explore',exact:true}).click();
     await expect(domains.getByRole('button',{name:/Entrance examinations/})).toBeVisible();
     await domains.getByRole('button',{name:/Entrance examinations/}).click();
     const dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Exam tracks',exact:true})).toBeVisible();await expect(dialog.getByText('NEET',{exact:true})).toBeVisible();await expect(dialog.getByText('CUET',{exact:true})).toBeVisible();await expect(dialog.getByText('Physics',{exact:true})).toBeVisible();await expect(dialog.getByText('Hindi',{exact:true})).toBeVisible();
     await page.keyboard.press('Escape');
-    await page.getByLabel('What would you like to learn?').fill(`Browser alias ${suffix}`);await page.getByRole('button',{name:'Explore',exact:true}).click();
+    await page.getByLabel('Search learning domains').fill(`Browser alias ${suffix}`);await page.getByRole('button',{name:'Explore',exact:true}).click();
     await domains.getByRole('button',{name:/Career skills/}).click();await expect(dialog.getByText(label,{exact:true})).toBeVisible();await page.keyboard.press('Escape');
     await page.goto('/staff/catalogue');await page.getByRole('button',{name:`Edit ${label} SUBJECT`,exact:true}).click();
     await expect(page.getByLabel('Stable identifier')).toBeDisabled();await page.getByLabel('Active in public catalogue').uncheck();await page.getByLabel('Reason for catalogue change').fill('Deactivate browser fixture subject');await page.getByRole('button',{name:'Save catalogue term',exact:true}).click();await expect(page.getByRole('status')).toContainText('Catalogue term saved');
-    await page.goto('/');await page.getByLabel('What would you like to learn?').fill(`Browser alias ${suffix}`);await page.getByRole('button',{name:'Explore',exact:true}).click();await expect(domains).toContainText('No matching learning domains');
+    await page.goto('/');await page.getByLabel('Search learning domains').fill(`Browser alias ${suffix}`);await page.getByRole('button',{name:'Explore',exact:true}).click();await expect(domains).toContainText('No matching learning domains');
   }finally{if(granted)await operator('revoke',email);}
 });
