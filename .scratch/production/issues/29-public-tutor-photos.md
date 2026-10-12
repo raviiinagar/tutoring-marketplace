@@ -31,3 +31,7 @@ Migration applied to the existing local database and the development stack resta
 ## Comments
 
 Source requirement: production spec line 119 and design map's Tutor image decision. Dependencies were already complete when the owner authorized this correction. Migration numbering remains chronological; migration 012 is photos, while implementation ticket 12 remains chat.
+
+Photo queue follow-up (12 October 2026): the owner's screenshot showed an empty review screen. A read-only aggregate inspection confirmed zero photo records in the ordinary local database; automated photo fixtures had used a separate database. The review screen now distinguishes loading, an empty successful queue, permission failures and populated results. Empty guidance explains the Tutor portrait upload prerequisite and separate identity-evidence review; the reason field appears only when photos are listed. Refresh clears previous preview/results, and late responses cannot create a preview after unmount.
+
+UI typecheck and production build passed. A local browser check exercised loading, empty, MFA denial, populated results and refresh-to-empty transitions, and asserted no mobile overflow; its mobile screenshot was inspected. These response-controlled UI checks do not claim changing the owner's account or creating photo supply. The existing real Tutor upload/review browser journey also passed in an isolated rerun (one journey, 2.5 minutes including startup). No API/domain command changed in this follow-up.
