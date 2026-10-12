@@ -4,9 +4,11 @@ The [production specification](./spec.md) consolidates the owner's confirmed cho
 
 ## Current state
 
-Latest verification: [ticket 11 evidence](./issues/11-tutor-decision-and-connection.md). All 80 API tests, nine UI tests and eight browser journeys passed, along with final build/typecheck. Tutors can accept/decline eligible covered requests; transactional Connections, adult membership/conversation metadata and separate verified-email contact permission checks are integrated. Current safety/consent/grant revocation blocks reads, while ordinary pass expiry preserves established rights. MATCHING acceptance waits for task-15 activation before contact release; production refuses fixture coverage. See the [Connection guide](../../docs/api/connections.md). Real payment/SMTP, approved Guardian/privacy/retention procedures and deployment remain release dependencies. Earlier evidence is retained on each completed ticket.
+Latest alignment correction: [review follow-up](./alignment-review.md) and completed [ticket 29: public Tutor photos](./issues/29-public-tutor-photos.md). Staff/participant lock ordering is consistent, approved portrait upload/review/display is integrated and navigation reflects cookie-session state. All 85 current API scenarios have passing evidence across the regression run and corrected auth-suite rerun; nine UI tests, eight browser journeys, final build/typecheck and both runtime dependency audits passed. Live launch dependencies remain unchanged.
 
-Design and research are recorded. There are 28 implementation tickets with acceptance criteria and blocking edges; tickets 01–11 are implemented and verified. A triage role is distinct from its `Resolution: completed` field.
+Earlier verification: [ticket 11 evidence](./issues/11-tutor-decision-and-connection.md). All 80 API tests, nine UI tests and eight browser journeys passed, along with final build/typecheck. Tutors can accept/decline eligible covered requests; transactional Connections, adult membership/conversation metadata and separate verified-email contact permission checks are integrated. Current safety/consent/grant revocation blocks reads, while ordinary pass expiry preserves established rights. MATCHING acceptance waits for task-15 activation before contact release; production refuses fixture coverage. See the [Connection guide](../../docs/api/connections.md). Real payment/SMTP, approved Guardian/privacy/retention procedures and deployment remain release dependencies. Earlier evidence is retained on each completed ticket.
+
+Design and research are recorded. There are 29 implementation tickets with acceptance criteria and blocking edges; tickets 01–11 and 29 are implemented and verified. A triage role is distinct from its `Resolution: completed` field.
 
 The next numbered dependency-ready task is [ticket 12: Durable text chat](./issues/12-durable-text-chat.md). The Lovable UI uses the authoritative NestJS/PostgreSQL cookie API. Conversation metadata exists; message persistence, unread/reconnect and realtime transport follow in task 12. Verified checkout/activation and availability-alert delivery remain their later slices; current tests do not claim a production launch.
 
@@ -42,12 +44,13 @@ The main delivery chain is accounts → approved supply/discovery → requests a
 | 20 | [Deliver transactional notifications with preferences](./issues/20-transactional-notification-delivery.md) | 09, 12, 17 |
 | 21 | [Submit and moderate connection-linked Reviews](./issues/21-connection-linked-reviews.md) | 13 |
 | 22 | [Resolve support cases and appeals through scoped actions](./issues/22-support-and-appeal-cases.md) | 18, 21 |
-| 23 | [Export or delete personal data with tracked retention](./issues/23-privacy-export-deletion-and-retention.md) | 04, 06, 09, 19, 20, 22 |
-| 24 | [Publish useful pages and inspect delivered matching value](./issues/24-public-seo-and-marketplace-metrics.md) | 09, 15, 19, 21 |
+| 23 | [Export or delete personal data with tracked retention](./issues/23-privacy-export-deletion-and-retention.md) | 04, 06, 09, 19, 20, 22, 29 |
+| 24 | [Publish useful pages and inspect delivered matching value](./issues/24-public-seo-and-marketplace-metrics.md) | 09, 15, 19, 21, 29 |
 | 25 | [Detect critical failures and replay durable work safely](./issues/25-critical-alerts-and-job-replay.md) | 19, 20, 22 |
 | 26 | [Deploy a pilot and demonstrate complete recovery](./issues/26-deployment-backup-and-restore.md) | 23, 25 |
 | 27 | [Verify accessible journeys under pilot load](./issues/27-accessibility-and-realistic-load.md) | 12, 23, 24 |
 | 28 | [Complete production readiness and a controlled real-user pilot](./issues/28-production-readiness-and-controlled-pilot.md) | 26, 27 |
+| 29 | [Upload, review and publish Tutor portraits](./issues/29-public-tutor-photos.md) | 03, 06, 08 |
 
 ## Release dependencies
 

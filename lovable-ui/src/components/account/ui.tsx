@@ -3,6 +3,9 @@ import { createContext, useContext, useEffect, useCallback, useId, useRef, useSt
 
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {useQuery} from '@tanstack/react-query';
+import {api} from '@/lib/api';
+import {accountSessionKey} from '@/lib/session';
 const AccountReady = createContext(false);
 
 export function BrandWordmark({className=''}:{className?:string}){
@@ -11,6 +14,11 @@ export function BrandWordmark({className=''}:{className?:string}){
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>setMounted(true),[]);
+  const session=useQuery({queryKey:accountSessionKey,queryFn:api.me,enabled:mounted,retry:false,staleTime:0});
+  const user=session.data?.ok?session.data.data.user:null;
+  const accountNavigation=user?<><Link to="/requests" className="hover:text-coral-strong">My enquiries</Link><Button asChild variant="outline" className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"><Link to="/account">My account <ArrowUpRight /></Link></Button></>:mounted&&!session.isPending?<><Link to="/auth/signin" className="hover:text-coral-strong">Sign in</Link><Button asChild variant="outline" className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button></>:<span role="status" className="text-sm text-muted-foreground">Checking account…</span>;
   return (
     <header className="site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-4 lg:flex lg:justify-between lg:px-8">
@@ -19,13 +27,12 @@ export function SiteHeader() {
         </Link>
         <nav aria-label="Main navigation" className="hidden items-center gap-6 text-sm font-medium lg:flex">
           <Link to="/tutors" className="hover:text-coral-strong">Find Tutors</Link><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
-          <Link to="/auth/signin" className="ml-4 hover:text-coral-strong">Sign in</Link>
-          <Button asChild variant="outline" className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
+          {accountNavigation}
         </nav>
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
       </div>
       {open && <nav id="mobile-navigation" aria-label="Mobile navigation" className="absolute inset-x-0 top-full grid gap-4 border-b bg-background px-5 py-6 shadow-sm lg:hidden" onClick={() => setOpen(false)}>
-        <Link to="/tutors">Find Tutors</Link><a href="/#subjects">Explore subjects</a><a href="/#tutors">Become a tutor</a><Link to="/auth/signin">Sign in</Link><Button asChild><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
+        <Link to="/tutors">Find Tutors</Link><a href="/#subjects">Explore subjects</a><a href="/#tutors">Become a tutor</a>{accountNavigation}
       </nav>}
     </header>
   );

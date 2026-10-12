@@ -3,6 +3,8 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { api, describeFailure } from "@/lib/api";
 import { hasErrors, mergeServerFieldErrors, validateEmail, validateSignInPassword, type FieldErrors } from "@/lib/validation";
 import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
+import {useQueryClient} from '@tanstack/react-query';
+import {accountSessionKey} from '@/lib/session';
 
 export const Route = createFileRoute("/auth/signin")({
   head: () => ({
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/auth/signin")({
 
 function SignIn() {
   const navigate = useNavigate();
+  const queryClient=useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -35,6 +38,7 @@ function SignIn() {
       if (hasErrors(next)) return;
       const res = await api.signIn({ email: email.trim(), password });
       if (res.ok) {
+        await queryClient.cancelQueries({queryKey:accountSessionKey});queryClient.setQueryData(accountSessionKey,res);
         navigate({ to: "/account" });
         return;
       }

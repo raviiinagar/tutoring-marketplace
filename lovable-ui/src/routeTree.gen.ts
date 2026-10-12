@@ -29,6 +29,7 @@ import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
+import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
@@ -134,6 +135,11 @@ const StaffListingsRoute = StaffListingsRouteImport.update({
   path: '/staff/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffPhotosRoute = StaffPhotosRouteImport.update({
+  id: '/staff_/photos',
+  path: '/staff/photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffTutorsRoute = StaffTutorsRouteImport.update({
   id: '/staff_/tutors',
   path: '/staff/tutors',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
+  '/staff/photos': typeof StaffPhotosRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
+  '/staff/photos': typeof StaffPhotosRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
+  '/staff_/photos': typeof StaffPhotosRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/staff/catalogue'
     | '/staff/guardians'
     | '/staff/listings'
+    | '/staff/photos'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/staff/catalogue'
     | '/staff/guardians'
     | '/staff/listings'
+    | '/staff/photos'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/staff_/catalogue'
     | '/staff_/guardians'
     | '/staff_/listings'
+    | '/staff_/photos'
     | '/staff_/tutors'
     | '/tutor_/listings'
     | '/tutor_/requests'
@@ -336,6 +348,7 @@ export interface RootRouteChildren {
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
+  StaffPhotosRoute: typeof StaffPhotosRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
@@ -484,6 +497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/photos': {
+      id: '/staff_/photos'
+      path: '/staff/photos'
+      fullPath: '/staff/photos'
+      preLoaderRoute: typeof StaffPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/tutors': {
       id: '/staff_/tutors'
       path: '/staff/tutors'
@@ -536,6 +556,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
+  StaffPhotosRoute: StaffPhotosRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,

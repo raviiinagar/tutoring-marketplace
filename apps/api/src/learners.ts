@@ -85,7 +85,7 @@ export class LearnersService {
     await this.audit(client,actor.id,'GUARDIAN_EVIDENCE_INSPECTED',id,correlation,{reason});return {verification:{id:row.id,user_id:row.user_id,status:row.status,policy_id:row.policy_id,notice_version:row.notice_version,consent_version:row.consent_version,evidence:decrypt<GuardianEvidence>(row.encrypted_evidence,this.config.authSecret)}};
   });}
   async review(token:string|undefined,staffToken:string|undefined,id:string,input:ReviewInput,correlation:string){const verifier=this.enabled();return this.database.transaction(async client=>{
-    const actor=await this.staff.authorize(client,token,staffToken,'TRUST');const row=(await client.query('SELECT * FROM guardian_verifications WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!row)throw notFound();if(row.user_id===actor.id)throw new ApiProblem(403,'SELF_REVIEW_FORBIDDEN','A different Trust reviewer must review this application.');
+    const planned=(await client.query('SELECT user_id FROM guardian_verifications WHERE id=$1',[id])).rows[0];const actor=await this.staff.authorize(client,token,staffToken,'TRUST',planned?[planned.user_id]:[]);const row=(await client.query('SELECT * FROM guardian_verifications WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!row)throw notFound();if(row.user_id===actor.id)throw new ApiProblem(403,'SELF_REVIEW_FORBIDDEN','A different Trust reviewer must review this application.');
     const status=input.decision==='APPROVE'?'APPROVED':input.decision==='REJECT'?'REJECTED':'REVOKED';
     if((input.decision==='REVOKE'&&row.status!=='APPROVED')||(input.decision!=='REVOKE'&&row.status!=='PENDING'))throw new ApiProblem(409,'VERIFICATION_STATE_CHANGED','This verification has already changed state.');
     if(input.decision==='APPROVE'){

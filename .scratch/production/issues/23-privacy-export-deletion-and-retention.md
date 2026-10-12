@@ -2,11 +2,13 @@
 
 Status: ready-for-agent
 Type: task
-Blocked by: 04 — Manage adult and guardian-controlled Learner profiles; 06 — Onboard an adult Tutor and review private evidence; 09 — Subscribe to availability in an empty category; 19 — Inspect receipts and reconcile payments to settlements; 20 — Deliver transactional notifications with preferences; 22 — Resolve support cases and appeals through scoped actions
+Blocked by: 04 — Manage adult and guardian-controlled Learner profiles; 06 — Onboard an adult Tutor and review private evidence; 09 — Subscribe to availability in an empty category; 19 — Inspect receipts and reconcile payments to settlements; 20 — Deliver transactional notifications with preferences; 22 — Resolve support cases and appeals through scoped actions; 29 — Upload, review and publish Tutor portraits
 
 **What to build:** An authenticated account holder requests export, deletion or consent withdrawal and sees completion while approved retained records remain restricted.
 
 ## Acceptance criteria
+
+- [ ] Include public Tutor photo records/assets in export, erasure, retention and deletion propagation.
 
 - [ ] Recent identity verification precedes export/deletion; expiring export downloads are authorised.
 - [ ] Withdrawal/deletion stop applicable new activity, revoke sessions/grants as required and propagate through public pages, assets, analytics and notifications.

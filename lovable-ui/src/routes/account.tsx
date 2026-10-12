@@ -3,6 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { api, describeFailure, type User, type AccountSession } from "@/lib/api";
 import { AuthShell, Notice, useSingleFlight } from "@/components/account/ui";
+import {useQueryClient} from '@tanstack/react-query';
+import {accountSessionKey} from '@/lib/session';
 
 export const Route = createFileRoute("/account")({
   ssr: false,
@@ -22,6 +24,7 @@ export const Route = createFileRoute("/account")({
 
 function Account() {
   const navigate = useNavigate();
+  const queryClient=useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loadError, setLoadError] = useState<string>();
   const [signOutError, setSignOutError] = useState<string>();
@@ -71,6 +74,7 @@ function Account() {
       setSignOutError(undefined);
       const res = await api.signOut();
       if (res.ok) {
+        await queryClient.cancelQueries({queryKey:accountSessionKey});queryClient.setQueryData(accountSessionKey,{ok:false,error:{kind:'http',status:401,code:'UNAUTHENTICATED',message:'Please sign in.'}});
         setUser(null);
         navigate({ to: "/auth/signin", replace: true });
       } else setSignOutError(describeFailure(res.error));

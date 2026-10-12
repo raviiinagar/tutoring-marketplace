@@ -52,3 +52,7 @@ The initial workspaces show the access audit trail. Recording an access purpose 
 ## Verification
 
 Use root `npm test`, `npm run typecheck`, `npm run build` and `npm run test:browser`. API tests use a separate fresh PostgreSQL cluster; browser fixtures are development accounts granted through the operator CLI and revoked in cleanup. The browser test does not provision the owner's real account or add live privileges.
+
+## Targeted command locking
+
+Staff commands involving another account must plan its identity with an unlocked lookup, then pass operator/target participants into scoped authorization. Authorization locks user rows in UUID order before account/staff sessions and domain records, consistent with Contact Requests and Connections. Re-read and validate mutable target state after acquiring those locks. Listing commands, Tutor evidence inspection/review/downloads, Guardian review and photo review follow this boundary; an initial lookup never grants permission. A deterministic HTTP regression overlaps the same operator's Listing inspection and enquiry and proves both complete successfully.

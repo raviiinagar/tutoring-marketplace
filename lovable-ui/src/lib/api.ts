@@ -24,6 +24,8 @@ export type LearnerConsent={accepted:true;notice_version:string;consent_version:
 export type CatalogueKind='SUBJECT'|'LEVEL'|'CURRICULUM'|'EXAM'|'LANGUAGE';
 export type CatalogueTerm={id:string;kind:CatalogueKind;label:string;aliases:string[];domain_ids:string[];active:boolean};
 export type Catalogue={domains:{id:string;label:string}[];terms:CatalogueTerm[]};
+export type TutorPhoto={id:string;status:'PENDING'|'APPROVED'|'REJECTED'|'REMOVED';scan_status:'CLEAN'|'REJECTED'|'ERROR';test_only:boolean;review_reason:string|null};
+export type TutorPhotoState={photo:TutorPhoto|null;policy:{uploads_enabled:boolean;test_only:boolean;max_bytes:number;media_types:string[];notice:string}};
 export type TutorPolicy={uploads_enabled:boolean;test_only:boolean;max_bytes:number;media_types:string[]};
 export type TutorEvidence={id:string;media_type:string;byte_length:number;scan_status:'QUARANTINED'|'CLEAN'|'REJECTED'|'ERROR'|'WITHDRAWN';test_only:boolean};
 export type TutorClaim={id:string;kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';subject_id:string|null;description:string;evidence_id:string;status:string;reviewed_by:string|null;reviewed_at:string|null;expires_at:string|null;review_reason:string|null;reviewed_check:string|null};
@@ -40,7 +42,7 @@ export type ConnectionPeer={display_name:string;email:string;email_verified:true
 export type ContactRequest={id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;connection_id:string|null;test_only:boolean};
 export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:false;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;test_only:true}|null};
 export type ContactRequestInput={request_key:string;listing_id:string;listing_revision:number;learner_id:string;subject_id:string;teaching_mode:'ONLINE';learning_requirements:string;preferred_times:string};
-export type PublicOffer={id:string;revision:number;tutor:{display_name:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
+export type PublicOffer={id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type CodeMessage = { code: string; message: string };
@@ -126,7 +128,15 @@ async function request<T>(
   };
 }
 
+export const assetUrl=(path:string)=>apiBaseUrl()+path;
 export const api = {
+  tutorPhoto:()=>request<TutorPhotoState>('GET','/v1/me/tutor/photo'),
+  uploadTutorPhoto:(media_type:string,data:string)=>request<{photo:TutorPhoto}>('POST','/v1/me/tutor/photo',{media_type,data,public_consent:true}),
+  removeTutorPhoto:(id:string)=>request<void>('DELETE','/v1/me/tutor/photo/'+encodeURIComponent(id)),
+  photoPreviewUrl:(id:string)=>assetUrl('/v1/me/tutor/photo/'+encodeURIComponent(id)),
+  tutorPhotoQueue:()=>request<{photos:(TutorPhoto&{display_name:string})[]}>('GET','/v1/staff/tutor-photos'),
+  inspectTutorPhoto:(id:string,reason:string)=>request<Blob>('POST','/v1/staff/tutor-photos/'+encodeURIComponent(id)+'/inspections',{reason},true),
+  reviewTutorPhoto:(id:string,outcome:'APPROVE'|'REJECT'|'REVOKE',reason:string)=>request<{photo:TutorPhoto}>('POST','/v1/staff/tutor-photos/'+encodeURIComponent(id)+'/reviews',{outcome,reason}),
   availabilityPolicy: () => request<AvailabilityPolicy>('GET','/v1/availability/policy'),
   subscribeAvailability: (email:string,selection:DiscoveryFilters,consent:boolean,adult_confirmed:boolean,consent_version:string) => request<CodeMessage>('POST','/v1/availability/subscriptions',{email,selection,consent,adult_confirmed,consent_version}),
   confirmAvailability: (token:string) => request<CodeMessage>('POST','/v1/availability/confirmations',{token}),

@@ -12,13 +12,14 @@ export const discoveryInput=z.strictObject({domain_id:slug.optional(),subject_id
 });
 type Filters=z.infer<typeof discoveryInput>;
 // One row per exact offer. Independent profile tags never participate in matching.
-const availableSql=`SELECT l.id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,
+const availableSql=`SELECT l.id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,photo.id AS photo_id,
   (SELECT jsonb_agg(jsonb_build_object('kind',c.kind,'reviewed_at',c.reviewed_at,'expires_at',c.expires_at) ORDER BY c.kind,c.id)
    FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
    WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.status='APPROVED' AND c.expires_at>$1
      AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only)
      AND (c.kind='IDENTITY' OR c.subject_id=l.payload->>'subject_id')) AS evidence_labels
  FROM teaching_listings l JOIN tutor_profiles p ON p.user_id=l.user_id JOIN users u ON u.id=l.user_id
+ LEFT JOIN tutor_photos photo ON photo.user_id=l.user_id AND photo.status='APPROVED' AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
  WHERE l.status='PUBLISHED' AND l.approved AND NOT l.safety_suspended
    AND p.status='APPROVED' AND p.revision=l.profile_revision AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL AND 'TUTOR'=ANY(u.roles)
    AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
@@ -40,7 +41,7 @@ export class DiscoveryService {
     // display name must not become a public contact field.
     const name=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(row.display_name)?'Tutor':row.display_name;
     const offer=row.payload;
-    return {id:row.id,revision:row.revision,tutor:{display_name:name},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
+    return {id:row.id,revision:row.revision,tutor:{display_name:name,...(row.photo_id?{photo_url:`/v1/discovery/${row.id}/photos/${row.photo_id}`}:{})},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
   }
   async search(input:Filters){return this.database.transaction(async client=>{
     // Catalogue validation and the result projection share one read-only snapshot.
@@ -61,4 +62,5 @@ export class DiscoveryService {
   });}
   async firstAvailable(input:Filters){let cursor:string|undefined;do{const page=await this.search({...input,limit:24,cursor});if(page.offers.length)return page.offers[0];cursor=page.next_cursor||undefined;}while(cursor);return undefined;}
   async detail(id:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3',[at,this.config.mode==='production',id])).rows[0];const listing=row?this.project(row,at):undefined;if(!listing)throw new ApiProblem(404,'OFFER_UNAVAILABLE','This teaching offer is currently unavailable.');return {listing};});}
+  async photo(id:string,photoId:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3 AND photo.id=$4',[at,this.config.mode==='production',id,photoId])).rows[0];if(!row||!this.project(row,at))throw new ApiProblem(404,'OFFER_UNAVAILABLE','This photo is currently unavailable.');const file=(await client.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photoId])).rows[0];return Buffer.from(decrypt<{data:string}>(file.encrypted_payload,this.config.authSecret).data,'base64');});}
 }

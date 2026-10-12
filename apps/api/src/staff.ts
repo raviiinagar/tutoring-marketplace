@@ -37,8 +37,8 @@ export async function assignStaff(database:Database,email:string,scopes:StaffSco
 
 export class StaffService {
   constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly now=nowDefault){}
-  private async context(client:PoolClient,accountToken?:string){
-    const {user,session}=await this.auth.authenticated(client,accountToken);
+  private async context(client:PoolClient,accountToken?:string,participants:string[]=[]){
+    const {user,session}=await this.auth.authenticated(client,accountToken,participants);
     const staff=(await client.query('SELECT * FROM staff_accounts WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];
     if(!staff?.enabled)throw forbidden();return {user,session,staff};
   }
@@ -125,8 +125,8 @@ export class StaffService {
       return {scope,events:rows.map(row=>({id:row.id,actor_id:row.user_id,event:row.event_type,created_at:new Date(row.created_at).toISOString(),target:row.metadata.target,reason:row.metadata.reason}))};
     });
   }
-  async authorize(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined,scope:StaffScope){
-    const context=await this.context(client,accountToken);
+  async authorize(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined,scope:StaffScope,participants:string[]=[]){
+    const context=await this.context(client,accountToken,participants);
     if(!context.staff.scopes.includes(scope))throw forbidden();
     if(!context.staff.encrypted_secret||!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
     return context.user;

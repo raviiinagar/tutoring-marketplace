@@ -32,6 +32,8 @@ import {ContactRequestsService} from './contact-requests.js';
 import {ContactRequestsController} from './contact-requests-controller.js';
 import {ConnectionsService} from './connections.js';
 import {ConnectionsController} from './connections-controller.js';
+import {TutorPhotosService} from './tutor-photos.js';
+import {TutorPhotosController} from './tutor-photos-controller.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -158,9 +160,10 @@ export async function createApplication(config: Config,database: Database,now:()
   const availability=new AvailabilityService(database,config,discovery,listings,now);
   const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,now);
   const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,now);
+  const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
   @Module({
-    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
@@ -186,7 +189,7 @@ export async function createApplication(config: Config,database: Database,now:()
     next();
   });
   const formJson=json({limit:'8kb',strict:true});const uploadJson=json({limit:'1400kb',strict:true});
-  app.use((request:Request,response:Response,next:()=>void)=>{(request.path==='/v1/me/tutor/evidence'&&request.method==='POST'?uploadJson:formJson)(request,response,next);});
+  app.use((request:Request,response:Response,next:()=>void)=>{(['/v1/me/tutor/evidence','/v1/me/tutor/photo'].includes(request.path)&&request.method==='POST'?uploadJson:formJson)(request,response,next);});
   app.useGlobalFilters(new ProblemsFilter());
   await app.init();
   return app;

@@ -230,6 +230,9 @@ html { scroll-behavior: smooth; }
 }
 
 /* Clean marketplace layout, guided by the owner's visual reference. */
+.teacher-portrait { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.teacher-cover:has(.teacher-portrait)::after { content:''; position:absolute; inset:35% 0 0; background:linear-gradient(transparent,#14121bb3); }
+.teacher-cover .teacher-cover-name,.teacher-cover .teacher-cover-note { z-index:1; }
 :root { --background: #fff; --foreground: #222126; --primary: #d63c4c; --primary-foreground: #fff; --coral-strong: #b73545; --coral-soft: #fff1f2; --border: #ecebed; --input: #e4e2e5; --muted-foreground: #66636a; --secondary: #f8f7f8; --secondary-foreground: #403d43; --success-soft: #edf6f0; }
 .brand-wordmark { font-size: clamp(21px, 2vw, 26px); }
 .site-header { border-color: transparent; box-shadow: 0 1px 0 #f4f2f3; }

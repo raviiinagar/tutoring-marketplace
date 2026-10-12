@@ -2,11 +2,13 @@
 
 Status: ready-for-agent
 Type: task
-Blocked by: 09 — Subscribe to availability in an empty category; 15 — Activate paid access once and connect accepted Tutors; 19 — Inspect receipts and reconcile payments to settlements; 21 — Submit and moderate connection-linked Reviews
+Blocked by: 09 — Subscribe to availability in an empty category; 15 — Activate paid access once and connect accepted Tutors; 19 — Inspect receipts and reconcile payments to settlements; 21 — Submit and moderate connection-linked Reviews; 29 — Upload, review and publish Tutor portraits
 
 **What to build:** Visitors find useful public Tutor/category pages and the owner sees search coverage, response, Connection and refund outcomes by domain.
 
 ## Acceptance criteria
+
+- [ ] Include public Tutor photo records/assets in eligible public projection and suspension/removal invalidation.
 
 - [ ] Rendered metadata, canonical URLs and sitemaps reflect real approved supply; private dashboards and data are excluded from indexing.
 - [ ] Stable slugs/redirects preserve public navigation while suspension/deletion invalidates public exposure.

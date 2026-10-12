@@ -1,5 +1,6 @@
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
+import sharp from 'sharp';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {createServer} from 'node:net';
 import {join,resolve} from 'node:path';
@@ -68,6 +69,81 @@ async function pending(state:'ACTIVE'|'MATCHING'='ACTIVE'){const s=await scenari
 async function accepted(){const s=await pending();const response=(await decide(s.row.id,'ACCEPT',s.teacher.cookie).expect(200)).body;return {...s,connection:response.connection_id as string};}
 const contacts=(id:string,cookie?:string)=>get('/v1/me/connections/'+id+'/contacts',cookie);
 const connectionCount=async(id:string)=>Number((await database.pool.query('SELECT count(*) FROM connections WHERE request_id=$1',[id])).rows[0].count);
+
+test('Trust Listing inspection and the same operator enquiry cannot deadlock on participant users',async()=>{
+ const teacher=await tutor();const listing=await publish(teacher);
+ // Pin a fictional operator after the Tutor in UUID order; use real login/profile commands.
+ const id='ffffffff-ffff-4fff-8fff-ffffffffffff';const email=randomUUID()+'@example.test';
+ await database.pool.query("INSERT INTO users(id,email,display_name,password_hash,status,email_verified_at,roles) SELECT $1,$2,'Concurrent operator',password_hash,'ACTIVE',now(),ARRAY['LEARNER'] FROM users WHERE id=$3",[id,email,teacher.id]);
+ const login=await post('/v1/auth/sessions',{email,password}).expect(200);const cookie=login.headers['set-cookie'][0] as string;
+ const profile=(await post('/v1/me/learners/adult',{alias:'Concurrent operator learner',learning_requirements:'Practice Physics concepts with worked examples',adult_confirmed:true},cookie).expect(201)).body.profile;
+ const chosen={id,email,cookie,profile};assert.ok(chosen.id>teacher.id);
+ await assignStaff(database,chosen.email,['TRUST'],'Concurrent review fixture','test operator');const elevated=await enroll(chosen.cookie);await grant(chosen.email);
+ let entered!:()=>void;let release!:()=>void;const paused=new Promise<void>(done=>entered=done);const resume=new Promise<void>(done=>release=done);let intercepted=false;
+ const original=database.transaction.bind(database);
+ database.transaction=async operation=>original(async client=>{const query=client.query.bind(client);(client as any).query=async(...args:any[])=>{const result=await (query as any)(...args);if(!intercepted&&args[0]==='SELECT user_id FROM teaching_listings WHERE id=$1'&&args[1]?.[0]===listing.id){intercepted=true;entered();await resume;}return result;};try{return await operation(client);}finally{client.query=query;}});
+ try{
+   const inspection=post('/v1/staff/listings/'+listing.id+'/inspections',{reason:'Inspect current offer during own enquiry'},elevated.cookie).then(response=>response);
+   await paused;let completed=false;const enquiryResult=submit(enquiry(chosen.profile.id,listing),chosen.cookie).then(response=>{completed=true;return response;});
+   const until=Date.now()+4000;while(!completed&&Date.now()<until){const waiting=await database.pool.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock'");if(waiting.rowCount)break;await new Promise(done=>setTimeout(done,20));}
+   release();const replies=await Promise.all([inspection,enquiryResult]);assert.deepEqual(replies.map(r=>r.status),[200,200]);
+ }finally{release();database.transaction=original;}
+});
+
+async function portrait(){return sharp({create:{width:320,height:400,channels:3,background:'#d589ab'}}).withMetadata({exif:{IFD0:{ImageDescription:'FICTIONAL-TUTOR-EVIDENCE'}}}).jpeg().toBuffer();}
+const uploadPhoto=(data:Buffer,cookie?:string,changes:Record<string,unknown>={})=>post('/v1/me/tutor/photo',{media_type:'image/jpeg',data:data.toString('base64'),public_consent:true,...changes},cookie);
+const reviewPhoto=(id:string,outcome:string,cookie:string)=>post('/v1/staff/tutor-photos/'+id+'/reviews',{outcome,reason:'Fictional adult portrait content reviewed'},cookie);
+
+test('Tutor photos stay private until Trust approval and public delivery follows current offer eligibility',async()=>{
+ const teacher=await tutor();const listing=await publish(teacher);const raw=await portrait();
+ const photo=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;assert.equal(photo.status,'PENDING');assert.equal(photo.scan_status,'CLEAN');
+ assert.equal((await find()).body.offers.find((o:{id:string})=>o.id===listing.id).tutor.photo_url,undefined);
+ const publicPath='/v1/discovery/'+listing.id+'/photos/'+photo.id;await get(publicPath).expect(404);await get('/v1/me/tutor/photo/'+photo.id).expect(401);
+ const stranger=await fixture(null);await get('/v1/me/tutor/photo/'+photo.id,stranger.cookie).expect(403);
+ const another=await tutor();await get('/v1/me/tutor/photo/'+photo.id,another.cookie).expect(404);
+ const preview=await get('/v1/me/tutor/photo/'+photo.id,teacher.cookie).expect(200);const metadata=await sharp(preview.body).metadata();assert.equal(metadata.width,640);assert.equal(metadata.height,800);assert.equal(metadata.exif,undefined);assert.equal(metadata.format,'jpeg');
+ const stored=(await database.pool.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photo.id])).rows[0];assert.ok(!JSON.stringify(stored).includes('FICTIONAL-TUTOR-EVIDENCE'));
+ await post('/v1/staff/tutor-photos/'+photo.id+'/inspections',{reason:'Review fictional portrait image'},teacher.reviewer!.cookie).expect(200);
+ await reviewPhoto(photo.id,'APPROVE',teacher.reviewer!.cookie).expect(200);await reviewPhoto(photo.id,'APPROVE',teacher.reviewer!.cookie).expect(409);
+ assert.equal((await find()).body.offers.find((o:{id:string})=>o.id===listing.id).tutor.photo_url,publicPath);await get(publicPath).expect(200).expect('Content-Type',/image\/jpeg/).expect('Cache-Control','no-store');
+ const paused=(await post('/v1/me/listings/'+listing.id+'/actions/PAUSE',{revision:listing.revision},teacher.cookie).expect(200)).body.listing;await get(publicPath).expect(404);
+ const resumed=(await post('/v1/me/listings/'+listing.id+'/actions/RESUME',{revision:paused.revision},teacher.cookie).expect(200)).body.listing;await get(publicPath).expect(200);
+ const suspended=(await post('/v1/staff/listings/'+listing.id+'/safety',{revision:resumed.revision,action:'SUSPEND',reason:'Restrict photo and offer during safety review'},teacher.reviewer!.cookie).expect(200)).body.listing;await get(publicPath).expect(404);
+ const lifted=(await post('/v1/staff/listings/'+listing.id+'/safety',{revision:suspended.revision,action:'LIFT',reason:'Complete fictional photo and offer safety review'},teacher.reviewer!.cookie).expect(200)).body.listing;
+ await post('/v1/me/listings/'+listing.id+'/actions/RESUME',{revision:lifted.revision},teacher.cookie).expect(200);await get(publicPath).expect(200);
+ await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,clock]);await get(publicPath).expect(404);
+ await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,new Date(clock.getTime()+86400000)]);await get(publicPath).expect(200);
+ await reviewPhoto(photo.id,'REVOKE',teacher.reviewer!.cookie).expect(200);await get(publicPath).expect(404);assert.equal((await database.pool.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photo.id])).rows[0].encrypted_payload,null);
+});
+
+test('photo replacement/removal invalidate old URLs and cannot alter identity approval or remove another Tutor photo',async()=>{
+ const teacher=await tutor();const listing=await publish(teacher);const raw=await portrait();const first=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;
+ await reviewPhoto(first.id,'APPROVE',teacher.reviewer!.cookie).expect(200);
+ const second=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;await get('/v1/discovery/'+listing.id+'/photos/'+first.id).expect(404);await reviewPhoto(first.id,'APPROVE',teacher.reviewer!.cookie).expect(404);
+ const old=(await database.pool.query('SELECT status,encrypted_payload FROM tutor_photos WHERE id=$1',[first.id])).rows[0];assert.equal(old.status,'REMOVED');assert.equal(old.encrypted_payload,null);
+ assert.equal((await get('/v1/me/tutor',teacher.cookie)).body.profile.status,'APPROVED');assert.equal((await get('/v1/discovery/'+listing.id)).body.listing.tutor.photo_url,undefined);
+ const another=await tutor();await del('/v1/me/tutor/photo/'+second.id,another.cookie).expect(404);
+ await del('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(204);await del('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(204);assert.equal((await get('/v1/me/tutor/photo',teacher.cookie)).body.photo,null);
+ await get('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(404);
+});
+
+test('photo upload validates decoding, dimensions, consent, scanner result and privileged reviewer scope',async()=>{
+ const teacher=await tutor();const raw=await portrait();await uploadPhoto(raw).expect(401);
+ for(const change of [{public_consent:false},{media_type:'image/png'},{owner_id:teacher.id},{data:'not-base64'},{media_type:'image/svg+xml'}])await uploadPhoto(raw,teacher.cookie,change).expect(400);
+ const tiny=await sharp({create:{width:32,height:32,channels:3,background:'#fff'}}).png().toBuffer();await uploadPhoto(tiny,teacher.cookie,{media_type:'image/png'}).expect(400);
+ const cleanTeacher=await tutor();const rejected=(await uploadPhoto(Buffer.concat([raw,Buffer.from('MALICIOUS-FIXTURE')]),cleanTeacher.cookie).expect(201)).body.photo;assert.equal(rejected.status,'REJECTED');assert.equal(rejected.scan_status,'REJECTED');await get('/v1/me/tutor/photo/'+rejected.id,cleanTeacher.cookie).expect(404);
+ const third=await tutor();const photo=(await uploadPhoto(raw,third.cookie).expect(201)).body.photo;
+ await reviewPhoto(photo.id,'APPROVE',third.cookie).expect(403);const support=await fixture(['SUPPORT']);const mfa=await enroll(support.cookie);await reviewPhoto(photo.id,'APPROVE',mfa.cookie).expect(403);
+ await assignStaff(database,third.email,['TRUST'],'Fictional self photo reviewer','test operator');const self=await enroll(third.cookie);await reviewPhoto(photo.id,'APPROVE',self.cookie).expect(403);
+ await post('/v1/staff/tutor-photos/'+photo.id+'/inspections',{reason:'short'},third.reviewer!.cookie).expect(400);await reviewPhoto(photo.id,'REJECT',third.reviewer!.cookie).expect(200);
+});
+
+test('production excludes fictional photo assets even when the underlying Tutor evidence is nonfictional',async()=>{
+ const teacher=await tutor();const listing=await publish(teacher);const photo=(await uploadPhoto(await portrait(),teacher.cookie).expect(201)).body.photo;await reviewPhoto(photo.id,'APPROVE',teacher.reviewer!.cookie).expect(200);
+ await database.pool.query('UPDATE tutor_evidence SET test_only=false WHERE user_id=$1',[teacher.id]);
+ const production=await createApplication({...config,mode:'production',evidenceScanner:'disabled',guardianMode:'disabled'},database,now,undefined,undefined);
+ try{const detail=await request(production.getHttpServer()).get('/v1/discovery/'+listing.id).expect(200);assert.equal(detail.body.listing.tutor.photo_url,undefined);await request(production.getHttpServer()).get('/v1/discovery/'+listing.id+'/photos/'+photo.id).expect(404);}finally{await production.close();}
+});
 
 test('only the targeted Tutor can decide and contacts require the two adult participants and a granted Connection',async()=>{
  const s=await pending();const stranger=await tutor();await decide(s.row.id,'ACCEPT').expect(401);await decide(s.row.id,'ACCEPT',s.owner.cookie).expect(404);await decide(s.row.id,'ACCEPT',stranger.cookie).expect(404);await post('/v1/me/tutor-requests/'+s.row.id+'/decisions',{decision:'ACCEPT',paid:true},s.teacher.cookie).expect(400);await contacts(s.row.id,s.owner.cookie).expect(404);

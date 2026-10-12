@@ -206,8 +206,9 @@ test('disabled recovery cannot restore access; successful reset invalidates sibl
   for(const cookie of cookies)await request(app.getHttpServer()).get('/v1/me').set('Cookie',cookie).expect(401);
 });
 test('database restart preserves accounts and migration ledger',async()=>{
+  const ledger=(await database.pool.query('SELECT version,checksum,applied_at FROM schema_migrations ORDER BY version')).rows;
   await app.close();await database.close();await cluster.stop();await cluster.start();database=new Database(config.databaseUrl);
   await migrate(database);app=await createApplication(config,database,now);
-  assert.equal((await database.pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count,'11');
+  assert.deepEqual((await database.pool.query('SELECT version,checksum,applied_at FROM schema_migrations ORDER BY version')).rows,ledger);
   assert.equal((await database.pool.query("SELECT count(*) FROM users WHERE email='journey@example.test' AND status='ACTIVE'")).rows[0].count,'1');
 });
