@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as StaffRouteImport } from './routes/staff'
@@ -23,12 +24,14 @@ import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as AvailabilityActionRouteImport } from './routes/availability.$action'
+import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
+import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
 import { Route as TutorsListingIdRouteImport } from './routes/tutors_.$listingId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -39,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectionsRoute = ConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnersRoute = LearnersRouteImport.update({
@@ -101,6 +109,11 @@ const AvailabilityActionRoute = AvailabilityActionRouteImport.update({
   path: '/availability/$action',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnectionsConnectionIdRoute = ConnectionsConnectionIdRouteImport.update({
+  id: '/connections_/$connectionId',
+  path: '/connections/$connectionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevInboxRoute = DevInboxRouteImport.update({
   id: '/dev/inbox',
   path: '/dev/inbox',
@@ -131,6 +144,11 @@ const TutorListingsRoute = TutorListingsRouteImport.update({
   path: '/tutor/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorRequestsRoute = TutorRequestsRouteImport.update({
+  id: '/tutor_/requests',
+  path: '/tutor/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorsListingIdRoute = TutorsListingIdRouteImport.update({
   id: '/tutors_/$listingId',
   path: '/tutors/$listingId',
@@ -140,6 +158,7 @@ const TutorsListingIdRoute = TutorsListingIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
@@ -152,17 +171,20 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
+  '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
@@ -175,18 +197,21 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
+  '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
@@ -199,12 +224,14 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/tutor_/listings': typeof TutorListingsRoute
+  '/tutor_/requests': typeof TutorRequestsRoute
   '/tutors_/$listingId': typeof TutorsListingIdRoute
 }
 export interface FileRouteTypes {
@@ -212,6 +239,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/connections'
     | '/learners'
     | '/requests'
     | '/staff'
@@ -224,17 +252,20 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/tutors'
     | '/tutor/listings'
+    | '/tutor/requests'
     | '/tutors/$listingId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
+    | '/connections'
     | '/learners'
     | '/requests'
     | '/staff'
@@ -247,17 +278,20 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/tutors'
     | '/tutor/listings'
+    | '/tutor/requests'
     | '/tutors/$listingId'
   id:
     | '__root__'
     | '/'
     | '/account'
+    | '/connections'
     | '/learners'
     | '/requests'
     | '/staff'
@@ -270,18 +304,21 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/connections_/$connectionId'
     | '/dev/inbox'
     | '/staff_/catalogue'
     | '/staff_/guardians'
     | '/staff_/listings'
     | '/staff_/tutors'
     | '/tutor_/listings'
+    | '/tutor_/requests'
     | '/tutors_/$listingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  ConnectionsRoute: typeof ConnectionsRoute
   LearnersRoute: typeof LearnersRoute
   RequestsRoute: typeof RequestsRoute
   StaffRoute: typeof StaffRoute
@@ -294,12 +331,14 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyRoute: typeof AuthVerifyRoute
   AvailabilityActionRoute: typeof AvailabilityActionRoute
+  ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TutorListingsRoute: typeof TutorListingsRoute
+  TutorRequestsRoute: typeof TutorRequestsRoute
   TutorsListingIdRoute: typeof TutorsListingIdRoute
 }
 
@@ -317,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connections': {
+      id: '/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof ConnectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learners': {
@@ -403,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AvailabilityActionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connections_/$connectionId': {
+      id: '/connections_/$connectionId'
+      path: '/connections/$connectionId'
+      fullPath: '/connections/$connectionId'
+      preLoaderRoute: typeof ConnectionsConnectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dev/inbox': {
       id: '/dev/inbox'
       path: '/dev/inbox'
@@ -445,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tutor_/requests': {
+      id: '/tutor_/requests'
+      path: '/tutor/requests'
+      fullPath: '/tutor/requests'
+      preLoaderRoute: typeof TutorRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutors_/$listingId': {
       id: '/tutors_/$listingId'
       path: '/tutors/$listingId'
@@ -458,6 +518,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ConnectionsRoute: ConnectionsRoute,
   LearnersRoute: LearnersRoute,
   RequestsRoute: RequestsRoute,
   StaffRoute: StaffRoute,
@@ -470,12 +531,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyRoute: AuthVerifyRoute,
   AvailabilityActionRoute: AvailabilityActionRoute,
+  ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TutorListingsRoute: TutorListingsRoute,
+  TutorRequestsRoute: TutorRequestsRoute,
   TutorsListingIdRoute: TutorsListingIdRoute,
 }
 export const routeTree = rootRouteImport

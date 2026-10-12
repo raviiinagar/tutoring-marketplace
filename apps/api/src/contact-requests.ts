@@ -25,7 +25,8 @@ export class ContactRequestsService {
   private async view(client:PoolClient,row:Record<string,any>){
     let learner:Record<string,any>|undefined;try{learner=await this.learners.requireUsable(client,row.payer_id,row.learner_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}
     const message=learner?decrypt<{learning_requirements:string;preferred_times:string}>(row.encrypted_message,this.config.authSecret):null;
-    return {id:row.id,listing_id:row.listing_id,learner_id:row.learner_id,learner_alias:learner?.alias||null,learner_usable:!!learner,offer:row.offer_snapshot,...(message||{learning_requirements:null,preferred_times:null}),status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),request_policy_version:row.request_policy_version,test_only:row.coverage_snapshot.source==='FIXTURE'};
+    const connection=(await client.query('SELECT id FROM connections WHERE request_id=$1',[row.id])).rows[0];
+    return {id:row.id,listing_id:row.listing_id,learner_id:row.learner_id,learner_alias:learner?.alias||null,learner_usable:!!learner,offer:row.offer_snapshot,...(message||{learning_requirements:null,preferred_times:null}),status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),request_policy_version:row.request_policy_version,connection_id:connection?.id||null,test_only:row.coverage_snapshot.source==='FIXTURE'};
   }
   async submit(token:string|undefined,input:Input,correlation:string){return this.database.transaction(async client=>{
     const recipient=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[input.listing_id])).rows[0];

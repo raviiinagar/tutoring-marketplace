@@ -142,6 +142,8 @@ export class AuthService {
     });
     return {code:'PASSWORD_RESET',message:'Password updated. All sessions have been signed out. Sign in with your new password.'};
   }
+  // Read-only lookup for planning sorted locks; this never authorizes an action.
+  async sessionOwner(client: PoolClient, token?: string):Promise<string|undefined>{if(!token||!/^[A-Za-z0-9_-]{43}$/.test(token))return undefined;return (await client.query('SELECT user_id FROM sessions WHERE token_hash=$1',[tokenHash(token)])).rows[0]?.user_id;}
   async authenticated(client: PoolClient, token?: string, participants: string[] = []) {
     if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new ApiProblem(401,'UNAUTHENTICATED','Please sign in.');
     const found = (await client.query('SELECT user_id FROM sessions WHERE token_hash=$1',[tokenHash(token)])).rows[0];
