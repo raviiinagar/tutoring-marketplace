@@ -59,5 +59,6 @@ export class DiscoveryService {
     const rows=(await client.query(sql,values)).rows;const page=rows.slice(0,limit);const offers=page.map(row=>this.project(row,at)).filter(row=>row!==undefined);
     return {offers,next_cursor:rows.length>limit?page.at(-1).id:null,limit,order:'listing_id_ascending',price_currency:'INR'};
   });}
+  async firstAvailable(input:Filters){let cursor:string|undefined;do{const page=await this.search({...input,limit:24,cursor});if(page.offers.length)return page.offers[0];cursor=page.next_cursor||undefined;}while(cursor);return undefined;}
   async detail(id:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3',[at,this.config.mode==='production',id])).rows[0];const listing=row?this.project(row,at):undefined;if(!listing)throw new ApiProblem(404,'OFFER_UNAVAILABLE','This teaching offer is currently unavailable.');return {listing};});}
 }

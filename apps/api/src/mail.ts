@@ -5,7 +5,7 @@ import type { Config } from "./config.js";
 import type { Database } from "./database.js";
 import { decrypt, type EncryptedPayload } from "./security.js";
 
-export type VerificationMail = { to: string; verification_url: string; reset_url?: never } | { to: string; reset_url: string; verification_url?: never };
+export type VerificationMail = { to: string; verification_url: string; reset_url?: never } | { to: string; reset_url: string; verification_url?: never } | {to:string;availability_verification_url:string;availability_unsubscribe_url:string};
 export class MailWorker {
   constructor(private readonly database: Database, private readonly config: Config, private readonly now: () => Date = () => new Date()) {}
   async tick(): Promise<boolean> {
@@ -35,15 +35,16 @@ export class MailWorker {
     return true;
   }
   private async deliver(id: string, payload: VerificationMail) {
-    const recovery = !!payload.reset_url;
-    const subject = recovery ? 'Reset your password' : 'Verify your email';
-    const url = payload.reset_url || payload.verification_url;
+    const availability='availability_verification_url' in payload;
+    const recovery = !availability&&!!payload.reset_url;
+    const subject = availability?'Confirm your Tutor availability alert':recovery ? 'Reset your password' : 'Verify your email';
+    const url = availability?payload.availability_verification_url:payload.reset_url || payload.verification_url;
     if (this.config.mailTransport === "capture") {
       if (this.config.mode === "production") throw new Error("Capture forbidden in production");
       await mkdir(this.config.mailDir,{recursive:true});
       await writeFile(join(this.config.mailDir,id+".json"),JSON.stringify({
         id, development_only: true, to: payload.to, subject,
-        ...(recovery ? {reset_url:url} : {verification_url:url}), captured_at: this.now().toISOString(),
+        ...(availability?{availability_verification_url:url,availability_unsubscribe_url:payload.availability_unsubscribe_url}:recovery ? {reset_url:url} : {verification_url:url}), captured_at: this.now().toISOString(),
       },null,2),{mode:0o600});
       return;
     }
@@ -56,7 +57,7 @@ export class MailWorker {
     try {
       await transport.sendMail({
         from:settings.from,to:payload.to,subject,
-        text:(recovery ? 'Open this link to choose a new password. All sessions will be signed out after reset.' : 'Open this link and select Verify email.')+' It expires in 15 minutes.\n\n'+url+'\n\nIf you did not request this email, you can ignore it.',
+        text:(availability?'Confirm your optional, free Tutor availability alert. This is not marketing consent. Open the link and select Confirm availability alert.':recovery ? 'Open this link to choose a new password. All sessions will be signed out after reset.' : 'Open this link and select Verify email.')+' It expires in 15 minutes.\n\n'+url+(availability?'\n\nCancel or unsubscribe at any time:\n'+payload.availability_unsubscribe_url:'')+'\n\nIf you did not request this email, you can ignore it.',
         messageId:"<"+id+"@"+new URL(this.config.webOrigin).hostname+">",
       });
     } finally { transport.close(); }

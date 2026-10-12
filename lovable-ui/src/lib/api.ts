@@ -37,7 +37,8 @@ export type PublicOffer={id:string;tutor:{display_name:string};offer:TeachingOff
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type CodeMessage = { code: string; message: string };
-export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; captured_at: string; development_only: true };
+export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; availability_verification_url?:string;availability_unsubscribe_url?:string; captured_at: string; development_only: true };
+export type AvailabilityPolicy={consent_version:'availability-v1';purpose:'TUTOR_AVAILABILITY';duration_days:number;max_alerts:number;notice:string};
 export const localMailCapture = import.meta.env.DEV && import.meta.env["VITE_DEV_MAIL_CAPTURE"] === "true";
 
 export type ApiFailure =
@@ -119,6 +120,10 @@ async function request<T>(
 }
 
 export const api = {
+  availabilityPolicy: () => request<AvailabilityPolicy>('GET','/v1/availability/policy'),
+  subscribeAvailability: (email:string,selection:DiscoveryFilters,consent:boolean,adult_confirmed:boolean,consent_version:string) => request<CodeMessage>('POST','/v1/availability/subscriptions',{email,selection,consent,adult_confirmed,consent_version}),
+  confirmAvailability: (token:string) => request<CodeMessage>('POST','/v1/availability/confirmations',{token}),
+  unsubscribeAvailability: (token:string) => request<CodeMessage>('POST','/v1/availability/unsubscriptions',{token}),
   discover: (filters:DiscoveryFilters={}) => {const query=new URLSearchParams();for(const [key,value] of Object.entries(filters))if(value!==undefined&&value!=='')query.set(key,String(value));return request<DiscoveryPage>('GET','/v1/discovery'+(query.size?'?'+query.toString():''));},
   publicTutorOffer: (id:string) => request<{listing:PublicOffer}>('GET','/v1/discovery/'+encodeURIComponent(id)),
   listings: () => request<{listings:TeachingListing[]}>('GET','/v1/me/listings'),

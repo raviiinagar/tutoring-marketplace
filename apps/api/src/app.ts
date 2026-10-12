@@ -26,6 +26,8 @@ import {ListingsService} from './listings.js';
 import {ListingsController} from './listings-controller.js';
 import {DiscoveryService} from './discovery.js';
 import {DiscoveryController} from './discovery-controller.js';
+import {AvailabilityService} from './availability.js';
+import {AvailabilityController} from './availability-controller.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -149,9 +151,10 @@ export async function createApplication(config: Config,database: Database,now:()
   const tutors=new TutorsService(database,config,auth,staff,scanner,now);
   const listings=new ListingsService(database,auth,staff,catalogue,tutors,now);
   const discovery=new DiscoveryService(database,config,now);
+  const availability=new AvailabilityService(database,config,discovery,listings,now);
   @Module({
-    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();

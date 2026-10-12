@@ -21,6 +21,7 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-passw
 import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
+import { Route as AvailabilityActionRouteImport } from './routes/availability.$action'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
@@ -89,6 +90,11 @@ const AuthVerifyRoute = AuthVerifyRouteImport.update({
   path: '/auth/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AvailabilityActionRoute = AvailabilityActionRouteImport.update({
+  id: '/availability/$action',
+  path: '/availability/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevInboxRoute = DevInboxRouteImport.update({
   id: '/dev/inbox',
   path: '/dev/inbox',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
+  '/availability/$action': typeof AvailabilityActionRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
+  '/availability/$action': typeof AvailabilityActionRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/auth/signin': typeof AuthSigninRoute
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
+  '/availability/$action': typeof AvailabilityActionRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/auth/signup'
     | '/auth/verify'
+    | '/availability/$action'
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/auth/signup'
     | '/auth/verify'
+    | '/availability/$action'
     | '/dev/inbox'
     | '/staff/catalogue'
     | '/staff/guardians'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/auth/signin'
     | '/auth/signup'
     | '/auth/verify'
+    | '/availability/$action'
     | '/dev/inbox'
     | '/staff_/catalogue'
     | '/staff_/guardians'
@@ -268,6 +280,7 @@ export interface RootRouteChildren {
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyRoute: typeof AuthVerifyRoute
+  AvailabilityActionRoute: typeof AvailabilityActionRoute
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
@@ -363,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/availability/$action': {
+      id: '/availability/$action'
+      path: '/availability/$action'
+      fullPath: '/availability/$action'
+      preLoaderRoute: typeof AvailabilityActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dev/inbox': {
       id: '/dev/inbox'
       path: '/dev/inbox'
@@ -428,6 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyRoute: AuthVerifyRoute,
+  AvailabilityActionRoute: AvailabilityActionRoute,
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
