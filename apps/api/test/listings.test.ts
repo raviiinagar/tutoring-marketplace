@@ -53,6 +53,20 @@ async function tutor(approved=true,subjects=['subject-physics']){
 async function draft(user:{cookie:string}){return (await post('/v1/me/listings',offer,user.cookie).expect(201)).body.listing;}
 async function submitted(user:{cookie:string}){const row=await draft(user);return (await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;}
 async function publish(user:Awaited<ReturnType<typeof tutor>>){const row=await submitted(user);return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact school Physics offer checked'},user.reviewer!.cookie).expect(200)).body.listing;}
+test('new offer eligibility names only current approved Subjects, including a Commerce-only Tutor',async()=>{
+ const user=await tutor(true,['subject-commerce']);
+ assert.equal((await get('/v1/me/tutor',user.cookie)).body.profile.eligible,true);
+ const state=(await get('/v1/me/listings',user.cookie).expect(200)).body;
+ assert.deepEqual(state.eligible_subject_ids,['subject-commerce']);assert.deepEqual(state.listings,[]);
+ await post('/v1/me/listings',offer,user.cookie).expect(403);
+ await post('/v1/me/listings',{...offer,title:'Commerce explained through examples',subject_id:'subject-commerce'},user.cookie).expect(201);
+ await database.pool.query("UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1 AND subject_id='subject-commerce'",[user.id,clock]);
+ assert.deepEqual((await get('/v1/me/listings',user.cookie).expect(200)).body.eligible_subject_ids,[]);
+ await database.pool.query("UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1 AND subject_id='subject-commerce'",[user.id,new Date(clock.getTime()+86400000)]);
+ assert.deepEqual((await get('/v1/me/listings',user.cookie)).body.eligible_subject_ids,['subject-commerce']);
+ await post('/v1/me/tutor',profile,user.cookie).expect(200);
+ const revised=(await get('/v1/me/listings',user.cookie).expect(200)).body;assert.deepEqual(revised.eligible_subject_ids,[]);assert.equal(revised.listings.length,1);
+});
 test('offers require approved Subject evidence and strict taxonomy, rates, durations and contact-free text',async()=>{
  const user=await tutor();const pending=await tutor(false);await post('/v1/me/listings',offer).expect(401);await post('/v1/me/listings',offer,pending.cookie).expect(403);
  for(const change of [{owner_id:user.id},{currency:'USD'},{rate_paise:1},{rate_paise:100.1},{teaching_mode:'IN_PERSON'},{language_ids:['language-english','language-english']},{curriculum_id:undefined},{domain_id:'career'},{subject_id:'exam-jee'},{rate_unit:'LESSON'},{trial_kind:'FREE'},{trial_price_paise:500},{title:'Contact tutor@example.test'},{description:'Contact me at https://example.test for private tutoring lessons.'},{curriculum_id:'curriculum-isc',level_id:'level-class-10'}])await post('/v1/me/listings',{...offer,...change},user.cookie).expect(change.subject_id==='exam-jee'?403:400);

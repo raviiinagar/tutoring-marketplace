@@ -51,7 +51,15 @@ export class ListingsService {
     }
     return {id:row.id,user_id:row.user_id,offer:row.payload,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':stale&&row.status!=='DRAFT'?'CHANGES_REQUESTED':row.status,eligible,requires_profile_review:stale,review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }
-  async own(token?:string){return this.database.transaction(async client=>{const {user}=await this.auth.authenticated(client,token);this.role(user);const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 ORDER BY created_at,id',[user.id])).rows;const listings=[];for(const row of rows)listings.push(await this.view(client,row));return {listings};});}
+  async own(token?:string){return this.database.transaction(async client=>{
+    const {user}=await this.auth.authenticated(client,token);this.role(user);
+    const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 ORDER BY created_at,id',[user.id])).rows;const listings=[];
+    for(const row of rows)listings.push(await this.view(client,row));
+    const candidates=(await client.query("SELECT DISTINCT c.subject_id FROM tutor_claims c JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision JOIN catalogue_terms t ON t.id=c.subject_id AND t.kind='SUBJECT' AND t.active WHERE c.user_id=$1 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' ORDER BY c.subject_id",[user.id])).rows;
+    const eligible_subject_ids:string[]=[];
+    for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
+    return {listings,eligible_subject_ids};
+  });}
   async create(token:string|undefined,offer:Offer,correlation:string){return this.database.transaction(async client=>{
     const {user}=await this.auth.authenticated(client,token);this.role(user);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id);await this.selection(client,offer);
     if(Number((await client.query('SELECT count(*) FROM teaching_listings WHERE user_id=$1',[user.id])).rows[0].count)>=20)throw fail('LISTING_LIMIT','At most twenty offers per Tutor.',429);

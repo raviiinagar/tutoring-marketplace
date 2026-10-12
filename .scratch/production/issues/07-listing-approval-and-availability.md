@@ -34,4 +34,8 @@ API and workflow: [docs/api/listings.md](../../../docs/api/listings.md). No paym
 
 ## Comments
 
+12 October 2026 Subject-selection follow-up: an approved local Tutor had Commerce evidence while the new-offer UI defaulted to Physics, producing the correct but confusing subject-eligibility rejection. Owner history now returns server-checked `eligible_subject_ids`; new offers initialize from an approved Subject and compatible catalogue domain, show the actual approval list and exclude unapproved new-offer Subjects. No approval or user data was changed. Existing offer editing and backend creation/publication guards remain intact. The UI tolerates an older API response without the new metadata and explains refreshing instead of rendering undefined state.
+
+All eight Listing API scenarios passed, including the new Commerce-only account, denied unapproved Physics, successful Commerce creation, expiry and profile-revision invalidation. A response-controlled mobile UI check verified Commerce default/submission, excluded unapproved Subjects, missing approvals and older API response handling without overflow. The full real Tutor browser journey passed in a focused isolated run (one journey, 1.8 minutes including startup). Root typecheck/build and all nine UI tests passed. The existing local API was restarted to serve the updated owned-Subject metadata; no local account, evidence approval or Listing was modified by the agent.
+
 

@@ -4,6 +4,8 @@ Task 07 adds `/tutor/listings` for Tutor-owned offers and `/staff/listings` for 
 
 ## Offer fields and validation
 
+The owner endpoint also returns `eligible_subject_ids`, calculated with the same current identity/Subject qualification gate used by creation. The new-offer UI shows those approved Subjects and initializes from a matching Subject/domain rather than assuming Physics. Missing or stale approvals disable new-offer submission and link to evidence review; an older API response without this metadata shows a refresh message instead of crashing. Existing draft editing remains available for corrections, and all commands still recheck server authority and publication requirements.
+
 An offer has a title (10–100 characters), description (40–1500), domain/Subject/level IDs, optional Curriculum/Exam IDs, one to three distinct Teaching Languages, `ONLINE` mode and `INR` currency. Catalogue terms must be active, correctly typed and associated with the chosen domain. School offers require a Curriculum; entrance offers require an Exam Track. Seeded JEE tracks allow Mathematics/Physics/Chemistry; NEET allows Physics/Chemistry/Biology. ICSE/ISC class boundaries are validated. New/custom taxonomies still need staff review of the exact proposed combination; the system does not claim a comprehensive national syllabus compatibility database.
 
 Tuition rates are integer paise, ₹1–₹100,000 per hour or per lesson. Per-lesson offers must specify 30–180 minutes; hourly offers omit a lesson duration. Trials are NONE, FREE or PAID; free/paid trials require 15–90 minutes and only paid trials include a separate price in integer paise. These are application limits, not recommended market prices. Tuition/trial fees are paid directly to the Tutor; no lesson payment or booking is created. Obvious email/phone/link patterns are rejected in public offer text, with manual review responsible for other sensitive/encoded content.
@@ -24,7 +26,7 @@ All private writes require same-origin strict JSON and HttpOnly account cookies;
 
 | Method/path | Body / behavior |
 |---|---|
-| GET `/v1/me/listings` | Own offers, effective states and availability |
+| GET `/v1/me/listings` | Own offers, effective states/availability and current `eligible_subject_ids` for creation |
 | POST `/v1/me/listings` | Strict offer fields; create draft |
 | POST `/v1/me/listings/:id` | `{revision,offer}`; save revised draft |
 | POST `/v1/me/listings/:id/actions/:action` | `{revision}`; SUBMIT, PAUSE or RESUME |

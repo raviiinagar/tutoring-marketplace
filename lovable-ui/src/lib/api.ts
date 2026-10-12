@@ -143,7 +143,7 @@ export const api = {
   unsubscribeAvailability: (token:string) => request<CodeMessage>('POST','/v1/availability/unsubscriptions',{token}),
   discover: (filters:DiscoveryFilters={}) => {const query=new URLSearchParams();for(const [key,value] of Object.entries(filters))if(value!==undefined&&value!=='')query.set(key,String(value));return request<DiscoveryPage>('GET','/v1/discovery'+(query.size?'?'+query.toString():''));},
   publicTutorOffer: (id:string) => request<{listing:PublicOffer}>('GET','/v1/discovery/'+encodeURIComponent(id)),
-  listings: () => request<{listings:TeachingListing[]}>('GET','/v1/me/listings'),
+  listings: () => request<{listings:TeachingListing[];eligible_subject_ids:string[]}>('GET','/v1/me/listings'),
   createListing: (offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings',offer),
   editListing: (id:string,revision:number,offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings/'+encodeURIComponent(id),{revision,offer}),
   listingAction: (id:string,revision:number,action:'SUBMIT'|'PAUSE'|'RESUME') => request<{listing:TeachingListing}>('POST','/v1/me/listings/'+encodeURIComponent(id)+'/actions/'+action,{revision}),

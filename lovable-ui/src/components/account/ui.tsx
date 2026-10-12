@@ -79,10 +79,10 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
   );
 }
 
-export function SubmitButton({ loading, children, loadingText }: { loading: boolean; children: ReactNode; loadingText: string }) {
+export function SubmitButton({ loading, children, loadingText, disabled=false }: { loading: boolean; children: ReactNode; loadingText: string; disabled?:boolean }) {
   const ready=useContext(AccountReady);
   return (
-    <Button type="submit" className="min-h-12 w-full text-base font-semibold" disabled={loading || !ready} aria-disabled={loading || !ready}>
+    <Button type="submit" className="min-h-12 w-full text-base font-semibold" disabled={disabled || loading || !ready} aria-disabled={disabled || loading || !ready}>
       {loading && <span aria-hidden className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />}
       {loading ? loadingText : children}
     </Button>
