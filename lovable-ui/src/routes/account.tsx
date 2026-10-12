@@ -98,6 +98,7 @@ function Account() {
         <Row label="Email status" value={user.email_verified ? "Verified" : "Not verified"} />
       </dl>
       {user.roles.includes('LEARNER')&&<Link to="/learners" className="link mt-5 block">Manage Learner profiles</Link>}
+      <Link to="/requests" className="link mt-5 block">View my Contact Requests</Link>
       {user.roles.includes('TUTOR')&&<Link to="/tutor" className="link mt-5 block">Manage Tutor profile and evidence</Link>}
       {hasStaff&&<Link to="/staff" className="link mt-5 inline-block">Open staff console</Link>}
       <section className="mt-6 space-y-3" aria-labelledby="roles-title">

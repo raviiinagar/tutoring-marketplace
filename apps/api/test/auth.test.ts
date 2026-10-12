@@ -208,6 +208,6 @@ test('disabled recovery cannot restore access; successful reset invalidates sibl
 test('database restart preserves accounts and migration ledger',async()=>{
   await app.close();await database.close();await cluster.stop();await cluster.start();database=new Database(config.databaseUrl);
   await migrate(database);app=await createApplication(config,database,now);
-  assert.equal((await database.pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count,'9');
+  assert.equal((await database.pool.query('SELECT count(*) FROM schema_migrations')).rows[0].count,'10');
   assert.equal((await database.pool.query("SELECT count(*) FROM users WHERE email='journey@example.test' AND status='ACTIVE'")).rows[0].count,'1');
 });

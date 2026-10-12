@@ -33,7 +33,10 @@ export type TeachingOffer={title:string;description:string;domain_id:string;subj
 export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revision:number;profile_revision:number;status:'DRAFT'|'REVIEW'|'CHANGES_REQUESTED'|'PUBLISHED'|'PAUSED'|'SAFETY_SUSPENDED';eligible:boolean;requires_profile_review:boolean;review_reason:string|null;safety_reason:string|null};
 export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
 export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
-export type PublicOffer={id:string;tutor:{display_name:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
+export type ContactRequest={id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;test_only:boolean};
+export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:false;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;test_only:true}|null};
+export type ContactRequestInput={request_key:string;listing_id:string;listing_revision:number;learner_id:string;subject_id:string;teaching_mode:'ONLINE';learning_requirements:string;preferred_times:string};
+export type PublicOffer={id:string;revision:number;tutor:{display_name:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type CodeMessage = { code: string; message: string };
@@ -163,6 +166,10 @@ export const api = {
   verifyEmail: (token: string) => request<CodeMessage>("POST", "/v1/auth/verifications", { token }),
   signIn: (input: { email: string; password: string }) =>
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
+  requestAccess: () => request<RequestAccess>('GET','/v1/me/request-access'),
+  sendContactRequest: (input:ContactRequestInput) => request<{request:ContactRequest;replayed:boolean}>('POST','/v1/me/contact-requests',input),
+  contactRequests: (cursor?:string) => request<{requests:ContactRequest[];next_cursor:string|null}>('GET','/v1/me/contact-requests'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),
+  contactRequest: (id:string) => request<{request:ContactRequest}>('GET','/v1/me/contact-requests/'+encodeURIComponent(id)),
   me: () => request<{ user: User }>("GET", "/v1/me"),
   recoveryEmail: (email:string) => request<CodeMessage>('POST','/v1/auth/recovery-emails',{email}),
   resetPassword: (token:string,password:string) => request<CodeMessage>('POST','/v1/auth/password-resets',{token,password}),

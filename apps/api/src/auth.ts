@@ -142,10 +142,13 @@ export class AuthService {
     });
     return {code:'PASSWORD_RESET',message:'Password updated. All sessions have been signed out. Sign in with your new password.'};
   }
-  async authenticated(client: PoolClient, token?: string) {
+  async authenticated(client: PoolClient, token?: string, participants: string[] = []) {
     if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new ApiProblem(401,'UNAUTHENTICATED','Please sign in.');
     const found = (await client.query('SELECT user_id FROM sessions WHERE token_hash=$1',[tokenHash(token)])).rows[0];
-    const user = found ? (await client.query('SELECT * FROM users WHERE id=$1 FOR UPDATE',[found.user_id])).rows[0] : undefined;
+    // Multi-account commands lock participants in UUID order before the session.
+    // This keeps opposing Learner/Tutor requests from locking A->B and B->A.
+    const users = found ? (await client.query('SELECT * FROM users WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE',[[found.user_id,...participants]])).rows : [];
+    const user = users.find(row=>row.id===found?.user_id);
     const session = (await client.query('SELECT * FROM sessions WHERE token_hash=$1 FOR UPDATE',[tokenHash(token)])).rows[0];
     if (!user || user.status !== 'ACTIVE' || !user.email_verified_at || !session || session.revoked_at || new Date(session.expires_at) <= this.now())
       throw new ApiProblem(401,'UNAUTHENTICATED','Please sign in.');

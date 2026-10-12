@@ -33,7 +33,8 @@ await page.getByRole('button',{name:'I saved my recovery codes',exact:true}).cli
     await page.getByRole('button',{name:'Save catalogue term',exact:true}).click();
     await expect(page.getByRole('status')).toContainText('Catalogue term saved');
     await page.goto('/');
-    const domains=page.locator('#subjects');await expect(domains.locator('[data-domain]')).toHaveCount(8);
+    // The fresh Vite stack can still be compiling this page before hydration.
+    const domains=page.locator('#subjects');await expect(domains.locator('[data-domain]')).toHaveCount(8,{timeout:15_000});
     await page.getByLabel('Search learning domains').fill('IIT-JEE');await page.getByRole('button',{name:'Explore',exact:true}).click();
     await expect(domains.getByRole('button',{name:/Entrance examinations/})).toBeVisible();
     await domains.getByRole('button',{name:/Entrance examinations/}).click();

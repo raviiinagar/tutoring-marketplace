@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as LearnersRouteImport } from './routes/learners'
+import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as TutorsRouteImport } from './routes/tutors'
@@ -43,6 +44,11 @@ const AccountRoute = AccountRouteImport.update({
 const LearnersRoute = LearnersRouteImport.update({
   id: '/learners',
   path: '/learners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestsRoute = RequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffRoute = StaffRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
+  '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
+  '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/learners': typeof LearnersRoute
+  '/requests': typeof RequestsRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/learners'
+    | '/requests'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/learners'
+    | '/requests'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/learners'
+    | '/requests'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   LearnersRoute: typeof LearnersRoute
+  RequestsRoute: typeof RequestsRoute
   StaffRoute: typeof StaffRoute
   TutorRoute: typeof TutorRoute
   TutorsRoute: typeof TutorsRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/learners'
       fullPath: '/learners'
       preLoaderRoute: typeof LearnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/requests': {
+      id: '/requests'
+      path: '/requests'
+      fullPath: '/requests'
+      preLoaderRoute: typeof RequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/staff': {
@@ -439,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   LearnersRoute: LearnersRoute,
+  RequestsRoute: RequestsRoute,
   StaffRoute: StaffRoute,
   TutorRoute: TutorRoute,
   TutorsRoute: TutorsRoute,

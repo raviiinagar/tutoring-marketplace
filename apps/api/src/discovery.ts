@@ -12,7 +12,7 @@ export const discoveryInput=z.strictObject({domain_id:slug.optional(),subject_id
 });
 type Filters=z.infer<typeof discoveryInput>;
 // One row per exact offer. Independent profile tags never participate in matching.
-const availableSql=`SELECT l.id,l.payload,p.display_name,p.encrypted_birth_date,
+const availableSql=`SELECT l.id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,
   (SELECT jsonb_agg(jsonb_build_object('kind',c.kind,'reviewed_at',c.reviewed_at,'expires_at',c.expires_at) ORDER BY c.kind,c.id)
    FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
    WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.status='APPROVED' AND c.expires_at>$1
@@ -40,7 +40,7 @@ export class DiscoveryService {
     // display name must not become a public contact field.
     const name=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(row.display_name)?'Tutor':row.display_name;
     const offer=row.payload;
-    return {id:row.id,tutor:{display_name:name},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
+    return {id:row.id,revision:row.revision,tutor:{display_name:name},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
   }
   async search(input:Filters){return this.database.transaction(async client=>{
     // Catalogue validation and the result projection share one read-only snapshot.
