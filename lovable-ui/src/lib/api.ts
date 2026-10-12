@@ -32,6 +32,9 @@ export type TutorState={profile:TutorProfile|null;claims:TutorClaim[];evidence:T
 export type TeachingOffer={title:string;description:string;domain_id:string;subject_id:string;level_id:string;curriculum_id?:string|undefined;exam_id?:string|undefined;language_ids:string[];currency:'INR';teaching_mode:'ONLINE';rate_paise:number;rate_unit:'HOUR'|'LESSON';lesson_minutes?:number|undefined;trial_kind:'NONE'|'FREE'|'PAID';trial_minutes?:number|undefined;trial_price_paise?:number|undefined};
 export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revision:number;profile_revision:number;status:'DRAFT'|'REVIEW'|'CHANGES_REQUESTED'|'PUBLISHED'|'PAUSED'|'SAFETY_SUSPENDED';eligible:boolean;requires_profile_review:boolean;review_reason:string|null;safety_reason:string|null};
 export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
+export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
+export type PublicOffer={id:string;tutor:{display_name:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
+export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type CodeMessage = { code: string; message: string };
 export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; captured_at: string; development_only: true };
@@ -116,6 +119,8 @@ async function request<T>(
 }
 
 export const api = {
+  discover: (filters:DiscoveryFilters={}) => {const query=new URLSearchParams();for(const [key,value] of Object.entries(filters))if(value!==undefined&&value!=='')query.set(key,String(value));return request<DiscoveryPage>('GET','/v1/discovery'+(query.size?'?'+query.toString():''));},
+  publicTutorOffer: (id:string) => request<{listing:PublicOffer}>('GET','/v1/discovery/'+encodeURIComponent(id)),
   listings: () => request<{listings:TeachingListing[]}>('GET','/v1/me/listings'),
   createListing: (offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings',offer),
   editListing: (id:string,revision:number,offer:TeachingOffer) => request<{listing:TeachingListing}>('POST','/v1/me/listings/'+encodeURIComponent(id),{revision,offer}),

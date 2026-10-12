@@ -47,7 +47,7 @@ function Index() {
                 <Button type="submit" className="h-12 shrink-0 gap-2 px-5 font-semibold"><span className="hidden sm:inline">Explore</span><ArrowRight className="size-4" /><span className="sr-only sm:hidden">Explore subjects</span></Button>
               </form>
               <div className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-0 text-xs"><span className="mr-1 text-muted-foreground">Try:</span>{["Mathematics", "English", "Music"].map(topic => <Button key={topic} variant="ghost" onClick={() => explore(topic)} className="h-8 px-2 text-xs font-medium underline decoration-foreground/25 underline-offset-4 hover:bg-background/40">{topic}</Button>)}</div>
-              <p className="mt-3 text-xs text-muted-foreground">Join today · Tutor discovery is coming soon</p>
+              <p className="mt-3 text-xs text-muted-foreground">Browse exact offers from currently available Tutors.</p><Button asChild variant="outline" className="mt-4"><Link to="/tutors">Find online Tutors <ArrowUpRight aria-hidden className="size-4"/></Link></Button>
             </div>
             <div aria-hidden="true" className="hero-note hero-note-top"><span className="hero-note-icon"><Sparkles /></span><div><strong>Your next chapter</strong><span>A little curiosity goes a long way.</span></div></div>
             <div aria-hidden="true" className="hero-note hero-note-bottom"><span className="hero-note-icon"><Compass /></span><div><strong>Find your spark</strong><span>Eight worlds of learning to explore.</span></div></div>

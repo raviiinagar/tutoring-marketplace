@@ -18,14 +18,14 @@ export function SiteHeader() {
           <BrandWordmark />
         </Link>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 text-sm font-medium lg:flex">
-          <a href="/#subjects" className="hover:text-coral-strong">Explore subjects</a><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
+          <Link to="/tutors" className="hover:text-coral-strong">Find Tutors</Link><a href="/#subjects" className="hover:text-coral-strong">Explore subjects</a><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
           <Link to="/auth/signin" className="ml-4 hover:text-coral-strong">Sign in</Link>
           <Button asChild variant="outline" className="h-11 border-foreground/20 px-5 font-semibold"><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
         </nav>
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
       </div>
       {open && <nav id="mobile-navigation" aria-label="Mobile navigation" className="absolute inset-x-0 top-full grid gap-4 border-b bg-background px-5 py-6 shadow-sm lg:hidden" onClick={() => setOpen(false)}>
-        <a href="/#subjects">Explore subjects</a><a href="/#tutors">Become a tutor</a><Link to="/auth/signin">Sign in</Link><Button asChild><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
+        <Link to="/tutors">Find Tutors</Link><a href="/#subjects">Explore subjects</a><a href="/#tutors">Become a tutor</a><Link to="/auth/signin">Sign in</Link><Button asChild><Link to="/auth/signup">Join us <ArrowUpRight /></Link></Button>
       </nav>}
     </header>
   );

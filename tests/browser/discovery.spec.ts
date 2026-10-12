@@ -1,0 +1,7 @@
+import {test,expect} from '@playwright/test';
+test('mobile public search has honest empty results across eight families and unavailable detail',async({page})=>{
+  test.setTimeout(120_000);await page.setViewportSize({width:390,height:844});await page.goto('/tutors');await expect(page.getByRole('heading',{name:'Find online Tutors',exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'No matching available Tutors',exact:true})).toBeVisible();
+  for(const domain of ['school','entrance','higher','competitive','professional','career','languages','arts']){await page.getByLabel('Learning Domain',{exact:true}).selectOption(domain);await page.getByRole('button',{name:'Apply filters',exact:true}).click();await expect(page).toHaveURL(new RegExp('domain_id='+domain));await expect(page.getByRole('heading',{name:'No matching available Tutors',exact:true})).toBeVisible();await expect(page.getByRole('article')).toHaveCount(0);}
+  await page.getByRole('button',{name:'Clear filters',exact:true}).click();await expect(page.getByLabel('Learning Domain',{exact:true})).toHaveValue('');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+  await page.goto('/tutors/11111111-1111-4111-8111-111111111111');await expect(page.getByRole('heading',{name:'This offer is currently unavailable',exact:true})).toBeVisible();await page.getByRole('link',{name:'Back to Tutor search',exact:true}).click();await expect(page.getByRole('heading',{name:'Find online Tutors',exact:true})).toBeVisible();
+});

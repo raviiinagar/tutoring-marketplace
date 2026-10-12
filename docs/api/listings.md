@@ -1,6 +1,6 @@
 # Teaching offers and availability
 
-Task 07 adds `/tutor/listings` for Tutor-owned offers and `/staff/listings` for Trust/MFA review. A Listing represents exactly one Subject, Learner Level, optional Curriculum and optional Exam Track within one Learning Domain; it does not form a cross product of profile tags. Tutor evidence approval is separate from Listing publication approval. Discovery/search UI follows in task 08.
+Task 07 adds `/tutor/listings` for Tutor-owned offers and `/staff/listings` for Trust/MFA review. A Listing represents exactly one Subject, Learner Level, optional Curriculum and optional Exam Track within one Learning Domain; it does not form a cross product of profile tags. Tutor evidence approval is separate from Listing publication approval. Task 08's [public discovery guide](discovery.md) describes search and detail pages.
 
 ## Offer fields and validation
 

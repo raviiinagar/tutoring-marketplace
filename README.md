@@ -1,6 +1,6 @@
 # Tutor marketplace
 
-Tasks 01–07 implement verified accounts, roles, account security, a scoped staff console with MFA, adult/Guardian-controlled Learner profiles, the eight-domain learning catalogue, adult Tutor onboarding with private evidence review, and approved teaching offers with availability/safety controls. Production child profiles remain gated until the approved verification/consent policy is integrated. The business name is undecided; VEER is the owner. Tuition payments will remain direct to tutors. The remaining production marketplace is tracked as separate tickets.
+Tasks 01–08 implement verified accounts, roles, account security, a scoped staff console with MFA, adult/Guardian-controlled Learner profiles, the eight-domain catalogue, adult Tutor evidence review, approved teaching offers with availability/safety controls, and public Tutor search/detail pages. Production child profiles remain gated until the approved verification/consent policy is integrated. The business name is undecided; VEER is the owner. Tuition payments will remain direct to tutors. The remaining production marketplace is tracked as separate tickets.
 
 ## Run locally
 
@@ -41,11 +41,11 @@ Local writes accept both loopback names at explicitly configured ports, only in 
 
 ## Production configuration
 
-The homepage browses the eight Learning Domains and their subjects, levels, curricula, exam tracks and teaching languages from PostgreSQL. Trust staff with MFA can add, edit, activate and deactivate terms at `/staff/catalogue`. See the [catalogue guide](docs/api/catalogue.md). Tutor discovery and availability follow in later tasks.
+The homepage browses the eight Learning Domains and their subjects, levels, curricula, exam tracks and teaching languages from PostgreSQL. Trust staff with MFA can add, edit, activate and deactivate terms at `/staff/catalogue`. See the [catalogue guide](docs/api/catalogue.md). `/tutors` searches currently available approved offers using exact combinations, languages and unit-specific price filters; public detail pages show precise evidence labels and expiry while keeping contacts/documents private. See the [discovery guide](docs/api/discovery.md).
 
 Tutor-role accounts manage their adult profile and identity/Subject evidence at `/tutor`. Trust staff with MFA review specific claims and access audited, expiring downloads at `/staff/tutors`. See the [Tutor evidence guide](docs/api/tutors.md). Evidence uploads default to disabled; `EVIDENCE_SCANNER=test` enables fictional local samples only and is forbidden in production. Live scanning uses the ClamAV adapter and requires a private configured daemon with maintained signatures. Tutor evidence approvals do not themselves publish Listings.
 
-Reviewed Tutors create structured offers at `/tutor/listings`; Trust staff approve exact combinations at `/staff/listings`. Owner edits require another review, pause/resume rechecks eligibility, and staff safety restrictions survive owner edits. Public offer API responses expose only currently eligible available Listings. See the [Listing guide](docs/api/listings.md). Search and public Tutor detail UI follow in task 08.
+Reviewed Tutors create structured offers at `/tutor/listings`; Trust staff approve exact combinations at `/staff/listings`. Owner edits require another review, pause/resume rechecks eligibility, and staff safety restrictions survive owner edits. Public offer API responses expose only currently eligible available Listings. See the [Listing guide](docs/api/listings.md). Requests, paid access and availability notifications follow in later tasks.
 
 Adult Learner profiles are available from the account page. [Learner/Guardian guide](docs/api/learners.md) describes private profiles, Trust review and versioned consent. The default Guardian mode is disabled. `GUARDIAN_VERIFICATION_MODE=test` is only for fictional local fixtures and is forbidden in production; no approved live verification adapter/policy is currently configured.
 
