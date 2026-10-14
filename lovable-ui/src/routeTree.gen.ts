@@ -24,6 +24,7 @@ import { Route as AuthSigninRouteImport } from './routes/auth.signin'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthVerifyRouteImport } from './routes/auth.verify'
 import { Route as AvailabilityActionRouteImport } from './routes/availability.$action'
+import { Route as ChatConnectionIdRouteImport } from './routes/chat.$connectionId'
 import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
@@ -110,6 +111,11 @@ const AvailabilityActionRoute = AvailabilityActionRouteImport.update({
   path: '/availability/$action',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatConnectionIdRoute = ChatConnectionIdRouteImport.update({
+  id: '/chat/$connectionId',
+  path: '/chat/$connectionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnectionsConnectionIdRoute = ConnectionsConnectionIdRouteImport.update({
   id: '/connections_/$connectionId',
   path: '/connections/$connectionId',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/auth/signup': typeof AuthSignupRoute
   '/auth/verify': typeof AuthVerifyRoute
   '/availability/$action': typeof AvailabilityActionRoute
+  '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/chat/$connectionId'
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/chat/$connectionId'
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth/signup'
     | '/auth/verify'
     | '/availability/$action'
+    | '/chat/$connectionId'
     | '/connections_/$connectionId'
     | '/dev/inbox'
     | '/staff_/catalogue'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   AuthSignupRoute: typeof AuthSignupRoute
   AuthVerifyRoute: typeof AuthVerifyRoute
   AvailabilityActionRoute: typeof AvailabilityActionRoute
+  ChatConnectionIdRoute: typeof ChatConnectionIdRoute
   ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AvailabilityActionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat/$connectionId': {
+      id: '/chat/$connectionId'
+      path: '/chat/$connectionId'
+      fullPath: '/chat/$connectionId'
+      preLoaderRoute: typeof ChatConnectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connections_/$connectionId': {
       id: '/connections_/$connectionId'
       path: '/connections/$connectionId'
@@ -551,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyRoute: AuthVerifyRoute,
   AvailabilityActionRoute: AvailabilityActionRoute,
+  ChatConnectionIdRoute: ChatConnectionIdRoute,
   ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,

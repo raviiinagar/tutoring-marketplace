@@ -36,7 +36,10 @@ export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revisi
 export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
 export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
 export type IncomingRequest={id:string;offer:TeachingOffer;status:ContactRequest['status'];expires_at:string;created_at:string;learning_requirements:string|null;preferred_times:string|null;can_accept:boolean;can_decline:boolean;unavailable_reason:string|null;connection_id:string|null;test_only:boolean};
-export type ConnectionSummary={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE'|'PENDING_GRANT';available:boolean;unavailable_reason:string|null;created_at:string;test_only:boolean};
+export type ConnectionSummary={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE'|'PENDING_GRANT';available:boolean;unread_count:number|null;unavailable_reason:string|null;created_at:string;test_only:boolean};
+export type ChatMessage={sequence:number;client_message_id:string;text:string;sender_role:'TUTOR'|'PAYER';your_message:boolean;created_at:string};
+export type ChatReadState={read_sequence:number;peer_read_sequence:number;unread_count:number};
+export type ChatState=ChatReadState&{connection_id:string;conversation_id:string;offer_title:string;your_role:'TUTOR'|'PAYER';learner_kind:'ADULT'|'CHILD';messages:ChatMessage[];last_sequence:number;next_after:number;has_more:boolean;has_older:boolean};
 export type ConnectionDetail={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE';created_at:string;your_role:'PAYER'|'TUTOR';learner_kind:'ADULT'|'CHILD';learning_requirements:string;preferred_times:string;test_only:boolean};
 export type ConnectionPeer={display_name:string;email:string;email_verified:true;role:'TUTOR'|'GUARDIAN'|'ADULT_LEARNER'};
 export type ContactRequest={id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;connection_id:string|null;test_only:boolean};
@@ -129,7 +132,18 @@ async function request<T>(
 }
 
 export const assetUrl=(path:string)=>apiBaseUrl()+path;
+export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>void,onDisconnect:(revoked:boolean)=>void){
+ const source=new EventSource(apiBaseUrl()+'/v1/me/connections/'+encodeURIComponent(id)+'/events?after='+after,{withCredentials:true});
+ source.addEventListener('state',event=>{try{onState(JSON.parse((event as MessageEvent).data) as ChatState);}catch{source.close();onDisconnect(false);}});
+ source.addEventListener('access-revoked',()=>{source.close();onDisconnect(true);});
+ source.addEventListener('reconnect',()=>{source.close();onDisconnect(false);});
+ source.onerror=()=>{source.close();onDisconnect(false);};
+ return ()=>source.close();
+}
 export const api = {
+  chatHistory:(id:string,query:{after?:number;before?:number;limit?:number}={})=>{const params=new URLSearchParams();for(const [key,value] of Object.entries(query))if(value!==undefined)params.set(key,String(value));return request<ChatState>('GET','/v1/me/connections/'+encodeURIComponent(id)+'/messages'+(params.size?'?'+params.toString():''));},
+  sendMessage:(id:string,client_message_id:string,text:string)=>request<{message:ChatMessage;replayed:boolean}>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/messages',{client_message_id,text}),
+  readChat:(id:string,sequence:number)=>request<ChatReadState>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/read-position',{sequence}),
   tutorPhoto:()=>request<TutorPhotoState>('GET','/v1/me/tutor/photo'),
   uploadTutorPhoto:(media_type:string,data:string)=>request<{photo:TutorPhoto}>('POST','/v1/me/tutor/photo',{media_type,data,public_consent:true}),
   removeTutorPhoto:(id:string)=>request<void>('DELETE','/v1/me/tutor/photo/'+encodeURIComponent(id)),

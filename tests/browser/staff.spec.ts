@@ -27,6 +27,6 @@ test('staff MFA enrollment, scoped console, audit and authenticator recovery',as
     await page.getByRole('button',{name:'Lost your authenticator?',exact:true}).click();await page.getByLabel('Account password').fill(password);await page.getByLabel('Recovery code').fill(backup!.trim());await page.getByRole('button',{name:'Use recovery code',exact:true}).click();await expect(page.getByRole('heading',{name:'Set up staff MFA',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Staff areas'})).toHaveCount(0);
     await page.getByLabel('Account password').fill(password);await page.getByRole('button',{name:'Create authenticator setup',exact:true}).click();const next=await page.getByLabel('Authenticator setup key').textContent();expect(next).not.toBe(secret);
     await page.getByLabel('Authenticator code').fill(totp(next!.trim(),new Date()));await page.getByRole('button',{name:'Confirm MFA',exact:true}).click();await expect(page.getByRole('heading',{name:'Save your recovery codes',exact:true})).toBeVisible();await page.getByRole('button',{name:'I saved my recovery codes',exact:true}).click();
-    await operator('revoke',email);granted=false;await page.reload();await expect(page.getByRole('status')).toContainText('Staff access has not been assigned');
+    await operator('revoke',email);granted=false;await page.reload();await expect(page.getByRole('main').getByRole('status').filter({hasText:'Staff access has not been assigned'})).toBeVisible();
   }finally{if(granted)await operator('revoke',email);}
 });
