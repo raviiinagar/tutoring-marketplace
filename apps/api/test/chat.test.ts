@@ -102,12 +102,14 @@ async function account() {
     cookie: login.headers["set-cookie"][0] as string,
   };
 }
-async function staff() {
+async function staff(
+  scopes: Array<"TRUST" | "SUPPORT" | "FINANCE"> = ["TRUST"],
+) {
   const user = await account();
   await assignStaff(
     database,
     user.email,
-    ["TRUST"],
+    scopes,
     "Fictional chat verification fixture",
     "test operator",
   );
@@ -593,4 +595,409 @@ test("chat is private, text-only, and bounded against repeated new-message submi
     .send({})
     .expect(204);
   await history(s.id, s.owner.cookie).expect(401);
+});
+
+test("participant blocking closes live chat and denies both directions until each owner unblocks", async () => {
+  const s = await connection();
+  const url = "/v1/me/connections/" + s.id + "/safety";
+  await send(
+    s.id,
+    { client_message_id: randomUUID(), text: "A message before blocking" },
+    s.owner.cookie,
+  ).expect(201);
+  const live = await stream(s.id, s.teacher.cookie);
+  try {
+    await live.next("state");
+    await post(url + "/block", { blocked: true }, s.owner.cookie).expect(200);
+    assert.deepEqual(await live.next("access-revoked"), {
+      code: "ACCESS_UNAVAILABLE",
+    });
+    for (const user of [s.owner, s.teacher]) {
+      await history(s.id, user.cookie).expect(403);
+      await get("/v1/me/connections/" + s.id + "/contacts", user.cookie).expect(
+        403,
+      );
+      await send(
+        s.id,
+        { client_message_id: randomUUID(), text: "Not deliverable" },
+        user.cookie,
+      ).expect(403);
+    }
+    assert.equal(
+      (await get(url, s.owner.cookie).expect(200)).body.blocked_by_you,
+      true,
+    );
+    await post(url + "/block", { blocked: true }, s.teacher.cookie).expect(200);
+    await post(url + "/block", { blocked: false }, s.owner.cookie).expect(200);
+    await history(s.id, s.owner.cookie).expect(403);
+    await post(url + "/block", { blocked: false }, s.teacher.cookie).expect(
+      200,
+    );
+    await history(s.id, s.owner.cookie).expect(200);
+    await post(url + "/block", { blocked: true }, s.reviewer.cookie).expect(
+      404,
+    );
+    await get(url, s.reviewer.cookie).expect(404);
+  } finally {
+    live.close();
+  }
+});
+
+test("reports preserve only selected messages and Trust case access requires scoped MFA and an audited purpose", async () => {
+  const s = await connection();
+  const support = await staff(["SUPPORT"]);
+  await send(
+    s.id,
+    { client_message_id: randomUUID(), text: "Unreported private discussion" },
+    s.teacher.cookie,
+  ).expect(201);
+  await send(
+    s.id,
+    {
+      client_message_id: randomUUID(),
+      text: "Fictional message reported for investigation",
+    },
+    s.teacher.cookie,
+  ).expect(201);
+  const url = "/v1/me/connections/" + s.id + "/safety";
+  await post(url + "/block", { blocked: true }, s.owner.cookie).expect(200);
+  const body = {
+    request_key: randomUUID(),
+    category: "HARASSMENT",
+    description: "Please investigate this fictional communication.",
+    message_sequences: [2],
+  };
+  const replies = await Promise.all([
+    post(url + "/reports", body, s.owner.cookie).expect(201),
+    post(url + "/reports", body, s.owner.cookie).expect(201),
+  ]);
+  const id = replies[0].body.case.id;
+  assert.equal(replies[1].body.case.id, id);
+  await post(
+    url + "/reports",
+    { ...body, description: "Changed report text for the same identifier" },
+    s.owner.cookie,
+  ).expect(409);
+  await post(
+    url + "/reports",
+    { ...body, request_key: randomUUID(), message_sequences: [999] },
+    s.owner.cookie,
+  ).expect(400);
+  await post(url + "/reports", body, s.reviewer.cookie).expect(404);
+  const inspection = "/v1/staff/safety-cases/" + id + "/inspections";
+  const purpose = {
+    reason: "Investigate the selected fictional harassment report",
+  };
+  await post(inspection, purpose).expect(401);
+  await post(inspection, purpose, support.cookie).expect(403);
+  await post(inspection, purpose, s.owner.cookie).expect(403);
+  await post(inspection, {}, s.reviewer.cookie).expect(400);
+  const reviewed = (
+    await post(inspection, purpose, s.reviewer.cookie).expect(200)
+  ).body.case;
+  assert.equal(reviewed.evidence.messages.length, 1);
+  assert.equal(reviewed.evidence.messages[0].sequence, 2);
+  assert.equal(
+    reviewed.evidence.messages[0].text,
+    "Fictional message reported for investigation",
+  );
+  assert.ok(
+    !JSON.stringify(reviewed).includes("Unreported private discussion"),
+  );
+  const queue = (
+    await get("/v1/staff/safety-cases", s.reviewer.cookie).expect(200)
+  ).body;
+  assert.ok(!JSON.stringify(queue).includes(body.description));
+  assert.ok(!JSON.stringify(queue).includes("reported for investigation"));
+  const own = (await get("/v1/me/safety", s.owner.cookie).expect(200)).body;
+  assert.equal(
+    own.cases.find((c: { id: string }) => c.id === id).status,
+    "OPEN",
+  );
+  const unrelated = (await get("/v1/me/safety", s.teacher.cookie).expect(200))
+    .body;
+  assert.ok(!unrelated.cases.some((c: { id: string }) => c.id === id));
+});
+
+test("case sanctions compose across cases, hide suspended supply and leave safety status inspectable by affected adults", async () => {
+  const s = await connection();
+  const report = async () =>
+    (
+      await post(
+        "/v1/me/connections/" + s.id + "/safety/reports",
+        {
+          request_key: randomUUID(),
+          category: "FRAUD",
+          description: "Review this fictional tutoring safety concern.",
+          message_sequences: [],
+        },
+        s.owner.cookie,
+      ).expect(201)
+    ).body.case;
+  const a = await report(),
+    b = await report();
+  const act = (id: string, revision: number, operation: string) =>
+    post(
+      "/v1/staff/safety-cases/" + id + "/actions",
+      {
+        revision,
+        operation,
+        reason: "Public fictional safety decision for the affected adult",
+      },
+      s.reviewer.cookie,
+    );
+  await act(a.id, 1, "RESTRICT_CONNECTION").expect(200);
+  await history(s.id, s.owner.cookie).expect(403);
+  await act(b.id, 1, "RESTRICT_CONNECTION").expect(200);
+  await act(a.id, 2, "LIFT_CONNECTION").expect(200);
+  await history(s.id, s.owner.cookie).expect(403);
+  await act(b.id, 2, "LIFT_CONNECTION").expect(200);
+  await history(s.id, s.owner.cookie).expect(200);
+  await act(a.id, 3, "RESTRICT_LISTING").expect(200);
+  await get("/v1/discovery/" + s.listing.id).expect(404);
+  await get("/v1/listings/" + s.listing.id).expect(404);
+  await history(s.id, s.owner.cookie).expect(403);
+  await act(a.id, 4, "LIFT_LISTING").expect(200);
+  await get("/v1/discovery/" + s.listing.id).expect(404);
+  await history(s.id, s.owner.cookie).expect(200);
+  const offer = (await get("/v1/me/listings", s.teacher.cookie).expect(200))
+    .body.listings[0];
+  assert.equal(offer.status, "PAUSED");
+  await post(
+    "/v1/me/listings/" + offer.id + "/actions/RESUME",
+    { revision: offer.revision },
+    s.teacher.cookie,
+  ).expect(200);
+  await act(a.id, 5, "RESTRICT_ACCOUNT").expect(200);
+  await get("/v1/discovery/" + s.listing.id).expect(404);
+  await get("/v1/me/listings", s.teacher.cookie).expect(403);
+  await history(s.id, s.owner.cookie).expect(403);
+  const affected = (await get("/v1/me/safety", s.teacher.cookie).expect(200))
+    .body;
+  assert.ok(
+    affected.cases.some(
+      (c: { id: string; relationship: string }) =>
+        c.id === a.id && c.relationship === "SUBJECT",
+    ),
+  );
+  assert.ok(
+    affected.restrictions.some(
+      (r: { target_type: string; lifted_at: string | null }) =>
+        r.target_type === "ACCOUNT" && r.lifted_at === null,
+    ),
+  );
+  await act(a.id, 6, "DISMISS").expect(409);
+  await act(a.id, 6, "LIFT_ACCOUNT").expect(200);
+  await get("/v1/me/listings", s.teacher.cookie).expect(200);
+  await act(a.id, 7, "RESOLVE").expect(200);
+  await act(a.id, 7, "RESTRICT_ACCOUNT").expect(409);
+  await post(
+    "/v1/staff/safety-cases/" + a.id + "/actions",
+    {
+      revision: 8,
+      operation: "RESTRICT_ACCOUNT",
+      reason: "Invalid arbitrary account target",
+      target_id: s.owner.id,
+    },
+    s.reviewer.cookie,
+  ).expect(400);
+});
+
+test("restricted adults can lodge an idempotent private appeal without regaining marketplace permission", async () => {
+  const s = await connection();
+  const report = (
+    await post(
+      "/v1/me/connections/" + s.id + "/safety/reports",
+      {
+        request_key: randomUUID(),
+        category: "OTHER",
+        description: "Fictional case for an appeal entry test.",
+        message_sequences: [],
+      },
+      s.owner.cookie,
+    ).expect(201)
+  ).body.case;
+  const url = "/v1/me/safety-cases/" + report.id + "/appeals";
+  const body = {
+    request_key: randomUUID(),
+    description: "Please reconsider this fictional safety restriction.",
+  };
+  await post(url, body, s.owner.cookie).expect(409);
+  await post(
+    "/v1/staff/safety-cases/" + report.id + "/actions",
+    {
+      revision: 1,
+      operation: "RESTRICT_ACCOUNT",
+      reason: "Fictional restriction pending review of a report",
+    },
+    s.reviewer.cookie,
+  ).expect(200);
+  await get("/v1/me/listings", s.teacher.cookie).expect(403);
+  const first = (await post(url, body, s.teacher.cookie).expect(201)).body
+    .appeal;
+  const retry = (await post(url, body, s.teacher.cookie).expect(201)).body
+    .appeal;
+  assert.equal(retry.id, first.id);
+  assert.equal(retry.status, "PENDING_REVIEW");
+  await post(
+    url,
+    {
+      ...body,
+      description: "Changed details for a repeated appeal identifier",
+    },
+    s.teacher.cookie,
+  ).expect(409);
+  await post(url, body, s.reviewer.cookie).expect(404);
+  const own = (await get("/v1/me/safety", s.teacher.cookie).expect(200)).body;
+  assert.equal(own.appeals[0].id, first.id);
+  assert.ok(
+    !JSON.stringify(own).includes("Fictional case for an appeal entry test."),
+  );
+  const inspected = (
+    await post(
+      "/v1/staff/safety-cases/" + report.id + "/inspections",
+      { reason: "Read the specifically submitted fictional appeal" },
+      s.reviewer.cookie,
+    ).expect(200)
+  ).body.case;
+  assert.equal(inspected.appeals[0].description, body.description);
+  await history(s.id, s.teacher.cookie).expect(403);
+});
+
+test("a safety suspension racing Tutor acceptance denies subsequent contact release and stale-offer requests", async () => {
+  const s = await connection();
+  const input = {
+    request_key: randomUUID(),
+    listing_id: s.listing.id,
+    listing_revision: s.listing.revision,
+    learner_id: s.learner.id,
+    subject_id: "subject-physics",
+    teaching_mode: "ONLINE",
+    learning_requirements:
+      "Fictional enquiry used to exercise the safety race.",
+    preferred_times: "Saturday mornings, IST",
+  };
+  const pending = (
+    await post("/v1/me/contact-requests", input, s.owner.cookie).expect(200)
+  ).body.request;
+  const report = (
+    await post(
+      "/v1/me/contact-requests/" + pending.id + "/safety/reports",
+      {
+        request_key: randomUUID(),
+        category: "OTHER",
+        description: "Investigate this specific fictional pending enquiry.",
+        message_sequences: [],
+      },
+      s.teacher.cookie,
+    ).expect(201)
+  ).body.case;
+  const evidence = (
+    await post(
+      "/v1/staff/safety-cases/" + report.id + "/inspections",
+      { reason: "Review this specifically reported pending enquiry" },
+      s.reviewer.cookie,
+    ).expect(200)
+  ).body.case.evidence;
+  assert.equal(
+    evidence.initial_request.learning_requirements,
+    input.learning_requirements,
+  );
+  const [restricted, accepted] = await Promise.all([
+    post(
+      "/v1/staff/safety-cases/" + report.id + "/actions",
+      {
+        revision: 1,
+        operation: "RESTRICT_LISTING",
+        reason: "Temporarily restrict this offer during investigation",
+      },
+      s.reviewer.cookie,
+    ),
+    post(
+      "/v1/me/tutor-requests/" + pending.id + "/decisions",
+      { decision: "ACCEPT" },
+      s.teacher.cookie,
+    ),
+  ]);
+  assert.equal(restricted.status, 200);
+  assert.ok([200, 403, 404, 409].includes(accepted.status));
+  if (accepted.status === 200) {
+    await get(
+      "/v1/me/connections/" + accepted.body.connection_id + "/contacts",
+      s.owner.cookie,
+    ).expect(403);
+    await history(accepted.body.connection_id, s.teacher.cookie).expect(403);
+  }
+  await get("/v1/discovery/" + s.listing.id).expect(404);
+  await post(
+    "/v1/me/contact-requests",
+    { ...input, request_key: randomUUID() },
+    s.owner.cookie,
+  ).expect(404);
+});
+
+test("safety evidence and decisions reject unrelated IDs, self-review and revoked staff MFA", async () => {
+  const s = await connection();
+  const url = "/v1/me/connections/" + s.id + "/safety/reports";
+  const body = {
+    request_key: randomUUID(),
+    category: "CHILD_SAFETY",
+    description: "Fictional safety evidence isolation check.",
+    message_sequences: [],
+  };
+  await post(
+    url,
+    { ...body, attachment: "private.pdf" },
+    s.owner.cookie,
+  ).expect(400);
+  await post(
+    "/v1/me/connections/" + randomUUID() + "/safety/reports",
+    body,
+    s.owner.cookie,
+  ).expect(404);
+  const report = (await post(url, body, s.owner.cookie).expect(201)).body.case;
+  const path = "/v1/staff/safety-cases/" + report.id;
+  const reason = { reason: "Check fictional case permission boundaries" };
+  await post(
+    path + "/inspections",
+    reason,
+    s.reviewer.cookie.split(";")[0],
+  ).expect(403);
+  await assignStaff(
+    database,
+    s.owner.email,
+    ["TRUST"],
+    "Fictional self-review fixture",
+    "test operator",
+  );
+  const setup = (
+    await post(
+      "/v1/staff/mfa/enrollments",
+      { password },
+      s.owner.cookie,
+    ).expect(200)
+  ).body;
+  const elevated = await post(
+    "/v1/staff/mfa/confirmations",
+    { code: totp(setup.secret, clock) },
+    s.owner.cookie,
+  ).expect(200);
+  const ownMfa =
+    s.owner.cookie.split(";")[0] +
+    "; " +
+    elevated.headers["set-cookie"][0].split(";")[0];
+  await post(path + "/inspections", reason, ownMfa).expect(403);
+  await request(app.getHttpServer())
+    .delete("/v1/staff/sessions/current")
+    .set("Origin", origin)
+    .set("Content-Type", "application/json")
+    .set("Cookie", s.reviewer.cookie)
+    .send({})
+    .expect(204);
+  await post(path + "/inspections", reason, s.reviewer.cookie).expect(403);
+  await post(
+    path + "/actions",
+    { revision: 1, operation: "RESTRICT_ACCOUNT", reason: reason.reason },
+    s.reviewer.cookie,
+  ).expect(403);
 });

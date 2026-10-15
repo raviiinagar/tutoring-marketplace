@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as RequestsRouteImport } from './routes/requests'
+import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as TutorsRouteImport } from './routes/tutors'
@@ -31,10 +32,12 @@ import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
+import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
 import { Route as TutorsListingIdRouteImport } from './routes/tutors_.$listingId'
+import { Route as SafetyKindTargetIdRouteImport } from './routes/safety_.$kind.$targetId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +62,11 @@ const LearnersRoute = LearnersRouteImport.update({
 const RequestsRoute = RequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffRoute = StaffRouteImport.update({
@@ -146,6 +154,11 @@ const StaffPhotosRoute = StaffPhotosRouteImport.update({
   path: '/staff/photos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffSafetyRoute = StaffSafetyRouteImport.update({
+  id: '/staff_/safety',
+  path: '/staff/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffTutorsRoute = StaffTutorsRouteImport.update({
   id: '/staff_/tutors',
   path: '/staff/tutors',
@@ -166,6 +179,11 @@ const TutorsListingIdRoute = TutorsListingIdRouteImport.update({
   path: '/tutors/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SafetyKindTargetIdRoute = SafetyKindTargetIdRouteImport.update({
+  id: '/safety_/$kind/$targetId',
+  path: '/safety/$kind/$targetId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -173,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
+  '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -190,10 +209,12 @@ export interface FileRoutesByFullPath {
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/safety': typeof StaffSafetyRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
+  '/safety/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -201,6 +222,7 @@ export interface FileRoutesByTo {
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
+  '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -218,10 +240,12 @@ export interface FileRoutesByTo {
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/safety': typeof StaffSafetyRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
+  '/safety/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -230,6 +254,7 @@ export interface FileRoutesById {
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
   '/requests': typeof RequestsRoute
+  '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
@@ -247,10 +272,12 @@ export interface FileRoutesById {
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/photos': typeof StaffPhotosRoute
+  '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
   '/tutors_/$listingId': typeof TutorsListingIdRoute
+  '/safety_/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -260,6 +287,7 @@ export interface FileRouteTypes {
     | '/connections'
     | '/learners'
     | '/requests'
+    | '/safety'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -277,10 +305,12 @@ export interface FileRouteTypes {
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/photos'
+    | '/staff/safety'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
+    | '/safety/$kind/$targetId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -288,6 +318,7 @@ export interface FileRouteTypes {
     | '/connections'
     | '/learners'
     | '/requests'
+    | '/safety'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -305,10 +336,12 @@ export interface FileRouteTypes {
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/photos'
+    | '/staff/safety'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
+    | '/safety/$kind/$targetId'
   id:
     | '__root__'
     | '/'
@@ -316,6 +349,7 @@ export interface FileRouteTypes {
     | '/connections'
     | '/learners'
     | '/requests'
+    | '/safety'
     | '/staff'
     | '/tutor'
     | '/tutors'
@@ -333,10 +367,12 @@ export interface FileRouteTypes {
     | '/staff_/guardians'
     | '/staff_/listings'
     | '/staff_/photos'
+    | '/staff_/safety'
     | '/staff_/tutors'
     | '/tutor_/listings'
     | '/tutor_/requests'
     | '/tutors_/$listingId'
+    | '/safety_/$kind/$targetId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -345,6 +381,7 @@ export interface RootRouteChildren {
   ConnectionsRoute: typeof ConnectionsRoute
   LearnersRoute: typeof LearnersRoute
   RequestsRoute: typeof RequestsRoute
+  SafetyRoute: typeof SafetyRoute
   StaffRoute: typeof StaffRoute
   TutorRoute: typeof TutorRoute
   TutorsRoute: typeof TutorsRoute
@@ -362,10 +399,12 @@ export interface RootRouteChildren {
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
+  StaffSafetyRoute: typeof StaffSafetyRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
   TutorsListingIdRoute: typeof TutorsListingIdRoute
+  SafetyKindTargetIdRoute: typeof SafetyKindTargetIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -403,6 +442,13 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/requests'
       preLoaderRoute: typeof RequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/staff': {
@@ -524,6 +570,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffPhotosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/safety': {
+      id: '/staff_/safety'
+      path: '/staff/safety'
+      fullPath: '/staff/safety'
+      preLoaderRoute: typeof StaffSafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/tutors': {
       id: '/staff_/tutors'
       path: '/staff/tutors'
@@ -552,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorsListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/safety_/$kind/$targetId': {
+      id: '/safety_/$kind/$targetId'
+      path: '/safety/$kind/$targetId'
+      fullPath: '/safety/$kind/$targetId'
+      preLoaderRoute: typeof SafetyKindTargetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -561,6 +621,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectionsRoute: ConnectionsRoute,
   LearnersRoute: LearnersRoute,
   RequestsRoute: RequestsRoute,
+  SafetyRoute: SafetyRoute,
   StaffRoute: StaffRoute,
   TutorRoute: TutorRoute,
   TutorsRoute: TutorsRoute,
@@ -578,10 +639,12 @@ const rootRouteChildren: RootRouteChildren = {
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
+  StaffSafetyRoute: StaffSafetyRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,
   TutorsListingIdRoute: TutorsListingIdRoute,
+  SafetyKindTargetIdRoute: SafetyKindTargetIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,3 +1,4 @@
+import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
 import type {Config} from './config.js';
@@ -40,6 +41,7 @@ export class LearnersService {
   });}
   // Future Contact Request commands must call this seam inside their transaction.
   async requireUsable(client:PoolClient,ownerId:string,profileId:string){
+    await requireSafetyClear(client,'ACCOUNT',ownerId);
     const user=(await client.query("SELECT roles FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL FOR UPDATE",[ownerId])).rows[0];
     const owned=(await client.query('SELECT kind,guardian_verification_id FROM learner_profiles WHERE id=$1 AND owner_id=$2 FOR UPDATE',[profileId,ownerId])).rows[0];
     if(!user||!owned)throw notFound();

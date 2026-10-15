@@ -39,6 +39,15 @@ export type IncomingRequest={id:string;offer:TeachingOffer;status:ContactRequest
 export type ConnectionSummary={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE'|'PENDING_GRANT';available:boolean;unread_count:number|null;unavailable_reason:string|null;created_at:string;test_only:boolean};
 export type ChatMessage={sequence:number;client_message_id:string;text:string;sender_role:'TUTOR'|'PAYER';your_message:boolean;created_at:string};
 export type ChatReadState={read_sequence:number;peer_read_sequence:number;unread_count:number};
+export type SafetyKind='connection'|'request';
+export type SafetyCategory='HARASSMENT'|'FRAUD'|'CHILD_SAFETY'|'OTHER';
+export type SafetyOperation='RESTRICT_ACCOUNT'|'LIFT_ACCOUNT'|'RESTRICT_LISTING'|'LIFT_LISTING'|'RESTRICT_CONNECTION'|'LIFT_CONNECTION'|'RESOLVE'|'DISMISS';
+export type SafetyContext={actor_id:string;offer_title:string;blocked_by_you:boolean;communication_blocked:boolean;peer_role:'TUTOR'|'PAYER'};
+export type SafetyCase={id:string;status:'OPEN'|'RESOLVED'|'DISMISSED';category:SafetyCategory;revision:number;created_at:string;public_notice:string|null;relationship?:'REPORTER'|'SUBJECT';can_appeal?:boolean};
+export type SafetyRestriction={id:string;case_id?:string;target_type:'ACCOUNT'|'LISTING'|'CONNECTION';reason:string;created_at:string;lifted_at:string|null;lift_reason:string|null};
+export type SafetyAppeal={id:string;case_id:string;status:'PENDING_REVIEW';created_at:string;description?:string};
+export type SafetyCenter={actor_id:string;cases:SafetyCase[];restrictions:SafetyRestriction[];blocks:{kind:SafetyKind;target_id:string;offer_title:string}[];appeals:SafetyAppeal[]};
+export type SafetyCaseView=SafetyCase&{description:string;connection_id:string|null;request_id:string;evidence:{offer_title:string;messages:Omit<ChatMessage,'client_message_id'|'your_message'>[];initial_request?:{learning_requirements:string;preferred_times:string}};restrictions:SafetyRestriction[];appeals:SafetyAppeal[]};
 export type ChatState=ChatReadState&{connection_id:string;conversation_id:string;offer_title:string;your_role:'TUTOR'|'PAYER';learner_kind:'ADULT'|'CHILD';messages:ChatMessage[];last_sequence:number;next_after:number;has_more:boolean;has_older:boolean};
 export type ConnectionDetail={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE';created_at:string;your_role:'PAYER'|'TUTOR';learner_kind:'ADULT'|'CHILD';learning_requirements:string;preferred_times:string;test_only:boolean};
 export type ConnectionPeer={display_name:string;email:string;email_verified:true;role:'TUTOR'|'GUARDIAN'|'ADULT_LEARNER'};
@@ -141,6 +150,14 @@ export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>
  return ()=>source.close();
 }
 export const api = {
+  safetyContext:(kind:SafetyKind,id:string)=>request<SafetyContext>('GET','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety'),
+  blockPeer:(kind:SafetyKind,id:string,blocked:boolean)=>request<SafetyContext>('POST','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety/block',{blocked}),
+  reportSafety:(kind:SafetyKind,id:string,input:{request_key:string;category:SafetyCategory;description:string;message_sequences:number[]})=>request<{case:SafetyCase;replayed:boolean}>('POST','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety/reports',input),
+  safetyCenter:()=>request<SafetyCenter>('GET','/v1/me/safety'),
+  appealSafety:(id:string,input:{request_key:string;description:string})=>request<{appeal:SafetyAppeal;replayed:boolean}>('POST','/v1/me/safety-cases/'+encodeURIComponent(id)+'/appeals',input),
+  safetyQueue:()=>request<{cases:SafetyCase[]}>('GET','/v1/staff/safety-cases'),
+  inspectSafety:(id:string,reason:string)=>request<{case:SafetyCaseView}>('POST','/v1/staff/safety-cases/'+encodeURIComponent(id)+'/inspections',{reason}),
+  safetyAction:(id:string,revision:number,operation:SafetyOperation,reason:string)=>request<{case:SafetyCase;restrictions:SafetyRestriction[]}>('POST','/v1/staff/safety-cases/'+encodeURIComponent(id)+'/actions',{revision,operation,reason}),
   chatHistory:(id:string,query:{after?:number;before?:number;limit?:number}={})=>{const params=new URLSearchParams();for(const [key,value] of Object.entries(query))if(value!==undefined)params.set(key,String(value));return request<ChatState>('GET','/v1/me/connections/'+encodeURIComponent(id)+'/messages'+(params.size?'?'+params.toString():''));},
   sendMessage:(id:string,client_message_id:string,text:string)=>request<{message:ChatMessage;replayed:boolean}>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/messages',{client_message_id,text}),
   readChat:(id:string,sequence:number)=>request<ChatReadState>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/read-position',{sequence}),

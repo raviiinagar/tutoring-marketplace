@@ -338,7 +338,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
               <MessageCircle size={22} />
             </span>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-semibold tracking-tight">Private chat</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Private chat</h1><Link to="/safety/$kind/$targetId" params={{kind:"connection",targetId:connectionId}} className="link mt-1 inline-block text-xs">Report or block</Link>
               <p className="mt-1 break-words text-sm text-muted-foreground">
                 {state?.offer_title ?? "Checking your Connection"}
               </p>
@@ -379,7 +379,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
           {revoked ? (
             <div className="space-y-3 px-5 py-12 text-center">
               <p>Messages are hidden while access is unavailable.</p>
-              <Link to="/auth/signin" className="link">
+              <Link to="/safety/$kind/$targetId" params={{kind:"connection",targetId:connectionId}} className="link mb-3 block">Report or block this account</Link><Link to="/auth/signin" className="link">
                 Sign in again
               </Link>
             </div>
@@ -440,7 +440,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
                         <p
                           className={`mt-1 text-[11px] text-muted-foreground ${message.your_message ? "text-right" : ""}`}
                         >
-                          <time dateTime={message.created_at}>
+                          <a className="link mr-2" href={"/safety/connection/"+encodeURIComponent(connectionId)+"?message="+message.sequence} aria-label={"Report message "+message.sequence}>Report #{message.sequence}</a><time dateTime={message.created_at}>
                             {new Date(message.created_at).toLocaleString(undefined, {
                               month: "short",
                               day: "numeric",

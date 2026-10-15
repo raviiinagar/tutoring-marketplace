@@ -7,6 +7,12 @@ import { routeTree } from "@/routeTree.gen";
 // Match routes without running loaders or rendering: loaders may need a server or
 // network the test run lacks, and jsdom never loads the stylesheets React waits on.
 describe("App routing", () => {
+  it('matches participant safety and scoped staff case pages',()=>{
+    const router=createRouter({routeTree,context:{queryClient:new QueryClient()}});
+    expect(router.matchRoutes('/safety').at(-1)?.routeId).toBe('/safety');
+    expect(router.matchRoutes('/safety/connection/00000000-0000-4000-8000-000000000000').at(-1)?.routeId).toBe('/safety_/$kind/$targetId');
+    expect(router.matchRoutes('/staff/safety').at(-1)?.routeId).toBe('/staff_/safety');
+  });
   it('matches the private chat page directly',()=>{
     const router=createRouter({routeTree,context:{queryClient:new QueryClient()}});
     expect(router.matchRoutes('/chat/00000000-0000-4000-8000-000000000000').at(-1)?.routeId).toBe('/chat/$connectionId');

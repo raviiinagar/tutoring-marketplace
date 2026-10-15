@@ -1,3 +1,4 @@
+import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
 import {z} from 'zod';
@@ -25,6 +26,7 @@ export class ConnectionsService {
   private async unblocked(client:PoolClient,row:Row){if((await client.query('SELECT 1 FROM account_blocks WHERE (owner_id=$1 AND blocked_id=$2) OR (owner_id=$2 AND blocked_id=$1)',[row.payer_id,row.tutor_id])).rowCount)throw denied('CONTACT_BLOCKED','A current block prevents this interaction.');}
 
   private async safety(client:PoolClient,row:Row){
+    await requireSafetyClear(client,'LISTING',row.listing_id);
     const learner=await this.learners.requireUsable(client,row.payer_id,row.learner_id);
     await this.tutors.requireQualified(client,row.tutor_id,row.offer_snapshot.subject_id);
     const listing=(await client.query('SELECT * FROM teaching_listings WHERE id=$1 FOR UPDATE',[row.listing_id])).rows[0];
@@ -88,7 +90,7 @@ export class ConnectionsService {
 
   private async context(client:PoolClient,actor:Row,found:Row):Promise<ConnectionContext>{
     if(![found.payer_id,found.tutor_id].includes(actor.id)||!(await client.query('SELECT 1 FROM connection_participants WHERE connection_id=$1 AND user_id=$2',[found.id,actor.id])).rowCount)throw missing();
-    this.source(found);const {learner}=await this.safety(client,found);
+    this.source(found);await requireSafetyClear(client,'CONNECTION',found.id);const {learner}=await this.safety(client,found);
     const connection=(await client.query('SELECT * FROM connections WHERE id=$1 FOR UPDATE',[found.id])).rows[0];
     if(connection.safety_suspended)throw denied('CONNECTION_RESTRICTED','This Connection is restricted.');
     const grant=(await client.query('SELECT * FROM connection_access_grants WHERE connection_id=$1 FOR UPDATE',[found.id])).rows[0];

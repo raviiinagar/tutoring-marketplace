@@ -103,6 +103,7 @@ function Account() {
       </dl>
       {user.roles.includes('LEARNER')&&<Link to="/learners" className="link mt-5 block">Manage Learner profiles</Link>}
       <Link to="/requests" className="link mt-5 block">View my Contact Requests</Link>
+      <Link to="/safety" className="link mt-5 block">Safety and reports</Link>
       <Link to="/connections" className="link mt-5 block">View my Connections</Link>
       {user.roles.includes('TUTOR')&&<Link to="/tutor/requests" className="link mt-5 block">Incoming Tutor enquiries</Link>}
       {user.roles.includes('TUTOR')&&<Link to="/tutor" className="link mt-5 block">Manage Tutor profile and evidence</Link>}

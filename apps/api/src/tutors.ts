@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {requireSafetyClear} from './safety-permissions.js';
 import type {PoolClient} from 'pg';
 import {z} from 'zod';
 import {AuthService} from './auth.js';
@@ -34,7 +35,7 @@ export class TutorsService {
   private role(user:{roles:string[]}){if(!user.roles.includes('TUTOR'))throw problem('TUTOR_ROLE_REQUIRED','Choose the Tutor role in your account.',403);}
   private audit(client:PoolClient,actor:string,event:string,target:string,correlation:string,metadata:Record<string,unknown>={}){return client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),actor,event,correlation,this.now(),{target,...metadata}]);}
   private async profile(client:PoolClient,userId:string){const row=(await client.query('SELECT * FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[userId])).rows[0];if(!row)throw problem('PROFILE_REQUIRED','Create a Tutor profile first.',404);return row;}
-  private async activeOwner(client:PoolClient,id:string){const owner=(await client.query('SELECT id,status,roles FROM users WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!owner||owner.status!=='ACTIVE'||!owner.roles.includes('TUTOR'))throw problem('TUTOR_INELIGIBLE','Tutor account is not eligible.',403);}
+  private async activeOwner(client:PoolClient,id:string){await requireSafetyClear(client,'ACCOUNT',id);const owner=(await client.query('SELECT id,status,roles FROM users WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!owner||owner.status!=='ACTIVE'||!owner.roles.includes('TUTOR'))throw problem('TUTOR_INELIGIBLE','Tutor account is not eligible.',403);}
   private async snapshot(client:PoolClient,userId:string){const p=(await client.query('SELECT * FROM tutor_profiles WHERE user_id=$1',[userId])).rows[0];if(!p)return {profile:null,claims:[],evidence:[]};return {profile:{display_name:p.display_name,biography:p.biography,birth_date:decrypt<{birth_date:string}>(p.encrypted_birth_date,this.config.authSecret).birth_date,revision:p.revision,status:p.status,eligible:await this.eligible(client,userId,p)},claims:(await client.query(`SELECT ${claimColumns} FROM tutor_claims WHERE user_id=$1 AND profile_revision=$2 ORDER BY created_at,id`,[userId,p.revision])).rows,evidence:(await client.query(`SELECT ${evidenceColumns} FROM tutor_evidence WHERE user_id=$1 AND scan_status<>'WITHDRAWN' ORDER BY created_at,id`,[userId])).rows};}
   private async eligible(client:PoolClient,userId:string,p:Record<string,any>,subject?:string){
     if(p.status!=='APPROVED'||!isAdult(decrypt<{birth_date:string}>(p.encrypted_birth_date,this.config.authSecret).birth_date,this.now()))return false;

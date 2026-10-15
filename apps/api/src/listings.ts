@@ -1,3 +1,4 @@
+import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
 import {z} from 'zod';
@@ -47,7 +48,7 @@ export class ListingsService {
     const stale=profile?.revision!==row.profile_revision;let eligible=false;
     if(row.status==='PUBLISHED'&&row.approved&&!row.safety_suspended&&!stale){
       // Eligibility failures are ordinary state; database/programming failures must propagate.
-      try{await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
+      try{await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
     }
     return {id:row.id,user_id:row.user_id,offer:row.payload,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':stale&&row.status!=='DRAFT'?'CHANGES_REQUESTED':row.status,eligible,requires_profile_review:stale,review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }

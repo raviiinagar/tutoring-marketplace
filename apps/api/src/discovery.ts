@@ -21,6 +21,7 @@ const availableSql=`SELECT l.id,l.revision,l.payload,p.display_name,p.encrypted_
  FROM teaching_listings l JOIN tutor_profiles p ON p.user_id=l.user_id JOIN users u ON u.id=l.user_id
  LEFT JOIN tutor_photos photo ON photo.user_id=l.user_id AND photo.status='APPROVED' AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
  WHERE l.status='PUBLISHED' AND l.approved AND NOT l.safety_suspended
+   AND NOT EXISTS (SELECT 1 FROM safety_restrictions sr WHERE sr.lifted_at IS NULL AND ((sr.target_type='ACCOUNT' AND sr.target_id=u.id) OR (sr.target_type='LISTING' AND sr.target_id=l.id)))
    AND p.status='APPROVED' AND p.revision=l.profile_revision AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL AND 'TUTOR'=ANY(u.roles)
    AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
      WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.kind='IDENTITY' AND c.adult_identity_confirmed
