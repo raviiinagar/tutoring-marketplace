@@ -78,6 +78,7 @@ beforeEach(() => {
   clock = new Date(clock.getTime() + 8 * 86400000);
   gateway.loseCreate = false;
   gateway.unavailable = false;
+  gateway.onCreate = undefined;
 });
 after(async () => {
   await app?.close();
@@ -206,7 +207,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
           checked_item: "Fictional document and claim checked",
           reason: "Approve fictional Tutor evidence",
           adult_identity_confirmed: true,
-          expires_at: new Date(clock.getTime() + 86400000).toISOString(),
+          expires_at: new Date(clock.getTime() + 365 * 86400000).toISOString(),
         },
         mfa.cookie,
       ).expect(200);
@@ -295,6 +296,7 @@ class ProviderFixture {
   payments = new Map<string, any>();
   loseCreate = false;
   unavailable = false;
+  onCreate?: (order: any) => Promise<void>;
   async createOrder(cycle: string, amount: number, currency: string) {
     const row = {
       id: "order_" + randomBytes(8).toString("hex"),
@@ -306,6 +308,7 @@ class ProviderFixture {
       status: "created",
     };
     this.orders.set(row.id, row);
+    await this.onCreate?.(row);
     if (this.loseCreate)
       throw new Error("Lost response after provider success");
     return row;
@@ -453,7 +456,7 @@ test("callback signatures never grant access; signed capture webhooks journal mo
   assert.equal(paid.access_active, false);
   assert.equal(
     (await get("/v1/me/request-access", owner.cookie)).body.can_request,
-    false,
+    true,
   );
   await webhook(
     { ...payload, created_at: payload.created_at + 1 },
@@ -552,7 +555,12 @@ test("checkout and financial status enforce account, Learner, supply and block a
     { revision: listing.revision },
     teacher.cookie,
   ).expect(200);
-  await checkout(body, owner.cookie).expect(404);
+  await checkout(body, owner.cookie)
+    .expect(200)
+    .expect((response) => assert.equal(response.body.purchase.checkout, null));
+  await checkout({ ...body, request_key: randomUUID() }, owner.cookie).expect(
+    404,
+  );
   assert.equal(
     (await get("/v1/me/purchases/" + initial.id, owner.cookie)).body.purchase
       .checkout,
@@ -594,7 +602,10 @@ test("checkout and financial status enforce account, Learner, supply and block a
     { blocked: true },
     owner.cookie,
   ).expect(200);
-  await checkout({ ...body, listing_revision: resumed.revision }, owner.cookie)
+  await checkout(
+    { ...body, request_key: randomUUID(), listing_revision: resumed.revision },
+    owner.cookie,
+  )
     .expect(403)
     .expect((response) => assert.equal(response.body.code, "CONTACT_BLOCKED"));
 });
@@ -650,4 +661,420 @@ test("late capture keeps its original matching deadline and out-of-order failure
   assert.equal(replay.status, "CAPTURED");
   assert.equal(replay.journal.length, 1);
   assert.equal(replay.captured_at, paid.captured_at);
+});
+
+const enquiry = (owner: any, listing: any) => ({
+  request_key: randomUUID(),
+  listing_id: listing.id,
+  listing_revision: listing.revision,
+  learner_id: owner.profile.id,
+  subject_id: "subject-physics",
+  teaching_mode: "ONLINE",
+  learning_requirements: "Learn Physics mechanics with worked examples",
+  preferred_times: "Tuesday evenings, IST",
+});
+const submitEnquiry = (body: unknown, cookie: string) =>
+  post("/v1/me/contact-requests", body, cookie);
+const decide = (id: string, cookie: string) =>
+  post(
+    "/v1/me/tutor-requests/" + id + "/decisions",
+    { decision: "ACCEPT" },
+    cookie,
+  );
+async function fund(
+  owner: any,
+  listing: any,
+  input = purchase(owner, listing),
+) {
+  const row = (await checkout(input, owner.cookie).expect(200)).body.purchase;
+  const payment = captured(gateway.orders.get(row.checkout.order_id));
+  await webhook(event(payment)).expect(202);
+  while (await new PaymentEvents(database, config, gateway, now).tick()) {}
+  return row;
+}
+test("paid capture enables enquiries and the first eligible acceptance activates exactly one 30-day pass", async () => {
+  const { owner, teacher, listing } = await scenario();
+  const body = enquiry(owner, listing);
+  await submitEnquiry(body, owner.cookie).expect(403);
+  const paid = await fund(owner, listing);
+  const matching = (
+    await get("/v1/me/request-access", owner.cookie).expect(200)
+  ).body;
+  assert.equal(matching.can_request, true);
+  assert.equal(matching.coverage.status, "MATCHING");
+  assert.equal(
+    (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body.purchase
+      .access_active,
+    false,
+  );
+  const request = (await submitEnquiry(body, owner.cookie).expect(200)).body
+    .request;
+  clock = new Date(clock.getTime() + 3600000);
+  const accepted = (await decide(request.id, teacher.cookie).expect(200)).body;
+  assert.equal(accepted.connection_status, "ACTIVE");
+  const active = (await get("/v1/me/request-access", owner.cookie)).body
+    .coverage;
+  assert.equal(active.status, "ACTIVE");
+  assert.equal(active.starts_at, clock.toISOString());
+  assert.equal(
+    new Date(active.ends_at).getTime() - new Date(active.starts_at).getTime(),
+    30 * 86400000,
+  );
+  assert.equal(
+    (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body.purchase
+      .access_active,
+    true,
+  );
+  const contacts = (
+    await get(
+      "/v1/me/connections/" + accepted.connection_id + "/contacts",
+      owner.cookie,
+    ).expect(200)
+  ).body;
+  assert.equal(contacts.peer.email, teacher.email);
+  await decide(request.id, teacher.cookie)
+    .expect(200)
+    .expect((response) => assert.equal(response.body.replayed, true));
+  assert.equal(
+    (await get("/v1/me/request-access", owner.cookie)).body.coverage.starts_at,
+    active.starts_at,
+  );
+});
+
+test("two paid Tutors accept concurrently with one entitlement, fixed activation dates and one capture through replay", async () => {
+  const { owner, teacher, listing } = await scenario();
+  const second = await tutor();
+  const secondListing = await publish(second);
+  const paid = await fund(owner, listing);
+  const before = (await get("/v1/me/request-access", owner.cookie)).body
+    .coverage;
+  const requests = await Promise.all([
+    submitEnquiry(enquiry(owner, listing), owner.cookie).expect(200),
+    submitEnquiry(enquiry(owner, secondListing), owner.cookie).expect(200),
+  ]);
+  clock = new Date(clock.getTime() + 3600000);
+  const replies = await Promise.all([
+    decide(requests[0].body.request.id, teacher.cookie).expect(200),
+    decide(requests[1].body.request.id, second.cookie).expect(200),
+  ]);
+  assert.notEqual(replies[0].body.connection_id, replies[1].body.connection_id);
+  assert.ok(replies.every((r) => r.body.connection_status === "ACTIVE"));
+  const active = (await get("/v1/me/request-access", owner.cookie)).body
+    .coverage;
+  assert.equal(active.id, before.id);
+  assert.equal(active.purchase_id, paid.id);
+  assert.equal(active.starts_at, clock.toISOString());
+  clock = new Date(clock.getTime() + 3600000);
+  await Promise.all([
+    decide(requests[0].body.request.id, teacher.cookie).expect(200),
+    decide(requests[1].body.request.id, second.cookie).expect(200),
+  ]);
+  const order = gateway.orders.get(paid.checkout.order_id);
+  const payment = [...gateway.payments.values()].find(
+    (p) => p.order_id === order.id,
+  );
+  await webhook(
+    event(
+      payment,
+      "payment.captured",
+      Math.floor(
+        new Date(before.starts_at || paid.created_at).getTime() / 1000,
+      ),
+    ),
+  ).expect(202);
+  while (await new PaymentEvents(database, config, gateway, now).tick()) {}
+  const final = (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body
+    .purchase;
+  assert.equal(final.access.starts_at, active.starts_at);
+  assert.equal(final.access.ends_at, active.ends_at);
+  assert.equal(final.journal.length, 1);
+  assert.equal(
+    [...gateway.orders.values()].filter((o) => o.receipt === paid.id).length,
+    1,
+  );
+  for (const reply of replies)
+    await get(
+      "/v1/me/connections/" + reply.body.connection_id + "/contacts",
+      owner.cookie,
+    ).expect(200);
+  await app.close();
+  app = await createApplication(
+    config,
+    database,
+    now,
+    undefined,
+    undefined,
+    gateway,
+  );
+  const retry = (
+    await decide(requests[0].body.request.id, teacher.cookie).expect(200)
+  ).body;
+  assert.equal(retry.replayed, true);
+  assert.equal(retry.connection_id, replies[0].body.connection_id);
+  assert.equal(
+    (await get("/v1/me/request-access", owner.cookie)).body.coverage.starts_at,
+    active.starts_at,
+  );
+});
+
+test("production excludes test-provider coverage from enquiry, Connection and safety interfaces", async () => {
+  const { owner, teacher, listing } = await scenario();
+  await fund(owner, listing);
+  const row = (
+    await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(200)
+  ).body.request;
+  const connection = (await decide(row.id, teacher.cookie).expect(200)).body
+    .connection_id;
+  const production = {
+    ...config,
+    mode: "production" as const,
+    webOrigin: "https://marketplace.example.test",
+    allowedOrigins: ["https://marketplace.example.test"],
+    mailTransport: "smtp" as const,
+    guardianMode: "disabled" as const,
+    evidenceScanner: "disabled" as const,
+    payments: undefined,
+  };
+  const prod = await createApplication(production, database, now);
+  const ownerCookie = owner.cookie.replace("tm_session=", "__Host-tm_session=");
+  try {
+    const read = (path: string) =>
+      request(prod.getHttpServer()).get(path).set("Cookie", ownerCookie);
+    await read("/v1/me/connections/" + connection + "/safety").expect(404);
+    await read("/v1/me/connections/" + connection + "/contacts").expect(403);
+    await read("/v1/me/contact-requests/" + row.id).expect(404);
+    assert.equal(
+      (await read("/v1/me/contact-requests").expect(200)).body.requests.length,
+      0,
+    );
+    assert.equal(
+      (await read("/v1/me/connections").expect(200)).body.connections.length,
+      0,
+    );
+    assert.equal(
+      (await read("/v1/me/request-access").expect(200)).body.can_request,
+      false,
+    );
+  } finally {
+    await prod.close();
+  }
+});
+
+async function refreshSession(user: any) {
+  const result = await post("/v1/auth/sessions", {
+    email: user.email,
+    password,
+  }).expect(200);
+  user.cookie = result.headers["set-cookie"][0];
+}
+test("ordinary expiry preserves covered requests and established contacts; only an explicit new checkout creates a repurchase", async () => {
+  const { owner, teacher, listing } = await scenario();
+  const otherListing = await publishOffer(teacher, {
+    ...offer,
+    title: "More Physics with worked examples",
+  });
+  const originalInput = purchase(owner, listing);
+  const paid = await fund(owner, listing, originalInput);
+  const first = (
+    await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(200)
+  ).body.request;
+  clock = new Date(clock.getTime() + 3600000);
+  const connected = (await decide(first.id, teacher.cookie).expect(200)).body
+    .connection_id;
+  const active = (await get("/v1/me/request-access", owner.cookie)).body
+    .coverage;
+  clock = new Date(new Date(active.ends_at).getTime() - 3600000);
+  await refreshSession(owner);
+  await refreshSession(teacher);
+  const later = (
+    await submitEnquiry(enquiry(owner, otherListing), owner.cookie).expect(200)
+  ).body.request;
+  clock = new Date(new Date(active.ends_at).getTime());
+  assert.equal(
+    (await get("/v1/me/request-access", owner.cookie)).body.can_request,
+    false,
+  );
+  await submitEnquiry(
+    { ...enquiry(owner, otherListing), request_key: randomUUID() },
+    owner.cookie,
+  ).expect(403);
+  const next = (
+    await checkout(purchase(owner, otherListing), owner.cookie).expect(200)
+  ).body.purchase;
+  assert.notEqual(next.id, paid.id);
+  assert.equal(next.status, "ORDER_READY");
+  assert.equal(next.journal.length, 0);
+  assert.equal(
+    (await checkout(originalInput, owner.cookie).expect(200)).body.purchase.id,
+    paid.id,
+  );
+  clock = new Date(clock.getTime() + 3600000);
+  const accepted = (await decide(later.id, teacher.cookie).expect(200)).body;
+  assert.equal(accepted.connection_status, "ACTIVE");
+  await get(
+    "/v1/me/connections/" + connected + "/contacts",
+    owner.cookie,
+  ).expect(200);
+  await get(
+    "/v1/me/connections/" + accepted.connection_id + "/contacts",
+    owner.cookie,
+  ).expect(200);
+  const old = (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body
+    .purchase;
+  assert.equal(old.access.starts_at, active.starts_at);
+  assert.equal(old.access.ends_at, active.ends_at);
+  assert.equal(old.access.status, "EXPIRED");
+  assert.equal(
+    (await get("/v1/me/purchases/" + next.id, owner.cookie)).body.purchase
+      .access_active,
+    false,
+  );
+});
+
+test("supply suspended during provider work preserves captured money and routes to an explicit eligible alternative", async () => {
+  const { owner, teacher, listing } = await scenario();
+  let release!: () => void;
+  let started!: (order: any) => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const created = new Promise<any>((resolve) => {
+    started = resolve;
+  });
+  gateway.onCreate = async (order) => {
+    started(order);
+    await gate;
+  };
+  const pending = checkout(purchase(owner, listing), owner.cookie)
+    .expect(200)
+    .then((result) => result);
+  const order = await created;
+  try {
+    await post(
+      "/v1/staff/listings/" + listing.id + "/safety",
+      {
+        revision: listing.revision,
+        action: "SUSPEND",
+        reason: "Fictional restriction while checkout is pending",
+      },
+      teacher.reviewer!.cookie,
+    ).expect(200);
+  } finally {
+    release();
+    gateway.onCreate = undefined;
+  }
+  const reserved = (await pending).body.purchase;
+  assert.equal(reserved.checkout, null);
+  const payment = captured(order);
+  await webhook(event(payment)).expect(202);
+  while (await new PaymentEvents(database, config, gateway, now).tick()) {}
+  const paid = (
+    await get("/v1/me/purchases/" + reserved.id, owner.cookie).expect(200)
+  ).body.purchase;
+  assert.equal(paid.status, "CAPTURED");
+  assert.equal(paid.journal.length, 1);
+  assert.equal(paid.access_active, false);
+  assert.equal(paid.requires_alternative, true);
+  await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(404);
+  assert.equal(
+    (await get("/v1/me/connections", owner.cookie)).body.connections.length,
+    0,
+  );
+  const alternative = await tutor();
+  const available = await publish(alternative);
+  const request = (
+    await submitEnquiry(enquiry(owner, available), owner.cookie).expect(200)
+  ).body.request;
+  const accepted = (await decide(request.id, alternative.cookie).expect(200))
+    .body;
+  assert.equal(accepted.connection_status, "ACTIVE");
+  assert.equal(
+    (await get("/v1/me/purchases/" + reserved.id, owner.cookie)).body.purchase
+      .journal.length,
+    1,
+  );
+});
+
+test("abandoning the Learner role before capture records money without enabling enquiries or contacts", async () => {
+  const { owner, listing } = await scenario();
+  const reserved = (
+    await checkout(purchase(owner, listing), owner.cookie).expect(200)
+  ).body.purchase;
+  await post("/v1/me/roles", { roles: ["TUTOR"] }, owner.cookie).expect(200);
+  const payment = captured(gateway.orders.get(reserved.checkout.order_id));
+  await webhook(event(payment)).expect(202);
+  while (await new PaymentEvents(database, config, gateway, now).tick()) {}
+  const access = (await get("/v1/me/request-access", owner.cookie)).body;
+  assert.equal(access.can_request, false);
+  const paid = (await get("/v1/me/purchases/" + reserved.id, owner.cookie)).body
+    .purchase;
+  assert.equal(paid.journal.length, 1);
+  assert.equal(paid.requires_alternative, true);
+  assert.equal(paid.access_active, false);
+  await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(403);
+  assert.equal(
+    (await get("/v1/me/connections", owner.cookie)).body.connections.length,
+    0,
+  );
+});
+
+test("paid matching deadline equality cannot activate a pass or authorize a replacement charge", async () => {
+  const { owner, teacher, listing } = await scenario();
+  const paid = await fund(owner, listing);
+  const request = (
+    await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(200)
+  ).body.request;
+  clock = new Date(request.expires_at);
+  await decide(request.id, teacher.cookie).expect(409);
+  assert.equal(
+    (await get("/v1/me/connections", owner.cookie)).body.connections.length,
+    0,
+  );
+  const state = (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body
+    .purchase;
+  assert.equal(state.access_active, false);
+  assert.equal(state.access.starts_at, null);
+  assert.equal(state.access.status, "EXPIRED");
+  assert.equal(
+    (await checkout(purchase(owner, listing), owner.cookie).expect(200)).body
+      .purchase.id,
+    paid.id,
+  );
+});
+
+test("a financial review blocks further paid acquisitions while preserving an established safe Connection", async () => {
+  const { owner, teacher, listing } = await scenario();
+  const otherListing = await publishOffer(teacher, {
+    ...offer,
+    title: "Another Physics learning combination",
+  });
+  const paid = await fund(owner, listing);
+  const first = (
+    await submitEnquiry(enquiry(owner, listing), owner.cookie).expect(200)
+  ).body.request;
+  const connected = (await decide(first.id, teacher.cookie).expect(200)).body
+    .connection_id;
+  const pending = (
+    await submitEnquiry(enquiry(owner, otherListing), owner.cookie).expect(200)
+  ).body.request;
+  const extra = captured(gateway.orders.get(paid.checkout.order_id));
+  await webhook(event(extra)).expect(202);
+  while (await new PaymentEvents(database, config, gateway, now).tick()) {}
+  const reviewed = (await get("/v1/me/purchases/" + paid.id, owner.cookie)).body
+    .purchase;
+  assert.equal(reviewed.resolution_required, true);
+  assert.equal(reviewed.journal.length, 2);
+  assert.deepEqual(reviewed.journal.map((entry: any) => entry.kind).sort(), [
+    "CAPTURE",
+    "UNEXPECTED_CAPTURE",
+  ]);
+  assert.equal(
+    (await get("/v1/me/request-access", owner.cookie)).body.can_request,
+    false,
+  );
+  await decide(pending.id, teacher.cookie).expect(403);
+  await get(
+    "/v1/me/connections/" + connected + "/contacts",
+    owner.cookie,
+  ).expect(200);
 });

@@ -57,9 +57,11 @@ const money = (paise: number) =>
 export function PaymentCheckout({
   listing,
   learnerId,
+  onAccessChange,
 }: {
   listing?: { id: string; revision: number };
   learnerId?: string;
+  onAccessChange?: () => Promise<void>;
 }) {
   const [policy, setPolicy] = useState<PaymentPolicy>();
   const [purchase, setPurchase] = useState<Purchase>();
@@ -80,9 +82,10 @@ export function PaymentCheckout({
       if (result.ok) {
         setPurchase(result.data.purchase);
         setError(undefined);
+        await onAccessChange?.();
       } else setError(describeFailure(result.error));
     }
-  }, []);
+  }, [onAccessChange]);
   useEffect(() => {
     let active = true;
     void api.paymentPolicy().then(async (result) => {
@@ -101,12 +104,25 @@ export function PaymentCheckout({
     const timer = window.setInterval(() => void refresh(), 5000);
     return () => window.clearInterval(timer);
   }, [purchase?.status, refresh]);
+  const repurchasing =
+    purchase?.access?.status === "EXPIRED" &&
+    !!purchase.access.starts_at &&
+    !purchase.resolution_required;
+  useEffect(() => {
+    setAccepted(false);
+  }, [repurchasing, purchase?.id]);
+  useEffect(() => {
+    const focus = () => void refresh();
+    window.addEventListener("focus", focus);
+    return () => window.removeEventListener("focus", focus);
+  }, [refresh]);
   const open = () =>
     void run(async () => {
       if (!policy?.checkout_available || !accepted) return;
       setError(undefined);
       setMessage(undefined);
-      let current = purchase;
+      if (repurchasing) key.current = crypto.randomUUID();
+      let current = repurchasing ? undefined : purchase;
       if (!current) {
         if (!listing || !learnerId) return;
         const created = await api.createPurchase({
@@ -154,10 +170,11 @@ export function PaymentCheckout({
           },
           handler: (result) => {
             setMessage("Checking payment with the provider. Your Access Pass has not started.");
-            void api.confirmPurchase(id, result).then((confirmed) => {
+            void api.confirmPurchase(id, result).then(async (confirmed) => {
               if (confirmed.ok) {
                 setPurchase(confirmed.data.purchase);
                 setError(undefined);
+                await onAccessChange?.();
               } else setError(describeFailure(confirmed.error));
             });
           },
@@ -175,7 +192,9 @@ export function PaymentCheckout({
         );
       }
     });
-  const disclosure = purchase?.disclosures || policy?.disclosures;
+  const disclosure = repurchasing
+    ? policy?.disclosures
+    : purchase?.disclosures || policy?.disclosures;
   return (
     <section
       aria-label="Access Pass checkout"
@@ -197,7 +216,11 @@ export function PaymentCheckout({
           {policy && (
             <>
               <p className="text-3xl font-semibold">
-                {money(purchase?.amount_paise ?? policy.policy.amount_paise)}{" "}
+                {money(
+                  repurchasing
+                    ? policy.policy.amount_paise
+                    : (purchase?.amount_paise ?? policy.policy.amount_paise),
+                )}{" "}
                 <span className="text-sm font-normal text-muted-foreground">total</span>
               </p>
               <p className="text-sm leading-relaxed">
@@ -242,7 +265,15 @@ export function PaymentCheckout({
               </p>
               <p>
                 {purchase.status === "CAPTURED"
-                  ? "Your 30-day access period has not started. Payment alone does not create a Tutor Connection."
+                  ? purchase.access?.status === "ACTIVE"
+                    ? "Your Access Pass is active."
+                    : purchase.access?.status === "EXPIRED"
+                      ? purchase.access.starts_at
+                        ? "Your Access Pass has expired. Existing Connections remain available, subject to current safety permissions."
+                        : "The matching window has ended. Your pass did not start; resolution is pending."
+                      : purchase.access?.status === "UNAVAILABLE"
+                        ? "New enquiries are unavailable for this purchase. Check its payment status before paying again."
+                        : "Send an enquiry to an eligible Tutor. Your 30-day access period begins with the first eligible acceptance."
                   : purchase.status === "UNKNOWN" ||
                       purchase.status === "VERIFYING" ||
                       purchase.status === "CREATING"
@@ -253,7 +284,27 @@ export function PaymentCheckout({
                         ? "The selected Tutor or Learner profile is currently unavailable for checkout."
                         : "You can resume the same checkout without creating another purchase."}
               </p>
-              {purchase.matching_deadline && (
+              {purchase.access?.starts_at && (
+                <p>Access started: {new Date(purchase.access.starts_at).toLocaleString()}</p>
+              )}
+              {purchase.access?.ends_at && (
+                <p>Access ends: {new Date(purchase.access.ends_at).toLocaleString()}</p>
+              )}
+              {purchase.access?.status === "MATCHING" && (
+                <p>Awaiting Tutor acceptance. Your pass has not started.</p>
+              )}
+              {purchase.requires_alternative && (
+                <p>
+                  The selected Tutor or Learner profile is unavailable. Choose another eligible
+                  offer/profile within the existing matching window.
+                </p>
+              )}
+              {purchase.status === "CAPTURED" && (
+                <a href="/tutors" className="link inline-block">
+                  Find Tutors to send an enquiry
+                </a>
+              )}
+              {purchase.matching_deadline && !purchase.access?.starts_at && (
                 <p>Matching deadline: {new Date(purchase.matching_deadline).toLocaleString()}</p>
               )}
               {purchase.resolution_required && (
@@ -270,33 +321,38 @@ export function PaymentCheckout({
             </p>
           )}
           {message && <Notice tone="info">{message}</Notice>}
-          {policy?.checkout_available && (!purchase || purchase.checkout) && (
-            <>
-              <label className="flex items-start gap-3 text-sm">
-                <input
-                  className="mt-1 size-4 shrink-0 accent-coral-strong"
-                  type="checkbox"
-                  checked={accepted}
-                  onChange={(event) => setAccepted(event.target.checked)}
-                />
-                I understand that the Access Pass is a separate platform charge and tuition is paid
-                directly to Tutors.
-              </label>
-              <Button
-                type="button"
-                className="w-full rounded-full sm:w-auto"
-                disabled={loading || !accepted || (!purchase && (!listing || !learnerId))}
-                onClick={open}
-              >
-                <CreditCard aria-hidden className="mr-2 size-4" />
-                {loading
-                  ? "Preparing secure checkout…"
-                  : purchase
-                    ? "Resume same checkout"
-                    : "Pay " + money(policy.policy.amount_paise) + " securely"}
-              </Button>
-            </>
-          )}
+          {policy?.checkout_available &&
+            (!purchase || purchase.checkout || (repurchasing && listing && learnerId)) && (
+              <>
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    className="mt-1 size-4 shrink-0 accent-coral-strong"
+                    type="checkbox"
+                    checked={accepted}
+                    onChange={(event) => setAccepted(event.target.checked)}
+                  />
+                  I understand that the Access Pass is a separate platform charge and tuition is
+                  paid directly to Tutors.
+                </label>
+                <Button
+                  type="button"
+                  className="w-full rounded-full sm:w-auto"
+                  disabled={
+                    loading ||
+                    !accepted ||
+                    ((!purchase || repurchasing) && (!listing || !learnerId))
+                  }
+                  onClick={open}
+                >
+                  <CreditCard aria-hidden className="mr-2 size-4" />
+                  {loading
+                    ? "Preparing secure checkout…"
+                    : purchase && !repurchasing
+                      ? "Resume same checkout"
+                      : "Pay " + money(policy.policy.amount_paise) + " securely"}
+                </Button>
+              </>
+            )}
           {purchase && (
             <Button
               type="button"

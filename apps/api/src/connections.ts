@@ -1,3 +1,4 @@
+import {PaidAccess,testCoverage,coverageAllowed} from './paid-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
@@ -19,10 +20,10 @@ const denied=(code:string,message:string)=>new ApiProblem(403,code,message);
 const missing=()=>new ApiProblem(404,'NOT_FOUND','Request or Connection not found.');
 const code=(error:ApiProblem)=>(error.getResponse() as {code:string}).code;
 export class ConnectionsService {
-  constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly learners:LearnersService,private readonly listings:ListingsService,private readonly tutors:TutorsService,private readonly now:()=>Date=()=>new Date()){}
+  constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly learners:LearnersService,private readonly listings:ListingsService,private readonly tutors:TutorsService,private readonly paidAccess:PaidAccess,private readonly now:()=>Date=()=>new Date()){}
 
   private async audit(client:PoolClient,actor:string,event:string,target:string,correlation:string){await client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),actor,event,correlation,this.now(),{target}]);}
-  private source(row:Row){if(this.config.mode==='production'||row.coverage_snapshot.source!=='FIXTURE')throw denied('COVERAGE_UNAVAILABLE','This coverage cannot authorize a Connection.');}
+  private source(row:Row){if(!coverageAllowed(this.config,row.coverage_snapshot))throw denied('COVERAGE_UNAVAILABLE','This coverage cannot authorize a Connection.');}
   private async unblocked(client:PoolClient,row:Row){if((await client.query('SELECT 1 FROM account_blocks WHERE (owner_id=$1 AND blocked_id=$2) OR (owner_id=$2 AND blocked_id=$1)',[row.payer_id,row.tutor_id])).rowCount)throw denied('CONTACT_BLOCKED','A current block prevents this interaction.');}
 
   private async safety(client:PoolClient,row:Row){
@@ -34,18 +35,9 @@ export class ConnectionsService {
     await this.unblocked(client,row);return {learner,listing};
   }
 
-  private async covered(client:PoolClient,row:Row){
-    this.source(row);
-    const grant=(await client.query('SELECT * FROM access_entitlements WHERE id=$1 AND payer_id=$2 FOR UPDATE',[row.entitlement_id,row.payer_id])).rows[0];const snapshot=row.coverage_snapshot;const submitted=new Date(row.created_at).getTime();
-    if(!grant||grant.source!==snapshot.source||grant.policy_version!==snapshot.policy_version||grant.status==='REVOKED')throw denied('ACCESS_REVOKED','The request coverage is unavailable or revoked.');
-    const active=snapshot.status==='ACTIVE'&&new Date(snapshot.starts_at).getTime()<=submitted&&new Date(snapshot.ends_at).getTime()>submitted;
-    const matching=snapshot.status==='MATCHING'&&new Date(snapshot.captured_at).getTime()<=submitted&&new Date(snapshot.matching_deadline).getTime()>submitted&&new Date(row.expires_at)<=new Date(snapshot.matching_deadline);
-    if(!active&&!matching)throw denied('INVALID_COVERAGE','The request was not covered at submission.');return grant;
-  }
-
   private async pending(client:PoolClient,row:Row){
     this.source(row);if(row.status!=='PENDING')throw new ApiProblem(409,'DECISION_RECORDED','This request has already been decided.');
-    const context=await this.safety(client,row);const coverage=await this.covered(client,row);
+    const context=await this.safety(client,row);const coverage=await this.paidAccess.forRequest(client,row);
     if(new Date(row.expires_at)<=this.now())throw new ApiProblem(409,'REQUEST_EXPIRED','This request response deadline has passed.');
     return {...context,coverage};
   }
@@ -65,11 +57,11 @@ export class ConnectionsService {
     const at=this.now();if(row.status!=='PENDING'||new Date(row.expires_at)<=at)throw new ApiProblem(409,'REQUEST_EXPIRED','The request is no longer pending within its response deadline.');
     await client.query('INSERT INTO contact_request_decisions(request_id,tutor_id,decision,decided_at) VALUES($1,$2,$3,$4)',[id,user.id,decision,at]);
     if(decision==='ACCEPT'){
-      const connectionId=randomUUID();const ready=coverage.status==='ACTIVE';
+      const connectionId=randomUUID();const ready=await this.paidAccess.activate(client,coverage,at,{actor_id:user.id,request_id:row.id,correlation});
       await client.query('INSERT INTO connections(id,request_id,status,created_at) VALUES($1,$2,$3,$4)',[connectionId,id,ready?'ACTIVE':'PENDING_GRANT',at]);
       await client.query("INSERT INTO connection_participants(connection_id,user_id,role) VALUES($1,$2,'PAYER'),($1,$3,'TUTOR')",[connectionId,row.payer_id,row.tutor_id]);
       await client.query('INSERT INTO conversations(id,connection_id,created_at) VALUES($1,$2,$3)',[randomUUID(),connectionId,at]);
-      if(ready)await client.query("INSERT INTO connection_access_grants(connection_id,entitlement_id,source,granted_at) VALUES($1,$2,'FIXTURE',$3)",[connectionId,row.entitlement_id,at]);
+      if(ready)await client.query("INSERT INTO connection_access_grants(connection_id,entitlement_id,source,granted_at) VALUES($1,$2,$3,$4)",[connectionId,row.entitlement_id,coverage.source,at]);
       await this.audit(client,user.id,ready?'CONNECTION_ESTABLISHED':'CONNECTION_AWAITING_ACCESS',connectionId,correlation);
     }
     await client.query('UPDATE contact_requests SET status=$2,updated_at=$3 WHERE id=$1',[id,decision==='ACCEPT'?'ACCEPTED':'DECLINED',at]);
@@ -77,14 +69,14 @@ export class ConnectionsService {
   });}
 
   async inbox(token:string|undefined,cursor?:string){return this.database.transaction(async client=>{
-    const actor=await this.auth.sessionOwner(client,token);let rows=actor?(await client.query("SELECT * FROM contact_requests WHERE tutor_id=$1 AND ($2::uuid IS NULL OR id>$2::uuid) AND (NOT $3::boolean OR coverage_snapshot->>'source'<>'FIXTURE') ORDER BY id LIMIT 21",[actor,cursor||null,this.config.mode==='production'])).rows:[];
+    const actor=await this.auth.sessionOwner(client,token);let rows=actor?(await client.query("SELECT * FROM contact_requests WHERE tutor_id=$1 AND ($2::uuid IS NULL OR id>$2::uuid) AND (NOT $3::boolean OR (coverage_snapshot->>'source'='PAYMENT' AND coverage_snapshot->>'test_only'='false')) ORDER BY id LIMIT 21",[actor,cursor||null,this.config.mode==='production'])).rows:[];
     const {user}=await this.auth.authenticated(client,token,rows.map(row=>row.payer_id));if(!user.roles.includes('TUTOR'))throw denied('TUTOR_ROLE_REQUIRED','Your Tutor role is required.');
     if(rows.length)rows=(await client.query('SELECT * FROM contact_requests WHERE id=ANY($1::uuid[]) AND tutor_id=$2 ORDER BY id',[rows.map(row=>row.id),user.id])).rows;
     const requests=[];for(const row of rows.slice(0,20)){
       let canDecline=false;let canAccept=false;let reason:string|null=null;let message:Row|null=null;
       try{await this.pending(client,row);canDecline=true;message=decrypt<Row>(row.encrypted_message,this.config.authSecret);try{await this.acceptOffer(client,row);canAccept=true;}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}
       const connection=(await client.query('SELECT id FROM connections WHERE request_id=$1',[row.id])).rows[0];
-      requests.push({id:row.id,offer:row.offer_snapshot,status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),learning_requirements:message?.learning_requirements||null,preferred_times:message?.preferred_times||null,can_accept:canAccept,can_decline:canDecline,unavailable_reason:reason,connection_id:connection?.id||null,test_only:row.coverage_snapshot.source==='FIXTURE'});
+      requests.push({id:row.id,offer:row.offer_snapshot,status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),learning_requirements:message?.learning_requirements||null,preferred_times:message?.preferred_times||null,can_accept:canAccept,can_decline:canDecline,unavailable_reason:reason,connection_id:connection?.id||null,test_only:testCoverage(row.coverage_snapshot)});
     }return {requests,next_cursor:rows.length>20?rows[19].id:null};
   });}
 
@@ -95,17 +87,17 @@ export class ConnectionsService {
     if(connection.safety_suspended)throw denied('CONNECTION_RESTRICTED','This Connection is restricted.');
     const grant=(await client.query('SELECT * FROM connection_access_grants WHERE connection_id=$1 FOR UPDATE',[found.id])).rows[0];
     if(connection.status!=='ACTIVE'||!grant)throw denied('ACCESS_PENDING','Contacts are unavailable while access activation is pending.');
-    if(grant.revoked_at||grant.source!=='FIXTURE'||this.config.mode==='production'||grant.entitlement_id!==found.entitlement_id)throw denied('CONNECTION_ACCESS_REVOKED','Connection access is unavailable.');
+    if(grant.revoked_at||grant.source!==found.coverage_snapshot.source||!coverageAllowed(this.config,found.coverage_snapshot)||grant.entitlement_id!==found.entitlement_id)throw denied('CONNECTION_ACCESS_REVOKED','Connection access is unavailable.');
     return {connection,request:found,actor,learner};
   }
   private query(){return 'SELECT c.id,c.status,c.safety_suspended,c.created_at AS connected_at,r.id AS request_id,r.payer_id,r.tutor_id,r.learner_id,r.listing_id,r.offer_snapshot,r.coverage_snapshot,r.entitlement_id,r.encrypted_message FROM connections c JOIN contact_requests r ON r.id=c.request_id';}
 
   // Task 12 messages must enter through this transaction/permission boundary as well.
   async withConnection<T>(token:string|undefined,id:string,command:(client:PoolClient,context:ConnectionContext)=>Promise<T>):Promise<T>{return this.database.transaction(async client=>{const found=(await client.query(this.query()+' WHERE c.id=$1',[id])).rows[0];const {user}=await this.auth.authenticated(client,token,found?[found.payer_id,found.tutor_id]:[]);if(!found)throw missing();return command(client,await this.context(client,user,found));});}
-  async detail(token:string|undefined,id:string){return this.withConnection(token,id,async(_client,context)=>({connection:{id:context.connection.id,request_id:context.request.request_id,listing_id:context.request.listing_id,offer:context.request.offer_snapshot,status:context.connection.status,created_at:new Date(context.connection.created_at).toISOString(),your_role:context.actor.id===context.request.tutor_id?'TUTOR':'PAYER',learner_kind:context.learner.kind,...decrypt<Row>(context.request.encrypted_message,this.config.authSecret),test_only:true}}));}
+  async detail(token:string|undefined,id:string){return this.withConnection(token,id,async(_client,context)=>({connection:{id:context.connection.id,request_id:context.request.request_id,listing_id:context.request.listing_id,offer:context.request.offer_snapshot,status:context.connection.status,created_at:new Date(context.connection.created_at).toISOString(),your_role:context.actor.id===context.request.tutor_id?'TUTOR':'PAYER',learner_kind:context.learner.kind,...decrypt<Row>(context.request.encrypted_message,this.config.authSecret),test_only:testCoverage(context.request.coverage_snapshot)}}));}
   async contacts(token:string|undefined,id:string,correlation:string){return this.withConnection(token,id,async(client,context)=>{const peerId=context.actor.id===context.request.tutor_id?context.request.payer_id:context.request.tutor_id;const peer=(await client.query("SELECT display_name,email FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",[peerId])).rows[0];if(!peer)throw denied('CONTACT_UNAVAILABLE','The verified adult contact is unavailable.');await this.audit(client,context.actor.id,'CONNECTION_CONTACTS_READ',id,correlation);return {peer:{display_name:peer.display_name,email:peer.email,email_verified:true,role:peerId===context.request.tutor_id?'TUTOR':context.learner.kind==='CHILD'?'GUARDIAN':'ADULT_LEARNER'}};});}
   async list(token:string|undefined,cursor?:string){return this.database.transaction(async client=>{
-    const actor=await this.auth.sessionOwner(client,token);const rows=actor?(await client.query(this.query()+" JOIN connection_participants cp ON cp.connection_id=c.id WHERE cp.user_id=$1 AND ($2::uuid IS NULL OR c.id>$2::uuid) AND (NOT $3::boolean OR r.coverage_snapshot->>'source'<>'FIXTURE') ORDER BY c.id LIMIT 21",[actor,cursor||null,this.config.mode==='production'])).rows:[];
-    const {user}=await this.auth.authenticated(client,token,rows.flatMap(row=>[row.payer_id,row.tutor_id]));const connections=[];for(const row of rows.slice(0,20)){let available=false;let reason:string|null=null;try{await this.context(client,user,row);available=true;}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}const unread_count=available?Number((await client.query('SELECT count(*) FROM conversations c JOIN conversation_messages m ON m.conversation_id=c.id LEFT JOIN conversation_read_positions p ON p.conversation_id=c.id AND p.user_id=$2 WHERE c.connection_id=$1 AND m.sender_id<>$2 AND m.sequence>COALESCE(p.last_read_sequence,0)',[row.id,user.id])).rows[0].count):null;connections.push({unread_count,id:row.id,request_id:row.request_id,listing_id:row.listing_id,offer:row.offer_snapshot,status:row.status,available,unavailable_reason:reason,created_at:new Date(row.connected_at).toISOString(),test_only:row.coverage_snapshot.source==='FIXTURE'});}return {connections,next_cursor:rows.length>20?rows[19].id:null};
+    const actor=await this.auth.sessionOwner(client,token);const rows=actor?(await client.query(this.query()+" JOIN connection_participants cp ON cp.connection_id=c.id WHERE cp.user_id=$1 AND ($2::uuid IS NULL OR c.id>$2::uuid) AND (NOT $3::boolean OR (r.coverage_snapshot->>'source'='PAYMENT' AND r.coverage_snapshot->>'test_only'='false')) ORDER BY c.id LIMIT 21",[actor,cursor||null,this.config.mode==='production'])).rows:[];
+    const {user}=await this.auth.authenticated(client,token,rows.flatMap(row=>[row.payer_id,row.tutor_id]));const connections=[];for(const row of rows.slice(0,20)){let available=false;let reason:string|null=null;try{await this.context(client,user,row);available=true;}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}const unread_count=available?Number((await client.query('SELECT count(*) FROM conversations c JOIN conversation_messages m ON m.conversation_id=c.id LEFT JOIN conversation_read_positions p ON p.conversation_id=c.id AND p.user_id=$2 WHERE c.connection_id=$1 AND m.sender_id<>$2 AND m.sequence>COALESCE(p.last_read_sequence,0)',[row.id,user.id])).rows[0].count):null;connections.push({unread_count,id:row.id,request_id:row.request_id,listing_id:row.listing_id,offer:row.offer_snapshot,status:row.status,available,unavailable_reason:reason,created_at:new Date(row.connected_at).toISOString(),test_only:testCoverage(row.coverage_snapshot)});}return {connections,next_cursor:rows.length>20?rows[19].id:null};
   });}
 }

@@ -39,6 +39,7 @@ import {ChatController} from './chat-controller.js';
 import {ChatRealtime} from './chat-realtime.js';
 import {SafetyService} from './safety.js';
 import {SafetyController} from './safety-controller.js';
+import {PaidAccess} from './paid-access.js';
 import {PaymentEvents} from './payment-events.js';
 import {PaymentsService} from './payments.js';
 import {PaymentsController} from './payments-controller.js';
@@ -167,14 +168,15 @@ export async function createApplication(config: Config,database: Database,now:()
   const listings=new ListingsService(database,auth,staff,catalogue,tutors,now);
   const discovery=new DiscoveryService(database,config,now);
   const availability=new AvailabilityService(database,config,discovery,listings,now);
-  const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,now);
-  const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,now);
+  const paidAccess=new PaidAccess(config,now);
+  const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,now);
+  const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,paidAccess,now);
   const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
   const chat=new ChatService(connections,config,database,now);
   const realtime=new ChatRealtime(chat,config);
   const safety=new SafetyService(database,auth,config,staff,now);
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
-  const payments=new PaymentsService(database,config,auth,learners,listings,paymentProvider,now);
+  const payments=new PaymentsService(database,config,auth,learners,listings,paidAccess,paymentProvider,now);
   @Module({
     controllers:[PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
     providers:[{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],

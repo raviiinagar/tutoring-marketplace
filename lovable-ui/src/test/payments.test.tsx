@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import { useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { PaymentCheckout } from "@/components/payment-checkout";
 const json = (body: unknown) =>
@@ -133,4 +134,140 @@ it("opens server-priced hosted checkout and keeps a successful browser callback 
   expect(screen.queryByText("Payment confirmed")).toBeNull();
   expect(screen.queryByRole("button", { name: /Resume same/ })).toBeNull();
   delete window.Razorpay;
+});
+
+it("refreshes enquiry eligibility when the server confirms capture during the hosted callback", async () => {
+  let complete: ((input: any) => void) | undefined;
+  class Hosted {
+    constructor(options: any) {
+      complete = options.handler;
+    }
+    open() {}
+    on() {}
+  }
+  window.Razorpay = Hosted;
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/policy")
+      ? json(policy)
+      : String(input).endsWith("/current")
+        ? json({ purchase: null })
+        : String(input).endsWith("/confirmation")
+          ? json({
+              purchase: {
+                ...readyPurchase,
+                status: "CAPTURED",
+                checkout: null,
+                access: { status: "MATCHING", starts_at: null, ends_at: null, test_only: true },
+              },
+            })
+          : json({ purchase: readyPurchase }),
+  );
+  function Enquiry() {
+    const [checked, setChecked] = useState(false);
+    return (
+      <>
+        <p>{checked ? "Enquiry access rechecked" : "Enquiry access pending"}</p>
+        <PaymentCheckout
+          listing={{ id: "listing", revision: 1 }}
+          learnerId="learner"
+          onAccessChange={async () => {
+            setChecked(true);
+          }}
+        />
+      </>
+    );
+  }
+  render(<Enquiry />);
+  fireEvent.click(await screen.findByRole("checkbox"));
+  fireEvent.click(screen.getByRole("button", { name: /Pay .* securely/ }));
+  await vi.waitFor(() => expect(complete).toBeDefined());
+  complete?.({
+    razorpay_order_id: "order_fixture",
+    razorpay_payment_id: "pay_fixture",
+    razorpay_signature: "signed",
+  });
+  expect(await screen.findByText("Payment confirmed")).toBeTruthy();
+  expect(await screen.findByText("Enquiry access rechecked")).toBeTruthy();
+  delete window.Razorpay;
+});
+
+it("shows the fixed active Access Pass interval without offering another payment", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/policy")
+      ? json(policy)
+      : String(input).endsWith("/current")
+        ? json({ purchase: { id: "purchase-fixture" } })
+        : json({
+            purchase: {
+              ...readyPurchase,
+              status: "CAPTURED",
+              checkout: null,
+              access_active: true,
+              access: {
+                status: "ACTIVE",
+                starts_at: "2026-10-15T04:00:00Z",
+                ends_at: "2026-11-14T04:00:00Z",
+                test_only: true,
+              },
+            },
+          }),
+  );
+  render(<PaymentCheckout listing={{ id: "listing", revision: 1 }} learnerId="learner" />);
+  expect(await screen.findByText("Your Access Pass is active.")).toBeTruthy();
+  expect(screen.queryByText(/Your 30-day access period has not started/)).toBeNull();
+  expect(screen.queryByRole("button", { name: /Pay .*securely|Resume same/ })).toBeNull();
+  expect(screen.getByRole("link", { name: "Find Tutors to send an enquiry" })).toBeTruthy();
+});
+
+it("offers explicit repurchase for an expired activated pass only after choosing an eligible offer and acknowledging terms", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/policy")
+      ? json(policy)
+      : String(input).endsWith("/current")
+        ? json({ purchase: { id: "purchase-fixture" } })
+        : json({
+            purchase: {
+              ...readyPurchase,
+              status: "CAPTURED",
+              checkout: null,
+              access_active: false,
+              access: {
+                status: "EXPIRED",
+                starts_at: "2026-09-01T04:00:00Z",
+                ends_at: "2026-10-01T04:00:00Z",
+                test_only: true,
+              },
+            },
+          }),
+  );
+  render(<PaymentCheckout listing={{ id: "listing", revision: 1 }} learnerId="learner" />);
+  const pay = await screen.findByRole("button", { name: /Pay .* securely/ });
+  expect(pay.hasAttribute("disabled")).toBe(true);
+  fireEvent.click(screen.getByRole("checkbox"));
+  expect(pay.hasAttribute("disabled")).toBe(false);
+  expect(screen.queryByRole("button", { name: "Resume same checkout" })).toBeNull();
+});
+it("does not offer replacement payment when the matching window expired without activation", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/policy")
+      ? json(policy)
+      : String(input).endsWith("/current")
+        ? json({ purchase: { id: "purchase-fixture" } })
+        : json({
+            purchase: {
+              ...readyPurchase,
+              status: "CAPTURED",
+              checkout: null,
+              access_active: false,
+              access: { status: "EXPIRED", starts_at: null, ends_at: null, test_only: true },
+            },
+          }),
+  );
+  render(<PaymentCheckout listing={{ id: "listing", revision: 1 }} learnerId="learner" />);
+  expect(
+    await screen.findByText(
+      "The matching window has ended. Your pass did not start; resolution is pending.",
+    ),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Pay .*securely|Resume same/ })).toBeNull();
 });

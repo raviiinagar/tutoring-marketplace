@@ -1,3 +1,4 @@
+import {testCoverage,coverageAllowed} from './paid-access.js';
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { Database } from "./database.js";
@@ -77,8 +78,7 @@ export class SafetyService {
     if (
       !row ||
       ![row.payer_id, row.tutor_id].includes(user.id) ||
-      (this.config.mode === "production" &&
-        row.coverage_snapshot.source === "FIXTURE")
+      !coverageAllowed(this.config,row.coverage_snapshot)
     )
       throw missing();
     if (
@@ -275,7 +275,7 @@ export class SafetyService {
             input.request_key,
             input.category,
             encrypt({ input: canonical, evidence }, this.config.authSecret),
-            row.coverage_snapshot.source === "FIXTURE",
+            testCoverage(row.coverage_snapshot),
             this.now(),
           ],
         )
@@ -541,7 +541,7 @@ export class SafetyService {
           });
       const blocks = (
         await client.query(
-          "SELECT DISTINCT ON (b.blocked_id) CASE WHEN c.id IS NOT NULL THEN 'connection' ELSE 'request' END AS kind,COALESCE(c.id,r.id) AS target_id,r.offer_snapshot->>'title' AS offer_title FROM account_blocks b JOIN contact_requests r ON (r.payer_id=b.owner_id AND r.tutor_id=b.blocked_id) OR (r.tutor_id=b.owner_id AND r.payer_id=b.blocked_id) LEFT JOIN connections c ON c.request_id=r.id WHERE b.owner_id=$1 AND (NOT $2::boolean OR r.coverage_snapshot->>'source'<>'FIXTURE') ORDER BY b.blocked_id,r.created_at DESC,r.id",
+          "SELECT DISTINCT ON (b.blocked_id) CASE WHEN c.id IS NOT NULL THEN 'connection' ELSE 'request' END AS kind,COALESCE(c.id,r.id) AS target_id,r.offer_snapshot->>'title' AS offer_title FROM account_blocks b JOIN contact_requests r ON (r.payer_id=b.owner_id AND r.tutor_id=b.blocked_id) OR (r.tutor_id=b.owner_id AND r.payer_id=b.blocked_id) LEFT JOIN connections c ON c.request_id=r.id WHERE b.owner_id=$1 AND (NOT $2::boolean OR (r.coverage_snapshot->>'source'='PAYMENT' AND r.coverage_snapshot->>'test_only'='false')) ORDER BY b.blocked_id,r.created_at DESC,r.id",
           [user.id, this.config.mode === "production"],
         )
       ).rows;

@@ -1,3 +1,4 @@
+import { PaidAccess } from "./paid-access.js";
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export class PaymentsService {
     private readonly auth: AuthService,
     private readonly learners: LearnersService,
     private readonly listings: ListingsService,
+    private readonly paidAccess: PaidAccess,
     private readonly provider: PaymentProvider | undefined,
     private readonly now: () => Date = () => new Date(),
   ) {
@@ -110,8 +112,9 @@ export class PaymentsService {
   private async view(client: PoolClient, row: Row) {
     let eligible = false;
     if (
-      row.status === "ORDER_READY" &&
-      row.provider_key_id === this.config.payments?.keyId
+      (row.status === "ORDER_READY" &&
+        row.provider_key_id === this.config.payments?.keyId) ||
+      row.status === "CAPTURED"
     ) {
       try {
         await this.recipient(client, row.payer_id, {
@@ -130,6 +133,7 @@ export class PaymentsService {
         [row.id],
       )
     ).rows;
+    const access = await this.paidAccess.summary(client, row);
     return {
       id: row.id,
       status: row.status,
@@ -146,17 +150,21 @@ export class PaymentsService {
         : null,
       resolution_required: row.resolution_required,
       payment_attempt_failed: row.last_payment_failed,
-      access_active: false,
+      requires_alternative:
+        row.status === "CAPTURED" && !eligible && access.status === "MATCHING",
+      access_active: access.status === "ACTIVE",
+      access,
       journal,
-      checkout: eligible
-        ? {
-            key_id: row.provider_key_id,
-            order_id: row.provider_order_id,
-            amount: row.amount_paise,
-            currency: row.currency,
-            merchant: row.disclosures.merchant,
-          }
-        : null,
+      checkout:
+        eligible && row.status === "ORDER_READY"
+          ? {
+              key_id: row.provider_key_id,
+              order_id: row.provider_order_id,
+              amount: row.amount_paise,
+              currency: row.currency,
+              merchant: row.disclosures.merchant,
+            }
+          : null,
     };
   }
   async detail(token: string | undefined, id: string) {
@@ -272,6 +280,13 @@ export class PaymentsService {
         token,
         recipient ? [recipient.user_id] : [],
       );
+      const retry = (
+        await client.query(
+          "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND request_key=$2 FOR UPDATE",
+          [user.id, input.request_key],
+        )
+      ).rows[0];
+      if (retry) return { row: retry, created: false };
       await this.recipient(client, user.id, input);
       const existing = (
         await client.query(
@@ -279,7 +294,14 @@ export class PaymentsService {
           [user.id],
         )
       ).rows[0];
-      if (existing) return { row: existing, created: false };
+      if (existing) {
+        if (!(await this.paidAccess.canRepurchase(client, existing)))
+          return { row: existing, created: false };
+        await client.query(
+          "UPDATE purchase_cycles SET open=false,updated_at=$2 WHERE id=$1",
+          [existing.id, this.now()],
+        );
+      }
       const policy = (
         await client.query("SELECT * FROM payment_policies WHERE version=$1", [
           input.policy_version,
