@@ -12,6 +12,7 @@ export interface Config {
   guardianMode: 'disabled' | 'test';
   evidenceScanner: 'disabled'|'test'|'clamav';
   clamav?:{host:string;port:number};
+  payments?: {mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
 }
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -58,7 +59,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if (smtpPort !== 465 && smtpPort !== 587) throw new Error("SMTP must use TLS port 465 or STARTTLS port 587");
     smtp = { host: env.SMTP_HOST, port: smtpPort, user: env.SMTP_USER, password: env.SMTP_PASSWORD, from: env.SMTP_FROM };
   }
-  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav };
+  const paymentMode=env.PAYMENT_MODE||'disabled';
+  if(!['disabled','razorpay_test','razorpay_live'].includes(paymentMode))throw new Error('Invalid PAYMENT_MODE');
+  let payments:Config['payments'];
+  if(paymentMode!=='disabled'){
+    const live=paymentMode==='razorpay_live';
+    if(mode==='production'&&!live)throw new Error('Test payments are forbidden in production');
+    if(mode!=='production'&&live)throw new Error('Live payments require production isolation');
+    const keyId=env.RAZORPAY_KEY_ID||'';const keySecret=env.RAZORPAY_KEY_SECRET||'';const webhookSecret=env.RAZORPAY_WEBHOOK_SECRET||'';
+    if(!keyId.startsWith(live?'rzp_live_':'rzp_test_')||keySecret.length<16||webhookSecret.length<16)throw new Error('Matching Razorpay keys and webhook secret are required');
+    const base=Number(env.PAYMENT_BASE_PAISE?.trim()||(live?'NaN':'59900'));const tax=Number(env.PAYMENT_TAX_PAISE?.trim()||(live?'NaN':'0'));
+    if(!Number.isSafeInteger(base)||!Number.isSafeInteger(tax)||base<0||tax<0||base+tax!==59900)throw new Error('Confirmed payment tax breakdown must total 59900 paise');
+    if(live&&(!env.PAYMENT_MERCHANT_NAME?.trim()||!env.PAYMENT_INVOICE_NOTICE?.trim()||env.PAYMENT_LAUNCH_APPROVED!=='true'||env.RAZORPAY_AUTO_CAPTURE_CONFIRMED!=='true'))throw new Error('Live merchant, invoice disclosures, automatic capture and launch approval are required');
+    payments={mode:live?'live':'test',keyId,keySecret,webhookSecret,disclosures:{merchant:env.PAYMENT_MERCHANT_NAME?.trim()||'Fictional test merchant',invoice_notice:env.PAYMENT_INVOICE_NOTICE?.trim()||'Test transaction only. No real payment or tax invoice.',base_paise:base,tax_paise:tax,test_only:!live}};
+  }
+  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

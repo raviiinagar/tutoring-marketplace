@@ -52,11 +52,15 @@ export type ChatState=ChatReadState&{connection_id:string;conversation_id:string
 export type ConnectionDetail={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE';created_at:string;your_role:'PAYER'|'TUTOR';learner_kind:'ADULT'|'CHILD';learning_requirements:string;preferred_times:string;test_only:boolean};
 export type ConnectionPeer={display_name:string;email:string;email_verified:true;role:'TUTOR'|'GUARDIAN'|'ADULT_LEARNER'};
 export type ContactRequest={id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;connection_id:string|null;test_only:boolean};
-export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:false;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;test_only:true}|null};
+export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:boolean;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;test_only:true}|null};
 export type ContactRequestInput={request_key:string;listing_id:string;listing_revision:number;learner_id:string;subject_id:string;teaching_mode:'ONLINE';learning_requirements:string;preferred_times:string};
 export type PublicOffer={id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
+export type PaymentDisclosure={merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean};
+export type PaymentPolicy={policy:{version:'access-v1';amount_paise:number;currency:'INR';access_days:number;matching_hours:number};checkout_available:boolean;disclosures:PaymentDisclosure|null};
+export type CheckoutConfirmation={razorpay_payment_id:string;razorpay_order_id:string;razorpay_signature:string};
+export type Purchase={id:string;status:'CREATING'|'ORDER_READY'|'UNKNOWN'|'VERIFYING'|'CAPTURED'|'REVIEW';policy_version:string;amount_paise:number;currency:string;created_at:string;captured_at:string|null;matching_deadline:string|null;resolution_required:boolean;payment_attempt_failed:boolean;access_active:boolean;disclosures:PaymentDisclosure;journal:{kind:string;amount_paise:string;currency:string;captured_at:string}[];checkout:{key_id:string;order_id:string;amount:number;currency:string;merchant:string}|null};
 export type CodeMessage = { code: string; message: string };
 export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; availability_verification_url?:string;availability_unsubscribe_url?:string; captured_at: string; development_only: true };
 export type AvailabilityPolicy={consent_version:'availability-v1';purpose:'TUTOR_AVAILABILITY';duration_days:number;max_alerts:number;notice:string};
@@ -150,6 +154,11 @@ export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>
  return ()=>source.close();
 }
 export const api = {
+  paymentPolicy:()=>request<PaymentPolicy>('GET','/v1/payments/policy'),
+  currentPurchase:()=>request<{purchase:{id:string}|null}>('GET','/v1/me/purchases/current'),
+  purchase:(id:string)=>request<{purchase:Purchase}>('GET','/v1/me/purchases/'+encodeURIComponent(id)),
+  createPurchase:(input:{request_key:string;listing_id:string;listing_revision:number;learner_id:string;policy_version:'access-v1'})=>request<{purchase:Purchase}>('POST','/v1/me/purchases',input),
+  confirmPurchase:(id:string,result:CheckoutConfirmation)=>request<{purchase:Purchase}>('POST','/v1/me/purchases/'+encodeURIComponent(id)+'/confirmation',{razorpay_order_id:result.razorpay_order_id,razorpay_payment_id:result.razorpay_payment_id,razorpay_signature:result.razorpay_signature}),
   safetyContext:(kind:SafetyKind,id:string)=>request<SafetyContext>('GET','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety'),
   blockPeer:(kind:SafetyKind,id:string,blocked:boolean)=>request<SafetyContext>('POST','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety/block',{blocked}),
   reportSafety:(kind:SafetyKind,id:string,input:{request_key:string;category:SafetyCategory;description:string;message_sequences:number[]})=>request<{case:SafetyCase;replayed:boolean}>('POST','/v1/me/'+(kind==='connection'?'connections/':'contact-requests/')+encodeURIComponent(id)+'/safety/reports',input),

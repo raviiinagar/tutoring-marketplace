@@ -41,3 +41,6 @@ node --env-file=.local/browser-tests.env node_modules/tsx/dist/cli.mjs --tsconfi
 5. The optional final CLI argument `MATCHING` exercises fictional capture-based matching coverage rather than ACTIVE coverage. It does not start the 30-day access clock. Stop the isolated stack with Ctrl+C when finished.
 
 The helper rejects production, non-loopback connections, databases without the `_test` suffix, non-fictional email domains and unverified/inactive identities. It is outside the API build and cannot grant coverage in the ordinary development marketplace database. Normal local testing can inspect the missing-access state until actual sandbox checkout is implemented.
+
+
+Task 14 now implements [hosted checkout and verified capture](payments.md). The configured checkout-availability flag is informational; it grants no request coverage. Paid coverage/activation remains task 15, so this task's fixture-only positive request seam remains unchanged.

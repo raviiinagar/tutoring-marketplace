@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as LearnersRouteImport } from './routes/learners'
+import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StaffRouteImport } from './routes/staff'
@@ -57,6 +58,11 @@ const ConnectionsRoute = ConnectionsRouteImport.update({
 const LearnersRoute = LearnersRouteImport.update({
   id: '/learners',
   path: '/learners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsRoute = PaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsRoute = RequestsRouteImport.update({
@@ -190,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
+  '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
+  '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/connections': typeof ConnectionsRoute
   '/learners': typeof LearnersRoute
+  '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/connections'
     | '/learners'
+    | '/payments'
     | '/requests'
     | '/safety'
     | '/staff'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/connections'
     | '/learners'
+    | '/payments'
     | '/requests'
     | '/safety'
     | '/staff'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/connections'
     | '/learners'
+    | '/payments'
     | '/requests'
     | '/safety'
     | '/staff'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ConnectionsRoute: typeof ConnectionsRoute
   LearnersRoute: typeof LearnersRoute
+  PaymentsRoute: typeof PaymentsRoute
   RequestsRoute: typeof RequestsRoute
   SafetyRoute: typeof SafetyRoute
   StaffRoute: typeof StaffRoute
@@ -435,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/learners'
       fullPath: '/learners'
       preLoaderRoute: typeof LearnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments': {
+      id: '/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof PaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests': {
@@ -620,6 +640,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ConnectionsRoute: ConnectionsRoute,
   LearnersRoute: LearnersRoute,
+  PaymentsRoute: PaymentsRoute,
   RequestsRoute: RequestsRoute,
   SafetyRoute: SafetyRoute,
   StaffRoute: StaffRoute,

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { Body, Catch, Controller, Delete, Get, HttpCode, HttpException, Inject, Module, Param, Post, Req, Res, type ArgumentsHost, type ExceptionFilter, type INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { json, type Request, type Response } from "express";
+import { raw, json, type Request, type Response } from "express";
 import helmet from "helmet";
 import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
@@ -39,6 +39,10 @@ import {ChatController} from './chat-controller.js';
 import {ChatRealtime} from './chat-realtime.js';
 import {SafetyService} from './safety.js';
 import {SafetyController} from './safety-controller.js';
+import {PaymentEvents} from './payment-events.js';
+import {PaymentsService} from './payments.js';
+import {PaymentsController} from './payments-controller.js';
+import {RazorpayProvider,type PaymentProvider} from './payment-provider.js';
 
 const CONFIG = "AUTH_CONFIG";
 type AuthRequest = Request & { correlationId: string };
@@ -154,7 +158,7 @@ class DevelopmentMailController {
     return {development_only:true,messages:messages.sort((a,b)=>b.captured_at.localeCompare(a.captured_at))};
   }
 }
-export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config)): Promise<INestApplication> {
+export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config),paymentProvider:PaymentProvider|undefined=config.payments?new RazorpayProvider(config.payments):undefined): Promise<INestApplication> {
   const auth = new AuthService(database,config,now);
   const staff = new StaffService(database,config,auth,now);
   const learners=new LearnersService(database,config,auth,staff,verifier,now);
@@ -169,9 +173,11 @@ export async function createApplication(config: Config,database: Database,now:()
   const chat=new ChatService(connections,config,database,now);
   const realtime=new ChatRealtime(chat,config);
   const safety=new SafetyService(database,auth,config,staff,now);
+  const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
+  const payments=new PaymentsService(database,config,auth,learners,listings,paymentProvider,now);
   @Module({
-    controllers:[SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
@@ -186,6 +192,7 @@ export async function createApplication(config: Config,database: Database,now:()
   app.use(helmet());
   app.enableCors({credentials:true,origin:(origin: string | undefined,callback: (error: Error | null,allow: boolean)=>void)=>callback(null,!origin||config.allowedOrigins.includes(origin))});
   app.use((request:AuthRequest,response:Response,next:()=>void)=>{
+    if (request.method==='POST'&&request.path==='/v1/payments/razorpay/webhooks') {next();return;}
     if (["POST","PUT","PATCH","DELETE"].includes(request.method)) {
       if (!request.headers.origin || !config.allowedOrigins.includes(request.headers.origin)) {
         response.status(403).json({code:"ORIGIN_NOT_ALLOWED",message:"Request origin is not allowed.",correlation_id:request.correlationId});return;
@@ -196,8 +203,10 @@ export async function createApplication(config: Config,database: Database,now:()
     }
     next();
   });
+  const webhookRaw=raw({type:'application/json',limit:'64kb'});
+  app.use((request:Request,response:Response,next:()=>void)=>{if(request.method==='POST'&&request.path==='/v1/payments/razorpay/webhooks'){webhookRaw(request,response,next);}else next();});
   const formJson=json({limit:'8kb',strict:true});const uploadJson=json({limit:'1400kb',strict:true});
-  app.use((request:Request,response:Response,next:()=>void)=>{(['/v1/me/tutor/evidence','/v1/me/tutor/photo'].includes(request.path)&&request.method==='POST'?uploadJson:formJson)(request,response,next);});
+  app.use((request:Request,response:Response,next:()=>void)=>{if(request.path==='/v1/payments/razorpay/webhooks'&&request.method==='POST'){next();return;}(['/v1/me/tutor/evidence','/v1/me/tutor/photo'].includes(request.path)&&request.method==='POST'?uploadJson:formJson)(request,response,next);});
   app.useGlobalFilters(new ProblemsFilter());
   await app.init();
   return app;
