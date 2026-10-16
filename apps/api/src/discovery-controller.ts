@@ -9,5 +9,6 @@ export class DiscoveryController {
   constructor(@Inject(DiscoveryService) private readonly discovery:DiscoveryService){}
   @Get() search(@Query() query:unknown){return this.discovery.search(parse(discoveryInput,query));}
   @Get(':id') detail(@Param('id') id:string){return this.discovery.detail(parse(z.uuid(),id));}
+  @Get(':id/reviews') reviews(@Param('id') id:string,@Query() query:unknown){const input=parse(z.strictObject({cursor:z.uuid().optional()}),query);return this.discovery.reviewPage(parse(z.uuid(),id),input.cursor);}
   @Get(':id/photos/:photoId') async photo(@Param('id') id:string,@Param('photoId') photoId:string,@Res() response:Response){const bytes=await this.discovery.photo(parse(z.uuid(),id),parse(z.uuid(),photoId));response.setHeader('Content-Type','image/jpeg');response.setHeader('Content-Disposition','inline; filename="tutor-photo.jpg"');response.send(bytes);}
 }

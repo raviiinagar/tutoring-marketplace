@@ -60,7 +60,7 @@ export type ConnectionPeer={display_name:string;email:string;email_verified:true
 export type ContactRequest={server_time:string;reminder:'DUE_SOON'|'EXPIRED'|null;id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;connection_id:string|null;test_only:boolean};
 export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:boolean;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;id:string;purchase_id:string|null;starts_at:string|null;ends_at:string|null;test_only:boolean}|null};
 export type ContactRequestInput={request_key:string;listing_id:string;listing_revision:number;learner_id:string;subject_id:string;teaching_mode:'ONLINE';learning_requirements:string;preferred_times:string};
-export type PublicOffer={id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
+export type PublicOffer={review_summary?:{count:number;average:number|null;label:string};id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type PaymentDisclosure={merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean};
@@ -164,6 +164,9 @@ export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>
  source.onerror=()=>{source.close();onDisconnect(false);};
  return ()=>source.close();
 }
+export type ReviewRow={id:string;connection_id:string;rating:number;text:string|null;status:string;revision:number;created_at:string;test_only:boolean;relationship?:'AUTHOR'|'TUTOR';decisions?:{id:string;outcome:string;policy_code:string;reason:string;created_at:string}[];appeals?:{id:string;status:string;review_revision:number}[]};
+export type ReviewContext={eligible:boolean;eligible_at:string;server_time:string;review:ReviewRow|null;policy_version:'review-v1';policy:string};
+export type PublicReviewPage={reviews:{id:string;rating:number;text:string;reviewer:string;created_at:string;label:string}[];summary:{count:number;average:number|null};next_cursor:string|null;disclaimer:string};
 export const api = {
   paymentPolicy:()=>request<PaymentPolicy>('GET','/v1/payments/policy'),
   currentPurchase:()=>request<{purchase:{id:string}|null}>('GET','/v1/me/purchases/current'),
@@ -231,6 +234,15 @@ export const api = {
   verifyEmail: (token: string) => request<CodeMessage>("POST", "/v1/auth/verifications", { token }),
   signIn: (input: { email: string; password: string }) =>
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
+  reviewContext:(id:string)=>request<ReviewContext>('GET','/v1/me/connections/'+encodeURIComponent(id)+'/review'),
+  submitReview:(id:string,input:{request_key:string;rating:number;text:string;interaction_attested:true;policy_version:'review-v1'})=>request<{review:ReviewRow}>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/review',input),
+  ownReviews:()=>request<{reviews:ReviewRow[]}>('GET','/v1/me/reviews'),
+  withdrawReview:(id:string,revision:number)=>request<{review:ReviewRow}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/withdrawals',{revision}),
+  appealReview:(id:string,input:{request_key:string;revision:number;description:string})=>request<{appeal:{id:string;status:string}}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/appeals',input),
+  publicReviews:(id:string,cursor?:string)=>request<PublicReviewPage>('GET','/v1/discovery/'+encodeURIComponent(id)+'/reviews'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),
+  reviewQueue:(reason:string)=>request<{reviews:ReviewRow[];policy:string}>('GET','/v1/staff/reviews?reason='+encodeURIComponent(reason)),
+  inspectReview:(id:string,reason:string)=>request<{review:ReviewRow;decisions:NonNullable<ReviewRow['decisions']>}>('POST','/v1/staff/reviews/'+encodeURIComponent(id)+'/inspections',{reason}),
+  moderateReview:(id:string,input:{revision:number;outcome:'PUBLISH'|'REJECT'|'REMOVE';policy_code:string;reason:string})=>request<{review:ReviewRow}>('POST','/v1/staff/reviews/'+encodeURIComponent(id)+'/decisions',input),
   notifications:()=>request<NotificationHistory>('GET','/v1/me/notifications'),
   notificationPreferences:()=>request<NotificationPreferenceView>('GET','/v1/me/notification-preferences'),
   saveNotificationPreferences:(input:NotificationPreferences)=>request<NotificationPreferenceView>('POST','/v1/me/notification-preferences',input),

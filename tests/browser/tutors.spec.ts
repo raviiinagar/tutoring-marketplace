@@ -73,6 +73,29 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     await visitor.getByRole('button',{name:'Refresh Connections',exact:true}).click();await expect(visitor.getByRole('link',{name:/Open chat/})).toContainText('1 unread');
     await visitor.getByRole('link',{name:/Open chat/}).click();await expect(visitor.getByRole('log')).toContainText('Unread until the learner opens chat.');
     await visitor.screenshot({path:'.local/task12-mobile-chat.png',fullPage:true});expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    // An isolated fixture ages only this fictional Connection; HTTP tests cover the exact boundary.
+    await execute(process.execPath,['--env-file=.local/browser-tests.env','node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','tests/browser/review-fixture.ts',connectionId],{timeout:30_000});
+    await visitor.goto('/reviews/'+connectionId);
+    await visitor.getByLabel('Your rating',{exact:true}).selectOption('1');
+    await visitor.getByLabel('Your feedback',{exact:true}).fill('The explanations were rushed and my questions were not answered clearly.');
+    await expect(visitor.getByRole('button',{name:'Submit review for moderation',exact:true})).toBeDisabled();
+    await visitor.getByLabel('I had an actual interaction with this Tutor.',{exact:true}).check();
+    await visitor.getByRole('button',{name:'Submit review for moderation',exact:true}).click();
+    await expect(visitor.getByText('Your review: PENDING.',{exact:false})).toBeVisible();
+    await reviewer.goto('/staff/reviews');await reviewer.getByLabel('Purpose for review access').fill('Review fictional connection feedback using equal policy checks');
+    await reviewer.getByRole('button',{name:'Load review queue',exact:true}).click();
+    await reviewer.getByRole('button',{name:/Inspect review /}).first().click();
+    await expect(reviewer.getByRole('region',{name:'Selected review'})).toContainText('The explanations were rushed');
+    await reviewer.getByLabel('Moderation decision reason').fill('Relevant negative feedback with no contacts or private information');
+    await reviewer.getByRole('button',{name:'Record review decision',exact:true}).click();
+    await visitor.goto('/tutors/'+listingId);await expect(visitor.getByRole('region',{name:'Connection-linked reviews'})).toContainText('1.0 / 5');
+    await expect(visitor.getByRole('region',{name:'Connection-linked reviews'})).toContainText('The explanations were rushed');
+    expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    await visitor.screenshot({path:'.local/task21-mobile-reviews.png',fullPage:true});
+    await visitor.goto('/reviews');await visitor.getByRole('button',{name:'Withdraw my review',exact:true}).click();
+    await expect(visitor.getByRole('article')).toContainText('WITHDRAWN');
+    await visitor.goto('/tutors/'+listingId);await expect(visitor.getByText('No published reviews yet.',{exact:true})).toBeVisible();
+    await page.goto('/chat/'+connectionId);await visitor.goto('/chat/'+connectionId);
     // Participant safety controls stop the live peer immediately; Trust receives only selected evidence.
     await visitor.getByRole('link',{name:'Report message 2',exact:true}).click();await expect(visitor.getByRole('heading',{name:'Safety controls',exact:true})).toBeVisible();await expect(visitor.getByLabel('Message numbers (optional)')).toHaveValue('2');
     await visitor.getByRole('button',{name:'Block account',exact:true}).click();await expect(visitor.getByText('You have blocked this account.',{exact:true})).toBeVisible();await expect(page.getByRole('alert')).toContainText('Chat access is unavailable');await expect(page.getByRole('log')).toHaveCount(0);

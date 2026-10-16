@@ -16,6 +16,7 @@ import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as RequestsRouteImport } from './routes/requests'
+import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TutorRouteImport } from './routes/tutor'
@@ -31,12 +32,14 @@ import { Route as ChatConnectionIdRouteImport } from './routes/chat.$connectionI
 import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
+import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifications'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
+import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
@@ -77,6 +80,11 @@ const PaymentsRoute = PaymentsRouteImport.update({
 const RequestsRoute = RequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewsRoute = ReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyRoute = SafetyRouteImport.update({
@@ -154,6 +162,11 @@ const PaymentsHistoryRoute = PaymentsHistoryRouteImport.update({
   path: '/payments/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewsConnectionIdRoute = ReviewsConnectionIdRouteImport.update({
+  id: '/reviews_/$connectionId',
+  path: '/reviews/$connectionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
   id: '/staff_/catalogue',
   path: '/staff/catalogue',
@@ -182,6 +195,11 @@ const StaffNotificationsRoute = StaffNotificationsRouteImport.update({
 const StaffPhotosRoute = StaffPhotosRouteImport.update({
   id: '/staff_/photos',
   path: '/staff/photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffReviewsRoute = StaffReviewsRouteImport.update({
+  id: '/staff_/reviews',
+  path: '/staff/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffSafetyRoute = StaffSafetyRouteImport.update({
@@ -223,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
+  '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
@@ -238,12 +257,14 @@ export interface FileRoutesByFullPath {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
+  '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
@@ -259,6 +280,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
+  '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
@@ -274,12 +296,14 @@ export interface FileRoutesByTo {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
+  '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
@@ -296,6 +320,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
   '/requests': typeof RequestsRoute
+  '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
   '/tutor': typeof TutorRoute
@@ -311,12 +336,14 @@ export interface FileRoutesById {
   '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments_/history': typeof PaymentsHistoryRoute
+  '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/notifications': typeof StaffNotificationsRoute
   '/staff_/photos': typeof StaffPhotosRoute
+  '/staff_/reviews': typeof StaffReviewsRoute
   '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/tutor_/listings': typeof TutorListingsRoute
@@ -334,6 +361,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/payments'
     | '/requests'
+    | '/reviews'
     | '/safety'
     | '/staff'
     | '/tutor'
@@ -349,12 +377,14 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/payments/history'
+    | '/reviews/$connectionId'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/notifications'
     | '/staff/photos'
+    | '/staff/reviews'
     | '/staff/safety'
     | '/staff/tutors'
     | '/tutor/listings'
@@ -370,6 +400,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/payments'
     | '/requests'
+    | '/reviews'
     | '/safety'
     | '/staff'
     | '/tutor'
@@ -385,12 +416,14 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/payments/history'
+    | '/reviews/$connectionId'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/notifications'
     | '/staff/photos'
+    | '/staff/reviews'
     | '/staff/safety'
     | '/staff/tutors'
     | '/tutor/listings'
@@ -406,6 +439,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/payments'
     | '/requests'
+    | '/reviews'
     | '/safety'
     | '/staff'
     | '/tutor'
@@ -421,12 +455,14 @@ export interface FileRouteTypes {
     | '/connections_/$connectionId'
     | '/dev/inbox'
     | '/payments_/history'
+    | '/reviews_/$connectionId'
     | '/staff_/catalogue'
     | '/staff_/finance'
     | '/staff_/guardians'
     | '/staff_/listings'
     | '/staff_/notifications'
     | '/staff_/photos'
+    | '/staff_/reviews'
     | '/staff_/safety'
     | '/staff_/tutors'
     | '/tutor_/listings'
@@ -443,6 +479,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PaymentsRoute: typeof PaymentsRoute
   RequestsRoute: typeof RequestsRoute
+  ReviewsRoute: typeof ReviewsRoute
   SafetyRoute: typeof SafetyRoute
   StaffRoute: typeof StaffRoute
   TutorRoute: typeof TutorRoute
@@ -458,12 +495,14 @@ export interface RootRouteChildren {
   ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
   PaymentsHistoryRoute: typeof PaymentsHistoryRoute
+  ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
   StaffNotificationsRoute: typeof StaffNotificationsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
+  StaffReviewsRoute: typeof StaffReviewsRoute
   StaffSafetyRoute: typeof StaffSafetyRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TutorListingsRoute: typeof TutorListingsRoute
@@ -521,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/requests'
       preLoaderRoute: typeof RequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reviews': {
+      id: '/reviews'
+      path: '/reviews'
+      fullPath: '/reviews'
+      preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety': {
@@ -628,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentsHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reviews_/$connectionId': {
+      id: '/reviews_/$connectionId'
+      path: '/reviews/$connectionId'
+      fullPath: '/reviews/$connectionId'
+      preLoaderRoute: typeof ReviewsConnectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/catalogue': {
       id: '/staff_/catalogue'
       path: '/staff/catalogue'
@@ -668,6 +721,13 @@ declare module '@tanstack/react-router' {
       path: '/staff/photos'
       fullPath: '/staff/photos'
       preLoaderRoute: typeof StaffPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff_/reviews': {
+      id: '/staff_/reviews'
+      path: '/staff/reviews'
+      fullPath: '/staff/reviews'
+      preLoaderRoute: typeof StaffReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/staff_/safety': {
@@ -723,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PaymentsRoute: PaymentsRoute,
   RequestsRoute: RequestsRoute,
+  ReviewsRoute: ReviewsRoute,
   SafetyRoute: SafetyRoute,
   StaffRoute: StaffRoute,
   TutorRoute: TutorRoute,
@@ -738,12 +799,14 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
   PaymentsHistoryRoute: PaymentsHistoryRoute,
+  ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
   StaffNotificationsRoute: StaffNotificationsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
+  StaffReviewsRoute: StaffReviewsRoute,
   StaffSafetyRoute: StaffSafetyRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TutorListingsRoute: TutorListingsRoute,

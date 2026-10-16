@@ -27,13 +27,13 @@ export class ConnectionsService {
   private source(row:Row){if(!coverageAllowed(this.config,row.coverage_snapshot))throw denied('COVERAGE_UNAVAILABLE','This coverage cannot authorize a Connection.');}
   private async unblocked(client:PoolClient,row:Row){if((await client.query('SELECT 1 FROM account_blocks WHERE (owner_id=$1 AND blocked_id=$2) OR (owner_id=$2 AND blocked_id=$1)',[row.payer_id,row.tutor_id])).rowCount)throw denied('CONTACT_BLOCKED','A current block prevents this interaction.');}
 
-  private async safety(client:PoolClient,row:Row){
+  private async safety(client:PoolClient,row:Row,ignoreBlock=false){
     await requireSafetyClear(client,'LISTING',row.listing_id);
     const learner=await this.learners.requireUsable(client,row.payer_id,row.learner_id);
     await this.tutors.requireQualified(client,row.tutor_id,row.offer_snapshot.subject_id);
     const listing=(await client.query('SELECT * FROM teaching_listings WHERE id=$1 FOR UPDATE',[row.listing_id])).rows[0];
     if(!listing||listing.user_id!==row.tutor_id||listing.safety_suspended)throw denied('LISTING_RESTRICTED','This teaching offer is restricted.');
-    await this.unblocked(client,row);return {learner,listing};
+    if(!ignoreBlock)await this.unblocked(client,row);return {learner,listing};
   }
 
   private async pending(client:PoolClient,row:Row){
@@ -92,9 +92,9 @@ export class ConnectionsService {
     }return {requests,next_cursor:rows.length>20?rows[19].id:null};
   });}
 
-  private async context(client:PoolClient,actor:Row,found:Row):Promise<ConnectionContext>{
+  private async context(client:PoolClient,actor:Row,found:Row,ignoreBlock=false):Promise<ConnectionContext>{
     if(![found.payer_id,found.tutor_id].includes(actor.id)||!(await client.query('SELECT 1 FROM connection_participants WHERE connection_id=$1 AND user_id=$2',[found.id,actor.id])).rowCount)throw missing();
-    this.source(found);await requireSafetyClear(client,'CONNECTION',found.id);const {learner}=await this.safety(client,found);
+    this.source(found);await requireSafetyClear(client,'CONNECTION',found.id);const {learner}=await this.safety(client,found,ignoreBlock);
     const connection=(await client.query('SELECT * FROM connections WHERE id=$1 FOR UPDATE',[found.id])).rows[0];
     if(connection.safety_suspended)throw denied('CONNECTION_RESTRICTED','This Connection is restricted.');
     const grant=(await client.query('SELECT * FROM connection_access_grants WHERE connection_id=$1 FOR UPDATE',[found.id])).rows[0];
@@ -106,6 +106,10 @@ export class ConnectionsService {
 
   // Task 12 messages must enter through this transaction/permission boundary as well.
   async withConnection<T>(token:string|undefined,id:string,command:(client:PoolClient,context:ConnectionContext)=>Promise<T>):Promise<T>{return this.database.transaction(async client=>{const found=(await client.query(this.query()+' WHERE c.id=$1',[id])).rows[0];const {user}=await this.auth.authenticated(client,token,found?[found.payer_id,found.tutor_id]:[]);if(!found)throw missing();return command(client,await this.context(client,user,found));});}
+  async reviewEligible(client:PoolClient,id:string,author:string){const row=(await client.query(this.query()+' WHERE c.id=$1',[id])).rows[0];if(!row||row.payer_id!==author)return false;const user=(await client.query('SELECT * FROM users WHERE id=$1',[author])).rows[0];if(!user)return false;try{await this.context(client,user,row,true);return true;}catch(error){if(error instanceof ApiProblem&&[403,404,409,503].includes(error.getStatus()))return false;throw error;}}
+  // Review commands reuse current participant/consent/grant checks. A peer block
+  // stops communication, but cannot prevent honest feedback or erase ratings.
+  async withReview<T>(token:string|undefined,id:string,command:(client:PoolClient,context:ConnectionContext)=>Promise<T>):Promise<T>{return this.database.transaction(async client=>{const found=(await client.query(this.query()+' WHERE c.id=$1',[id])).rows[0];const {user}=await this.auth.authenticated(client,token,found?[found.payer_id,found.tutor_id]:[]);if(!found)throw missing();return command(client,await this.context(client,user,found,true));});}
   async detail(token:string|undefined,id:string){return this.withConnection(token,id,async(_client,context)=>({connection:{id:context.connection.id,request_id:context.request.request_id,listing_id:context.request.listing_id,offer:context.request.offer_snapshot,status:context.connection.status,created_at:new Date(context.connection.created_at).toISOString(),your_role:context.actor.id===context.request.tutor_id?'TUTOR':'PAYER',learner_kind:context.learner.kind,...decrypt<Row>(context.request.encrypted_message,this.config.authSecret),test_only:testCoverage(context.request.coverage_snapshot)}}));}
   async contacts(token:string|undefined,id:string,correlation:string){return this.withConnection(token,id,async(client,context)=>{const peerId=context.actor.id===context.request.tutor_id?context.request.payer_id:context.request.tutor_id;const peer=(await client.query("SELECT display_name,email FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",[peerId])).rows[0];if(!peer)throw denied('CONTACT_UNAVAILABLE','The verified adult contact is unavailable.');await this.audit(client,context.actor.id,'CONNECTION_CONTACTS_READ',id,correlation);return {peer:{display_name:peer.display_name,email:peer.email,email_verified:true,role:peerId===context.request.tutor_id?'TUTOR':context.learner.kind==='CHILD'?'GUARDIAN':'ADULT_LEARNER'}};});}
   async list(token:string|undefined,cursor?:string){return this.database.transaction(async client=>{
