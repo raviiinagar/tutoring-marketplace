@@ -1,3 +1,7 @@
+import {SettlementReconciliation} from './settlement-reconciliation.js';
+import {SettlementController} from './settlement-controller.js';
+import {ReconciliationService} from './reconciliation.js';
+import {ReconciliationController} from './reconciliation-controller.js';
 import {FinancialEvents} from './financial-events.js';
 import {FinanceService} from './finance.js';
 import {FinanceController} from './finance-controller.js';
@@ -178,6 +182,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const refunds=new RefundsService(database,config,auth,staff,supportsRefunds(paymentProvider)?paymentProvider:undefined,now);
   const financialEvents=new FinancialEvents(database,config,supportsRefunds(paymentProvider)?paymentProvider:undefined,refunds,now);
   const finance=new FinanceService(database,config,auth,staff,refunds,now);
+  const settlementRecords=new SettlementReconciliation(database,config,auth,staff,paymentProvider,now);
+  const records=new ReconciliationService(database,config,auth,staff,now);
   const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,discovery,now);
   const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,paidAccess,now);
   const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
@@ -187,8 +193,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
   const payments=new PaymentsService(database,config,auth,learners,listings,paidAccess,paymentProvider,now);
   @Module({
-    controllers:[FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[SettlementController,ReconciliationController,FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:SettlementReconciliation,useValue:settlementRecords},{provide:ReconciliationService,useValue:records},{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();

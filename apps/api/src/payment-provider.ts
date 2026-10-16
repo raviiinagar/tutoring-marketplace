@@ -46,6 +46,46 @@ export const disputeSchema = z.object({
   created_at: z.number().int().positive(),
 });
 export type ProviderDispute = z.infer<typeof disputeSchema>;
+export const settlementSchema = z.object({
+  id: z.string().regex(/^setl_[A-Za-z0-9]+$/),
+  amount: z.number().int().nonnegative().safe(),
+  currency: z.literal("INR").default("INR"),
+  status: z.enum(["created", "processed", "failed"]),
+  fees: z.number().int().nonnegative().safe().default(0),
+  tax: z.number().int().nonnegative().safe().default(0),
+  utr: z.string().max(100).nullable().optional(),
+  created_at: z.number().int().positive(),
+});
+export const reconRowSchema = z
+  .object({
+    entity_id: z.string().min(1).max(100),
+    type: z.enum(["payment", "refund", "transfer", "adjustment"]),
+    amount: z.number().int().nonnegative().safe(),
+    debit: z.number().int().nonnegative().safe(),
+    credit: z.number().int().nonnegative().safe(),
+    currency: z.literal("INR"),
+    fee: z.number().int().nonnegative().safe().default(0),
+    tax: z.number().int().nonnegative().safe().default(0),
+    settled: z.boolean(),
+    on_hold: z.boolean().optional(),
+    settlement_id: z.string().max(100).nullable().optional(),
+    settlement_utr: z.string().max(100).nullable().optional(),
+    payment_id: z.string().max(100).nullable().optional(),
+    order_id: z.string().max(100).nullable().optional(),
+    dispute_id: z.string().max(100).nullable().optional(),
+  })
+  .refine(
+    (row) => row.tax <= row.fee,
+    "Tax is a component of the inclusive fee.",
+  );
+export type ReconSelection = { year: number; month: number; day?: number };
+export interface ReconciliationProvider {
+  fetchRecon(
+    input: ReconSelection & { skip: number; count: number },
+  ): Promise<z.infer<typeof reconRowSchema>[]>;
+  fetchSettlement(id: string): Promise<z.infer<typeof settlementSchema>>;
+  fetchOrderPayments(id: string): Promise<ProviderPayment[]>;
+}
 export interface DisputeProvider {
   fetchDispute(id: string): Promise<ProviderDispute>;
 }
@@ -88,7 +128,11 @@ export function validSignature(
   );
 }
 export class RazorpayProvider
-  implements PaymentProvider, RefundProvider, DisputeProvider
+  implements
+    PaymentProvider,
+    RefundProvider,
+    DisputeProvider,
+    ReconciliationProvider
 {
   constructor(
     private readonly settings: NonNullable<Config["payments"]>,
@@ -158,5 +202,24 @@ export class RazorpayProvider
     return disputeSchema.parse(
       await this.call("disputes/" + encodeURIComponent(id)),
     );
+  }
+  async fetchSettlement(id: string) {
+    return settlementSchema.parse(
+      await this.call("settlements/" + encodeURIComponent(id)),
+    );
+  }
+  async fetchRecon(input: ReconSelection & { skip: number; count: number }) {
+    const query = new URLSearchParams(
+      Object.entries(input).map(([key, value]) => [key, String(value)]),
+    );
+    return z
+      .object({ items: z.array(reconRowSchema) })
+      .parse(await this.call("settlements/recon/combined?" + query)).items;
+  }
+  async fetchOrderPayments(id: string) {
+    return z
+      .object({ items: z.array(paymentSchema) })
+      .parse(await this.call("orders/" + encodeURIComponent(id) + "/payments"))
+      .items;
   }
 }

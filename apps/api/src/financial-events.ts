@@ -9,6 +9,7 @@ import { tokenHash } from "./security.js";
 import {
   refundSchema,
   disputeSchema,
+  settlementSchema,
   type PaymentProvider,
   type RefundProvider,
   type DisputeProvider,
@@ -19,6 +20,7 @@ const refundKinds = [
   "refund.processed",
   "refund.failed",
   "refund.speed_changed",
+  "refund.reconciled",
 ];
 const disputeKinds = [
   "payment.dispute.created",
@@ -30,6 +32,17 @@ const disputeKinds = [
 ];
 export function normalizeFinancialEvent(value: unknown) {
   const event = z.object({ event: z.string() }).parse(value).event;
+  if (event === "settlement.processed")
+    return z
+      .object({
+        event: z.literal("settlement.processed"),
+        account_id: z.string().max(100).optional(),
+        created_at: z.number().int().positive(),
+        payload: z.object({
+          settlement: z.object({ entity: settlementSchema }),
+        }),
+      })
+      .parse(value);
   if (![...refundKinds, ...disputeKinds].includes(event)) return null;
   return z
     .object({
@@ -60,8 +73,24 @@ export class FinancialEvents {
     amount: number,
     operation?: Row,
   ) {
-    const previous=(await client.query('SELECT amount_paise FROM reversal_journal WHERE provider_reference=$1',[reference])).rows[0];
-    if(previous&&Number(previous.amount_paise)!==amount)await financeException(client,cycle.id,'REVERSAL_FACT_CHANGED',reference,{recorded_paise:Number(previous.amount_paise),observed_paise:amount},this.now());
+    const previous = (
+      await client.query(
+        "SELECT amount_paise FROM reversal_journal WHERE provider_reference=$1",
+        [reference],
+      )
+    ).rows[0];
+    if (previous && Number(previous.amount_paise) !== amount)
+      await financeException(
+        client,
+        cycle.id,
+        "REVERSAL_FACT_CHANGED",
+        reference,
+        {
+          recorded_paise: Number(previous.amount_paise),
+          observed_paise: amount,
+        },
+        this.now(),
+      );
     await client.query(
       "INSERT INTO reversal_journal(id,cycle_id,capture_id,operation_id,provider_reference,kind,amount_paise,currency,recorded_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(provider_reference) DO NOTHING",
       [

@@ -19,7 +19,7 @@ export const Route = createFileRoute("/payments")({
         </Link>
       }
     >
-      <PaymentCheckout />
+      <PaymentCheckout /><Link to="/payments/history" className="link mt-5 inline-block">Payment history and receipts</Link>
     </AuthShell>
   ),
 });

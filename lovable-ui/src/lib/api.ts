@@ -35,6 +35,9 @@ export type TeachingOffer={title:string;description:string;domain_id:string;subj
 export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revision:number;profile_revision:number;status:'DRAFT'|'REVIEW'|'CHANGES_REQUESTED'|'PUBLISHED'|'PAUSED'|'SAFETY_SUSPENDED';eligible:boolean;requires_profile_review:boolean;review_reason:string|null;safety_reason:string|null};
 export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
 export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
+export type PaymentHistoryRow={id:string;amount_paise:number;currency:string;status:string;created_at:string;resolution_required:boolean;test_only:boolean;receipt_available:boolean;captures:{kind:string;amount_paise:string;currency:string}[];reversals:{kind:string;amount_paise:string;currency:string}[]};
+export type PaymentDocument={id:string;number:string;purchase_id:string;kind:string;merchant:string;invoice_notice:string;amount_paise:number;base_paise:number;tax_paise:number;currency:string;paid_at:string;issued_at:string;test_only:boolean;description:string;tax_document_notice:string};
+export type ReconciliationView={totals:{total_debits_paise:number;total_credits_paise:number;gateway_fee_paise:number;gateway_tax_paise:number;bank_received_paise:number};runs:{id:string;status:string;last_error:string|null}[];settlements:{id:string;amount_paise:string;status:string;bank_matched:boolean}[]};
 export type RefundCase={id:string;cycle_id:string;status:'OPEN'|'APPROVED'|'DECLINED';reason:string;review_reason:string|null;reviewed_by:string|null;amount_paise:number|null;access_treatment:'KEEP'|'REVOKE_FUTURE'|null;operation_id:string|null;created_at:string;reviewed_at:string|null};
 export type RefundOperation={id:string;amount_paise:number;currency:string;reason:string;status:string;provider_refund_id:string|null;last_error:string|null;attempts:number;created_at:string;updated_at:string};
 export type RefundState={can_review:boolean;cancelled:boolean;can_cancel:boolean;refunds:RefundOperation[];bank_notice:string};
@@ -223,6 +226,14 @@ export const api = {
   verifyEmail: (token: string) => request<CodeMessage>("POST", "/v1/auth/verifications", { token }),
   signIn: (input: { email: string; password: string }) =>
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
+  paymentHistory: (cursor?:string) => request<{purchases:PaymentHistoryRow[];next_cursor:string|null}>('GET','/v1/me/payment-history'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),
+  paymentReceipt: (id:string) => request<{document:PaymentDocument}>('GET','/v1/me/purchases/'+encodeURIComponent(id)+'/receipt'),
+  confirmCaptureEvidence: (id:string,input:{provider_payment_id:string;captured_at:string;reason:string}) => request<{recorded:boolean}>('POST','/v1/staff/finance/purchases/'+encodeURIComponent(id)+'/capture-confirmations',input),
+  reconciliation: (reason:string) => request<ReconciliationView>('GET','/v1/staff/finance/reconciliation?reason='+encodeURIComponent(reason)),
+  startReconciliation: (input:{request_key:string;year:number;month:number;reason:string}) => request<{run:{id:string;status:string}}>('POST','/v1/staff/finance/reconciliation-runs',input),
+  retryReconciliation: (id:string,reason:string) => request<{scheduled:boolean}>('POST','/v1/staff/finance/reconciliation-runs/'+encodeURIComponent(id)+'/retries',{reason}),
+  importBankReceipts: (input:{reason:string;rows:{reference:string;utr:string;amount_paise:number;currency:'INR';received_at:string}[]}) => request<{recorded:number;conflicts:number}>('POST','/v1/staff/finance/bank-receipts',input),
+  resolveFinanceException: (id:string,reason:string) => request<{resolved:boolean}>('POST','/v1/staff/finance/exceptions/'+encodeURIComponent(id)+'/resolutions',{reason}),
   refundCases: (id:string) => request<{cases:RefundCase[]}>('GET','/v1/me/purchases/'+encodeURIComponent(id)+'/refund-cases'),
   createRefundCase: (id:string,request_key:string,reason:string) => request<{case:RefundCase}>('POST','/v1/me/purchases/'+encodeURIComponent(id)+'/refund-cases',{request_key,reason}),
   financeCases: (reason:string) => request<{cases:RefundCase[];exceptions:{id:string;kind:string;reference:string;status:string}[]}>('GET','/v1/staff/refund-cases?reason='+encodeURIComponent(reason)),

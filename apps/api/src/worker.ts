@@ -1,3 +1,4 @@
+import {SettlementReconciliation} from './settlement-reconciliation.js';
 import {FinancialEvents} from './financial-events.js';
 import {RefundsService} from './refunds.js';
 import {AuthService} from './auth.js';
@@ -19,10 +20,11 @@ async function main(){
   const auth=new AuthService(database,config);const staff=new StaffService(database,config,auth);
   const refunds=new RefundsService(database,config,auth,staff,config.payments?new RazorpayProvider(config.payments):undefined);
   const financialEvents=new FinancialEvents(database,config,config.payments?new RazorpayProvider(config.payments):undefined,refunds);
+  const settlements=new SettlementReconciliation(database,config,auth,staff,config.payments?new RazorpayProvider(config.payments):undefined);
   await database.pool.query("SELECT 1 FROM mail_outbox LIMIT 1");
   let stopping=false;process.on("SIGINT",()=>{stopping=true;});process.on("SIGTERM",()=>{stopping=true;});
   console.log("Verification worker ready; transport "+config.mailTransport);
-  try{while(!stopping){try{const mailWork=await worker.tick();const matchWork=await availability.tick();const paymentWork=await payments.tick();const requestWork=await requests.tick();const refundWork=await refunds.tick();const financialWork=await financialEvents.tick();if(!financialWork&&!refundWork&&!mailWork&&!matchWork&&!paymentWork&&!requestWork.expired&&!requestWork.reminded)await sleep(1000);}catch{console.error("Background worker temporarily unavailable.");await sleep(2000);}}}
+  try{while(!stopping){try{const mailWork=await worker.tick();const matchWork=await availability.tick();const paymentWork=await payments.tick();const requestWork=await requests.tick();const refundWork=await refunds.tick();const financialWork=await financialEvents.tick();const settlementWork=await settlements.tick();if(!settlementWork&&!financialWork&&!refundWork&&!mailWork&&!matchWork&&!paymentWork&&!requestWork.expired&&!requestWork.reminded)await sleep(1000);}catch{console.error("Background worker temporarily unavailable.");await sleep(2000);}}}
   finally{await database.close();}
 }
 main().catch(()=>{console.error("Worker startup failed. Check configuration and migrations.");process.exitCode=1;});

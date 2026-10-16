@@ -29,6 +29,7 @@ import { Route as AvailabilityActionRouteImport } from './routes/availability.$a
 import { Route as ChatConnectionIdRouteImport } from './routes/chat.$connectionId'
 import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
+import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
@@ -141,6 +142,11 @@ const DevInboxRoute = DevInboxRouteImport.update({
   path: '/dev/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentsHistoryRoute = PaymentsHistoryRouteImport.update({
+  id: '/payments_/history',
+  path: '/payments/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
   id: '/staff_/catalogue',
   path: '/staff/catalogue',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/payments/history': typeof PaymentsHistoryRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/payments/history': typeof PaymentsHistoryRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/chat/$connectionId': typeof ChatConnectionIdRoute
   '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
+  '/payments_/history': typeof PaymentsHistoryRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/chat/$connectionId'
     | '/connections/$connectionId'
     | '/dev/inbox'
+    | '/payments/history'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/chat/$connectionId'
     | '/connections/$connectionId'
     | '/dev/inbox'
+    | '/payments/history'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/chat/$connectionId'
     | '/connections_/$connectionId'
     | '/dev/inbox'
+    | '/payments_/history'
     | '/staff_/catalogue'
     | '/staff_/finance'
     | '/staff_/guardians'
@@ -420,6 +432,7 @@ export interface RootRouteChildren {
   ChatConnectionIdRoute: typeof ChatConnectionIdRoute
   ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
+  PaymentsHistoryRoute: typeof PaymentsHistoryRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
@@ -575,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevInboxRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payments_/history': {
+      id: '/payments_/history'
+      path: '/payments/history'
+      fullPath: '/payments/history'
+      preLoaderRoute: typeof PaymentsHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/catalogue': {
       id: '/staff_/catalogue'
       path: '/staff/catalogue'
@@ -676,6 +696,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatConnectionIdRoute: ChatConnectionIdRoute,
   ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
+  PaymentsHistoryRoute: PaymentsHistoryRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,

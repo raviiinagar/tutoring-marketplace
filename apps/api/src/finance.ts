@@ -31,12 +31,31 @@ export async function financeException(
   reference: string,
   details: unknown,
   at: Date,
+  scope?: { providerKey?: string; testOnly: boolean },
 ) {
+  const owner = cycle
+    ? (
+        await client.query(
+          "SELECT provider_key_id,test_only FROM purchase_cycles WHERE id=$1",
+          [cycle],
+        )
+      ).rows[0]
+    : undefined;
   await client.query(
-    "INSERT INTO finance_exceptions(id,cycle_id,kind,reference,details,created_at) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(kind,reference) DO NOTHING",
-    [randomUUID(), cycle, kind, reference, details, at],
+    "INSERT INTO finance_exceptions(id,cycle_id,kind,reference,details,created_at,provider_key_id,test_only) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(kind,reference) DO NOTHING",
+    [
+      randomUUID(),
+      cycle,
+      kind,
+      reference,
+      details,
+      at,
+      owner?.provider_key_id || scope?.providerKey || null,
+      owner?.test_only ?? scope?.testOnly ?? true,
+    ],
   );
 }
+
 export class FinanceService {
   constructor(
     private readonly database: Database,
@@ -230,7 +249,7 @@ export class FinanceService {
         ).rows.map((row) => this.project(row)),
         exceptions: (
           await client.query(
-            "SELECT e.* FROM finance_exceptions e LEFT JOIN purchase_cycles p ON p.id=e.cycle_id WHERE NOT $1::boolean OR (p.id IS NOT NULL AND NOT p.test_only) ORDER BY e.created_at DESC,e.id LIMIT 100",
+            "SELECT e.* FROM finance_exceptions e LEFT JOIN purchase_cycles p ON p.id=e.cycle_id WHERE e.test_only<>$1::boolean ORDER BY e.created_at DESC,e.id LIMIT 100",
             [this.config.mode === "production"],
           )
         ).rows,

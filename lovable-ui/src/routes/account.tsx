@@ -102,6 +102,7 @@ function Account() {
         <Row label="Email status" value={user.email_verified ? "Verified" : "Not verified"} />
       </dl>
       <Link to="/payments" className="link mt-5 block">Access Pass payment</Link>
+      <Link to="/payments/history" className="link mt-5 block">Payment history and receipts</Link>
       {user.roles.includes('LEARNER')&&<Link to="/learners" className="link mt-5 block">Manage Learner profiles</Link>}
       <Link to="/requests" className="link mt-5 block">View my Contact Requests</Link>
       <Link to="/safety" className="link mt-5 block">Safety and reports</Link>

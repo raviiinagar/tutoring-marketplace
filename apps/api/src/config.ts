@@ -12,7 +12,7 @@ export interface Config {
   guardianMode: 'disabled' | 'test';
   evidenceScanner: 'disabled'|'test'|'clamav';
   clamav?:{host:string;port:number};
-  payments?: {accountId?:string;mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
+  payments?: {dailyReconciliation?:boolean;accountId?:string;mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
 }
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -72,7 +72,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if(!Number.isSafeInteger(base)||!Number.isSafeInteger(tax)||base<0||tax<0||base+tax!==59900)throw new Error('Confirmed payment tax breakdown must total 59900 paise');
     if(live&&(!env.PAYMENT_MERCHANT_NAME?.trim()||!env.PAYMENT_INVOICE_NOTICE?.trim()||env.PAYMENT_LAUNCH_APPROVED!=='true'||env.RAZORPAY_AUTO_CAPTURE_CONFIRMED!=='true'))throw new Error('Live merchant, invoice disclosures, automatic capture and launch approval are required');
     if(live&&!/^acc_[A-Za-z0-9]+$/.test(env.RAZORPAY_ACCOUNT_ID||''))throw new Error('Live webhook processing requires the confirmed Razorpay account ID');
-    payments={accountId:env.RAZORPAY_ACCOUNT_ID||undefined,mode:live?'live':'test',keyId,keySecret,webhookSecret,disclosures:{merchant:env.PAYMENT_MERCHANT_NAME?.trim()||'Fictional test merchant',invoice_notice:env.PAYMENT_INVOICE_NOTICE?.trim()||'Test transaction only. No real payment or tax invoice.',base_paise:base,tax_paise:tax,test_only:!live}};
+    payments={dailyReconciliation:live?env.PAYMENT_DAILY_RECONCILIATION_ENABLED!=='false':env.PAYMENT_DAILY_RECONCILIATION_ENABLED==='true',accountId:env.RAZORPAY_ACCOUNT_ID||undefined,mode:live?'live':'test',keyId,keySecret,webhookSecret,disclosures:{merchant:env.PAYMENT_MERCHANT_NAME?.trim()||'Fictional test merchant',invoice_notice:env.PAYMENT_INVOICE_NOTICE?.trim()||'Test transaction only. No real payment or tax invoice.',base_paise:base,tax_paise:tax,test_only:!live}};
   }
   return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }

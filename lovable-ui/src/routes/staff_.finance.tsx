@@ -1,3 +1,4 @@
+import { FinanceReconciliation } from "@/components/finance-reconciliation";
 import { FinanceReviews } from "@/components/refund-cases";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
@@ -84,6 +85,7 @@ function Finance() {
       {queue && (
         <>
           <FinanceReviews purpose={reason} />
+          <FinanceReconciliation purpose={reason} />
           <section className="mt-6 space-y-4">
             <h2 className="text-lg font-semibold">Refund reserve</h2>
             <p className="text-sm text-muted-foreground">

@@ -12,6 +12,7 @@ import {
   type RefundProvider,
 } from "./payment-provider.js";
 type Row = Record<string, any>;
+class RefundReferenceRequired extends Error {}
 export const financeReason = z.string().trim().min(10).max(240);
 export const reserveInput = z.strictObject({
   reference: z.string().regex(/^[A-Za-z0-9_-]{10,100}$/),
@@ -480,7 +481,7 @@ export class RefundsService {
           "EXCESS_CAPTURE",
         );
         await client.query(
-          "INSERT INTO finance_exceptions(id,cycle_id,kind,reference,details,created_at) VALUES($1,$2,'EXCESS_CAPTURE',$3,$4,$5) ON CONFLICT(kind,reference) DO NOTHING",
+          "INSERT INTO finance_exceptions(id,cycle_id,kind,reference,details,created_at,provider_key_id,test_only) VALUES($1,$2,'EXCESS_CAPTURE',$3,$4,$5,$6,$7) ON CONFLICT(kind,reference) DO NOTHING",
           [
             randomUUID(),
             cycle.id,
@@ -490,6 +491,8 @@ export class RefundsService {
               currency: capture.currency,
             },
             this.now(),
+            cycle.provider_key_id,
+            cycle.test_only,
           ],
         );
       }
@@ -537,6 +540,17 @@ export class RefundsService {
     let result;
     let failure: string | undefined;
     try {
+      if (
+        !operation.provider_refund_id &&
+        operation.attempts > 0 &&
+        this.now().getTime() - new Date(operation.created_at).getTime() >
+          24 * 3600000 &&
+        [
+          "PROVIDER_RESULT_UNKNOWN",
+          "REFUND_PROVIDER_REFERENCE_REQUIRED",
+        ].includes(operation.last_error)
+      )
+        throw new RefundReferenceRequired();
       result = refundSchema.parse(
         operation.provider_refund_id
           ? await this.provider.fetchRefund(operation.provider_refund_id)
@@ -557,10 +571,12 @@ export class RefundsService {
         failure = "PROVIDER_FACT_CONFLICT";
     } catch (error) {
       failure =
-        error instanceof ProviderRequestError &&
-        [400, 401, 403, 422].includes(error.status)
-          ? "PROVIDER_REJECTED_REQUIRES_REVIEW"
-          : "PROVIDER_RESULT_UNKNOWN";
+        error instanceof RefundReferenceRequired
+          ? "REFUND_PROVIDER_REFERENCE_REQUIRED"
+          : error instanceof ProviderRequestError &&
+              [400, 401, 403, 422].includes(error.status)
+            ? "PROVIDER_REJECTED_REQUIRES_REVIEW"
+            : "PROVIDER_RESULT_UNKNOWN";
     }
     await this.database.transaction(async (client) => {
       await client.query(
