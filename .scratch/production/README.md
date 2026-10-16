@@ -4,7 +4,9 @@ The [production specification](./spec.md) consolidates the owner's confirmed cho
 
 ## Current state
 
-Latest completed work: [ticket 17: cancellation and no-match refunds](./issues/17-cancellation-and-no-match-refund.md). Full refund intents, reserve accounting, leased provider retries, cancellation/activation coordination and payer/Finance status controls are implemented and tested. Real credentials, funded reserve and merchant sandbox verification remain launch dependencies. See the [refund guide](../../docs/api/refunds.md).
+Latest completed work: [ticket 18: reviewed refunds and chargebacks](./issues/18-post-connection-refunds-and-chargebacks.md). Finance/MFA decisions, cumulative reversal limits, explicit access treatment, verified provider refund/dispute reconciliation and excess-capture liabilities are implemented. Seven financial scenarios, 22 UI tests and build/typecheck passed. Existing safe conversations survive full financial reversal; future acquisition is revoked.
+
+Earlier completed work: [ticket 17: cancellation and no-match refunds](./issues/17-cancellation-and-no-match-refund.md). Full refund intents, reserve accounting, leased provider retries, cancellation/activation coordination and payer/Finance status controls are implemented and tested. Real credentials, funded reserve and merchant sandbox verification remain launch dependencies. See the [refund guide](../../docs/api/refunds.md).
 
 Earlier completed work: [ticket 16: deadlines and learner-selected alternatives](./issues/16-request-deadlines-and-alternatives.md). Background expiry and deduplicated lifecycle events share the synchronous strict response deadline. In-app reminders and explicit matching alternatives preserve learner intent without automatic billing or contact release. Verification: 39 API checks, 20 UI tests, build/typecheck and the mobile Tutor browser journey passed.
 
@@ -22,7 +24,7 @@ Earlier verification: [ticket 11 evidence](./issues/11-tutor-decision-and-connec
 
 Design and research are recorded. There are 29 implementation tickets with acceptance criteria and blocking edges; tickets 01–15 and 29 are implemented and verified. A triage role is distinct from its `Resolution: completed` field.
 
-The next numbered dependency-ready task is [ticket 18: reviewed refunds and chargebacks](./issues/18-post-connection-refunds-and-chargebacks.md). The Lovable UI uses authoritative NestJS/PostgreSQL cookie sessions. Checkout, verified capture, paid enquiry coverage and first-acceptance activation are implemented; production rejects fictional and provider-test request/Connection coverage. Post-connection finance review and reconciliation remain the next slices. Appeal entries are recorded, while full support adjudication is task 22. Notification delivery and the remaining launch gates retain their later slices. Current functional tests do not claim a production launch.
+The next numbered dependency-ready task is [ticket 19: payment documents and settlement reconciliation](./issues/19-payment-history-and-reconciliation.md). The Lovable UI uses authoritative NestJS/PostgreSQL cookie sessions. Checkout, verified capture, paid enquiry coverage and first-acceptance activation are implemented; production rejects fictional and provider-test request/Connection coverage. Post-connection finance review and reconciliation remain the next slices. Appeal entries are recorded, while full support adjudication is task 22. Notification delivery and the remaining launch gates retain their later slices. Current functional tests do not claim a production launch.
 
 ## Work sequence
 

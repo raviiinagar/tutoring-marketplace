@@ -1,3 +1,6 @@
+import {FinancialEvents} from './financial-events.js';
+import {FinanceService} from './finance.js';
+import {FinanceController} from './finance-controller.js';
 import "reflect-metadata";
 import { Body, Catch, Controller, Delete, Get, HttpCode, HttpException, Inject, Module, Param, Post, Req, Res, type ArgumentsHost, type ExceptionFilter, type INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
@@ -173,6 +176,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const availability=new AvailabilityService(database,config,discovery,listings,now);
   const paidAccess=new PaidAccess(config,now);
   const refunds=new RefundsService(database,config,auth,staff,supportsRefunds(paymentProvider)?paymentProvider:undefined,now);
+  const financialEvents=new FinancialEvents(database,config,supportsRefunds(paymentProvider)?paymentProvider:undefined,refunds,now);
+  const finance=new FinanceService(database,config,auth,staff,refunds,now);
   const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,discovery,now);
   const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,paidAccess,now);
   const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
@@ -182,8 +187,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
   const payments=new PaymentsService(database,config,auth,learners,listings,paidAccess,paymentProvider,now);
   @Module({
-    controllers:[RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();

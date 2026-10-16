@@ -1,3 +1,4 @@
+import { RefundCasePanel } from "./refund-cases";
 import { useCallback, useEffect, useState } from "react";
 import { api, describeFailure, type RefundState } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,7 @@ export function RefundPanel({
         </p>
       )}
       <p className="text-xs text-muted-foreground">{state?.bank_notice}</p>
+      {state?.can_review && <RefundCasePanel purchaseId={purchaseId} />}
       <Button type="button" variant="outline" disabled={action.loading} onClick={() => void load()}>
         Refresh refund status
       </Button>

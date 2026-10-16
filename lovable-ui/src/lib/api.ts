@@ -35,8 +35,9 @@ export type TeachingOffer={title:string;description:string;domain_id:string;subj
 export type TeachingListing={id:string;user_id:string;offer:TeachingOffer;revision:number;profile_revision:number;status:'DRAFT'|'REVIEW'|'CHANGES_REQUESTED'|'PUBLISHED'|'PAUSED'|'SAFETY_SUSPENDED';eligible:boolean;requires_profile_review:boolean;review_reason:string|null;safety_reason:string|null};
 export type ListingQueueItem={id:string;title:string;status:string;safety_suspended:boolean;revision:number};
 export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
+export type RefundCase={id:string;cycle_id:string;status:'OPEN'|'APPROVED'|'DECLINED';reason:string;review_reason:string|null;reviewed_by:string|null;amount_paise:number|null;access_treatment:'KEEP'|'REVOKE_FUTURE'|null;operation_id:string|null;created_at:string;reviewed_at:string|null};
 export type RefundOperation={id:string;amount_paise:number;currency:string;reason:string;status:string;provider_refund_id:string|null;last_error:string|null;attempts:number;created_at:string;updated_at:string};
-export type RefundState={cancelled:boolean;can_cancel:boolean;refunds:RefundOperation[];bank_notice:string};
+export type RefundState={can_review:boolean;cancelled:boolean;can_cancel:boolean;refunds:RefundOperation[];bank_notice:string};
 export type IncomingRequest={server_time:string;reminder:'DUE_SOON'|'EXPIRED'|null;id:string;offer:TeachingOffer;status:ContactRequest['status'];expires_at:string;created_at:string;learning_requirements:string|null;preferred_times:string|null;can_accept:boolean;can_decline:boolean;unavailable_reason:string|null;connection_id:string|null;test_only:boolean};
 export type ConnectionSummary={id:string;request_id:string;listing_id:string;offer:TeachingOffer;status:'ACTIVE'|'PENDING_GRANT';available:boolean;unread_count:number|null;unavailable_reason:string|null;created_at:string;test_only:boolean};
 export type ChatMessage={sequence:number;client_message_id:string;text:string;sender_role:'TUTOR'|'PAYER';your_message:boolean;created_at:string};
@@ -222,6 +223,10 @@ export const api = {
   verifyEmail: (token: string) => request<CodeMessage>("POST", "/v1/auth/verifications", { token }),
   signIn: (input: { email: string; password: string }) =>
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
+  refundCases: (id:string) => request<{cases:RefundCase[]}>('GET','/v1/me/purchases/'+encodeURIComponent(id)+'/refund-cases'),
+  createRefundCase: (id:string,request_key:string,reason:string) => request<{case:RefundCase}>('POST','/v1/me/purchases/'+encodeURIComponent(id)+'/refund-cases',{request_key,reason}),
+  financeCases: (reason:string) => request<{cases:RefundCase[];exceptions:{id:string;kind:string;reference:string;status:string}[]}>('GET','/v1/staff/refund-cases?reason='+encodeURIComponent(reason)),
+  reviewRefundCase: (id:string,input:{outcome:'APPROVE';amount_paise:number;access_treatment:'KEEP'|'REVOKE_FUTURE';reason:string}|{outcome:'DECLINE';reason:string}) => request<{case:RefundCase}>('POST','/v1/staff/refund-cases/'+encodeURIComponent(id)+'/decisions',input),
   refunds: (id:string) => request<RefundState>('GET','/v1/me/purchases/'+encodeURIComponent(id)+'/refunds'),
   cancelPurchase: (id:string) => request<RefundState>('POST','/v1/me/purchases/'+encodeURIComponent(id)+'/cancellations',{}),
   refundQueue: (reason:string) => request<{refunds:(RefundOperation&{cycle_id:string})[];reserves:{provider_key_id:string;currency:string;confirmed_paise:string;reserved_paise:string;spent_paise:string}[]}>('GET','/v1/staff/refunds?reason='+encodeURIComponent(reason)),

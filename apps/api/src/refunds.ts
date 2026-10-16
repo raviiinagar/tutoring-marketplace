@@ -99,6 +99,7 @@ export class RefundsService {
         cancelled: !!cancellation,
         cancellation,
         can_cancel: !cancellation && !activated && cycle.open,
+        can_review: activated,
         refunds: (
           await client.query(
             "SELECT * FROM refund_operations WHERE cycle_id=$1 ORDER BY created_at,id",
@@ -111,7 +112,7 @@ export class RefundsService {
     });
   }
   // The purchase is locked before entitlement/request transitions, as in acceptance.
-  private async stopAcquisition(client: PoolClient, cycle: Row) {
+  async revokeAcquisition(client: PoolClient, cycle: Row) {
     await client.query(
       "UPDATE purchase_cycles SET resolution_required=true,updated_at=$2 WHERE id=$1",
       [cycle.id, this.now()],
@@ -154,7 +155,7 @@ export class RefundsService {
       "INSERT INTO purchase_cancellations(cycle_id,reason,actor_id,created_at) VALUES($1,$2,$3,$4)",
       [cycle.id, reason, actor, this.now()],
     );
-    await this.stopAcquisition(client, cycle);
+    await this.revokeAcquisition(client, cycle);
     await this.audit(client, actor, "PURCHASE_CANCELLED", cycle.id, reason);
   }
   async cancel(token: string | undefined, id: string) {
@@ -198,10 +199,27 @@ export class RefundsService {
         )
       ).rows[0].total,
     );
+    const exposures = Number(
+      (
+        await client.query(
+          "SELECT COALESCE(sum(amount_paise),0) AS total FROM payment_disputes WHERE capture_id=$1 AND status IN ('open','under_review')",
+          [capture.id],
+        )
+      ).rows[0].total,
+    );
+    const external = Number(
+      (
+        await client.query(
+          "SELECT COALESCE(sum(amount_paise),0) AS total FROM external_refunds WHERE capture_id=$1 AND status IN ('pending','processed')",
+          [capture.id],
+        )
+      ).rows[0].total,
+    );
     if (
       !Number.isSafeInteger(amount) ||
       amount <= 0 ||
-      used + chargebacks + amount > Number(capture.amount_paise)
+      used + chargebacks + exposures + external + amount >
+        Number(capture.amount_paise)
     )
       throw new ApiProblem(
         409,
@@ -241,7 +259,16 @@ export class RefundsService {
         "SELECT * FROM payment_journal WHERE cycle_id=$1 ORDER BY id",
         [cycle.id],
       )
-    ).rows)
+    ).rows) {
+      if (
+        (
+          await client.query(
+            "SELECT 1 FROM refund_operations WHERE capture_id=$1",
+            [capture.id],
+          )
+        ).rowCount
+      )
+        continue;
       await this.createOperation(
         client,
         cycle,
@@ -250,7 +277,9 @@ export class RefundsService {
         "cancellation:" + capture.id,
         "CANCELLATION",
       );
+    }
   }
+
   async funding(
     account: string | undefined,
     elevated: string | undefined,
@@ -409,24 +438,61 @@ export class RefundsService {
         await client.query(
           `SELECT p.* FROM purchase_cycles p WHERE p.test_only=$2 AND (
     (p.captured_at IS NOT NULL AND p.matching_deadline<=$1 AND NOT EXISTS (SELECT 1 FROM access_entitlements a WHERE a.cycle_id=p.id AND a.starts_at IS NOT NULL) AND NOT EXISTS (SELECT 1 FROM purchase_cancellations c WHERE c.cycle_id=p.id))
-    OR EXISTS (SELECT 1 FROM purchase_cancellations c JOIN payment_journal j ON j.cycle_id=c.cycle_id WHERE c.cycle_id=p.id AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.business_key='cancellation:'||j.id::text))
+    OR EXISTS (SELECT 1 FROM purchase_cancellations c JOIN payment_journal j ON j.cycle_id=c.cycle_id WHERE c.cycle_id=p.id AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.capture_id=j.id))
+    OR EXISTS (SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.kind='UNEXPECTED_CAPTURE' AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.capture_id=j.id))
     ) ORDER BY p.created_at,p.id LIMIT 1 FOR UPDATE OF p SKIP LOCKED`,
           [this.now(), this.config.mode !== "production"],
         )
       ).rows[0];
       if (!cycle) return false;
+      const activated = !!(
+        await client.query(
+          "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL",
+          [cycle.id],
+        )
+      ).rowCount;
+      const cancelled = !!(
+        await client.query(
+          "SELECT 1 FROM purchase_cancellations WHERE cycle_id=$1",
+          [cycle.id],
+        )
+      ).rowCount;
       if (
-        !(
-          await client.query(
-            "SELECT 1 FROM purchase_cancellations WHERE cycle_id=$1",
-            [cycle.id],
-          )
-        ).rowCount
-      ) {
-        if (new Date(cycle.matching_deadline) > this.now()) return false;
+        !cancelled &&
+        !activated &&
+        cycle.captured_at &&
+        new Date(cycle.matching_deadline) <= this.now()
+      )
         await this.cancelLocked(client, cycle, "NO_MATCH", null);
-      }
       await this.ensureCancellationRefunds(client, cycle);
+      for (const capture of (
+        await client.query(
+          "SELECT j.* FROM payment_journal j WHERE j.cycle_id=$1 AND j.kind='UNEXPECTED_CAPTURE' AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.capture_id=j.id)",
+          [cycle.id],
+        )
+      ).rows) {
+        await this.createOperation(
+          client,
+          cycle,
+          capture,
+          Number(capture.amount_paise),
+          "excess:" + capture.id,
+          "EXCESS_CAPTURE",
+        );
+        await client.query(
+          "INSERT INTO finance_exceptions(id,cycle_id,kind,reference,details,created_at) VALUES($1,$2,'EXCESS_CAPTURE',$3,$4,$5) ON CONFLICT(kind,reference) DO NOTHING",
+          [
+            randomUUID(),
+            cycle.id,
+            capture.id,
+            {
+              amount_paise: Number(capture.amount_paise),
+              currency: capture.currency,
+            },
+            this.now(),
+          ],
+        );
+      }
       return true;
     });
   }
@@ -537,7 +603,7 @@ export class RefundsService {
         );
         await client.query(
           `UPDATE purchase_cycles p SET open=false,updated_at=$2 WHERE p.id=$1
-      AND EXISTS (SELECT 1 FROM purchase_cancellations c WHERE c.cycle_id=p.id)
+      AND p.resolution_required
       AND NOT EXISTS (SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.amount_paise>(SELECT COALESCE(sum(r.amount_paise),0) FROM reversal_journal r WHERE r.capture_id=j.id))`,
           [row.cycle_id, this.now()],
         );

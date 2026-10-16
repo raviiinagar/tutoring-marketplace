@@ -35,6 +35,20 @@ export const refundSchema = z.object({
   created_at: z.number().int().positive(),
 });
 export type ProviderRefund = z.infer<typeof refundSchema>;
+export const disputeSchema = z.object({
+  id: z.string().regex(/^disp_[A-Za-z0-9]+$/),
+  payment_id: z.string().regex(/^pay_[A-Za-z0-9]+$/),
+  amount: z.number().int().positive().safe(),
+  currency: z.string().length(3),
+  amount_deducted: z.number().int().nonnegative().safe().default(0),
+  status: z.enum(["open", "under_review", "won", "lost", "closed"]),
+  phase: z.string().max(80),
+  created_at: z.number().int().positive(),
+});
+export type ProviderDispute = z.infer<typeof disputeSchema>;
+export interface DisputeProvider {
+  fetchDispute(id: string): Promise<ProviderDispute>;
+}
 export type RefundBody = { amount: number; speed: "normal"; receipt: string };
 export interface RefundProvider {
   createRefund(
@@ -73,7 +87,9 @@ export function validSignature(
     createHmac("sha256", secret).update(value).digest(),
   );
 }
-export class RazorpayProvider implements PaymentProvider, RefundProvider {
+export class RazorpayProvider
+  implements PaymentProvider, RefundProvider, DisputeProvider
+{
   constructor(
     private readonly settings: NonNullable<Config["payments"]>,
     private readonly transport: typeof fetch = fetch,
@@ -136,6 +152,11 @@ export class RazorpayProvider implements PaymentProvider, RefundProvider {
   async fetchRefund(id: string) {
     return refundSchema.parse(
       await this.call("refunds/" + encodeURIComponent(id)),
+    );
+  }
+  async fetchDispute(id: string) {
+    return disputeSchema.parse(
+      await this.call("disputes/" + encodeURIComponent(id)),
     );
   }
 }

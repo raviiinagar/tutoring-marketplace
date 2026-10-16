@@ -1,3 +1,4 @@
+import { normalizeFinancialEvent } from "./financial-events.js";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Config } from "./config.js";
@@ -55,6 +56,12 @@ export class PaymentEvents {
     const kind = z.object({ event: z.string().max(100) }).safeParse(decoded);
     if (!kind.success)
       throw new ApiProblem(400, "INVALID_WEBHOOK", "Invalid payment event.");
+    let financial;
+    try {
+      financial = normalizeFinancialEvent(decoded);
+    } catch {
+      throw new ApiProblem(400, "INVALID_WEBHOOK", "Invalid financial event.");
+    }
     const supported = [
       "payment.captured",
       "payment.authorized",
@@ -63,7 +70,18 @@ export class PaymentEvents {
     const parsed = supported ? envelope.safeParse(decoded) : null;
     if (parsed && !parsed.success)
       throw new ApiProblem(400, "INVALID_WEBHOOK", "Invalid payment event.");
-    const data = parsed?.success ? parsed.data : { event: kind.data.event };
+    const data =
+      financial || (parsed?.success ? parsed.data : { event: kind.data.event });
+    if (
+      this.config.payments?.accountId &&
+      (decoded as { account_id?: string }).account_id !==
+        this.config.payments.accountId
+    )
+      throw new ApiProblem(
+        400,
+        "MERCHANT_MISMATCH",
+        "Webhook merchant does not match configured account.",
+      );
     const hash = tokenHash(raw.toString("base64"));
     await this.database.transaction(async (client) => {
       await client.query(
@@ -73,7 +91,7 @@ export class PaymentEvents {
           hash,
           data,
           settings.keyId,
-          supported ? "PENDING" : "IGNORED",
+          supported || financial ? "PENDING" : "IGNORED",
           this.now(),
         ],
       );
@@ -97,7 +115,7 @@ export class PaymentEvents {
     const row = await this.database.transaction(async (client) => {
       const found = (
         await client.query(
-          "SELECT * FROM payment_webhook_inbox WHERE status IN ('PENDING','UNMATCHED') AND provider_key_id=$1 AND next_attempt_at<=$2 ORDER BY received_at,event_id LIMIT 1 FOR UPDATE SKIP LOCKED",
+          "SELECT * FROM payment_webhook_inbox WHERE status IN ('PENDING','UNMATCHED') AND event->>'event' IN ('payment.captured','payment.authorized','payment.failed') AND provider_key_id=$1 AND next_attempt_at<=$2 ORDER BY received_at,event_id LIMIT 1 FOR UPDATE SKIP LOCKED",
           [this.config.payments!.keyId, this.now()],
         )
       ).rows[0];
