@@ -7,12 +7,28 @@ const json = (body: unknown) =>
     status: 200,
     headers: { "content-type": "application/json" },
   });
+function mockPaymentsApi(implementation: typeof fetch) {
+  return vi
+    .spyOn(globalThis, "fetch")
+    .mockImplementation((input, init) =>
+      String(input).endsWith("/refunds")
+        ? Promise.resolve(
+            json({
+              cancelled: false,
+              can_cancel: false,
+              refunds: [],
+              bank_notice: "Bank timing depends on the payment method.",
+            }),
+          )
+        : implementation(input, init),
+    );
+}
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 it("shows server disclosures and honest disabled checkout without loading a payment script", async () => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json({
           policy: {
@@ -79,7 +95,7 @@ const readyPurchase = {
   },
 };
 it("resumes an uncertain purchase without exposing a replacement Pay button", async () => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")
@@ -110,7 +126,7 @@ it("opens server-priced hosted checkout and keeps a successful browser callback 
     on() {}
   }
   window.Razorpay = Hosted;
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) =>
+  mockPaymentsApi(async (input, init) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")
@@ -146,7 +162,7 @@ it("refreshes enquiry eligibility when the server confirms capture during the ho
     on() {}
   }
   window.Razorpay = Hosted;
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")
@@ -192,7 +208,7 @@ it("refreshes enquiry eligibility when the server confirms capture during the ho
 });
 
 it("shows the fixed active Access Pass interval without offering another payment", async () => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")
@@ -220,7 +236,7 @@ it("shows the fixed active Access Pass interval without offering another payment
 });
 
 it("offers explicit repurchase for an expired activated pass only after choosing an eligible offer and acknowledging terms", async () => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")
@@ -248,7 +264,7 @@ it("offers explicit repurchase for an expired activated pass only after choosing
   expect(screen.queryByRole("button", { name: "Resume same checkout" })).toBeNull();
 });
 it("does not offer replacement payment when the matching window expired without activation", async () => {
-  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+  mockPaymentsApi(async (input) =>
     String(input).endsWith("/policy")
       ? json(policy)
       : String(input).endsWith("/current")

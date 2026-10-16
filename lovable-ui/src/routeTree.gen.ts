@@ -30,6 +30,7 @@ import { Route as ChatConnectionIdRouteImport } from './routes/chat.$connectionI
 import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
+import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
@@ -145,6 +146,11 @@ const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
   path: '/staff/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffFinanceRoute = StaffFinanceRouteImport.update({
+  id: '/staff_/finance',
+  path: '/staff/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffGuardiansRoute = StaffGuardiansRouteImport.update({
   id: '/staff_/guardians',
   path: '/staff/guardians',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
+  '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/photos': typeof StaffPhotosRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
+  '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
   '/staff/photos': typeof StaffPhotosRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
+  '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/photos': typeof StaffPhotosRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
+    | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/photos'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/staff/catalogue'
+    | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
     | '/staff/photos'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/connections_/$connectionId'
     | '/dev/inbox'
     | '/staff_/catalogue'
+    | '/staff_/finance'
     | '/staff_/guardians'
     | '/staff_/listings'
     | '/staff_/photos'
@@ -409,6 +421,7 @@ export interface RootRouteChildren {
   ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
+  StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
@@ -569,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffCatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/finance': {
+      id: '/staff_/finance'
+      path: '/staff/finance'
+      fullPath: '/staff/finance'
+      preLoaderRoute: typeof StaffFinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/guardians': {
       id: '/staff_/guardians'
       path: '/staff/guardians'
@@ -657,6 +677,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
+  StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
   StaffPhotosRoute: StaffPhotosRoute,

@@ -134,6 +134,7 @@ export class PaymentsService {
       )
     ).rows;
     const access = await this.paidAccess.summary(client, row);
+    const cancelled=!!(await client.query('SELECT 1 FROM purchase_cancellations WHERE cycle_id=$1',[row.id])).rowCount;
     return {
       id: row.id,
       status: row.status,
@@ -152,11 +153,12 @@ export class PaymentsService {
       payment_attempt_failed: row.last_payment_failed,
       requires_alternative:
         row.status === "CAPTURED" && !eligible && access.status === "MATCHING",
+      cancelled,
       access_active: access.status === "ACTIVE",
       access,
       journal,
       checkout:
-        eligible && row.status === "ORDER_READY"
+        !cancelled && eligible && row.status === "ORDER_READY"
           ? {
               key_id: row.provider_key_id,
               order_id: row.provider_order_id,

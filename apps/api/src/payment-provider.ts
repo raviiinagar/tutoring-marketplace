@@ -24,6 +24,35 @@ const paymentSchema = z.object({
 });
 export type ProviderOrder = z.infer<typeof orderSchema>;
 export type ProviderPayment = z.infer<typeof paymentSchema>;
+export const refundSchema = z.object({
+  id: z.string().regex(/^rfnd_[A-Za-z0-9]+$/),
+  entity: z.literal("refund"),
+  payment_id: z.string().regex(/^pay_[A-Za-z0-9]+$/),
+  amount: z.number().int().positive().safe(),
+  currency: z.string().length(3),
+  status: z.enum(["pending", "processed", "failed"]),
+  receipt: z.string().nullable().optional(),
+  created_at: z.number().int().positive(),
+});
+export type ProviderRefund = z.infer<typeof refundSchema>;
+export type RefundBody = { amount: number; speed: "normal"; receipt: string };
+export interface RefundProvider {
+  createRefund(
+    paymentId: string,
+    key: string,
+    body: RefundBody,
+  ): Promise<ProviderRefund>;
+  fetchRefund(id: string): Promise<ProviderRefund>;
+}
+export const supportsRefunds = (
+  provider: PaymentProvider | undefined,
+): provider is PaymentProvider & RefundProvider =>
+  !!provider && "createRefund" in provider && "fetchRefund" in provider;
+export class ProviderRequestError extends Error {
+  constructor(readonly status: number) {
+    super("Payment provider rejected the request");
+  }
+}
 export interface PaymentProvider {
   createOrder(
     cycle: string,
@@ -44,12 +73,16 @@ export function validSignature(
     createHmac("sha256", secret).update(value).digest(),
   );
 }
-export class RazorpayProvider implements PaymentProvider {
+export class RazorpayProvider implements PaymentProvider, RefundProvider {
   constructor(
     private readonly settings: NonNullable<Config["payments"]>,
     private readonly transport: typeof fetch = fetch,
   ) {}
-  private async call(path: string, body?: unknown) {
+  private async call(
+    path: string,
+    body?: unknown,
+    extraHeaders: Record<string, string> = {},
+  ) {
     const response = await this.transport(
       "https://api.razorpay.com/v1/" + path,
       {
@@ -61,12 +94,13 @@ export class RazorpayProvider implements PaymentProvider {
               this.settings.keyId + ":" + this.settings.keySecret,
             ).toString("base64"),
           "Content-Type": "application/json",
+          ...extraHeaders,
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
         signal: AbortSignal.timeout(10000),
       },
     );
-    if (!response.ok) throw new Error("Payment provider request failed");
+    if (!response.ok) throw new ProviderRequestError(response.status);
     return response.json();
   }
   async createOrder(cycle: string, amount: number, currency: string) {
@@ -88,6 +122,20 @@ export class RazorpayProvider implements PaymentProvider {
   async fetchPayment(id: string) {
     return paymentSchema.parse(
       await this.call("payments/" + encodeURIComponent(id)),
+    );
+  }
+  async createRefund(paymentId: string, key: string, body: RefundBody) {
+    return refundSchema.parse(
+      await this.call(
+        "payments/" + encodeURIComponent(paymentId) + "/refund",
+        body,
+        { "X-Refund-Idempotency": key },
+      ),
+    );
+  }
+  async fetchRefund(id: string) {
+    return refundSchema.parse(
+      await this.call("refunds/" + encodeURIComponent(id)),
     );
   }
 }

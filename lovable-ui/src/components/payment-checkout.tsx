@@ -1,3 +1,4 @@
+import {RefundPanel} from './refund-panel';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import {
@@ -313,6 +314,7 @@ export function PaymentCheckout({
               <p className="break-all text-xs text-muted-foreground">
                 Purchase reference: {purchase.id}
               </p>
+              <RefundPanel purchaseId={purchase.id} onChange={refresh}/>
             </div>
           )}
           {!policy?.checkout_available && (

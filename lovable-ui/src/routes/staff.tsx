@@ -42,6 +42,7 @@ function StaffConsole(){
       </form>:<>
         <p className="text-sm text-muted-foreground">Staff access expires {new Date(access.expires_at!).toLocaleTimeString()}. Only your assigned areas are available.</p>
         <nav aria-label="Staff areas" className="mt-5 flex flex-wrap gap-3">{access.scopes.map(scope=><Button key={scope} variant="outline" disabled={loading} onClick={()=>void open(scope)}>{labels[scope]}</Button>)}</nav>
+        {access.scopes.includes('FINANCE')&&<Link to="/staff/finance" className="link mt-5 block">Manage refunds and reserve</Link>}
         {access.scopes.includes('TRUST')&&<Link to="/staff/guardians" className="link mt-5 inline-block">Review Guardian verifications</Link>}
         {access.scopes.includes('TRUST')&&<Link to="/staff/catalogue" className="link mt-5 block">Manage learning catalogue</Link>}
         {access.scopes.includes('TRUST')&&<Link to="/staff/tutors" className="link mt-5 block">Review Tutor evidence</Link>}
