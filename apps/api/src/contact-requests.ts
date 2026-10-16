@@ -1,3 +1,4 @@
+import {requestTiming,expirePayerRequests} from './request-lifecycle.js';
 import {PaidAccess,testCoverage,coverageAllowed} from './paid-access.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
@@ -7,6 +8,7 @@ import {Database} from './database.js';
 import {AuthService} from './auth.js';
 import {LearnersService} from './learners.js';
 import {ListingsService} from './listings.js';
+import {DiscoveryService} from './discovery.js';
 import {ApiProblem} from './errors.js';
 import {encrypt,decrypt,tokenHash} from './security.js';
 const contactPattern=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d|(?:whatsapp|telegram|instagram)\s*[:@]|@[a-z][\w.]{2,})/i;
@@ -16,14 +18,21 @@ export const requestListInput=z.strictObject({cursor:z.uuid().optional()});
 type Input=z.infer<typeof contactRequestInput>;
 const hour=3600000;
 export class ContactRequestsService {
-  constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly learners:LearnersService,private readonly listings:ListingsService,private readonly paidAccess:PaidAccess,private readonly now:()=>Date=()=>new Date()){}
+  constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly learners:LearnersService,private readonly listings:ListingsService,private readonly paidAccess:PaidAccess,private readonly discovery:DiscoveryService,private readonly now:()=>Date=()=>new Date()){}
+  async alternatives(token:string|undefined,id:string,cursor?:string){return this.database.transaction(async client=>{
+    const {user}=await this.auth.authenticated(client,token);
+    const row=(await client.query('SELECT * FROM contact_requests WHERE id=$1 AND payer_id=$2',[id,user.id])).rows[0];
+    if(!row||!coverageAllowed(this.config,row.coverage_snapshot))throw new ApiProblem(404,'NOT_FOUND','Contact Request not found.');
+    await this.learners.requireUsable(client,user.id,row.learner_id);
+    return this.discovery.alternatives(client,row,cursor);
+  });}
   private async policy(client:PoolClient){return (await client.query("SELECT * FROM contact_request_policies WHERE version='contact-v1'")).rows[0];}
   async access(token?:string){return this.database.transaction(async client=>{const {user}=await this.auth.authenticated(client,token);const at=this.now();const policy=await this.policy(client);const coverage=user.roles.includes('LEARNER')?await this.paidAccess.forPayer(client,user.id,at):undefined;const pending=Number((await client.query("SELECT count(*) FROM contact_requests WHERE payer_id=$1 AND status='PENDING' AND expires_at>$2",[user.id,at])).rows[0].count);return {can_request:!!coverage&&pending<policy.pending_limit,pending_count:pending,pending_limit:policy.pending_limit,request_policy_version:policy.version,request_ttl_hours:policy.ttl_hours,checkout_available:!!this.config.payments,reason:!coverage?'ACCESS_REQUIRED':pending>=policy.pending_limit?'PENDING_LIMIT':null,coverage:coverage?{status:coverage.status,expires_at:new Date(coverage.status==='ACTIVE'?coverage.ends_at:coverage.matching_deadline).toISOString(),id:coverage.id,purchase_id:coverage.cycle_id||null,starts_at:coverage.starts_at?new Date(coverage.starts_at).toISOString():null,ends_at:coverage.ends_at?new Date(coverage.ends_at).toISOString():null,test_only:coverage.test_only}:null};});}
   private async view(client:PoolClient,row:Record<string,any>){
     let learner:Record<string,any>|undefined;try{learner=await this.learners.requireUsable(client,row.payer_id,row.learner_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}
     const message=learner?decrypt<{learning_requirements:string;preferred_times:string}>(row.encrypted_message,this.config.authSecret):null;
     const connection=(await client.query('SELECT id FROM connections WHERE request_id=$1',[row.id])).rows[0];
-    return {id:row.id,listing_id:row.listing_id,learner_id:row.learner_id,learner_alias:learner?.alias||null,learner_usable:!!learner,offer:row.offer_snapshot,...(message||{learning_requirements:null,preferred_times:null}),status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),request_policy_version:row.request_policy_version,connection_id:connection?.id||null,test_only:testCoverage(row.coverage_snapshot)};
+    return {id:row.id,listing_id:row.listing_id,learner_id:row.learner_id,learner_alias:learner?.alias||null,learner_usable:!!learner,offer:row.offer_snapshot,...(message||{learning_requirements:null,preferred_times:null}),...requestTiming(row as {status:string;expires_at:Date},this.now()),created_at:new Date(row.created_at).toISOString(),request_policy_version:row.request_policy_version,connection_id:connection?.id||null,test_only:testCoverage(row.coverage_snapshot)};
   }
   async submit(token:string|undefined,input:Input,correlation:string){return this.database.transaction(async client=>{
     const recipient=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[input.listing_id])).rows[0];
@@ -37,7 +46,7 @@ export class ContactRequestsService {
     if(listing.offer.subject_id!==input.subject_id||listing.offer.teaching_mode!==input.teaching_mode)throw new ApiProblem(400,'OFFER_MISMATCH','The enquiry must match this exact Subject and teaching mode.');
     if((await client.query('SELECT 1 FROM account_blocks WHERE (owner_id=$1 AND blocked_id=$2) OR (owner_id=$2 AND blocked_id=$1)',[user.id,listing.user_id])).rowCount)throw new ApiProblem(403,'CONTACT_BLOCKED','A current block prevents this Contact Request.');
     let at=this.now();const policy=await this.policy(client);const coverage=await this.paidAccess.forPayer(client,user.id,at);at=this.now();if(!coverage||(coverage.status==='MATCHING'?new Date(coverage.matching_deadline):new Date(coverage.ends_at))<=at)throw new ApiProblem(403,'ACCESS_REQUIRED','Confirmed Access Pass payment is required before sending a Contact Request.');
-    await client.query("UPDATE contact_requests SET status='EXPIRED',updated_at=$2 WHERE payer_id=$1 AND status='PENDING' AND expires_at<=$2",[user.id,at]);
+    await expirePayerRequests(client,user.id,at);
     const duplicate=(await client.query("SELECT * FROM contact_requests WHERE payer_id=$1 AND learner_id=$2 AND listing_id=$3 AND status='PENDING'",[user.id,input.learner_id,input.listing_id])).rows[0];
     if(duplicate){const stored=decrypt<{learning_requirements:string;preferred_times:string}>(duplicate.encrypted_message,this.config.authSecret);if(duplicate.listing_revision!==input.listing_revision||stored.learning_requirements!==input.learning_requirements||stored.preferred_times!==input.preferred_times)throw new ApiProblem(409,'REQUEST_ALREADY_PENDING','An enquiry for this Learner and offer is already pending.');await client.query('INSERT INTO contact_request_keys(payer_id,request_key,payload_hash,request_id) VALUES($1,$2,$3,$4)',[user.id,input.request_key,hash,duplicate.id]);return {request:await this.view(client,duplicate),replayed:true};}
     const pending=Number((await client.query("SELECT count(*) FROM contact_requests WHERE payer_id=$1 AND status='PENDING'",[user.id])).rows[0].count);if(pending>=policy.pending_limit)throw new ApiProblem(409,'PENDING_LIMIT','You can have at most five pending Contact Requests.');

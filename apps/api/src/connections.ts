@@ -1,3 +1,4 @@
+import {requestTiming} from './request-lifecycle.js';
 import {PaidAccess,testCoverage,coverageAllowed} from './paid-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
@@ -36,9 +37,10 @@ export class ConnectionsService {
   }
 
   private async pending(client:PoolClient,row:Row){
-    this.source(row);if(row.status!=='PENDING')throw new ApiProblem(409,'DECISION_RECORDED','This request has already been decided.');
+    this.source(row);if(requestTiming(row as {status:string;expires_at:Date},this.now()).status==='EXPIRED')throw new ApiProblem(409,'REQUEST_EXPIRED','This request response deadline has passed.');
+    if(row.status!=='PENDING')throw new ApiProblem(409,'DECISION_RECORDED','This request has already been decided.');
     const context=await this.safety(client,row);const coverage=await this.paidAccess.forRequest(client,row);
-    if(new Date(row.expires_at)<=this.now())throw new ApiProblem(409,'REQUEST_EXPIRED','This request response deadline has passed.');
+    if(requestTiming(row as {status:string;expires_at:Date},this.now()).status==='EXPIRED')throw new ApiProblem(409,'REQUEST_EXPIRED','This request response deadline has passed.');
     return {...context,coverage};
   }
   private async acceptOffer(client:PoolClient,row:Row){const current=await this.listings.requireAvailable(client,row.listing_id);if(current.user_id!==row.tutor_id||current.revision!==row.listing_revision||current.profile_revision!==row.profile_revision||current.offer.subject_id!==row.offer_snapshot.subject_id||current.offer.teaching_mode!==row.offer_snapshot.teaching_mode)throw new ApiProblem(409,'OFFER_CHANGED','The submitted teaching offer changed. A new enquiry is required.');}
@@ -54,7 +56,7 @@ export class ConnectionsService {
     const {coverage}=await this.pending(client,found);if(decision==='ACCEPT')await this.acceptOffer(client,found);
     // Coverage/purchase lock is held before the request transition and future refund coordination.
     const row=(await client.query('SELECT * FROM contact_requests WHERE id=$1 FOR UPDATE',[id])).rows[0];
-    const at=this.now();if(row.status!=='PENDING'||new Date(row.expires_at)<=at)throw new ApiProblem(409,'REQUEST_EXPIRED','The request is no longer pending within its response deadline.');
+    const at=this.now();if(requestTiming(row,at).status!=='PENDING')throw new ApiProblem(409,'REQUEST_EXPIRED','The request is no longer pending within its response deadline.');
     await client.query('INSERT INTO contact_request_decisions(request_id,tutor_id,decision,decided_at) VALUES($1,$2,$3,$4)',[id,user.id,decision,at]);
     if(decision==='ACCEPT'){
       const connectionId=randomUUID();const ready=await this.paidAccess.activate(client,coverage,at,{actor_id:user.id,request_id:row.id,correlation});
@@ -76,7 +78,7 @@ export class ConnectionsService {
       let canDecline=false;let canAccept=false;let reason:string|null=null;let message:Row|null=null;
       try{await this.pending(client,row);canDecline=true;message=decrypt<Row>(row.encrypted_message,this.config.authSecret);try{await this.acceptOffer(client,row);canAccept=true;}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}}catch(error){if(!(error instanceof ApiProblem))throw error;reason=code(error);}
       const connection=(await client.query('SELECT id FROM connections WHERE request_id=$1',[row.id])).rows[0];
-      requests.push({id:row.id,offer:row.offer_snapshot,status:row.status==='PENDING'&&new Date(row.expires_at)<=this.now()?'EXPIRED':row.status,expires_at:new Date(row.expires_at).toISOString(),created_at:new Date(row.created_at).toISOString(),learning_requirements:message?.learning_requirements||null,preferred_times:message?.preferred_times||null,can_accept:canAccept,can_decline:canDecline,unavailable_reason:reason,connection_id:connection?.id||null,test_only:testCoverage(row.coverage_snapshot)});
+      requests.push({id:row.id,offer:row.offer_snapshot,...requestTiming(row,this.now()),created_at:new Date(row.created_at).toISOString(),learning_requirements:message?.learning_requirements||null,preferred_times:message?.preferred_times||null,can_accept:canAccept,can_decline:canDecline,unavailable_reason:reason,connection_id:connection?.id||null,test_only:testCoverage(row.coverage_snapshot)});
     }return {requests,next_cursor:rows.length>20?rows[19].id:null};
   });}
 

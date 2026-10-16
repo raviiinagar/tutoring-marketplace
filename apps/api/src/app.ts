@@ -169,7 +169,7 @@ export async function createApplication(config: Config,database: Database,now:()
   const discovery=new DiscoveryService(database,config,now);
   const availability=new AvailabilityService(database,config,discovery,listings,now);
   const paidAccess=new PaidAccess(config,now);
-  const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,now);
+  const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,discovery,now);
   const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,paidAccess,now);
   const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
   const chat=new ChatService(connections,config,database,now);

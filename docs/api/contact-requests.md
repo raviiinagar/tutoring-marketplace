@@ -44,3 +44,10 @@ The helper rejects production, non-loopback connections, databases without the `
 
 
 Tasks 14–15 implement [hosted checkout and verified capture](payments.md) plus [paid enquiries and activation](paid-access.md). The configured checkout-availability flag is informational; verified captured funding, current authority and request limits determine access.
+
+
+## Deadlines and explicit alternatives
+
+Both owner history and Tutor inbox return `server_time`, immutable `expires_at` and a `reminder` (`DUE_SOON` in the last 24 hours, `EXPIRED` once elapsed, otherwise null). The UI anchors elapsed time to the server response. Equality rejects decisions consistently before and after background expiry. Worker ticks take at most 50 request locks with SKIP LOCKED and never acquire upstream purchase/account locks. They persist minimal, deduplicated lifecycle events for future delivery; recording an event is not a claim of email/SMS delivery. Synchronous submission retires elapsed requests and records expiry in the same transaction.
+
+`GET /v1/me/contact-requests/:id/alternatives?cursor=<uuid>` requires the owner and a currently usable Learner. It returns up to six public offers and `next_cursor`, matching the original domain, Subject, level, optional board/exam, mode and at least one language. Original/self Tutors, blocks, unavailable supply and pending/accepted peers for the same Learner are excluded. Suggestions may have different tuition/trial terms, which are displayed for review. No contact, payment or request is created by this GET. The Learner explicitly chooses a Tutor, reviews a prefilled enquiry and submits through the existing covered command, including all current safety/authority/coverage checks. New requests under MATCHING retain the original capture deadline.

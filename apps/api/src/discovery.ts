@@ -4,6 +4,7 @@ import {Database} from './database.js';
 import {ApiProblem} from './errors.js';
 import {isAdult} from './tutors.js';
 import {decrypt} from './security.js';
+import type {PoolClient} from 'pg';
 const slug=z.string().regex(/^[a-z][a-z0-9-]{1,79}$/);
 const integer=(min:number,max:number)=>z.string().regex(/^\d{1,8}$/).transform(Number).pipe(z.number().int().min(min).max(max));
 export const discoveryInput=z.strictObject({domain_id:slug.optional(),subject_id:slug.optional(),level_id:slug.optional(),curriculum_id:slug.optional(),exam_id:slug.optional(),language_id:slug.optional(),rate_unit:z.enum(['HOUR','LESSON']).optional(),min_rate_paise:integer(100,10000000).optional(),max_rate_paise:integer(100,10000000).optional(),cursor:z.uuid().optional(),limit:integer(1,24).optional()}).superRefine((v,c)=>{
@@ -36,6 +37,24 @@ const availableSql=`SELECT l.id,l.revision,l.payload,p.display_name,p.encrypted_
 
 export class DiscoveryService {
   constructor(private readonly database:Database,private readonly config:Config,private readonly now:()=>Date=()=>new Date()){}
+  async alternatives(client:PoolClient,source:Record<string,any>,cursor?:string){
+    const at=this.now();
+    const rows=(await client.query(availableSql+`
+      AND l.user_id<>$3 AND l.user_id<>$4
+      AND l.payload->>'domain_id'=$5::jsonb->>'domain_id'
+      AND l.payload->>'subject_id'=$5::jsonb->>'subject_id'
+      AND l.payload->>'level_id'=$5::jsonb->>'level_id'
+      AND (l.payload->>'curriculum_id') IS NOT DISTINCT FROM ($5::jsonb->>'curriculum_id')
+      AND (l.payload->>'exam_id') IS NOT DISTINCT FROM ($5::jsonb->>'exam_id')
+      AND l.payload->>'teaching_mode'=$5::jsonb->>'teaching_mode'
+      AND EXISTS (SELECT 1 FROM jsonb_array_elements_text($5::jsonb->'language_ids') lang(id) WHERE l.payload->'language_ids' ? lang.id)
+      AND NOT EXISTS (SELECT 1 FROM account_blocks b WHERE (b.owner_id=$3 AND b.blocked_id=l.user_id) OR (b.blocked_id=$3 AND b.owner_id=l.user_id))
+      AND NOT EXISTS (SELECT 1 FROM contact_requests r WHERE r.payer_id=$3 AND r.learner_id=$6 AND r.tutor_id=l.user_id
+        AND (r.status='ACCEPTED' OR (r.status='PENDING' AND r.expires_at>$1)))
+      AND ($7::uuid IS NULL OR l.id>$7::uuid) ORDER BY l.id LIMIT 7`,
+    [at,this.config.mode==='production',source.payer_id,source.tutor_id,source.offer_snapshot,source.learner_id,cursor||null])).rows;
+    return {offers:rows.slice(0,6).map(row=>this.project(row,at)).filter(row=>row!==undefined),next_cursor:rows.length>6?rows[5].id:null};
+  }
   private project(row:Record<string,any>,at:Date){
     if(!isAdult(decrypt<{birth_date:string}>(row.encrypted_birth_date,this.config.authSecret).birth_date,at))return undefined;
     // Reviewed profile names are public, but a contact accidentally entered as a

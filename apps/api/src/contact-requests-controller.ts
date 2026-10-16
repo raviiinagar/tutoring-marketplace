@@ -14,4 +14,5 @@ export class ContactRequestsController {
   @Post('contact-requests') @HttpCode(200) submit(@Req() r:ContactRequest,@Body() body:unknown){return this.requests.submit(this.token(r),parse(contactRequestInput,body),r.correlationId);}
   @Get('contact-requests') list(@Req() r:ContactRequest,@Query() query:unknown){return this.requests.list(this.token(r),parse(requestListInput,query).cursor);}
   @Get('contact-requests/:id') detail(@Req() r:ContactRequest,@Param('id') id:string){return this.requests.detail(this.token(r),parse(z.uuid(),id));}
+  @Get('contact-requests/:id/alternatives') alternatives(@Req() r:ContactRequest,@Param('id') id:string,@Query() query:unknown){return this.requests.alternatives(this.token(r),parse(z.uuid(),id),parse(requestListInput,query).cursor);}
 }

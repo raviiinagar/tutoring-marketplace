@@ -63,6 +63,61 @@ const enquiry=(learnerId:string,row:{id:string;revision:number})=>({request_key:
 const submit=(body:unknown,cookie?:string)=>post('/v1/me/contact-requests',body,cookie);
 const grant=(email:string,state:'ACTIVE'|'MATCHING'='ACTIVE')=>grantContactFixture(database,config,email,state,clock);
 
+test('deadline worker records reminders once and expires at equality even after a delayed run',async()=>{
+ const {owner,teacher,listing}=await scenario();await grant(owner.email);
+ await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,new Date(clock.getTime()+10*86400000)]);
+ const sent=(await submit(enquiry(owner.profile.id,listing),owner.cookie).expect(200)).body.request;
+ const {RequestLifecycle}=await import('../src/request-lifecycle.js');
+ const worker=new RequestLifecycle(database,now);
+ assert.deepEqual(await worker.tick(),{expired:0,reminded:0});
+ clock=new Date(clock.getTime()+48*3600000);
+ assert.deepEqual(await worker.tick(),{expired:0,reminded:1});
+ assert.deepEqual(await worker.tick(),{expired:0,reminded:0});
+ const due=(await get('/v1/me/contact-requests/'+sent.id,owner.cookie).expect(200)).body.request;
+ assert.equal(due.reminder,'DUE_SOON');assert.equal(due.server_time,clock.toISOString());
+ clock=new Date(sent.expires_at);
+ // Reads and decisions must remain correct while the worker is stopped.
+ assert.equal((await get('/v1/me/contact-requests/'+sent.id,owner.cookie)).body.request.status,'EXPIRED');
+ await post('/v1/me/tutor-requests/'+sent.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(409).expect(r=>assert.equal(r.body.code,'REQUEST_EXPIRED'));
+ const results=await Promise.all([worker.tick(),worker.tick()]);
+ assert.equal(results.reduce((total,result)=>total+result.expired,0),1);
+ assert.deepEqual(await worker.tick(),{expired:0,reminded:0});
+ const expired=(await get('/v1/me/contact-requests/'+sent.id,owner.cookie)).body.request;
+ assert.equal(expired.status,'EXPIRED');assert.equal(expired.reminder,'EXPIRED');assert.equal(expired.expires_at,sent.expires_at);
+ await post('/v1/me/tutor-requests/'+sent.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(409).expect(r=>assert.equal(r.body.code,'REQUEST_EXPIRED'));
+ assert.equal((await get('/v1/me/request-access',owner.cookie)).body.pending_count,0);
+});
+
+test('owner-selected alternatives preserve exact intent without sending, charging or revealing contacts',async()=>{
+ const {owner,teacher,listing}=await scenario();await grant(owner.email,'MATCHING');
+ const original=(await submit(enquiry(owner.profile.id,listing),owner.cookie).expect(200)).body.request;
+ const other=await tutor(true,['subject-physics','subject-mathematics']);
+ const matching=await publish(other);
+ await publishOffer(other,{...offer,title:'Different curriculum Physics',curriculum_id:'curriculum-icse'});
+ await publishOffer(other,{...offer,title:'Different level Physics',level_id:'level-class-11'});
+ await publishOffer(other,{...offer,title:'Different language Physics',language_ids:['language-hindi']});
+ await publishOffer(other,{...offer,title:'Different subject Mathematics',subject_id:'subject-mathematics'});
+ await publishOffer(teacher,{...offer,title:'Same original Tutor other offer'});
+ const endpoint='/v1/me/contact-requests/'+original.id+'/alternatives';
+ await get(endpoint).expect(401);await get(endpoint,other.cookie).expect(404);
+ const suggestions=(await get(endpoint,owner.cookie).expect(200)).body;
+ assert.deepEqual(suggestions.offers.map((row:{id:string})=>row.id),[matching.id]);
+ const text=JSON.stringify(suggestions);for(const secret of [other.email,teacher.email,owner.email,'tutor_id','payer_id','encrypted_message'])assert.ok(!text.includes(secret));
+ assert.equal((await get('/v1/me/contact-requests',owner.cookie)).body.requests.length,1);
+ assert.equal((await get('/v1/me/connections',owner.cookie)).body.connections.length,0);
+ assert.equal((await get('/v1/me/purchases/current',owner.cookie)).body.purchase,null);
+ await database.pool.query('INSERT INTO account_blocks(owner_id,blocked_id) VALUES($1,$2)',[other.id,owner.id]);
+ assert.deepEqual((await get(endpoint,owner.cookie)).body.offers,[]);
+ await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1 AND blocked_id=$2',[other.id,owner.id]);
+ const replacement=(await submit(enquiry(owner.profile.id,matching),owner.cookie).expect(200)).body.request;
+ assert.notEqual(replacement.id,original.id);assert.equal(replacement.expires_at,original.expires_at);
+ assert.equal(replacement.connection_id,null);
+ assert.deepEqual((await get(endpoint,owner.cookie)).body.offers,[]);
+ assert.equal((await get('/v1/me/request-access',owner.cookie)).body.pending_count,2);
+ await post('/v1/me/roles',{roles:['TUTOR']},owner.cookie).expect(200);
+ await get(endpoint,owner.cookie).expect(403);
+});
+
 test('requests require authenticated beneficiary authority, eligible exact offers and server coverage; client flags cannot grant access',async()=>{
  const {owner,teacher,listing}=await scenario();const body=enquiry(owner.profile.id,listing);await submit(body).expect(401);await submit(body,owner.cookie).expect(403).expect(r=>assert.equal(r.body.code,'ACCESS_REQUIRED'));const access=(await get('/v1/me/request-access',owner.cookie)).body;assert.equal(access.can_request,false);assert.equal(access.checkout_available,false);
  for(const invalid of [{...body,paid:true},{...body,entitlement_id:randomUUID()},{...body,payer_id:teacher.id},{...body,tutor_id:teacher.id},{...body,expires_at:new Date().toISOString()},{...body,teaching_mode:'IN_PERSON'},{...body,learning_requirements:'Email me at person@example.test please'},{...body,preferred_times:'Call +91 9876543210 please'},{...body,preferred_times:'Telegram: @fictionalname'},{...body,learning_requirements:'Read https://example.test/my-info'},{...body,learning_requirements:'Too short'}])await submit(invalid,owner.cookie).expect(400);
