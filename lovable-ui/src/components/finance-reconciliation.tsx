@@ -78,6 +78,8 @@ export function FinanceReconciliation({ purpose }: { purpose: string }) {
       </Button>
       {view && (
         <>
+          <p className="text-xs text-muted-foreground">Summary totals below are INR only. Other currency facts stay separate.</p>
+          {view.totals_by_currency?.filter(row=>row.currency!=='INR').map(row=><p key={row.currency} className="text-sm">{row.currency}: debits {(row.total_debits_minor/100).toFixed(2)}, credits {(row.total_credits_minor/100).toFixed(2)}</p>)}
           <CaptureEvidence purpose={purpose} onComplete={load} />
           <div className="rounded-xl bg-secondary p-4 text-sm">
             <p>

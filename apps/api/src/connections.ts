@@ -43,6 +43,16 @@ export class ConnectionsService {
     if(requestTiming(row as {status:string;expires_at:Date},this.now()).status==='EXPIRED')throw new ApiProblem(409,'REQUEST_EXPIRED','This request response deadline has passed.');
     return {...context,coverage};
   }
+  // Worker-only permission boundary. No HTTP route can choose an arbitrary
+  // recipient; the committed domain outbox determines the account and target.
+  async notificationAllowed(client:PoolClient,kind:'REQUEST'|'CONNECTION',id:string,recipient:string,expected?:'PENDING'|'EXPIRED'|'DECIDED'){
+    const row=(await client.query(kind==='REQUEST'?'SELECT * FROM contact_requests WHERE id=$1':this.query()+' WHERE c.id=$1',[id])).rows[0];if(!row||![row.payer_id,row.tutor_id].includes(recipient))return false;
+    const users=(await client.query('SELECT * FROM users WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE',[[row.payer_id,row.tutor_id]])).rows;const actor=users.find(user=>user.id===recipient);if(users.some(user=>user.status!=='ACTIVE'||!user.email_verified_at)||!actor)return false;
+    try{if(kind==='CONNECTION'){await this.context(client,actor,row);return true;}
+      this.source(row);const timing=requestTiming(row,this.now());if(expected==='PENDING'&&timing.status!=='PENDING'||expected==='EXPIRED'&&timing.status!=='EXPIRED'||expected==='DECIDED'&&!['ACCEPTED','DECLINED'].includes(row.status))return false;
+      await this.safety(client,row);if(expected==='PENDING')await this.paidAccess.forRequest(client,row);return true;
+    }catch(error){if(error instanceof ApiProblem&&[403,404,409].includes(error.getStatus()))return false;throw error;}
+  }
   private async acceptOffer(client:PoolClient,row:Row){const current=await this.listings.requireAvailable(client,row.listing_id);if(current.user_id!==row.tutor_id||current.revision!==row.listing_revision||current.profile_revision!==row.profile_revision||current.offer.subject_id!==row.offer_snapshot.subject_id||current.offer.teaching_mode!==row.offer_snapshot.teaching_mode)throw new ApiProblem(409,'OFFER_CHANGED','The submitted teaching offer changed. A new enquiry is required.');}
   private async decisionView(client:PoolClient,row:Row,replayed:boolean){const connection=(await client.query('SELECT id,status FROM connections WHERE request_id=$1',[row.id])).rows[0];return {request_id:row.id,status:row.status,connection_id:connection?.id||null,connection_status:connection?.status||null,replayed};}
 

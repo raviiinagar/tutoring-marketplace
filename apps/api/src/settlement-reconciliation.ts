@@ -229,15 +229,13 @@ export class SettlementReconciliation {
           [this.config.mode === "production"],
         )
       ).rows;
-      const totals = (
-        await client.query(
-          `SELECT COALESCE(sum(CASE WHEN p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS debits,COALESCE(sum(CASE WHEN p.direction='CREDIT' THEN p.amount_paise ELSE 0 END),0) AS credits,COALESCE(sum(CASE WHEN p.account IN ('GATEWAY_FEE_EX_TAX','GATEWAY_TAX') AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS fee,COALESCE(sum(CASE WHEN p.account='GATEWAY_TAX' AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS tax,COALESCE(sum(CASE WHEN p.account='BANK_CONTROL' AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS bank FROM financial_postings p JOIN financial_entries e ON e.id=p.entry_id LEFT JOIN purchase_cycles c ON c.id=e.cycle_id WHERE e.test_only<>$1::boolean`,
-          [this.config.mode === "production"],
-        )
-      ).rows[0];
+      const totalsByCurrency=(await client.query(`SELECT e.currency,COALESCE(sum(CASE WHEN p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS debits,COALESCE(sum(CASE WHEN p.direction='CREDIT' THEN p.amount_paise ELSE 0 END),0) AS credits,COALESCE(sum(CASE WHEN p.account IN ('GATEWAY_FEE_EX_TAX','GATEWAY_TAX') AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS fee,COALESCE(sum(CASE WHEN p.account='GATEWAY_TAX' AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS tax,COALESCE(sum(CASE WHEN p.account='BANK_CONTROL' AND p.direction='DEBIT' THEN p.amount_paise ELSE 0 END),0) AS bank FROM financial_postings p JOIN financial_entries e ON e.id=p.entry_id WHERE e.test_only<>$1::boolean GROUP BY e.currency ORDER BY e.currency`,[this.config.mode==='production'])).rows;
+      const totals=totalsByCurrency.find(row=>row.currency==='INR')||{debits:0,credits:0,fee:0,tax:0,bank:0};
       return {
         entries,
+        totals_by_currency:totalsByCurrency.map(row=>({currency:row.currency,total_debits_minor:Number(row.debits),total_credits_minor:Number(row.credits)})),
         totals: {
+          currency:'INR',
           total_debits_paise: Number(totals.debits),
           total_credits_paise: Number(totals.credits),
           gateway_fee_paise: Number(totals.fee),

@@ -9,7 +9,7 @@ Implemented for task 09 on 12 October 2026. Browsing and this optional alert are
 3. Select **Notify me when available**, then **Open captured availability email**. Local emails are captured at `/dev/inbox`, not delivered to a real inbox.
 4. Open the availability verification link and explicitly confirm it. A GET does not activate anything. Confirmation expires after 15 minutes and is single-use; link tokens are removed from the address bar.
 5. The unsubscribe link in the same email works before or after confirmation. It clears the encrypted contact and cancels queued confirmation mail and pending notification intents. An already in-flight email cannot be recalled, but withdrawn confirmation tokens no longer work.
-6. Publish an approved exact matching offer through the Tutor/Trust flow. The worker checks due subscriptions and persists one pending notification intent for that subscription generation. It does **not** yet send an availability alert: task 20 integrates durable delivery, current eligibility revalidation, retries and operational status.
+6. Publish an approved exact matching offer through the Tutor/Trust flow. The worker checks due subscriptions and persists one pending notification intent for that subscription generation. Task 20 now delivers that intent through the notification outbox after rechecking current eligible supply and consent, with retries, unsubscribe and operational status. See [notifications](notifications.md).
 
 ## API
 

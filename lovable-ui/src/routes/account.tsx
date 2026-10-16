@@ -96,7 +96,7 @@ function Account() {
 
   return (
     <AuthShell title={`Hello, ${user.display_name}`}>
-      <dl className="divide-y rounded-xl border">
+      <Link to="/notifications" className="link mb-5 block">Notification preferences and updates</Link><dl className="divide-y rounded-xl border">
         <Row label="Name" value={user.display_name} />
         <Row label="Email" value={user.email} />
         <Row label="Email status" value={user.email_verified ? "Verified" : "Not verified"} />

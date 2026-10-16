@@ -884,3 +884,16 @@ test("daily read-only reconciliation schedules overlapping periods once without 
     config.payments!.dailyReconciliation = original;
   }
 });
+
+test('foreign unexpected captures remain separate from INR totals and preserve their actual currency',async()=>{
+ const s=await funded();const finance=await fixture(['FINANCE']);const mfa=await enroll(finance.cookie);
+ const path='/v1/staff/finance/reconciliation?reason=Inspect%20currency%20separated%20financial%20totals';
+ const {SettlementReconciliation}=await import('../src/settlement-reconciliation.js');const worker=app.get(SettlementReconciliation);
+ for(let i=0;i<20;i++)await worker.tick();const baseline=(await get(path,mfa.cookie)).body.totals.total_debits_paise;
+ const foreign={...s.payment,id:'pay_'+randomBytes(8).toString('hex'),currency:'USD',amount:9000};gateway.payments.set(foreign.id,foreign);
+ await webhook(event(foreign)).expect(202);await app.get(PaymentEvents).tick();for(let i=0;i<20;i++)await worker.tick();
+ const view=(await get(path,mfa.cookie).expect(200)).body;
+ assert.equal(view.totals.total_debits_paise,baseline);
+ const usd=view.totals_by_currency.find((row:any)=>row.currency==='USD');assert.equal(usd.total_debits_minor,9000);assert.equal(usd.total_credits_minor,9000);
+ const history=(await get('/v1/me/payment-history',s.owner.cookie)).body.purchases;assert.ok(history[0].captures.some((row:any)=>row.currency==='USD'&&Number(row.amount_paise)===9000));
+});

@@ -75,7 +75,7 @@ export function RefundPanel({
         <article key={row.id} className="rounded-xl border p-4 text-sm">
           <p className="font-semibold">{labels[row.status] || row.status}</p>
           <p className="mt-2">
-            ₹{(row.amount_paise / 100).toFixed(2)} · Full approved amount; gateway costs are not
+            {row.currency==='INR'?'₹':row.currency+' '}{(row.amount_paise / 100).toFixed(2)} · Full approved amount; gateway costs are not
             deducted.
           </p>
           {row.provider_refund_id && (

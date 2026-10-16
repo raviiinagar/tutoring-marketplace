@@ -75,12 +75,12 @@ function History() {
                 {fact.kind === "CAPTURE"
                   ? "Verified platform capture"
                   : "Unexpected captured amount"}
-                : ₹{(Number(fact.amount_paise) / 100).toFixed(2)}
+                : {fact.currency==='INR'?'₹':fact.currency+' '}{(Number(fact.amount_paise) / 100).toFixed(2)}
               </p>
             ))}
             {row.reversals.map((fact, i) => (
               <p key={i} className="mt-2 text-sm">
-                {fact.kind}: ₹{(Number(fact.amount_paise) / 100).toFixed(2)}
+                {fact.kind}: {fact.currency==='INR'?'₹':fact.currency+' '}{(Number(fact.amount_paise) / 100).toFixed(2)}
               </p>
             ))}
             {row.receipt_available && (

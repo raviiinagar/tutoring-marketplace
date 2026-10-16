@@ -1,3 +1,7 @@
+import {NotificationStaffController} from './notification-staff-controller.js';
+import {NotificationsService} from './notifications.js';
+import {NotificationsController} from './notifications-controller.js';
+import type {NotificationDelivery} from './notification-delivery.js';
 import {SettlementReconciliation} from './settlement-reconciliation.js';
 import {SettlementController} from './settlement-controller.js';
 import {ReconciliationService} from './reconciliation.js';
@@ -169,7 +173,7 @@ class DevelopmentMailController {
     return {development_only:true,messages:messages.sort((a,b)=>b.captured_at.localeCompare(a.captured_at))};
   }
 }
-export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config),paymentProvider:PaymentProvider|undefined=config.payments?new RazorpayProvider(config.payments):undefined): Promise<INestApplication> {
+export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config),paymentProvider:PaymentProvider|undefined=config.payments?new RazorpayProvider(config.payments):undefined,notificationDelivery?:NotificationDelivery): Promise<INestApplication> {
   const auth = new AuthService(database,config,now);
   const staff = new StaffService(database,config,auth,now);
   const learners=new LearnersService(database,config,auth,staff,verifier,now);
@@ -186,6 +190,7 @@ export async function createApplication(config: Config,database: Database,now:()
   const records=new ReconciliationService(database,config,auth,staff,now);
   const contactRequests=new ContactRequestsService(database,config,auth,learners,listings,paidAccess,discovery,now);
   const connections=new ConnectionsService(database,config,auth,learners,listings,tutors,paidAccess,now);
+  const notifications=new NotificationsService(database,config,auth,staff,connections,discovery,now,notificationDelivery);
   const photos=new TutorPhotosService(database,config,auth,staff,scanner,now);
   const chat=new ChatService(connections,config,database,now);
   const realtime=new ChatRealtime(chat,config);
@@ -193,8 +198,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
   const payments=new PaymentsService(database,config,auth,learners,listings,paidAccess,paymentProvider,now);
   @Module({
-    controllers:[SettlementController,ReconciliationController,FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:SettlementReconciliation,useValue:settlementRecords},{provide:ReconciliationService,useValue:records},{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[NotificationStaffController,NotificationsController,SettlementController,ReconciliationController,FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:NotificationsService,useValue:notifications},{provide:SettlementReconciliation,useValue:settlementRecords},{provide:ReconciliationService,useValue:records},{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();

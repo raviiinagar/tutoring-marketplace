@@ -141,7 +141,7 @@ test('photo upload validates decoding, dimensions, consent, scanner result and p
 test('production excludes fictional photo assets even when the underlying Tutor evidence is nonfictional',async()=>{
  const teacher=await tutor();const listing=await publish(teacher);const photo=(await uploadPhoto(await portrait(),teacher.cookie).expect(201)).body.photo;await reviewPhoto(photo.id,'APPROVE',teacher.reviewer!.cookie).expect(200);
  await database.pool.query('UPDATE tutor_evidence SET test_only=false WHERE user_id=$1',[teacher.id]);
- const production=await createApplication({...config,mode:'production',evidenceScanner:'disabled',guardianMode:'disabled'},database,now,undefined,undefined);
+ const production=await createApplication({...config,mode:'production',mailTransport:'smtp',evidenceScanner:'disabled',guardianMode:'disabled'},database,now,undefined,undefined);
  try{const detail=await request(production.getHttpServer()).get('/v1/discovery/'+listing.id).expect(200);assert.equal(detail.body.listing.tutor.photo_url,undefined);await request(production.getHttpServer()).get('/v1/discovery/'+listing.id+'/photos/'+photo.id).expect(404);}finally{await production.close();}
 });
 

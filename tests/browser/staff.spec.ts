@@ -23,6 +23,11 @@ test('staff MFA enrollment, scoped console, audit and authenticator recovery',as
     const backup=await page.getByRole('listitem').first().textContent();await page.getByRole('button',{name:'I saved my recovery codes',exact:true}).click();
     const areas=page.getByRole('navigation',{name:'Staff areas'});await expect(areas.getByRole('button',{name:'Support',exact:true})).toBeVisible();await expect(areas.getByRole('button',{name:'Trust',exact:true})).toHaveCount(0);await expect(areas.getByRole('button',{name:'Finance',exact:true})).toHaveCount(0);
     await areas.getByRole('button',{name:'Support',exact:true}).click();await page.getByLabel('Reason for access').fill('Review support console access');await page.getByRole('button',{name:'Record access reason',exact:true}).click();await expect(page.getByRole('listitem').filter({hasText:'Review support console access'})).toBeVisible();
+    await page.getByRole('link',{name:'Monitor notification delivery',exact:true}).click();
+    await page.getByLabel('Reason for notification access').fill('Inspect isolated delivery backlog');
+    await page.getByRole('button',{name:'Inspect delivery queue',exact:true}).click();
+    await expect(page.getByText('No queued notifications.',{exact:true})).toBeVisible();
+    await page.getByRole('link',{name:'Back to staff console',exact:true}).click();
     await page.getByRole('button',{name:'Sign out staff access',exact:true}).click();await expect(page.getByRole('heading',{name:'Verify staff access',exact:true})).toBeVisible();
     await page.getByRole('button',{name:'Lost your authenticator?',exact:true}).click();await page.getByLabel('Account password').fill(password);await page.getByLabel('Recovery code').fill(backup!.trim());await page.getByRole('button',{name:'Use recovery code',exact:true}).click();await expect(page.getByRole('heading',{name:'Set up staff MFA',exact:true})).toBeVisible();await expect(page.getByRole('navigation',{name:'Staff areas'})).toHaveCount(0);
     await page.getByLabel('Account password').fill(password);await page.getByRole('button',{name:'Create authenticator setup',exact:true}).click();const next=await page.getByLabel('Authenticator setup key').textContent();expect(next).not.toBe(secret);

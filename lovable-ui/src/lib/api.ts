@@ -37,7 +37,7 @@ export type ListingQueueItem={id:string;title:string;status:string;safety_suspen
 export type DiscoveryFilters={domain_id?:string|undefined;subject_id?:string|undefined;level_id?:string|undefined;curriculum_id?:string|undefined;exam_id?:string|undefined;language_id?:string|undefined;rate_unit?:'HOUR'|'LESSON'|undefined;min_rate_paise?:number|undefined;max_rate_paise?:number|undefined;cursor?:string|undefined;limit?:number|undefined};
 export type PaymentHistoryRow={id:string;amount_paise:number;currency:string;status:string;created_at:string;resolution_required:boolean;test_only:boolean;receipt_available:boolean;captures:{kind:string;amount_paise:string;currency:string}[];reversals:{kind:string;amount_paise:string;currency:string}[]};
 export type PaymentDocument={id:string;number:string;purchase_id:string;kind:string;merchant:string;invoice_notice:string;amount_paise:number;base_paise:number;tax_paise:number;currency:string;paid_at:string;issued_at:string;test_only:boolean;description:string;tax_document_notice:string};
-export type ReconciliationView={totals:{total_debits_paise:number;total_credits_paise:number;gateway_fee_paise:number;gateway_tax_paise:number;bank_received_paise:number};runs:{id:string;status:string;last_error:string|null}[];settlements:{id:string;amount_paise:string;status:string;bank_matched:boolean}[]};
+export type ReconciliationView={totals_by_currency:{currency:string;total_debits_minor:number;total_credits_minor:number}[];totals:{total_debits_paise:number;total_credits_paise:number;gateway_fee_paise:number;gateway_tax_paise:number;bank_received_paise:number};runs:{id:string;status:string;last_error:string|null}[];settlements:{id:string;amount_paise:string;status:string;bank_matched:boolean}[]};
 export type RefundCase={id:string;cycle_id:string;status:'OPEN'|'APPROVED'|'DECLINED';reason:string;review_reason:string|null;reviewed_by:string|null;amount_paise:number|null;access_treatment:'KEEP'|'REVOKE_FUTURE'|null;operation_id:string|null;created_at:string;reviewed_at:string|null};
 export type RefundOperation={id:string;amount_paise:number;currency:string;reason:string;status:string;provider_refund_id:string|null;last_error:string|null;attempts:number;created_at:string;updated_at:string};
 export type RefundState={can_review:boolean;cancelled:boolean;can_cancel:boolean;refunds:RefundOperation[];bank_notice:string};
@@ -68,7 +68,12 @@ export type PaymentPolicy={policy:{version:'access-v1';amount_paise:number;curre
 export type CheckoutConfirmation={razorpay_payment_id:string;razorpay_order_id:string;razorpay_signature:string};
 export type Purchase={id:string;status:'CREATING'|'ORDER_READY'|'UNKNOWN'|'VERIFYING'|'CAPTURED'|'REVIEW';policy_version:string;amount_paise:number;currency:string;created_at:string;captured_at:string|null;matching_deadline:string|null;resolution_required:boolean;requires_alternative:boolean;payment_attempt_failed:boolean;access_active:boolean;access:{status:'MATCHING'|'ACTIVE'|'EXPIRED'|'UNAVAILABLE';starts_at:string|null;ends_at:string|null;test_only:boolean};disclosures:PaymentDisclosure;journal:{kind:string;amount_paise:string;currency:string;captured_at:string}[];checkout:{key_id:string;order_id:string;amount:number;currency:string;merchant:string}|null};
 export type CodeMessage = { code: string; message: string };
-export type CapturedMail = { id: string; to: string; verification_url?: string; reset_url?: string; availability_verification_url?:string;availability_unsubscribe_url?:string; captured_at: string; development_only: true };
+export type NotificationRecord={id:string;target_id:string;template:string;template_version:string;category:string;channel:'EMAIL'|'SMS';mandatory:boolean;status:string;attempts:number;last_error:string|null;provider_reference:string|null;created_at:string;sent_at:string|null;test_only:boolean};
+export type NotificationPreferences={enquiry_email:boolean;chat_email:boolean;availability_email:boolean;marketing_email:boolean;notice_version:'notification-preferences-v1'};
+export type NotificationPreferenceView={preferences:NotificationPreferences;service_email:true;policy:{notice:string}};
+export type NotificationHistory={notifications:NotificationRecord[];delivery_mode:'LOCAL_CAPTURE'|'PROVIDER'};
+export type NotificationQueue=NotificationHistory&{sms_configured:boolean;sms_daily_limit:number};
+export type CapturedMail = { id: string; to: string; subject?:string;text?:string;notification_url?:string;verification_url?: string; reset_url?: string; availability_verification_url?:string;availability_unsubscribe_url?:string; captured_at: string; development_only: true };
 export type AvailabilityPolicy={consent_version:'availability-v1';purpose:'TUTOR_AVAILABILITY';duration_days:number;max_alerts:number;notice:string};
 export const localMailCapture = import.meta.env.DEV && import.meta.env["VITE_DEV_MAIL_CAPTURE"] === "true";
 
@@ -226,6 +231,12 @@ export const api = {
   verifyEmail: (token: string) => request<CodeMessage>("POST", "/v1/auth/verifications", { token }),
   signIn: (input: { email: string; password: string }) =>
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
+  notifications:()=>request<NotificationHistory>('GET','/v1/me/notifications'),
+  notificationPreferences:()=>request<NotificationPreferenceView>('GET','/v1/me/notification-preferences'),
+  saveNotificationPreferences:(input:NotificationPreferences)=>request<NotificationPreferenceView>('POST','/v1/me/notification-preferences',input),
+  notificationQueue:(reason:string)=>request<NotificationQueue>('GET','/v1/staff/notifications?reason='+encodeURIComponent(reason)),
+  retryNotification:(id:string,reason:string)=>request<{scheduled:boolean}>('POST','/v1/staff/notifications/'+encodeURIComponent(id)+'/retries',{reason}),
+  reconcileNotification:(id:string,provider_reference:string,reason:string)=>request<{reconciled:boolean}>('POST','/v1/staff/notifications/'+encodeURIComponent(id)+'/provider-confirmations',{provider_reference,reason}),
   paymentHistory: (cursor?:string) => request<{purchases:PaymentHistoryRow[];next_cursor:string|null}>('GET','/v1/me/payment-history'+(cursor?'?cursor='+encodeURIComponent(cursor):'')),
   paymentReceipt: (id:string) => request<{document:PaymentDocument}>('GET','/v1/me/purchases/'+encodeURIComponent(id)+'/receipt'),
   confirmCaptureEvidence: (id:string,input:{provider_payment_id:string;captured_at:string;reason:string}) => request<{recorded:boolean}>('POST','/v1/staff/finance/purchases/'+encodeURIComponent(id)+'/capture-confirmations',input),

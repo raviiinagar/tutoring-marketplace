@@ -14,6 +14,7 @@ export interface Config {
   clamav?:{host:string;port:number};
   payments?: {dailyReconciliation?:boolean;accountId?:string;mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
+  sms?:{accountSid:string;authToken:string;messagingSid:string;contentSid:string;ownerPhone:string;dailyLimit:number};
 }
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const mode = env.NODE_ENV ?? "development";
@@ -74,7 +75,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if(live&&!/^acc_[A-Za-z0-9]+$/.test(env.RAZORPAY_ACCOUNT_ID||''))throw new Error('Live webhook processing requires the confirmed Razorpay account ID');
     payments={dailyReconciliation:live?env.PAYMENT_DAILY_RECONCILIATION_ENABLED!=='false':env.PAYMENT_DAILY_RECONCILIATION_ENABLED==='true',accountId:env.RAZORPAY_ACCOUNT_ID||undefined,mode:live?'live':'test',keyId,keySecret,webhookSecret,disclosures:{merchant:env.PAYMENT_MERCHANT_NAME?.trim()||'Fictional test merchant',invoice_notice:env.PAYMENT_INVOICE_NOTICE?.trim()||'Test transaction only. No real payment or tax invoice.',base_paise:base,tax_paise:tax,test_only:!live}};
   }
-  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  let sms:Config['sms'];const smsMode=env.CRITICAL_SMS_MODE||'disabled';if(!['disabled','twilio'].includes(smsMode))throw new Error('Unknown critical SMS provider');
+  if(smsMode==='twilio'){
+    if(mode!=='production')throw new Error('Live critical SMS requires production isolation; tests inject an isolated sender');
+    const accountSid=env.TWILIO_ACCOUNT_SID||'';const authToken=env.TWILIO_AUTH_TOKEN||'';const messagingSid=env.TWILIO_MESSAGING_SERVICE_SID||'';const contentSid=env.TWILIO_ALERT_CONTENT_SID||'';const ownerPhone=env.SMS_OWNER_PHONE||'';const dailyLimit=Number(env.SMS_DAILY_LIMIT||'5');
+    if(!/^AC[0-9a-fA-F]{32}$/.test(accountSid)||authToken.length<32||!/^MG[0-9a-fA-F]{32}$/.test(messagingSid)||!/^HX[0-9a-fA-F]{32}$/.test(contentSid)||!/^\+91[6-9]\d{9}$/.test(ownerPhone)||env.SMS_OWNER_CONTACT_VERIFIED!=='true'||!Number.isSafeInteger(dailyLimit)||dailyLimit<1||dailyLimit>20)throw new Error('Critical SMS needs configured provider credentials, template, verified owner contact and a 1 to 20 daily limit');
+    sms={accountSid,authToken,messagingSid,contentSid,ownerPhone,dailyLimit};
+  }
+  return { mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

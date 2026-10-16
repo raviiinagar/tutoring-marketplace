@@ -757,8 +757,11 @@ test("an unexpected second capture is refunded separately without overwriting th
 
 test('a processed refund webhook resolves an unknown operation once and closes the cancelled purchase',async()=>{
  const s=await funded();await reserve(599000);await cancellations(s.cycle.id,s.owner.cookie);
- const {RefundsService}=await import('../src/refunds.js');const worker=app.get(RefundsService);gateway.loseRefund=true;await worker.tick();
- let state=(await refunds(s.cycle.id,s.owner.cookie)).body;const operation=state.refunds[0];assert.equal(operation.status,'UNKNOWN');
+ const {RefundsService}=await import('../src/refunds.js');const worker=app.get(RefundsService);gateway.loseRefund=true;
+ let state=(await refunds(s.cycle.id,s.owner.cookie)).body;
+ // The public worker processes one due operation, including earlier fixtures.
+ for(let i=0;i<20&&state.refunds[0].status!=='UNKNOWN';i++){await worker.tick();state=(await refunds(s.cycle.id,s.owner.cookie)).body;}
+ const operation=state.refunds[0];assert.equal(operation.status,'UNKNOWN');
  const actual=[...gateway.refunds.values()].find(row=>row.receipt===operation.id)!;
  const body={event:'refund.created',created_at:Math.floor(clock.getTime()/1000),payload:{refund:{entity:{...actual,status:'pending'}}}};
  await webhook(body).expect(202);const {FinancialEvents}=await import('../src/financial-events.js');const events=app.get(FinancialEvents);await events.tick();
