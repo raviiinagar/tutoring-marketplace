@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { S3Client } from "@aws-sdk/client-s3";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 test("independent storage verifies every encrypted upload by downloading it and rejects corrupt remote bytes", async () => {
   const { S3RecoveryStore } = await import("../src/recovery-storage.js");
@@ -89,4 +91,40 @@ test("the independent watchdog measures loss from the database snapshot rather t
   assert.deepEqual(result.conditions, ["BACKUP_STALE"]);
   assert.equal(result.healthy, false);
   assert.equal(result.snapshot_age_seconds, 19 * 3600);
+});
+test("the recovery operator refuses a production identity under a development or test runtime", async () => {
+  await assert.rejects(
+    promisify(execFile)(
+      process.execPath,
+      [
+        "node_modules/tsx/dist/cli.mjs",
+        "--tsconfig",
+        "apps/api/tsconfig.json",
+        "apps/api/src/recovery-operator.ts",
+        "export",
+        "production",
+        ".local/never-created-production-export.enc",
+      ],
+      {
+        env: {
+          ...process.env,
+          NODE_ENV: "test",
+          APP_ENVIRONMENT: "production",
+          DATABASE_URL: "postgres://fixture:fictional@127.0.0.1:9/not_used",
+          AUTH_SECRET: "x".repeat(64),
+          MAIL_TRANSPORT: "capture",
+          RECOVERY_BUCKET: undefined,
+          BACKUP_KEY_FILE: undefined,
+        },
+        windowsHide: true,
+      },
+    ),
+    (error) => {
+      assert.match(
+        (error as Error & { stderr: string }).stderr,
+        /RECOVERY_RUNTIME_ENVIRONMENT_MISMATCH/,
+      );
+      return true;
+    },
+  );
 });

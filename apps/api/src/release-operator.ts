@@ -10,7 +10,9 @@ async function main() {
     environment !== process.env.APP_ENVIRONMENT ||
     !directory ||
     offline !== "--traffic-stopped" ||
-    process.argv.length !== 6
+    process.argv.length !== 6 ||
+    ["staging", "production"].includes(environment) !==
+      (config.mode === "production")
   )
     throw new Error(
       "Expected check <APP_ENVIRONMENT> <candidate-migrations-directory> --traffic-stopped",

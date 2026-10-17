@@ -61,6 +61,8 @@ node --env-file=/etc/tutoring/api.env apps/api/dist/recovery-operator.js publish
 
 The privacy operator's `production` argument is `NODE_ENV`; recovery operators use `APP_ENVIRONMENT` (`staging` in this example). The independently initialized empty ledger is required before production entrypoints start. Never initialize an empty index over existing tombstones.
 
+Recovery operators require the production runtime for either deployed identity (`staging` or `production`). A shell environment override cannot silently turn a deployed recovery into a development/test operation.
+
 Bootstrap the first owner through `AuthService.register` in an offline root/operator session against the empty environment, using the existing registration schema and a protected input file; never insert a verified password/account directly or bypass email verification. Read the resulting user UUID through that privileged session and configure `OPERATIONS_OWNER_USER_ID` before startup. Start API/workers privately, complete the actual email verification, then use the compiled staff operator to grant the owner's approved scopes and enroll MFA. No owner account, email or scopes have been created by Task 26.
 
 ```text

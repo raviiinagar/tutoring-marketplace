@@ -33,6 +33,11 @@ async function main() {
   )
     throw new Error("Invalid recovery command or environment identity.");
   try {
+    if (
+      ["staging", "production"].includes(environment) !==
+      (config.mode === "production")
+    )
+      throw new Error("RECOVERY_RUNTIME_ENVIRONMENT_MISMATCH");
     if (command.endsWith("-ledger")) {
       if (argument !== "--traffic-stopped" || flags.length)
         throw new Error("Ledger operators require stopped API/workers.");
