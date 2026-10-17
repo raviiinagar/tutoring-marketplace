@@ -1,3 +1,7 @@
+import {MarketplaceMetrics} from './marketplace-metrics.js';
+import {MarketplaceMetricsController} from './marketplace-metrics-controller.js';
+import {PublicPages} from './public-pages.js';
+import {PublicPagesController} from './public-pages-controller.js';
 import {PrivacyService} from './privacy.js';
 import {PrivacyController} from './privacy-controller.js';
 import {SupportService} from './support.js';
@@ -203,17 +207,20 @@ export async function createApplication(config: Config,database: Database,now:()
   const chat=new ChatService(connections,config,database,now);
   const realtime=new ChatRealtime(chat,config);
   const safety=new SafetyService(database,auth,config,staff,now);
+  const metrics=new MarketplaceMetrics(database,config,discovery,auth,staff,now);
+  const publicPages=new PublicPages(config,discovery,catalogue);
   const privacy=new PrivacyService(database,config,auth,staff,now);
   const support=new SupportService(database,config,auth,staff,reviews,safety,finance,now);
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
   const payments=new PaymentsService(database,config,auth,learners,listings,paidAccess,paymentProvider,now);
   @Module({
-    controllers:[PrivacyController,SupportController,ReviewsController,NotificationStaffController,NotificationsController,SettlementController,ReconciliationController,FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
-    providers:[{provide:PrivacyService,useValue:privacy},{provide:SupportService,useValue:support},{provide:ReviewsService,useValue:reviews},{provide:NotificationsService,useValue:notifications},{provide:SettlementReconciliation,useValue:settlementRecords},{provide:ReconciliationService,useValue:records},{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
+    controllers:[MarketplaceMetricsController,PublicPagesController,PrivacyController,SupportController,ReviewsController,NotificationStaffController,NotificationsController,SettlementController,ReconciliationController,FinanceController,RefundsController,PaymentsController,SafetyController,ChatController,AccountController,StaffController,LearnersController,CatalogueController,TutorsController,ListingsController,DiscoveryController,AvailabilityController,ContactRequestsController,ConnectionsController,TutorPhotosController,...(config.mode!=="production"&&config.mailTransport==="capture"?[DevelopmentMailController]:[])],
+    providers:[{provide:MarketplaceMetrics,useValue:metrics},{provide:PublicPages,useValue:publicPages},{provide:PrivacyService,useValue:privacy},{provide:SupportService,useValue:support},{provide:ReviewsService,useValue:reviews},{provide:NotificationsService,useValue:notifications},{provide:SettlementReconciliation,useValue:settlementRecords},{provide:ReconciliationService,useValue:records},{provide:FinancialEvents,useValue:financialEvents},{provide:FinanceService,useValue:finance},{provide:RefundsService,useValue:refunds},{provide:PaymentEvents,useValue:paymentEvents},{provide:PaymentsService,useValue:payments},{provide:SafetyService,useValue:safety},{provide:ChatRealtime,useValue:realtime},{provide:ChatService,useValue:chat},{provide:TutorPhotosService,useValue:photos},{provide:AuthService,useValue:auth},{provide:StaffService,useValue:staff},{provide:LearnersService,useValue:learners},{provide:CatalogueService,useValue:catalogue},{provide:TutorsService,useValue:tutors},{provide:ListingsService,useValue:listings},{provide:DiscoveryService,useValue:discovery},{provide:AvailabilityService,useValue:availability},{provide:ContactRequestsService,useValue:contactRequests},{provide:ConnectionsService,useValue:connections},{provide:CONFIG,useValue:config},{provide:Database,useValue:database}],
   }) class ApplicationModule {}
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
   express.disable("x-powered-by");
+  app.use((request:Request,response:Response,next:()=>void)=>{if(!/^\/v1\/discovery\/[a-f0-9-]{36}\/photos\/[a-f0-9-]{36}$/.test(request.path))response.setHeader('X-Robots-Tag','noindex');next();});
   express.set("trust proxy",false);
   app.use((request: AuthRequest,response: Response,next:()=>void)=>{
     request.correlationId=randomUUID();

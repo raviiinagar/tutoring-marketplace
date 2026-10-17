@@ -44,6 +44,7 @@ function StaffConsole(){
         <nav aria-label="Staff areas" className="mt-5 flex flex-wrap gap-3">{access.scopes.map(scope=><Button key={scope} variant="outline" disabled={loading} onClick={()=>void open(scope)}>{labels[scope]}</Button>)}</nav>
         <Link to="/staff/privacy" className="link mt-5 block">Privacy requests and retained records</Link><Link to="/staff/support" className="link mt-5 block">Handle support cases and appeals</Link>
         {access.scopes.includes('SUPPORT')&&<Link to="/staff/notifications" className="link mt-5 block">Monitor notification delivery</Link>}
+        {access.scopes.includes('FINANCE')&&<Link to="/staff/metrics" className="link mt-5 block">Inspect delivered marketplace value</Link>}
         {access.scopes.includes('FINANCE')&&<Link to="/staff/finance" className="link mt-5 block">Manage refunds and reserve</Link>}
         {access.scopes.includes('TRUST')&&<Link to="/staff/reviews" className="link mt-5 block">Moderate connection-linked reviews</Link>}
         {access.scopes.includes('TRUST')&&<Link to="/staff/guardians" className="link mt-5 inline-block">Review Guardian verifications</Link>}

@@ -64,7 +64,7 @@ export type ConnectionPeer={display_name:string;email:string;email_verified:true
 export type ContactRequest={server_time:string;reminder:'DUE_SOON'|'EXPIRED'|null;id:string;listing_id:string;learner_id:string;learner_alias:string|null;learner_usable:boolean;offer:TeachingOffer;learning_requirements:string|null;preferred_times:string|null;status:'PENDING'|'ACCEPTED'|'DECLINED'|'EXPIRED'|'CANCELLED';expires_at:string;created_at:string;request_policy_version:string;connection_id:string|null;test_only:boolean};
 export type RequestAccess={can_request:boolean;pending_count:number;pending_limit:number;request_policy_version:string;request_ttl_hours:number;checkout_available:boolean;reason:'ACCESS_REQUIRED'|'PENDING_LIMIT'|null;coverage:{status:'ACTIVE'|'MATCHING';expires_at:string;id:string;purchase_id:string|null;starts_at:string|null;ends_at:string|null;test_only:boolean}|null};
 export type ContactRequestInput={request_key:string;listing_id:string;listing_revision:number;learner_id:string;subject_id:string;teaching_mode:'ONLINE';learning_requirements:string;preferred_times:string};
-export type PublicOffer={review_summary?:{count:number;average:number|null;label:string};id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
+export type PublicOffer={public_path?:string;review_summary?:{count:number;average:number|null;label:string};id:string;revision:number;tutor:{display_name:string;photo_url?:string};offer:TeachingOffer;available:true;evidence_labels:{kind:'IDENTITY'|'QUALIFICATION'|'EXPERIENCE';label:string;reviewed_at:string;expires_at:string}[];verification_disclaimer:string};
 export type DiscoveryPage={offers:PublicOffer[];next_cursor:string|null;limit:number;order:string;price_currency:'INR'};
 
 export type PaymentDisclosure={merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean};
@@ -113,7 +113,9 @@ async function request<T>(
   }
   let res: Response;
   try {
-    res = await fetch(`${apiBaseUrl()}${path}`, init);
+    const origin=import.meta.env.SSR?(process.env['API_INTERNAL_URL']||'http://127.0.0.1:4000'):apiBaseUrl();
+    if(import.meta.env.SSR)init.signal=AbortSignal.timeout(5000);
+    res = await fetch(`${origin}${path}`, init);
   } catch {
     return { ok: false, error: { kind: "unavailable" } };
   }
@@ -178,7 +180,21 @@ export type PrivacyRequest={id:string;kind:PrivacyKind;status:string;created_at:
 export type PrivacyState={authenticated:boolean;policy:PrivacyPolicy;requests:PrivacyRequest[];child_profiles?:{id:string;alias:string}[]};
 export type PrivacyRetained=RetentionClass&{id:string;request_id:string;holds:{id:string;reference:string;reason:string;created_at:string;released_at:string|null;release_reason:string|null}[]};
 export type PrivacyQueue={requests:PrivacyRequest[];retained:PrivacyRetained[];retention_runs?:{id:string;status:string;purged_count:number;started_at:string;completed_at:string|null}[]};
+export type PublicSeo={path:string;canonical:string;title:string;description:string;indexable:boolean;image?:string};
+export type PublicTeacherPage={listing:PublicOffer;catalogue:Catalogue;seo:PublicSeo;redirect_to?:string};
+export type PublicCategoryPage={domain:{id:string;label:string};subject:CatalogueTerm;offers:PublicOffer[];catalogue:Catalogue;seo:PublicSeo};
+export type PublicHome={offers:PublicOffer[];catalogue:Catalogue;categories:{path:string;domain_id:string;subject_id:string;label:string;domain:string;offers:number}[];seo:PublicSeo};
+export type DomainMetrics={id:string;label:string;available_offers:number;available_tutors:number;covered_subjects:number;searches:number;matched_searches:number;empty_searches:number;partial_searches:number;requests:number;responses:number;acceptances:number;declines:number;cancelled:number;connections:number;mature_requests:number;mature_responses:number;mature_connections:number;average_response_ms:number|null;captured_purchases:number;captured_paise:number;unexpected_capture_paise:number;refund_intents:number;confirmed_refunds:number;refunded_paise:number;chargeback_paise:number;mature_paid_purchases:number;mature_matched_purchases:number;mature_refunded_purchases:number;search_result_rate:number|null;mature_response_rate:number|null;mature_connection_rate:number|null;mature_paid_match_rate:number|null;mature_paid_refund_rate:number|null};
+export type MarketplaceReport={as_of:string;from:string;to:string;test_only:boolean;currency:'INR';domains:DomainMetrics[];estimated_teaching_outcomes:null;unique_customers:null;definitions:Record<string,string>};
 export const api = {
+  observedSearch:(filters:DiscoveryFilters,request_key:string)=>request<DiscoveryPage>('POST','/v1/discovery/searches',{filters,request_key}),
+  marketplaceMetrics:(reason:string,from?:string,to?:string)=>request<MarketplaceReport>('GET','/v1/staff/marketplace-metrics?'+new URLSearchParams({reason,...(from?{from}:{}),...(to?{to}:{})})),
+  publicHome:()=>request<PublicHome>('GET','/v1/public/home'),
+  publicTeacher:(slug:string)=>request<PublicTeacherPage>('GET','/v1/public/teachers/'+encodeURIComponent(slug)),
+  publicCategory:(domain:string,subject:string)=>request<PublicCategoryPage>('GET','/v1/public/categories/'+encodeURIComponent(domain)+'/'+encodeURIComponent(subject)),
+  publicSitemap:()=>request<Blob>('GET','/v1/public/sitemap',undefined,true),
+  publicRobots:()=>request<Blob>('GET','/v1/public/robots',undefined,true),
+
   privacyState:()=>request<PrivacyState>('GET','/v1/me/privacy'),
   verifyPrivacy:(password:string,purpose:PrivacyKind|'DOWNLOAD')=>request<{proof:string;expires_at:string}>('POST','/v1/me/privacy/verifications',{password,purpose}),
   requestPrivacy:(body:{request_key:string;kind:PrivacyKind;verification:string;profile_id?:string;confirmation?:'DELETE MY ACCOUNT'})=>request<{request:PrivacyRequest;replayed:boolean}>('POST','/v1/me/privacy/requests',body),

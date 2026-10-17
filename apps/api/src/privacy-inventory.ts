@@ -206,6 +206,7 @@ export async function personalExport(
     sessions: await rows(
       "SELECT id,created_at,expires_at,revoked_at FROM sessions WHERE user_id=$1",
     ),
+    purchase_domains: await rows('SELECT f.cycle_id,f.domain_id,f.recorded_at FROM purchase_domain_facts f JOIN purchase_cycles p ON p.id=f.cycle_id WHERE p.payer_id=$1'),
     access_entitlements: await rows(
       "SELECT id,policy_version,status,captured_at,matching_deadline,starts_at,ends_at,created_at FROM access_entitlements WHERE payer_id=$1",
     ),

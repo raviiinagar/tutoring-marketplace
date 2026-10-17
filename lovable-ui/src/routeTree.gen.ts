@@ -18,7 +18,9 @@ import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReviewsRouteImport } from './routes/reviews'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TutorRouteImport } from './routes/tutor'
@@ -39,6 +41,7 @@ import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
+import { Route as StaffMetricsRouteImport } from './routes/staff_.metrics'
 import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifications'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
 import { Route as StaffPrivacyRouteImport } from './routes/staff_.privacy'
@@ -46,9 +49,11 @@ import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffSupportRouteImport } from './routes/staff_.support'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
+import { Route as TeachersSlugRouteImport } from './routes/teachers.$slug'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
 import { Route as TutorsListingIdRouteImport } from './routes/tutors_.$listingId'
+import { Route as LearnDomainSubjectRouteImport } from './routes/learn.$domain.$subject'
 import { Route as SafetyKindTargetIdRouteImport } from './routes/safety_.$kind.$targetId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -96,9 +101,19 @@ const ReviewsRoute = ReviewsRouteImport.update({
   path: '/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SafetyRoute = SafetyRouteImport.update({
   id: '/safety',
   path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffRoute = StaffRouteImport.update({
@@ -201,6 +216,11 @@ const StaffListingsRoute = StaffListingsRouteImport.update({
   path: '/staff/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffMetricsRoute = StaffMetricsRouteImport.update({
+  id: '/staff_/metrics',
+  path: '/staff/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffNotificationsRoute = StaffNotificationsRouteImport.update({
   id: '/staff_/notifications',
   path: '/staff/notifications',
@@ -236,6 +256,11 @@ const StaffTutorsRoute = StaffTutorsRouteImport.update({
   path: '/staff/tutors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeachersSlugRoute = TeachersSlugRouteImport.update({
+  id: '/teachers/$slug',
+  path: '/teachers/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorListingsRoute = TutorListingsRouteImport.update({
   id: '/tutor_/listings',
   path: '/tutor/listings',
@@ -249,6 +274,11 @@ const TutorRequestsRoute = TutorRequestsRouteImport.update({
 const TutorsListingIdRoute = TutorsListingIdRouteImport.update({
   id: '/tutors_/$listingId',
   path: '/tutors/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnDomainSubjectRoute = LearnDomainSubjectRouteImport.update({
+  id: '/learn/$domain/$subject',
+  path: '/learn/$domain/$subject',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SafetyKindTargetIdRoute = SafetyKindTargetIdRouteImport.update({
@@ -267,7 +297,9 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
@@ -288,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
+  '/staff/metrics': typeof StaffMetricsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
@@ -295,9 +328,11 @@ export interface FileRoutesByFullPath {
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
+  '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
+  '/learn/$domain/$subject': typeof LearnDomainSubjectRoute
   '/safety/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRoutesByTo {
@@ -310,7 +345,9 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
@@ -331,6 +368,7 @@ export interface FileRoutesByTo {
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
+  '/staff/metrics': typeof StaffMetricsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
@@ -338,9 +376,11 @@ export interface FileRoutesByTo {
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
+  '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
+  '/learn/$domain/$subject': typeof LearnDomainSubjectRoute
   '/safety/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRoutesById {
@@ -354,7 +394,9 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
@@ -375,6 +417,7 @@ export interface FileRoutesById {
   '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
+  '/staff_/metrics': typeof StaffMetricsRoute
   '/staff_/notifications': typeof StaffNotificationsRoute
   '/staff_/photos': typeof StaffPhotosRoute
   '/staff_/privacy': typeof StaffPrivacyRoute
@@ -382,9 +425,11 @@ export interface FileRoutesById {
   '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/support': typeof StaffSupportRoute
   '/staff_/tutors': typeof StaffTutorsRoute
+  '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
   '/tutors_/$listingId': typeof TutorsListingIdRoute
+  '/learn/$domain/$subject': typeof LearnDomainSubjectRoute
   '/safety_/$kind/$targetId': typeof SafetyKindTargetIdRoute
 }
 export interface FileRouteTypes {
@@ -399,7 +444,9 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/requests'
     | '/reviews'
+    | '/robots.txt'
     | '/safety'
+    | '/sitemap.xml'
     | '/staff'
     | '/support'
     | '/tutor'
@@ -420,6 +467,7 @@ export interface FileRouteTypes {
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
+    | '/staff/metrics'
     | '/staff/notifications'
     | '/staff/photos'
     | '/staff/privacy'
@@ -427,9 +475,11 @@ export interface FileRouteTypes {
     | '/staff/safety'
     | '/staff/support'
     | '/staff/tutors'
+    | '/teachers/$slug'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
+    | '/learn/$domain/$subject'
     | '/safety/$kind/$targetId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -442,7 +492,9 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/requests'
     | '/reviews'
+    | '/robots.txt'
     | '/safety'
+    | '/sitemap.xml'
     | '/staff'
     | '/support'
     | '/tutor'
@@ -463,6 +515,7 @@ export interface FileRouteTypes {
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
+    | '/staff/metrics'
     | '/staff/notifications'
     | '/staff/photos'
     | '/staff/privacy'
@@ -470,9 +523,11 @@ export interface FileRouteTypes {
     | '/staff/safety'
     | '/staff/support'
     | '/staff/tutors'
+    | '/teachers/$slug'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
+    | '/learn/$domain/$subject'
     | '/safety/$kind/$targetId'
   id:
     | '__root__'
@@ -485,7 +540,9 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/requests'
     | '/reviews'
+    | '/robots.txt'
     | '/safety'
+    | '/sitemap.xml'
     | '/staff'
     | '/support'
     | '/tutor'
@@ -506,6 +563,7 @@ export interface FileRouteTypes {
     | '/staff_/finance'
     | '/staff_/guardians'
     | '/staff_/listings'
+    | '/staff_/metrics'
     | '/staff_/notifications'
     | '/staff_/photos'
     | '/staff_/privacy'
@@ -513,9 +571,11 @@ export interface FileRouteTypes {
     | '/staff_/safety'
     | '/staff_/support'
     | '/staff_/tutors'
+    | '/teachers/$slug'
     | '/tutor_/listings'
     | '/tutor_/requests'
     | '/tutors_/$listingId'
+    | '/learn/$domain/$subject'
     | '/safety_/$kind/$targetId'
   fileRoutesById: FileRoutesById
 }
@@ -529,7 +589,9 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RequestsRoute: typeof RequestsRoute
   ReviewsRoute: typeof ReviewsRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SafetyRoute: typeof SafetyRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
   SupportRoute: typeof SupportRoute
   TutorRoute: typeof TutorRoute
@@ -550,6 +612,7 @@ export interface RootRouteChildren {
   StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
+  StaffMetricsRoute: typeof StaffMetricsRoute
   StaffNotificationsRoute: typeof StaffNotificationsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
   StaffPrivacyRoute: typeof StaffPrivacyRoute
@@ -557,9 +620,11 @@ export interface RootRouteChildren {
   StaffSafetyRoute: typeof StaffSafetyRoute
   StaffSupportRoute: typeof StaffSupportRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
+  TeachersSlugRoute: typeof TeachersSlugRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
   TutorsListingIdRoute: typeof TutorsListingIdRoute
+  LearnDomainSubjectRoute: typeof LearnDomainSubjectRoute
   SafetyKindTargetIdRoute: typeof SafetyKindTargetIdRoute
 }
 
@@ -628,11 +693,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/safety': {
       id: '/safety'
       path: '/safety'
       fullPath: '/safety'
       preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/staff': {
@@ -775,6 +854,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/metrics': {
+      id: '/staff_/metrics'
+      path: '/staff/metrics'
+      fullPath: '/staff/metrics'
+      preLoaderRoute: typeof StaffMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/notifications': {
       id: '/staff_/notifications'
       path: '/staff/notifications'
@@ -824,6 +910,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffTutorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teachers/$slug': {
+      id: '/teachers/$slug'
+      path: '/teachers/$slug'
+      fullPath: '/teachers/$slug'
+      preLoaderRoute: typeof TeachersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutor_/listings': {
       id: '/tutor_/listings'
       path: '/tutor/listings'
@@ -843,6 +936,13 @@ declare module '@tanstack/react-router' {
       path: '/tutors/$listingId'
       fullPath: '/tutors/$listingId'
       preLoaderRoute: typeof TutorsListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/$domain/$subject': {
+      id: '/learn/$domain/$subject'
+      path: '/learn/$domain/$subject'
+      fullPath: '/learn/$domain/$subject'
+      preLoaderRoute: typeof LearnDomainSubjectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/safety_/$kind/$targetId': {
@@ -865,7 +965,9 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RequestsRoute: RequestsRoute,
   ReviewsRoute: ReviewsRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SafetyRoute: SafetyRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
   SupportRoute: SupportRoute,
   TutorRoute: TutorRoute,
@@ -886,6 +988,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,
+  StaffMetricsRoute: StaffMetricsRoute,
   StaffNotificationsRoute: StaffNotificationsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
   StaffPrivacyRoute: StaffPrivacyRoute,
@@ -893,9 +996,11 @@ const rootRouteChildren: RootRouteChildren = {
   StaffSafetyRoute: StaffSafetyRoute,
   StaffSupportRoute: StaffSupportRoute,
   StaffTutorsRoute: StaffTutorsRoute,
+  TeachersSlugRoute: TeachersSlugRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,
   TutorsListingIdRoute: TutorsListingIdRoute,
+  LearnDomainSubjectRoute: LearnDomainSubjectRoute,
   SafetyKindTargetIdRoute: SafetyKindTargetIdRoute,
 }
 export const routeTree = rootRouteImport
