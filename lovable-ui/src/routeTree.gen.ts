@@ -43,6 +43,7 @@ import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffMetricsRouteImport } from './routes/staff_.metrics'
 import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifications'
+import { Route as StaffOperationsRouteImport } from './routes/staff_.operations'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
 import { Route as StaffPrivacyRouteImport } from './routes/staff_.privacy'
 import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
@@ -226,6 +227,11 @@ const StaffNotificationsRoute = StaffNotificationsRouteImport.update({
   path: '/staff/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffOperationsRoute = StaffOperationsRouteImport.update({
+  id: '/staff_/operations',
+  path: '/staff/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffPhotosRoute = StaffPhotosRouteImport.update({
   id: '/staff_/photos',
   path: '/staff/photos',
@@ -322,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/staff/listings': typeof StaffListingsRoute
   '/staff/metrics': typeof StaffMetricsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
+  '/staff/operations': typeof StaffOperationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
   '/staff/reviews': typeof StaffReviewsRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/staff/listings': typeof StaffListingsRoute
   '/staff/metrics': typeof StaffMetricsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
+  '/staff/operations': typeof StaffOperationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
   '/staff/reviews': typeof StaffReviewsRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/metrics': typeof StaffMetricsRoute
   '/staff_/notifications': typeof StaffNotificationsRoute
+  '/staff_/operations': typeof StaffOperationsRoute
   '/staff_/photos': typeof StaffPhotosRoute
   '/staff_/privacy': typeof StaffPrivacyRoute
   '/staff_/reviews': typeof StaffReviewsRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/staff/listings'
     | '/staff/metrics'
     | '/staff/notifications'
+    | '/staff/operations'
     | '/staff/photos'
     | '/staff/privacy'
     | '/staff/reviews'
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/staff/listings'
     | '/staff/metrics'
     | '/staff/notifications'
+    | '/staff/operations'
     | '/staff/photos'
     | '/staff/privacy'
     | '/staff/reviews'
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/staff_/listings'
     | '/staff_/metrics'
     | '/staff_/notifications'
+    | '/staff_/operations'
     | '/staff_/photos'
     | '/staff_/privacy'
     | '/staff_/reviews'
@@ -614,6 +626,7 @@ export interface RootRouteChildren {
   StaffListingsRoute: typeof StaffListingsRoute
   StaffMetricsRoute: typeof StaffMetricsRoute
   StaffNotificationsRoute: typeof StaffNotificationsRoute
+  StaffOperationsRoute: typeof StaffOperationsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
   StaffPrivacyRoute: typeof StaffPrivacyRoute
   StaffReviewsRoute: typeof StaffReviewsRoute
@@ -868,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/operations': {
+      id: '/staff_/operations'
+      path: '/staff/operations'
+      fullPath: '/staff/operations'
+      preLoaderRoute: typeof StaffOperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/photos': {
       id: '/staff_/photos'
       path: '/staff/photos'
@@ -990,6 +1010,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffListingsRoute: StaffListingsRoute,
   StaffMetricsRoute: StaffMetricsRoute,
   StaffNotificationsRoute: StaffNotificationsRoute,
+  StaffOperationsRoute: StaffOperationsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
   StaffPrivacyRoute: StaffPrivacyRoute,
   StaffReviewsRoute: StaffReviewsRoute,

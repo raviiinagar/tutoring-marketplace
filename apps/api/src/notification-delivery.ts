@@ -10,7 +10,7 @@ export type NotificationEmail = {
   text: string;
   url: string;
 };
-export type CriticalSms = { id: string; reference: string; url: string };
+export type CriticalSms = { id: string; reference: string; url: string; kind?:'OPERATIONS'|'REFUND' };
 export interface NotificationDelivery {
   readonly testOnly: boolean;
   readonly smsConfigured: boolean;
@@ -130,6 +130,7 @@ export class ConfiguredNotificationDelivery implements NotificationDelivery {
     }
   }
   async sendCriticalSms(message: CriticalSms) {
+    if(message.kind==='OPERATIONS'&&!this.config.sms?.operationsContentSid)throw new DeliveryConfigurationError('General operations SMS requires its own approved template');
     const sms = this.config.sms;
     if (!sms)
       throw new DeliveryConfigurationError("Critical SMS is not configured");
@@ -146,7 +147,7 @@ export class ConfiguredNotificationDelivery implements NotificationDelivery {
           new URLSearchParams({
             To: sms.ownerPhone,
             MessagingServiceSid: sms.messagingSid,
-            ContentSid: sms.contentSid,
+            ContentSid: message.kind==='OPERATIONS'?sms.operationsContentSid!:sms.contentSid,
             ContentVariables: JSON.stringify({
               "1": message.reference,
               "2": message.url,

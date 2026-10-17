@@ -3,6 +3,7 @@ import {privacyConfig,type PrivacyConfig} from './privacy-policy.js';
 
 export interface Config {
   privacy?:PrivacyConfig;
+  operations?:{ownerId:string};
   mode: "development" | "test" | "production";
   databaseUrl: string;
   authSecret: string;
@@ -16,7 +17,7 @@ export interface Config {
   clamav?:{host:string;port:number};
   payments?: {dailyReconciliation?:boolean;accountId?:string;mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
-  sms?:{accountSid:string;authToken:string;messagingSid:string;contentSid:string;ownerPhone:string;dailyLimit:number};
+  sms?:{accountSid:string;authToken:string;messagingSid:string;contentSid:string;operationsContentSid?:string;ownerPhone:string;dailyLimit:number};
 }
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const mode = env.NODE_ENV ?? "development";
@@ -82,9 +83,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if(mode!=='production')throw new Error('Live critical SMS requires production isolation; tests inject an isolated sender');
     const accountSid=env.TWILIO_ACCOUNT_SID||'';const authToken=env.TWILIO_AUTH_TOKEN||'';const messagingSid=env.TWILIO_MESSAGING_SERVICE_SID||'';const contentSid=env.TWILIO_ALERT_CONTENT_SID||'';const ownerPhone=env.SMS_OWNER_PHONE||'';const dailyLimit=Number(env.SMS_DAILY_LIMIT||'5');
     if(!/^AC[0-9a-fA-F]{32}$/.test(accountSid)||authToken.length<32||!/^MG[0-9a-fA-F]{32}$/.test(messagingSid)||!/^HX[0-9a-fA-F]{32}$/.test(contentSid)||!/^\+91[6-9]\d{9}$/.test(ownerPhone)||env.SMS_OWNER_CONTACT_VERIFIED!=='true'||!Number.isSafeInteger(dailyLimit)||dailyLimit<1||dailyLimit>20)throw new Error('Critical SMS needs configured provider credentials, template, verified owner contact and a 1 to 20 daily limit');
-    sms={accountSid,authToken,messagingSid,contentSid,ownerPhone,dailyLimit};
+    const operationsContentSid=env.OPERATIONS_SMS_CONTENT_SID?.trim()||undefined;if(operationsContentSid&&!/^HX[0-9a-fA-F]{32}$/.test(operationsContentSid))throw new Error('Operations SMS needs its own approved content template');
+    sms={accountSid,authToken,messagingSid,contentSid,operationsContentSid,ownerPhone,dailyLimit};
   }
-  return { privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  const ownerId=env.OPERATIONS_OWNER_USER_ID?.trim();if(ownerId&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId))throw new Error('Operations owner must be an existing verified staff account UUID');
+  return { operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

@@ -70,3 +70,13 @@ test("critical SMS treats an invalid success or server outage as uncertain, and 
     DeliveryUnknownError,
   );
 });
+
+test('general operations SMS requires its own approved template instead of reusing refund wording',async()=>{
+ let calls=0,posted:URLSearchParams|undefined;
+ const send:typeof fetch=async(_url,init)=>{calls++;posted=new URLSearchParams(String(init?.body));return Response.json({sid:'SM'+'4'.repeat(32),account_sid:config.sms.accountSid,to:config.sms.ownerPhone,status:'queued'});};
+ const general={...message,kind:'OPERATIONS' as const};
+ await assert.rejects(new ConfiguredNotificationDelivery(config,send).sendCriticalSms(general));assert.equal(calls,0);
+ const configured={...config,sms:{...config.sms,operationsContentSid:'HX'+'5'.repeat(32)}};
+ await new ConfiguredNotificationDelivery(configured,send).sendCriticalSms(general);
+ assert.equal(posted?.get('ContentSid'),'HX'+'5'.repeat(32));assert.equal(calls,1);
+});

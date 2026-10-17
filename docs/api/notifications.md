@@ -33,7 +33,7 @@ Queued payloads contain IDs, audience, immutable template version and message se
 
 ## Optional critical owner SMS
 
-The adopted first slice sends critical failed/review/insufficient-reserve refund alerts to the configured operations owner only. It collects no student, child or payer phone number. It does not implement the broader security/backup alerts and launch monitoring reserved for later operations tickets.
+The original slice sends critical failed/review/insufficient-reserve refund alerts to the configured operations owner only. Task 25 adds [general critical operation alerts](./operations.md), verified owner email routing, an optional separately approved general SMS template and scoped safe recovery. It collects no student, child or payer phone number. External watchdog/backup automation and actual launch monitoring still require deployment/recovery setup.
 
 Leave `CRITICAL_SMS_MODE=disabled` until production configuration is ready. The Twilio adapter requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`, approved `TWILIO_ALERT_CONTENT_SID`, verified `SMS_OWNER_PHONE`, `SMS_OWNER_CONTACT_VERIFIED=true` and `SMS_DAILY_LIMIT` (default 5, allowed 1–20 attempts per UTC day). Template variables are **1: refund-operation reference**, **2: private staff-console URL**, **3: unique notification UUID**. These must appear in the approved template, including both references for later identity confirmation. No child/customer details enter the SMS. Budget reservations serialize concurrent workers and count uncertain attempts conservatively. Over-budget notices wait for audited operator retry after budget/configuration correction.
 

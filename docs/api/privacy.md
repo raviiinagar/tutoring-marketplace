@@ -32,6 +32,8 @@ Exports omit other participants' contact details/private contributions, internal
 
 First-party [marketplace reporting](./public-pages-and-metrics.md) excludes erased accounts and withdrawn Learner contexts from operational request/Connection cohorts. It retains immutable financial obligations and their checkout-domain facts under the existing retention/exception rules; owned domain facts are included in financial exports. Anonymous daily search counters and expiring hashed retry receipts contain no account/child identifiers, raw query, IP, email or cookie and cannot be linked to an erased account. No unique-person or teaching-outcome estimate is inferred from them.
 
+Owned staff operations-command, replay and health-observation metadata is exported without request fingerprints or scheduling lease secrets. Minimal operator references remain part of audit/financial accountability under the existing retention/exception policy. Alert bodies contain opaque references and private console links; an erased/disabled configured owner fails delivery permission checks. See [operations and safe recovery](./operations.md).
+
 ## Approved policy and local testing
 
 `PRIVACY_RETENTION_POLICY_FILE` selects a JSON schedule (or `PRIVACY_RETENTION_POLICY` supplies the same JSON). It requires an immutable version ID, approver, approval reference, `test_only`, and explicit `{days,purpose}` rules for ACCOUNT, PHOTO, EVIDENCE, SAFETY, SUPPORT and FINANCE. Durations must be integers from 0 to 3650. No legal retention duration is invented by the application.

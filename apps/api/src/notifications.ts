@@ -264,6 +264,12 @@ export class NotificationsService {
     suppressed?: string;
     defer?: string;
   }> {
+    if(job.template==='OPERATOR_SYSTEM_EMAIL'||job.template==='OPERATOR_SYSTEM_SMS'){
+      const row=(await this.database.pool.query("SELECT u.email FROM operations_alerts a JOIN users u ON u.id=$2 AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL JOIN staff_accounts s ON s.user_id=u.id AND s.enabled AND a.scope=ANY(s.scopes) WHERE a.id=$1 AND a.status='OPEN'",[job.target_id,this.config.operations?.ownerId||null])).rows[0];
+      if(!row||job.recipient_id!==this.config.operations?.ownerId)return {suppressed:'OPERATION_ALREADY_RESOLVED'};
+      if(job.channel==='SMS'&&!this.delivery.smsConfigured)throw new DeliveryConfigurationError('Critical SMS is not configured');
+      return {to:row.email,url:this.config.webOrigin+'/staff/operations'};
+    }
     if (job.channel === "SMS") {
       const row = (
         await this.database.pool.query(
@@ -529,7 +535,8 @@ export class NotificationsService {
     const result = await this.delivery.reconcileCriticalSms(reference, {
       id: job.id,
       reference: job.target_id,
-      url: this.config.webOrigin + "/staff/notifications",
+      url: this.config.webOrigin + (job.template==='OPERATOR_SYSTEM_SMS'?'/staff/operations':'/staff/notifications'),
+      kind:job.template==='OPERATOR_SYSTEM_SMS'?'OPERATIONS':'REFUND',
     });
     if (result.reference !== reference)
       throw new ApiProblem(
@@ -684,6 +691,7 @@ export class NotificationsService {
           id: job.id,
           reference: job.target_id,
           url: permission.url!,
+          kind:job.template==='OPERATOR_SYSTEM_SMS'?'OPERATIONS':'REFUND',
         });
         await this.finish(job, "SENT", null, result.reference);
       } else {
@@ -694,6 +702,7 @@ export class NotificationsService {
           text:
             job.body
               .replaceAll("[[url]]", permission.url!)
+              .replaceAll("[[reference]]", job.target_id)
               .replaceAll("\\n", "\n") +
             (permission.unsubscribe
               ? "\n\nUnsubscribe this optional availability alert:\n" +

@@ -1,3 +1,4 @@
+import {OperationsMonitor,type WorkerName} from './operations-monitor.js';
 import { notificationWorker } from "./notifications.js";
 import { SettlementReconciliation } from "./settlement-reconciliation.js";
 import { FinancialEvents } from "./financial-events.js";
@@ -62,7 +63,8 @@ async function main() {
     "Background worker ready; email transport " + config.mailTransport,
   );
   const notifications = notificationWorker(database, config);
-  const loops: [string, () => Promise<unknown>][] = [
+  const monitor=new OperationsMonitor(database,config);
+  const loops: [WorkerName, () => Promise<unknown>][] = [
     ["verification-email", () => worker.tick()],
     ["availability", () => availability.tick()],
     ["payments", () => payments.tick()],
@@ -78,6 +80,7 @@ async function main() {
     ["settlements", () => settlements.tick()],
     ["notifications", () => notifications.tick()],
     ["privacy", () => privacy.tick()],
+    ["operations",()=>monitor.tick()],
   ];
   // Independent loops keep slow provider reconciliation from delaying committed notices.
   try {
@@ -85,9 +88,12 @@ async function main() {
       loops.map(async ([name, tick]) => {
         while (!stopping) {
           try {
-            if (!(await tick())) await sleep(1000);
+            const worked=await tick();
+            await monitor.workerResult(name,true);
+            if(!worked)await sleep(1000);
           } catch {
             console.error("Background job temporarily unavailable: " + name);
+            await monitor.workerResult(name,false).catch(()=>console.error("Worker health recording unavailable"));
             await sleep(2000);
           }
         }

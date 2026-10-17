@@ -1,3 +1,4 @@
+import {checkoutOpen} from './operations.js';
 import { PaidAccess } from "./paid-access.js";
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
@@ -48,7 +49,7 @@ export class PaymentsService {
     ).rows[0];
     return {
       policy,
-      checkout_available: !!this.config.payments,
+      checkout_available: !!this.config.payments && await checkoutOpen(this.database.pool),
       disclosures: this.config.payments?.disclosures || null,
     };
   }
@@ -158,7 +159,7 @@ export class PaymentsService {
       access,
       journal,
       checkout:
-        !cancelled && eligible && row.status === "ORDER_READY"
+        !cancelled && eligible && row.status === "ORDER_READY" && await checkoutOpen(client)
           ? {
               key_id: row.provider_key_id,
               order_id: row.provider_order_id,
@@ -289,6 +290,7 @@ export class PaymentsService {
         )
       ).rows[0];
       if (retry) return { row: retry, created: false };
+      if(!await checkoutOpen(client,true))throw fail("CHECKOUT_PAUSED","New Access Pass purchases are temporarily paused. Existing payment verification and refunds remain available.",503);
       await this.recipient(client, user.id, input);
       const existing = (
         await client.query(
