@@ -1,0 +1,32 @@
+{
+  "id": "fictional-local-policy-v1",
+  "test_only": true,
+  "approved_by": "Fictional test operator",
+  "approval_reference": "ISOLATED-TEST-ONLY-NOT-LEGAL-APPROVAL",
+  "classes": {
+    "ACCOUNT": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    },
+    "PHOTO": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    },
+    "EVIDENCE": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    },
+    "SAFETY": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    },
+    "SUPPORT": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    },
+    "FINANCE": {
+      "days": 1,
+      "purpose": "Fictional isolated testing purpose; replace only after owner-approved policy review."
+    }
+  }
+}

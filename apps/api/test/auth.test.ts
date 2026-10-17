@@ -1,3 +1,4 @@
+import {productionPrivacyFixture} from './privacy-fixture.js';
 import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -98,7 +99,7 @@ test('rate limits, duplicate signup and strict request/origin validation',async(
   await post('/v1/auth/registrations',{display_name:'T',email:'bad',password:'short'}).expect(400);
 });
 test('production refuses capture/missing secrets and does not expose development mail',async()=>{
-  const base={NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example'};
+  const base={...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example'};
   assert.throws(()=>loadConfig(base),/Production requires SMTP/);
   assert.throws(()=>loadConfig({...base,AUTH_SECRET:'CHANGE_ME'}),/AUTH_SECRET/);
   assert.throws(()=>loadConfig({...base,MAIL_TRANSPORT:'smtp'}),/SMTP host/);

@@ -21,3 +21,7 @@ Record the implemented behaviour, meaningful checks run, results and remaining e
 ## Comments
 
 
+
+Task 23 handoff (17 October 2026): privacy recovery operator commands and signed ledger/index validation are implemented in `apps/api/src/privacy-operator.ts`; follow `docs/api/privacy.md`. Provision independent durable ledger storage/key recovery, validate it at startup, drain pending erasure before planned checkpoints, and reapply deletion before enabling traffic. Local reapplication tests do not establish production RPO/RTO or regional durability.
+
+The current migration verifier hashes raw SQL bytes. Inspection found mixed LF/CRLF working files (015, 016, 021 and 023 use CRLF). The fresh-environment restore drill must verify cross-host/Git line-ending compatibility against stored checksums without rewriting applied migrations. Preserve exact applied bytes or implement an explicitly backward-compatible checksum strategy with evidence; do not silently replace recorded checksums.

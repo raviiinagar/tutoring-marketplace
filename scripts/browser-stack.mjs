@@ -8,6 +8,12 @@ const origin=new URL(process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100');
 if(origin.protocol!=='http:'||!['localhost','127.0.0.1'].includes(origin.hostname))throw new Error('Browser fixtures require a loopback HTTP origin.');
 const directory=resolve('.local/browser-tests',randomUUID());await mkdir(directory,{recursive:true});
 const settings={NODE_ENV:'development',DATABASE_URL:`postgres://browser_user:${randomBytes(24).toString('hex')}@127.0.0.1:5434/browser_test`,AUTH_SECRET:randomBytes(48).toString('hex'),WEB_ORIGIN:origin.origin,ALLOWED_ORIGINS:origin.origin,PORT:'4100',MAIL_TRANSPORT:'capture',DEV_MAIL_DIR:resolve(directory,'mail'),DEV_DATABASE_DIR:resolve(directory,'postgres'),GUARDIAN_VERIFICATION_MODE:'test',EVIDENCE_SCANNER:'test'};
+// Explicit fictional privacy schedule, isolated from the owner's configuration.
+const privacyRule={days:1,purpose:'Fictional browser retention purpose for isolated tests only.'};
+const privacyPolicy={id:'fictional-browser-policy-v1',test_only:true,approved_by:'Fictional browser operator',approval_reference:'ISOLATED-BROWSER-TEST-ONLY',classes:{ACCOUNT:privacyRule,PHOTO:{...privacyRule,days:0},EVIDENCE:privacyRule,SAFETY:privacyRule,SUPPORT:privacyRule,FINANCE:privacyRule}};
+settings.PRIVACY_RETENTION_POLICY_FILE=resolve(directory,'privacy-policy.json');
+settings.PRIVACY_TOMBSTONE_DIR=resolve(directory,'privacy-ledger');
+await writeFile(settings.PRIVACY_RETENTION_POLICY_FILE,JSON.stringify(privacyPolicy),{mode:0o600});
 // Shared only with the test runner's explicit operator fixture commands.
 // Never use the owner's database, mail directory, encryption key or identity.
 await writeFile(resolve('.local/browser-tests.env'),Object.entries(settings).map(([key,value])=>key+'='+JSON.stringify(value)).join('\n')+'\n',{mode:0o600});

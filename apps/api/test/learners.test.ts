@@ -1,3 +1,4 @@
+import {productionPrivacyFixture} from './privacy-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -94,7 +95,7 @@ test('concurrent revocation cannot leave a child profile eligible after approval
   if(created.status===201)await get('/v1/me/learners/'+created.body.profile.id+'/eligibility',owner.cookie).expect(403);
 });
 test('production child-data gate refuses missing policy, test mode, test adapter and test evidence',async()=>{
-  const base={NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'test',SMTP_PASSWORD:'not-live',SMTP_FROM:'accounts@example.test'};
+  const base={...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'test',SMTP_PASSWORD:'not-live',SMTP_FROM:'accounts@example.test'};
   assert.throws(()=>loadConfig({...base,GUARDIAN_VERIFICATION_MODE:'test'}),/forbidden/);assert.throws(()=>loadConfig({...base,GUARDIAN_VERIFICATION_MODE:'approved'}),/Unknown/);
   const prod=loadConfig(base);await assert.rejects(createApplication(prod,database,now,new TestGuardianVerifier()),/approved Guardian/);
   const prodApp=await createApplication(prod,database,now);

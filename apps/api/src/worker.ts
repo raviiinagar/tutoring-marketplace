@@ -12,9 +12,12 @@ import { PaymentEvents } from "./payment-events.js";
 import { RazorpayProvider } from "./payment-provider.js";
 import { availabilityWorker } from "./availability.js";
 import { RequestLifecycle } from "./request-lifecycle.js";
+import { PrivacyWorker } from "./privacy-worker.js";
+import {privacyTombstones} from './privacy-ledger.js';
 
 async function main() {
   const config = loadConfig();
+  if(config.mode==='production')await privacyTombstones(config);
   const database = new Database(config.databaseUrl);
   const worker = new MailWorker(database, config);
   const payments = new PaymentEvents(
@@ -24,6 +27,7 @@ async function main() {
   );
   const availability = availabilityWorker(database, config);
   const requests = new RequestLifecycle(database);
+  const privacy = new PrivacyWorker(database, config);
   const auth = new AuthService(database, config);
   const staff = new StaffService(database, config, auth);
   const refunds = new RefundsService(
@@ -73,6 +77,7 @@ async function main() {
     ["financial-events", () => financialEvents.tick()],
     ["settlements", () => settlements.tick()],
     ["notifications", () => notifications.tick()],
+    ["privacy", () => privacy.tick()],
   ];
   // Independent loops keep slow provider reconciliation from delaying committed notices.
   try {

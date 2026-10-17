@@ -15,6 +15,7 @@ import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as SafetyRouteImport } from './routes/safety'
@@ -40,6 +41,7 @@ import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
 import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifications'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
+import { Route as StaffPrivacyRouteImport } from './routes/staff_.privacy'
 import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffSupportRouteImport } from './routes/staff_.support'
@@ -77,6 +79,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const PaymentsRoute = PaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestsRoute = RequestsRouteImport.update({
@@ -204,6 +211,11 @@ const StaffPhotosRoute = StaffPhotosRouteImport.update({
   path: '/staff/photos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffPrivacyRoute = StaffPrivacyRouteImport.update({
+  id: '/staff_/privacy',
+  path: '/staff/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffReviewsRoute = StaffReviewsRouteImport.update({
   id: '/staff_/reviews',
   path: '/staff/reviews',
@@ -252,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
@@ -277,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/staff/listings': typeof StaffListingsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/privacy': typeof StaffPrivacyRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
@@ -293,6 +307,7 @@ export interface FileRoutesByTo {
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
@@ -318,6 +333,7 @@ export interface FileRoutesByTo {
   '/staff/listings': typeof StaffListingsRoute
   '/staff/notifications': typeof StaffNotificationsRoute
   '/staff/photos': typeof StaffPhotosRoute
+  '/staff/privacy': typeof StaffPrivacyRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
@@ -335,6 +351,7 @@ export interface FileRoutesById {
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
+  '/privacy': typeof PrivacyRoute
   '/requests': typeof RequestsRoute
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
@@ -360,6 +377,7 @@ export interface FileRoutesById {
   '/staff_/listings': typeof StaffListingsRoute
   '/staff_/notifications': typeof StaffNotificationsRoute
   '/staff_/photos': typeof StaffPhotosRoute
+  '/staff_/privacy': typeof StaffPrivacyRoute
   '/staff_/reviews': typeof StaffReviewsRoute
   '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/support': typeof StaffSupportRoute
@@ -378,6 +396,7 @@ export interface FileRouteTypes {
     | '/learners'
     | '/notifications'
     | '/payments'
+    | '/privacy'
     | '/requests'
     | '/reviews'
     | '/safety'
@@ -403,6 +422,7 @@ export interface FileRouteTypes {
     | '/staff/listings'
     | '/staff/notifications'
     | '/staff/photos'
+    | '/staff/privacy'
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
@@ -419,6 +439,7 @@ export interface FileRouteTypes {
     | '/learners'
     | '/notifications'
     | '/payments'
+    | '/privacy'
     | '/requests'
     | '/reviews'
     | '/safety'
@@ -444,6 +465,7 @@ export interface FileRouteTypes {
     | '/staff/listings'
     | '/staff/notifications'
     | '/staff/photos'
+    | '/staff/privacy'
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
@@ -460,6 +482,7 @@ export interface FileRouteTypes {
     | '/learners'
     | '/notifications'
     | '/payments'
+    | '/privacy'
     | '/requests'
     | '/reviews'
     | '/safety'
@@ -485,6 +508,7 @@ export interface FileRouteTypes {
     | '/staff_/listings'
     | '/staff_/notifications'
     | '/staff_/photos'
+    | '/staff_/privacy'
     | '/staff_/reviews'
     | '/staff_/safety'
     | '/staff_/support'
@@ -502,6 +526,7 @@ export interface RootRouteChildren {
   LearnersRoute: typeof LearnersRoute
   NotificationsRoute: typeof NotificationsRoute
   PaymentsRoute: typeof PaymentsRoute
+  PrivacyRoute: typeof PrivacyRoute
   RequestsRoute: typeof RequestsRoute
   ReviewsRoute: typeof ReviewsRoute
   SafetyRoute: typeof SafetyRoute
@@ -527,6 +552,7 @@ export interface RootRouteChildren {
   StaffListingsRoute: typeof StaffListingsRoute
   StaffNotificationsRoute: typeof StaffNotificationsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
+  StaffPrivacyRoute: typeof StaffPrivacyRoute
   StaffReviewsRoute: typeof StaffReviewsRoute
   StaffSafetyRoute: typeof StaffSafetyRoute
   StaffSupportRoute: typeof StaffSupportRoute
@@ -579,6 +605,13 @@ declare module '@tanstack/react-router' {
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof PaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/requests': {
@@ -756,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffPhotosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/privacy': {
+      id: '/staff_/privacy'
+      path: '/staff/privacy'
+      fullPath: '/staff/privacy'
+      preLoaderRoute: typeof StaffPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/reviews': {
       id: '/staff_/reviews'
       path: '/staff/reviews'
@@ -822,6 +862,7 @@ const rootRouteChildren: RootRouteChildren = {
   LearnersRoute: LearnersRoute,
   NotificationsRoute: NotificationsRoute,
   PaymentsRoute: PaymentsRoute,
+  PrivacyRoute: PrivacyRoute,
   RequestsRoute: RequestsRoute,
   ReviewsRoute: ReviewsRoute,
   SafetyRoute: SafetyRoute,
@@ -847,6 +888,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffListingsRoute: StaffListingsRoute,
   StaffNotificationsRoute: StaffNotificationsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
+  StaffPrivacyRoute: StaffPrivacyRoute,
   StaffReviewsRoute: StaffReviewsRoute,
   StaffSafetyRoute: StaffSafetyRoute,
   StaffSupportRoute: StaffSupportRoute,

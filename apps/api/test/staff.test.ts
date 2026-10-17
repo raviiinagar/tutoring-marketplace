@@ -1,3 +1,4 @@
+import {productionPrivacyFixture} from './privacy-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -141,7 +142,7 @@ test('MFA brute-force limits persist across failed attempts; disabled and operat
   await get('/v1/staff/workspaces/SUPPORT',mfa.cookie).expect(403);
 });
 test('production staff sessions use Secure host cookies and keep raw tokens out of JSON and storage',async()=>{
-  const user=await fixture();const production=loadConfig({NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'test',SMTP_PASSWORD:'not-live',SMTP_FROM:'accounts@example.test'});
+  const user=await fixture();const production=loadConfig({...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'test',SMTP_PASSWORD:'not-live',SMTP_FROM:'accounts@example.test'});
   const productionApp=await createApplication(production,database,now);const cookie=user.cookie.split(';')[0].replace('tm_session=','__Host-tm_session=');
   const call=(path:string,body:unknown)=>request(productionApp.getHttpServer()).post(path).set('Origin',production.webOrigin).set('Cookie',cookie).send(body);
   try{

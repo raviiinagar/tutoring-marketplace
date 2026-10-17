@@ -1,3 +1,4 @@
+import {productionPrivacyFixture} from './privacy-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -108,7 +109,7 @@ test('specific approvals expire, corrections revise claims and revocation blocks
   await assignStaff(database,user.email,['TRUST'],'Check self-review prevention','test operator');const self=await enroll(user.cookie);await post('/v1/staff/tutors/'+user.id+'/inspections',{reason:'Inspect own Tutor evidence'},self.cookie).expect(403);
 });
 test('production refuses test scanner configuration/adapters and disabled uploads fail closed',async()=>{
-  const env={NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://example.test',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'fixture',SMTP_PASSWORD:'fixture',SMTP_FROM:'test@example.test'};
+  const env={...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://example.test',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'fixture',SMTP_PASSWORD:'fixture',SMTP_FROM:'test@example.test'};
   assert.throws(()=>loadConfig({...env,EVIDENCE_SCANNER:'test'}));assert.throws(()=>loadConfig({...env,EVIDENCE_SCANNER:'clamav'}));
   const production=loadConfig(env);await assert.rejects(createApplication(production,database,now,undefined,new TestEvidenceScanner()));
   const disabled=await createApplication({...config,evidenceScanner:'disabled'},database,now);try{await request(disabled.getHttpServer()).post('/v1/me/tutor/evidence').set('Origin',origin).send(pdf()).expect(503);}finally{await disabled.close();}

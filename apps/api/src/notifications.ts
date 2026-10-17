@@ -1,4 +1,6 @@
 import { randomUUID, createHmac } from "node:crypto";
+import {unlink} from 'node:fs/promises';
+import {join} from 'node:path';
 import { z } from "zod";
 import type { PoolClient } from "pg";
 import type { Config } from "./config.js";
@@ -701,6 +703,9 @@ export class NotificationsService {
         });
         await this.finish(job, "SENT", null, result.reference);
       }
+      // A privacy cancellation may win while an external delivery is in flight.
+      // Remove any late local capture; SMTP propagation remains operator-tracked.
+      if(this.config.mailTransport==='capture'&&(await this.database.pool.query("SELECT id FROM notification_outbox WHERE id=$1 AND status='SUPPRESSED'",[job.id])).rowCount)await unlink(join(this.config.mailDir,job.id+'.json')).catch(e=>{if(e.code!=='ENOENT')throw e;});
     } catch (error) {
       if (error instanceof DeliveryConfigurationError)
         await this.finish(job, "CONFIG_REQUIRED", "DELIVERY_NOT_CONFIGURED");

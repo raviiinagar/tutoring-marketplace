@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import nodemailer from "nodemailer";
 import type { Config } from "./config.js";
@@ -22,12 +22,14 @@ export class MailWorker {
     const job = result.rows[0];
     if (!job) return false;
     try {
+      if(!(await this.database.pool.query("SELECT id FROM mail_outbox WHERE id=$1 AND status='PROCESSING'",[job.id])).rowCount)return true;
       const payload = decrypt<VerificationMail>(job.encrypted_payload as EncryptedPayload,this.config.authSecret);
       await this.deliver(job.id,payload);
-      await this.database.pool.query("UPDATE mail_outbox SET status='SENT',sent_at=$2,lease_until=NULL,last_error_code=NULL WHERE id=$1", [job.id,this.now()]);
+      const sent=await this.database.pool.query("UPDATE mail_outbox SET status='SENT',sent_at=$2,lease_until=NULL,last_error_code=NULL WHERE id=$1 AND status='PROCESSING'", [job.id,this.now()]);
+      if(!sent.rowCount&&this.config.mailTransport==='capture')await unlink(join(this.config.mailDir,job.id+'.json')).catch(e=>{if(e.code!=='ENOENT')throw e;});
     } catch {
       await this.database.pool.query(
-        "UPDATE mail_outbox SET status=$2,available_at=$3,lease_until=NULL,last_error_code='MAIL_DELIVERY_FAILED' WHERE id=$1",
+        "UPDATE mail_outbox SET status=$2,available_at=$3,lease_until=NULL,last_error_code='MAIL_DELIVERY_FAILED' WHERE id=$1 AND status='PROCESSING'",
         [job.id,job.attempts>=5?"FAILED":"PENDING",new Date(this.now().getTime()+2**job.attempts*1000)],
       );
       console.error("Verification mail delivery requires retry; job " + job.id);

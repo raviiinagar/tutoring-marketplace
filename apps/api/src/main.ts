@@ -1,9 +1,11 @@
 import { loadConfig } from "./config.js";
 import { Database } from "./database.js";
 import { createApplication } from "./app.js";
+import {privacyTombstones} from './privacy-ledger.js';
 
 async function main() {
   const config=loadConfig();
+  if(config.mode==='production')await privacyTombstones(config);
   const database=new Database(config.databaseUrl);
   await database.pool.query("SELECT 1 FROM schema_migrations LIMIT 1");
   const app=await createApplication(config,database);

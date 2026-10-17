@@ -24,7 +24,8 @@
     "test:browser": "playwright test",
     "start:api": "node --env-file=.env apps/api/dist/main.js",
     "start:worker": "node --env-file=.env apps/api/dist/worker.js",
-    "start:ui": "npm --prefix lovable-ui start"
+    "start:ui": "npm --prefix lovable-ui start",
+    "privacy:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/privacy-operator.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
@@ -35,4 +36,3 @@
     "typescript": "5.9.3"
   }
 }
-

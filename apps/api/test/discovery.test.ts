@@ -1,3 +1,4 @@
+import {productionPrivacyFixture} from './privacy-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -89,7 +90,7 @@ test('representative offers across eight families retain independent exact combi
 });
 test('production discovery excludes fictional scanned evidence and invalid adult eligibility never releases a public offer',async()=>{
  const user=await tutor();const row=await publishOffer(user,offer);
- const production=loadConfig({NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://example.test',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'fixture',SMTP_PASSWORD:'fixture',SMTP_FROM:'fixture@example.test'});const appProduction=await createApplication(production,database,now);
+ const production=loadConfig({...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://example.test',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'fixture',SMTP_PASSWORD:'fixture',SMTP_FROM:'fixture@example.test'});const appProduction=await createApplication(production,database,now);
  try{const search=await request(appProduction.getHttpServer()).get('/v1/discovery').expect(200);assert.equal(search.body.offers.length,0);await request(appProduction.getHttpServer()).get('/v1/discovery/'+row.id).expect(404);}finally{await appProduction.close();}
  await database.pool.query('UPDATE tutor_profiles SET encrypted_birth_date=$2 WHERE user_id=$1',[user.id,encrypt({birth_date:'2020-01-01'},config.authSecret)]);assert.equal((await find()).body.offers.length,0);await get('/v1/discovery/'+row.id).expect(404);await get('/v1/listings/'+row.id).expect(404);
 });
