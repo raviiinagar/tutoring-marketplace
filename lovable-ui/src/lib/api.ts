@@ -12,6 +12,10 @@ export type User = {
   roles: ('LEARNER' | 'TUTOR')[];
 };
 export type AccountSession = {id:string;created_at:string;expires_at:string;current:boolean};
+export type SupportPolicy={hours:string;timezone:string;open_now:boolean;next_opening_at:string|null;notice:string};
+export type SupportEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;message?:string;reason?:string;actor_id?:string;source_result?:{refund_case_id?:string;cycle_id?:string;outcome?:string}};
+export type SupportCase={id:string;category:string;required_scope:StaffScope;status:string;revision:number;assigned:boolean;assigned_to?:string|null;source_id:string|null;related_id:string|null;source_revision:number|null;created_at:string;updated_at:string;subject?:string;description?:string;events?:SupportEvent[]};
+export type SupportOperation='CLAIM'|'RELEASE'|'NOTE'|'REPLY'|'RESOLVE'|'UPHOLD'|'SUPERSEDED'|'REOPEN_REVIEW'|'LIFT_ACCOUNT'|'LIFT_LISTING'|'LIFT_CONNECTION'|'RECONSIDER_REFUND';
 export type StaffScope='SUPPORT'|'TRUST'|'FINANCE';
 export type StaffAccess={scopes:StaffScope[];mfa_enrolled:boolean;authenticated:boolean;expires_at:string|null};
 export type StaffEnrollment={secret:string;otpauth_uri:string;expires_at:string};
@@ -51,7 +55,7 @@ export type SafetyOperation='RESTRICT_ACCOUNT'|'LIFT_ACCOUNT'|'RESTRICT_LISTING'
 export type SafetyContext={actor_id:string;offer_title:string;blocked_by_you:boolean;communication_blocked:boolean;peer_role:'TUTOR'|'PAYER'};
 export type SafetyCase={id:string;status:'OPEN'|'RESOLVED'|'DISMISSED';category:SafetyCategory;revision:number;created_at:string;public_notice:string|null;relationship?:'REPORTER'|'SUBJECT';can_appeal?:boolean};
 export type SafetyRestriction={id:string;case_id?:string;target_type:'ACCOUNT'|'LISTING'|'CONNECTION';reason:string;created_at:string;lifted_at:string|null;lift_reason:string|null};
-export type SafetyAppeal={id:string;case_id:string;status:'PENDING_REVIEW';created_at:string;description?:string};
+export type SafetyAppeal={id:string;case_id:string;case_revision:number;status:'PENDING_REVIEW'|'RESOLVED';created_at:string;description?:string};
 export type SafetyCenter={actor_id:string;cases:SafetyCase[];restrictions:SafetyRestriction[];blocks:{kind:SafetyKind;target_id:string;offer_title:string}[];appeals:SafetyAppeal[]};
 export type SafetyCaseView=SafetyCase&{description:string;connection_id:string|null;request_id:string;evidence:{offer_title:string;messages:Omit<ChatMessage,'client_message_id'|'your_message'>[];initial_request?:{learning_requirements:string;preferred_times:string}};restrictions:SafetyRestriction[];appeals:SafetyAppeal[]};
 export type ChatState=ChatReadState&{connection_id:string;conversation_id:string;offer_title:string;your_role:'TUTOR'|'PAYER';learner_kind:'ADULT'|'CHILD';messages:ChatMessage[];last_sequence:number;next_after:number;has_more:boolean;has_older:boolean};
@@ -236,6 +240,15 @@ export const api = {
     request<{ user: User }>("POST", "/v1/auth/sessions", { email: input.email, password: input.password }),
   reviewContext:(id:string)=>request<ReviewContext>('GET','/v1/me/connections/'+encodeURIComponent(id)+'/review'),
   submitReview:(id:string,input:{request_key:string;rating:number;text:string;interaction_attested:true;policy_version:'review-v1'})=>request<{review:ReviewRow}>('POST','/v1/me/connections/'+encodeURIComponent(id)+'/review',input),
+  supportPolicy:()=>request<SupportPolicy>('GET','/v1/support-policy'),
+  supportCases:()=>request<{cases:SupportCase[];policy:SupportPolicy}>('GET','/v1/me/support-cases'),
+  supportCase:(id:string)=>request<{case:SupportCase}>('GET','/v1/me/support-cases/'+encodeURIComponent(id)),
+  createSupportCase:(input:{request_key:string;category:'ACCOUNT'|'BILLING'|'OTHER';subject:string;description:string})=>request<{case:SupportCase}>('POST','/v1/me/support-cases',input),
+  replySupportCase:(id:string,revision:number,message:string)=>request<{case:SupportCase}>('POST','/v1/me/support-cases/'+encodeURIComponent(id)+'/messages',{revision,message}),
+  appealRefund:(id:string,request_key:string,description:string)=>request<{case:SupportCase}>('POST','/v1/me/refund-cases/'+encodeURIComponent(id)+'/appeals',{request_key,description}),
+  supportQueue:(scope:StaffScope,reason:string)=>request<{cases:SupportCase[]}>('GET','/v1/staff/support-cases?scope='+scope+'&reason='+encodeURIComponent(reason)),
+  inspectSupportCase:(id:string,reason:string)=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/inspections',{reason}),
+  actSupportCase:(id:string,input:{revision:number;operation:SupportOperation;reason:string;message?:string})=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/actions',input),
   ownReviews:()=>request<{reviews:ReviewRow[]}>('GET','/v1/me/reviews'),
   withdrawReview:(id:string,revision:number)=>request<{review:ReviewRow}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/withdrawals',{revision}),
   appealReview:(id:string,input:{request_key:string;revision:number;description:string})=>request<{appeal:{id:string;status:string}}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/appeals',input),

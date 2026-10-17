@@ -455,6 +455,72 @@ export class ReviewsService {
     });
   }
 
+  // Reopening an appeal returns feedback to moderation; it never publishes it.
+  async resolveAppealWithin(
+    client: PoolClient,
+    account: string | undefined,
+    elevated: string | undefined,
+    appealId: string,
+    operation: "UPHOLD" | "REOPEN_REVIEW" | "SUPERSEDED",
+    reason: string,
+  ) {
+    const appeal = (
+      await client.query("SELECT * FROM review_appeals WHERE id=$1", [appealId])
+    ).rows[0];
+    if (!appeal) throw new ApiProblem(404, "NOT_FOUND", "Appeal not found.");
+    const { user } = await this.reviewer(
+      client,
+      account,
+      elevated,
+      appeal.review_id,
+    );
+    const row = (
+      await client.query(
+        "SELECT * FROM connection_reviews WHERE id=$1 FOR UPDATE",
+        [appeal.review_id],
+      )
+    ).rows[0];
+    if (appeal.status !== "PENDING")
+      throw conflict("APPEAL_CLOSED", "This appeal already has a decision.");
+    if (operation === "SUPERSEDED") {
+      if (row.revision === appeal.review_revision)
+        throw conflict(
+          "APPEAL_CURRENT",
+          "The appealed outcome is still current.",
+        );
+    } else {
+      if (row.revision !== appeal.review_revision)
+        throw conflict(
+          "STALE_REVIEW",
+          "The review has changed. Refresh and record this appeal as superseded.",
+        );
+      if (operation === "REOPEN_REVIEW") {
+        if (!["REJECTED", "REMOVED"].includes(row.status))
+          throw conflict(
+            "APPEAL_ACTION_UNAVAILABLE",
+            "Only rejected or removed feedback can return to moderation.",
+          );
+        await this.decision(
+          client,
+          row,
+          user.id,
+          "PENDING",
+          "REOPEN_REVIEW",
+          "APPEAL_RECONSIDERATION",
+          reason,
+        );
+      }
+    }
+    await client.query(
+      "UPDATE review_appeals SET status='RESOLVED' WHERE id=$1",
+      [appealId],
+    );
+    return {
+      review_id: row.id,
+      appealed_revision: appeal.review_revision,
+      outcome: operation,
+    };
+  }
   async appeal(
     token: string | undefined,
     id: string,

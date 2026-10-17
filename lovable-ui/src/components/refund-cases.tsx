@@ -65,6 +65,7 @@ export function RefundCasePanel({ purchaseId }: { purchaseId: string }) {
           <p className="font-semibold">Review: {row.status}</p>
           <p className="mt-2 whitespace-pre-wrap break-words">{row.reason}</p>
           {row.review_reason && <p className="mt-2">Decision: {row.review_reason}</p>}
+          {row.status !== "OPEN" && <RefundAppealForm caseId={row.id} />}
           {row.amount_paise !== null && (
             <p className="mt-2">
               Approved amount: ₹{(row.amount_paise / 100).toFixed(2)} ·{" "}
@@ -77,6 +78,55 @@ export function RefundCasePanel({ purchaseId }: { purchaseId: string }) {
         Refresh refund reviews
       </Button>
     </section>
+  );
+}
+function RefundAppealForm({ caseId }: { caseId: string }) {
+  const [description, setDescription] = useState(""),
+    [sent, setSent] = useState(false),
+    [error, setError] = useState<string>();
+  const key = useRef(crypto.randomUUID()),
+    flight = useSingleFlight();
+  return (
+    <div className="mt-4 border-t pt-3">
+      {error && <Notice tone="error">{error}</Notice>}
+      {sent ? (
+        <p className="text-sm">Your refund appeal is recorded.</p>
+      ) : (
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void flight.run(async () => {
+              setError(undefined);
+              const r = await api.appealRefund(caseId, key.current, description);
+              if (r.ok) setSent(true);
+              else setError(describeFailure(r.error));
+            });
+          }}
+        >
+          <label className="block text-sm font-medium">
+            Why should this refund decision be reconsidered?
+            <textarea
+              className="input mt-2 min-h-24"
+              required
+              minLength={10}
+              maxLength={2000}
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                key.current = crypto.randomUUID();
+              }}
+            />
+          </label>
+          <Button disabled={flight.loading || description.trim().length < 10}>
+            Appeal refund decision
+          </Button>
+        </form>
+      )}
+      <a href="/support" className="link mt-3 inline-block">
+        Track appeals in Support
+      </a>
+    </div>
   );
 }
 export function FinanceReviews({ purpose }: { purpose: string }) {

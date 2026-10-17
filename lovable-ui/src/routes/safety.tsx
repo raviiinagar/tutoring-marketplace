@@ -144,9 +144,9 @@ function Center() {
                           {r.lifted_at ? "Lifted" : "Active"}
                         </p>
                       ))}
-                    {data.appeals.some((a) => a.case_id === item.id) ? (
+                    {data.appeals.some((a) => a.case_id === item.id && a.case_revision === item.revision) ? (
                       <p role="status" className="text-sm font-medium">
-                        Appeal: Pending review
+                        {data.appeals.find((a) => a.case_id === item.id && a.case_revision === item.revision)?.status === 'RESOLVED' ? 'Appeal: Resolved — see Support for the outcome' : 'Appeal: Pending review'}
                       </p>
                     ) : (
                       item.can_appeal && (
@@ -194,6 +194,7 @@ function Center() {
           </div>
         )
       )}
+      <Link to="/support" className="link mt-5 block">Track safety appeals in Support</Link>
       <Link to="/account" className="link mt-6 inline-block">
         Back to your account
       </Link>

@@ -19,6 +19,7 @@ import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as TutorsRouteImport } from './routes/tutors'
 import { Route as AuthCheckEmailRouteImport } from './routes/auth.check-email'
@@ -41,6 +42,7 @@ import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifica
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
 import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
+import { Route as StaffSupportRouteImport } from './routes/staff_.support'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
@@ -95,6 +97,11 @@ const SafetyRoute = SafetyRouteImport.update({
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorRoute = TutorRouteImport.update({
@@ -207,6 +214,11 @@ const StaffSafetyRoute = StaffSafetyRouteImport.update({
   path: '/staff/safety',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffSupportRoute = StaffSupportRouteImport.update({
+  id: '/staff_/support',
+  path: '/staff/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffTutorsRoute = StaffTutorsRouteImport.update({
   id: '/staff_/tutors',
   path: '/staff/tutors',
@@ -244,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
+  '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
@@ -266,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
+  '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
@@ -283,6 +297,7 @@ export interface FileRoutesByTo {
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
+  '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
@@ -305,6 +320,7 @@ export interface FileRoutesByTo {
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
+  '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
@@ -323,6 +339,7 @@ export interface FileRoutesById {
   '/reviews': typeof ReviewsRoute
   '/safety': typeof SafetyRoute
   '/staff': typeof StaffRoute
+  '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
@@ -345,6 +362,7 @@ export interface FileRoutesById {
   '/staff_/photos': typeof StaffPhotosRoute
   '/staff_/reviews': typeof StaffReviewsRoute
   '/staff_/safety': typeof StaffSafetyRoute
+  '/staff_/support': typeof StaffSupportRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
@@ -364,6 +382,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/safety'
     | '/staff'
+    | '/support'
     | '/tutor'
     | '/tutors'
     | '/auth/check-email'
@@ -386,6 +405,7 @@ export interface FileRouteTypes {
     | '/staff/photos'
     | '/staff/reviews'
     | '/staff/safety'
+    | '/staff/support'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
@@ -403,6 +423,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/safety'
     | '/staff'
+    | '/support'
     | '/tutor'
     | '/tutors'
     | '/auth/check-email'
@@ -425,6 +446,7 @@ export interface FileRouteTypes {
     | '/staff/photos'
     | '/staff/reviews'
     | '/staff/safety'
+    | '/staff/support'
     | '/staff/tutors'
     | '/tutor/listings'
     | '/tutor/requests'
@@ -442,6 +464,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/safety'
     | '/staff'
+    | '/support'
     | '/tutor'
     | '/tutors'
     | '/auth/check-email'
@@ -464,6 +487,7 @@ export interface FileRouteTypes {
     | '/staff_/photos'
     | '/staff_/reviews'
     | '/staff_/safety'
+    | '/staff_/support'
     | '/staff_/tutors'
     | '/tutor_/listings'
     | '/tutor_/requests'
@@ -482,6 +506,7 @@ export interface RootRouteChildren {
   ReviewsRoute: typeof ReviewsRoute
   SafetyRoute: typeof SafetyRoute
   StaffRoute: typeof StaffRoute
+  SupportRoute: typeof SupportRoute
   TutorRoute: typeof TutorRoute
   TutorsRoute: typeof TutorsRoute
   AuthCheckEmailRoute: typeof AuthCheckEmailRoute
@@ -504,6 +529,7 @@ export interface RootRouteChildren {
   StaffPhotosRoute: typeof StaffPhotosRoute
   StaffReviewsRoute: typeof StaffReviewsRoute
   StaffSafetyRoute: typeof StaffSafetyRoute
+  StaffSupportRoute: typeof StaffSupportRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
@@ -581,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/staff'
       fullPath: '/staff'
       preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutor': {
@@ -737,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffSafetyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/support': {
+      id: '/staff_/support'
+      path: '/staff/support'
+      fullPath: '/staff/support'
+      preLoaderRoute: typeof StaffSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/tutors': {
       id: '/staff_/tutors'
       path: '/staff/tutors'
@@ -786,6 +826,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsRoute: ReviewsRoute,
   SafetyRoute: SafetyRoute,
   StaffRoute: StaffRoute,
+  SupportRoute: SupportRoute,
   TutorRoute: TutorRoute,
   TutorsRoute: TutorsRoute,
   AuthCheckEmailRoute: AuthCheckEmailRoute,
@@ -808,6 +849,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffPhotosRoute: StaffPhotosRoute,
   StaffReviewsRoute: StaffReviewsRoute,
   StaffSafetyRoute: StaffSafetyRoute,
+  StaffSupportRoute: StaffSupportRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,

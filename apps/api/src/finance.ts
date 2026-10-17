@@ -221,6 +221,98 @@ export class FinanceService {
       };
     });
   }
+  // Appeals may open a new review; original financial decisions and money facts stay immutable.
+  async reconsiderWithin(
+    client: PoolClient,
+    account: string | undefined,
+    elevated: string | undefined,
+    originalId: string,
+    supportId: string,
+    operation: "UPHOLD" | "RECONSIDER_REFUND",
+    reason: string,
+  ) {
+    const original = (
+      await client.query("SELECT * FROM refund_cases WHERE id=$1", [originalId])
+    ).rows[0];
+    const actor = await this.staff.authorize(
+      client,
+      account,
+      elevated,
+      "FINANCE",
+      original ? [original.payer_id] : [],
+    );
+    if (!original) throw missing();
+    if (actor.id === original.payer_id)
+      throw new ApiProblem(
+        403,
+        "SELF_REVIEW",
+        "Another Finance operator must review this appeal.",
+      );
+    const cycle = (
+      await client.query(
+        "SELECT * FROM purchase_cycles WHERE id=$1 FOR UPDATE",
+        [original.cycle_id],
+      )
+    ).rows[0];
+    if (this.config.mode === "production" && cycle.test_only) throw missing();
+    if (original.status === "OPEN")
+      throw new ApiProblem(
+        409,
+        "NO_REFUND_DECISION",
+        "The original refund review is still open.",
+      );
+    if (operation === "UPHOLD")
+      return {
+        original_case_id: originalId,
+        cycle_id: cycle.id,
+        outcome: operation,
+      };
+    const prior = (
+      await client.query(
+        "SELECT * FROM refund_reconsiderations WHERE support_case_id=$1",
+        [supportId],
+      )
+    ).rows[0];
+    if (prior)
+      return {
+        original_case_id: originalId,
+        refund_case_id: prior.new_case_id,
+        cycle_id: cycle.id,
+        outcome: operation,
+      };
+    const id = randomUUID();
+    await client.query(
+      "INSERT INTO refund_cases(id,cycle_id,payer_id,request_key,encrypted_reason,created_at) VALUES($1,$2,$3,$4,$5,$6)",
+      [
+        id,
+        cycle.id,
+        original.payer_id,
+        randomUUID(),
+        encrypt(
+          { reason: "Appeal reconsideration: " + reason },
+          this.config.authSecret,
+        ),
+        this.now(),
+      ],
+    );
+    await client.query(
+      "INSERT INTO refund_reconsiderations(support_case_id,original_case_id,new_case_id,created_at) VALUES($1,$2,$3,$4)",
+      [supportId, originalId, id, this.now()],
+    );
+    await this.audit(
+      client,
+      actor.id,
+      "REFUND_RECONSIDERATION_OPENED",
+      id,
+      reason,
+    );
+    return {
+      original_case_id: originalId,
+      refund_case_id: id,
+      cycle_id: cycle.id,
+      outcome: operation,
+    };
+  }
   async queue(
     account: string | undefined,
     elevated: string | undefined,

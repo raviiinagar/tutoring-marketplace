@@ -12,7 +12,7 @@ Use **Safety and reports** from `/account`, or **Report or block** beside a Cont
 
 Reports use a stable request key: identical retries return the original case, while changed details conflict. Unknown outcomes keep a retry payload in memory; drafts/retry state are cleared if the account changes. `/safety` shows recent report/decision metadata, blocks, active/lifted restriction notices and the actor's appeal status. It exposes no other adult's identity, private report description or frozen message evidence.
 
-An affected participant can select **Appeal decision** after a recorded decision/restriction and submit 10–2,000 characters. One appeal per participant/case is persisted with an idempotent request key and **PENDING_REVIEW** status. It does not restore communication or acquisition rights. Full support/appeal adjudication is task 22; closing a report is not presented as deciding its appeal.
+An affected participant can select **Appeal decision** after a recorded decision/restriction and submit 10–2,000 characters. One appeal per participant/case revision is persisted with an idempotent request key and **PENDING_REVIEW** status. It does not restore communication or acquisition rights. Task 22 links each appeal atomically to [Support](support.md), where Trust staff record explicit upheld, superseded or case-specific restriction-lift outcomes. Closing a report alone does not decide its appeal.
 
 ## Trust workflow
 

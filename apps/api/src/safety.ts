@@ -1,4 +1,4 @@
-import {testCoverage,coverageAllowed} from './paid-access.js';
+import { testCoverage, coverageAllowed } from "./paid-access.js";
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { Database } from "./database.js";
@@ -10,7 +10,15 @@ import { encrypt, decrypt } from "./security.js";
 import { z } from "zod";
 
 type Row = Record<string, any>;
-type RestrictionNotice={id:string;case_id:string;target_type:"ACCOUNT"|"LISTING"|"CONNECTION";reason:string;created_at:string;lifted_at:string|null;lift_reason:string|null};
+type RestrictionNotice = {
+  id: string;
+  case_id: string;
+  target_type: "ACCOUNT" | "LISTING" | "CONNECTION";
+  reason: string;
+  created_at: string;
+  lifted_at: string | null;
+  lift_reason: string | null;
+};
 export type SafetyContextKind = "connection" | "request";
 const missing = () =>
   new ApiProblem(404, "NOT_FOUND", "Safety context not found.");
@@ -78,7 +86,7 @@ export class SafetyService {
     if (
       !row ||
       ![row.payer_id, row.tutor_id].includes(user.id) ||
-      !coverageAllowed(this.config,row.coverage_snapshot)
+      !coverageAllowed(this.config, row.coverage_snapshot)
     )
       throw missing();
     if (
@@ -397,126 +405,194 @@ export class SafetyService {
     input: z.infer<typeof safetyAction>,
     correlation: string,
   ) {
-    return this.database.transaction(async (client) => {
-      const { row, actor } = await this.staffCase(client, account, token, id);
-      if (row.revision !== input.revision)
+    return this.database.transaction((client) =>
+      this.actionWithin(client, account, token, id, input, correlation),
+    );
+  }
+  // Shared transaction command for appeal adjudication; all Trust checks remain here.
+  async actionWithin(
+    client: PoolClient,
+    account: string | undefined,
+    token: string | undefined,
+    id: string,
+    input: z.infer<typeof safetyAction>,
+    correlation: string,
+  ) {
+    const { row, actor } = await this.staffCase(client, account, token, id);
+    if (row.revision !== input.revision)
+      throw new ApiProblem(
+        409,
+        "REVISION_CONFLICT",
+        "Refresh the case before recording another decision.",
+      );
+    if (input.operation === "RESOLVE" || input.operation === "DISMISS") {
+      if (row.status !== "OPEN")
         throw new ApiProblem(
           409,
-          "REVISION_CONFLICT",
-          "Refresh the case before recording another decision.",
+          "CASE_CLOSED",
+          "This case is already closed.",
         );
-      if (input.operation === "RESOLVE" || input.operation === "DISMISS") {
+      if (
+        input.operation === "DISMISS" &&
+        (
+          await client.query(
+            "SELECT 1 FROM safety_restrictions WHERE case_id=$1 AND lifted_at IS NULL",
+            [id],
+          )
+        ).rowCount
+      )
+        throw new ApiProblem(
+          409,
+          "ACTIVE_RESTRICTIONS",
+          "Lift this case's restrictions explicitly before dismissing it.",
+        );
+    } else {
+      const [operation, kind] = input.operation.split("_");
+      const target =
+        kind === "ACCOUNT"
+          ? row.subject_id
+          : kind === "LISTING"
+            ? row.listing_id
+            : row.connection_id;
+      if (!target)
+        throw new ApiProblem(
+          409,
+          "TARGET_UNAVAILABLE",
+          "This report has no Connection to restrict.",
+        );
+      if (operation === "RESTRICT") {
         if (row.status !== "OPEN")
           throw new ApiProblem(
             409,
             "CASE_CLOSED",
-            "This case is already closed.",
+            "Open cases can create new restrictions.",
           );
         if (
-          input.operation === "DISMISS" &&
           (
             await client.query(
-              "SELECT 1 FROM safety_restrictions WHERE case_id=$1 AND lifted_at IS NULL",
-              [id],
+              "SELECT 1 FROM safety_restrictions WHERE case_id=$1 AND target_type=$2 AND target_id=$3 AND lifted_at IS NULL",
+              [id, kind, target],
             )
           ).rowCount
         )
           throw new ApiProblem(
             409,
-            "ACTIVE_RESTRICTIONS",
-            "Lift this case's restrictions explicitly before dismissing it.",
+            "ALREADY_RESTRICTED",
+            "This case already restricts that target.",
           );
+        if (kind === "ACCOUNT" || kind === "LISTING") {
+          // Pause published supply; lifting a case never silently republishes it.
+          await client.query(
+            "UPDATE teaching_listings SET status='PAUSED',revision=revision+1,updated_at=$3 WHERE status='PUBLISHED' AND (CASE WHEN $1='ACCOUNT' THEN user_id=$2::uuid ELSE id=$2::uuid END)",
+            [kind, target, this.now()],
+          );
+        }
+        await client.query(
+          "INSERT INTO safety_restrictions(id,case_id,target_type,target_id,actor_id,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)",
+          [randomUUID(), id, kind, target, actor.id, input.reason, this.now()],
+        );
       } else {
-        const [operation, kind] = input.operation.split("_");
-        const target =
-          kind === "ACCOUNT"
-            ? row.subject_id
-            : kind === "LISTING"
-              ? row.listing_id
-              : row.connection_id;
-        if (!target)
+        const changed = await client.query(
+          "UPDATE safety_restrictions SET lifted_at=$4,lifted_by=$5,lift_reason=$6 WHERE case_id=$1 AND target_type=$2 AND target_id=$3 AND lifted_at IS NULL",
+          [id, kind, target, this.now(), actor.id, input.reason],
+        );
+        if (!changed.rowCount)
           throw new ApiProblem(
             409,
-            "TARGET_UNAVAILABLE",
-            "This report has no Connection to restrict.",
+            "NO_ACTIVE_RESTRICTION",
+            "This case has no active restriction on that target.",
           );
-        if (operation === "RESTRICT") {
-          if (row.status !== "OPEN")
-            throw new ApiProblem(
-              409,
-              "CASE_CLOSED",
-              "Open cases can create new restrictions.",
-            );
-          if (
-            (
-              await client.query(
-                "SELECT 1 FROM safety_restrictions WHERE case_id=$1 AND target_type=$2 AND target_id=$3 AND lifted_at IS NULL",
-                [id, kind, target],
-              )
-            ).rowCount
-          )
-            throw new ApiProblem(
-              409,
-              "ALREADY_RESTRICTED",
-              "This case already restricts that target.",
-            );
-          if (kind === "ACCOUNT" || kind === "LISTING") {
-            // Pause published supply; lifting a case never silently republishes it.
-            await client.query(
-              "UPDATE teaching_listings SET status='PAUSED',revision=revision+1,updated_at=$3 WHERE status='PUBLISHED' AND (CASE WHEN $1='ACCOUNT' THEN user_id=$2::uuid ELSE id=$2::uuid END)",
-              [kind, target, this.now()],
-            );
-          }
-          await client.query(
-            "INSERT INTO safety_restrictions(id,case_id,target_type,target_id,actor_id,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)",
-            [
-              randomUUID(),
-              id,
-              kind,
-              target,
-              actor.id,
-              input.reason,
-              this.now(),
-            ],
-          );
-        } else {
-          const changed = await client.query(
-            "UPDATE safety_restrictions SET lifted_at=$4,lifted_by=$5,lift_reason=$6 WHERE case_id=$1 AND target_type=$2 AND target_id=$3 AND lifted_at IS NULL",
-            [id, kind, target, this.now(), actor.id, input.reason],
-          );
-          if (!changed.rowCount)
-            throw new ApiProblem(
-              409,
-              "NO_ACTIVE_RESTRICTION",
-              "This case has no active restriction on that target.",
-            );
-        }
       }
-      const status =
-        input.operation === "RESOLVE"
-          ? "RESOLVED"
-          : input.operation === "DISMISS"
-            ? "DISMISSED"
-            : row.status;
-      const changed = (
-        await client.query(
-          "UPDATE safety_cases SET revision=revision+1,status=$2,public_notice=$3,decided_by=$4,updated_at=$5 WHERE id=$1 RETURNING *",
-          [id, status, input.reason, actor.id, this.now()],
-        )
-      ).rows[0];
-      await this.audit(
-        client,
-        actor.id,
-        "SAFETY_" + input.operation,
-        id,
-        correlation,
-        { reason: input.reason, revision: changed.revision },
+    }
+    const status =
+      input.operation === "RESOLVE"
+        ? "RESOLVED"
+        : input.operation === "DISMISS"
+          ? "DISMISSED"
+          : row.status;
+    const changed = (
+      await client.query(
+        "UPDATE safety_cases SET revision=revision+1,status=$2,public_notice=$3,decided_by=$4,updated_at=$5 WHERE id=$1 RETURNING *",
+        [id, status, input.reason, actor.id, this.now()],
+      )
+    ).rows[0];
+    await this.audit(
+      client,
+      actor.id,
+      "SAFETY_" + input.operation,
+      id,
+      correlation,
+      { reason: input.reason, revision: changed.revision },
+    );
+    return {
+      case: this.summary(changed),
+      restrictions: await this.restrictions(client, id),
+    };
+  }
+
+  async resolveAppealWithin(
+    client: PoolClient,
+    account: string | undefined,
+    token: string | undefined,
+    appealId: string,
+    revision: number,
+    operation:
+      | "UPHOLD"
+      | "SUPERSEDED"
+      | "LIFT_ACCOUNT"
+      | "LIFT_LISTING"
+      | "LIFT_CONNECTION",
+    reason: string,
+  ) {
+    const appeal = (
+      await client.query("SELECT * FROM safety_appeals WHERE id=$1", [appealId])
+    ).rows[0];
+    if (!appeal) throw missing();
+    const { row } = await this.staffCase(
+      client,
+      account,
+      token,
+      appeal.case_id,
+    );
+    if (appeal.status !== "PENDING_REVIEW")
+      throw new ApiProblem(
+        409,
+        "APPEAL_CLOSED",
+        "This appeal already has a decision.",
       );
-      return {
-        case: this.summary(changed),
-        restrictions: await this.restrictions(client, id),
-      };
-    });
+    if (operation === "SUPERSEDED") {
+      if (row.revision === revision)
+        throw new ApiProblem(
+          409,
+          "APPEAL_CURRENT",
+          "The appealed outcome is still current.",
+        );
+    } else {
+      if (row.revision !== revision)
+        throw new ApiProblem(
+          409,
+          "STALE_SAFETY_CASE",
+          "The safety case changed. Inspect it and record this appeal as superseded.",
+        );
+      if (operation !== "UPHOLD")
+        await this.actionWithin(
+          client,
+          account,
+          token,
+          row.id,
+          { revision, operation, reason },
+          randomUUID(),
+        );
+    }
+    await client.query(
+      "UPDATE safety_appeals SET status='RESOLVED' WHERE id=$1",
+      [appealId],
+    );
+    return {
+      safety_case_id: row.id,
+      appealed_revision: revision,
+      outcome: operation,
+    };
   }
   async own(token: string | undefined) {
     return this.database.transaction(async (client) => {
@@ -527,7 +603,7 @@ export class SafetyService {
           [user.id, this.config.mode === "production"],
         )
       ).rows;
-      const restrictions:RestrictionNotice[] = [];
+      const restrictions: RestrictionNotice[] = [];
       for (const row of rows)
         for (const restriction of await this.restrictions(client, row.id))
           restrictions.push({
@@ -536,7 +612,9 @@ export class SafetyService {
             target_type: restriction.target_type,
             reason: restriction.reason,
             created_at: new Date(restriction.created_at).toISOString(),
-            lifted_at: restriction.lifted_at?new Date(restriction.lifted_at).toISOString():null,
+            lifted_at: restriction.lifted_at
+              ? new Date(restriction.lifted_at).toISOString()
+              : null,
             lift_reason: restriction.lift_reason,
           });
       const blocks = (
@@ -547,7 +625,7 @@ export class SafetyService {
       ).rows;
       const appeals = (
         await client.query(
-          "SELECT id,case_id,status,created_at FROM safety_appeals WHERE actor_id=$1 ORDER BY created_at DESC,id LIMIT 50",
+          "SELECT id,case_id,case_revision,status,created_at FROM safety_appeals WHERE actor_id=$1 ORDER BY created_at DESC,id LIMIT 50",
           [user.id],
         )
       ).rows;
@@ -605,8 +683,8 @@ export class SafetyService {
         );
       const prior = (
         await client.query(
-          "SELECT * FROM safety_appeals WHERE actor_id=$1 AND (case_id=$2 OR request_key=$3)",
-          [user.id, id, input.request_key],
+          "SELECT * FROM safety_appeals WHERE actor_id=$1 AND ((case_id=$2 AND case_revision=$3) OR request_key=$4)",
+          [user.id, id, row.revision, input.request_key],
         )
       ).rows[0];
       const view = (a: Row) => ({
@@ -640,7 +718,7 @@ export class SafetyService {
       );
       const created = (
         await client.query(
-          "INSERT INTO safety_appeals(id,case_id,actor_id,request_key,encrypted_description,created_at) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",
+          "INSERT INTO safety_appeals(id,case_id,actor_id,request_key,encrypted_description,created_at,case_revision) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
           [
             randomUUID(),
             id,
@@ -648,6 +726,7 @@ export class SafetyService {
             input.request_key,
             encrypt({ description: input.description }, this.config.authSecret),
             this.now(),
+            row.revision,
           ],
         )
       ).rows[0];

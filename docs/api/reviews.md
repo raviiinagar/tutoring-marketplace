@@ -39,7 +39,7 @@ Public totals are computed from a shared PostgreSQL read projection, not a separ
 
 Production reads exclude fictional/provider-test reviews and additionally verify the originating Connection's coverage classification, so a copied review with an incorrect flag cannot contribute to a live rating. The configured Guardian policy is checked by the public projection; live child-profile collection remains gated on the already required approved verification/consent adapter. Anonymous offer visibility still rechecks current Tutor evidence and Listing eligibility.
 
-Migration 023 adds review, decision and appeal storage without resetting existing data. Retention/deletion orchestration and appeal adjudication remain tasks 23 and 22 respectively. There is no independent child account, automated sentiment-based moderation, invented rating, or attendance-verification claim.
+Migration 023 adds review, decision and appeal storage without resetting existing data. Task 22 links appeals atomically into [Support](support.md); authorized Trust staff can uphold the current outcome, return rejected/removed feedback to fresh moderation, or close a changed source as superseded. Withdrawal remains terminal. Retention/deletion orchestration remains task 23. There is no independent child account, automated sentiment-based moderation, invented rating, or attendance-verification claim.
 
 ## Verification
 

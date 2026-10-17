@@ -312,6 +312,7 @@ export function MyReviews() {
             )}
         </article>
       ))}
+      <a href="/support" className="link block">Track moderation appeals in Support</a>
       <Button variant="outline" disabled={action.loading} onClick={() => void action.run(load)}>
         Refresh my reviews
       </Button>

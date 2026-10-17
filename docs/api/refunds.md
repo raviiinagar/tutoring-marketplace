@@ -18,3 +18,7 @@ No production credentials or funded reserve are fabricated. See [official-provid
 Finance/MFA uses `GET /v1/staff/refund-cases?reason=...` and `POST /v1/staff/refund-cases/:id/decisions`. APPROVE requires integer `amount_paise`, decision `reason` and explicit `access_treatment: KEEP|REVOKE_FUTURE`; DECLINE records its reason. Decisions replay identically and cannot be rewritten. Capture reservations, external refunds and dispute exposure bound recovery. Full cumulative recovery requires acquisition revocation. Historical capture and established conversation grants remain separate facts.
 
 `refund.*` and supported `payment.dispute.*` events use the existing signed raw-body webhook inbox, followed by provider reads. Event names alone do not determine money movement. Lost/duplicate callbacks, stale dispute events and unknown operations preserve existing journal facts; excess recovery or changed identity/debit facts produce Finance exceptions. Unmanaged provider refunds are recorded and held for review. Live configuration requires `RAZORPAY_ACCOUNT_ID`; test/live identities remain isolated. Provider processing does not prove bank receipt.
+
+## Appeals
+
+A payer may appeal a closed refund review from payment history. [Support](support.md) records the private appeal, Finance assignment, responses and explicit outcome. Upholding retains the decision; reconsideration opens a new linked Finance review through its authorized domain command. The original decision stays immutable, and opening that new case neither approves a refund nor changes bank/provider facts.
