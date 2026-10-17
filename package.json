@@ -19,7 +19,7 @@
     "dev:worker": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/worker.ts",
     "staff:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/staff-operator.ts",
     "build": "npm run build -w @tutoring/contracts && npm run build -w @tutoring/api && npm --prefix lovable-ui run build",
-    "typecheck": "npm run typecheck --workspaces --if-present && npm --prefix lovable-ui run typecheck",
+    "typecheck": "npm run build -w @tutoring/contracts && npm run typecheck --workspaces --if-present && npm --prefix lovable-ui run typecheck",
     "test": "npm run build -w @tutoring/contracts && tsx --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/*.test.ts && npm --prefix lovable-ui test",
     "test:browser": "playwright test",
     "start:api": "node --env-file=.env apps/api/dist/main.js",
