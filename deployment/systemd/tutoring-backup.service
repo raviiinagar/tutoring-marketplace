@@ -1,0 +1,22 @@
+[Unit]
+Description=Verified independent Tutor Marketplace export
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/tutoring/current
+EnvironmentFile=/etc/tutoring/backup.env
+ExecStartPre=/usr/bin/node scripts/release-manifest.mjs verify /opt/tutoring/current
+ExecStart=/usr/bin/flock -n /var/lib/tutoring/backups/export.lock /usr/bin/node apps/api/dist/recovery-operator.js publish ${APP_ENVIRONMENT} auto --remove-local-after-verified
+TimeoutStartSec=45min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tutoring/backups
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,11 @@
 import { resolve } from "node:path";
 import {privacyConfig,type PrivacyConfig} from './privacy-policy.js';
+import {S3RecoveryStore} from './recovery-storage.js';
 
 export interface Config {
+  deploymentEnvironment?: string;
+  recoveryConsole?: boolean;
+  recoveryStore?: S3RecoveryStore;
   privacy?:PrivacyConfig;
   operations?:{ownerId:string};
   mode: "development" | "test" | "production";
@@ -87,7 +91,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     sms={accountSid,authToken,messagingSid,contentSid,operationsContentSid,ownerPhone,dailyLimit};
   }
   const ownerId=env.OPERATIONS_OWNER_USER_ID?.trim();if(ownerId&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId))throw new Error('Operations owner must be an existing verified staff account UUID');
-  return { operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  const deploymentEnvironment=env.APP_ENVIRONMENT;
+  if(deploymentEnvironment&&!/^[a-z][a-z0-9-]{2,39}$/.test(deploymentEnvironment))throw new Error('Invalid application environment identity');
+  let recoveryStore:Config['recoveryStore'];
+  if(env.RECOVERY_BUCKET){
+    if(!deploymentEnvironment||!env.APP_REGION||!env.RECOVERY_REGION||env.APP_REGION===env.RECOVERY_REGION||env.RECOVERY_LOCATION_APPROVED!=='true')throw new Error('Independent recovery region, environment identity and actual location approval are required');
+    recoveryStore=new S3RecoveryStore({bucket:env.RECOVERY_BUCKET,region:env.RECOVERY_REGION,environment:deploymentEnvironment});
+  }
+  return { recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

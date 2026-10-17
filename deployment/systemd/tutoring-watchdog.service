@@ -1,0 +1,19 @@
+[Unit]
+Description=Independent Tutor Marketplace HTTPS and recovery-age watchdog
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=tutoring-watchdog
+Group=tutoring-watchdog
+WorkingDirectory=/opt/tutoring/current
+EnvironmentFile=/etc/tutoring/watchdog.env
+ExecStartPre=/usr/bin/node scripts/release-manifest.mjs verify /opt/tutoring/current
+ExecStart=/usr/bin/node apps/api/dist/recovery-watchdog-operator.js
+TimeoutStartSec=3min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tutoring-watchdog

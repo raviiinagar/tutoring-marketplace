@@ -29,6 +29,7 @@ export class PublicPages {
     private readonly discovery: DiscoveryService,
     private readonly catalogue: CatalogueService,
   ) {}
+  private indexableEnvironment(){return this.config.mode==='production'&&(!this.config.deploymentEnvironment||this.config.deploymentEnvironment==='production');}
   private seo(
     path: string,
     title: string,
@@ -41,7 +42,7 @@ export class PublicPages {
       canonical: this.config.webOrigin + path,
       title: title + " | Tutor Marketplace",
       description,
-      indexable: this.config.mode === "production" && supply,
+      indexable: this.indexableEnvironment() && supply,
       ...(image ? { image: this.config.webOrigin + image } : {}),
     };
   }
@@ -134,7 +135,7 @@ export class PublicPages {
   async sitemap() {
     const offers = await this.discovery.publicIndex();
     const paths =
-      this.config.mode === "production" && offers.length
+      this.indexableEnvironment() && offers.length
         ? [
             "/",
             ...offers.map(
@@ -158,7 +159,7 @@ export class PublicPages {
     );
   }
   robots() {
-    return this.config.mode === "production"
+    return this.indexableEnvironment()
       ? "User-agent: *\nAllow: /\nAllow: /v1/discovery/*/photos/\nDisallow: /account\nDisallow: /auth/\nDisallow: /staff\nDisallow: /tutor\nDisallow: /tutors\nDisallow: /learners\nDisallow: /requests\nDisallow: /connections\nDisallow: /payments\nDisallow: /privacy\nDisallow: /reviews\nDisallow: /notifications\nDisallow: /safety\nDisallow: /support\nDisallow: /dev/\nDisallow: /v1/\nSitemap: " +
           this.config.webOrigin +
           "/sitemap.xml\n"

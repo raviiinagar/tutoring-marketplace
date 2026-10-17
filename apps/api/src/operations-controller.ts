@@ -16,6 +16,7 @@ import {
   checkoutControl,
   replayInput,
   observationInput,
+  recoveryRelease,
 } from "./operations.js";
 import { sessionCookieName, type Config } from "./config.js";
 import { staffCookieName } from "./staff.js";
@@ -57,6 +58,15 @@ export class OperationsController {
     @Body() b: unknown,
   ) {
     return this.ops.checkout(...this.cookies(r), parse(checkoutControl, b));
+  }
+  @Post("recovery-releases") @HttpCode(200) releaseRecovery(
+    @Req() r: Request,
+    @Body() b: unknown,
+  ) {
+    return this.ops.releaseRecovery(
+      ...this.cookies(r),
+      parse(recoveryRelease, b),
+    );
   }
   @Post("replays") @HttpCode(200) replay(
     @Req() r: Request,

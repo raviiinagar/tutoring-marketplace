@@ -128,6 +128,116 @@ export async function persistPrivacyTombstone(
   }
   // Callers serialize writes with the database advisory lock; atomic rename protects readers.
   await writeIndex([...prior.ids, entry.id], config);
+  // An erasure cannot finish until its signed tombstone and index have been
+  // independently stored and downloaded for verification. Provider failure
+  // leaves the existing durable job retryable, never falsely completed.
+  if (config.recoveryStore) await publishPrivacyLedger(config);
+}
+function parseRemoteIndex(bytes: Buffer, config: Config) {
+  const value = JSON.parse(bytes.toString("utf8")),
+    index = indexSchema.parse(value.index);
+  if (value.mac !== indexMac(index, config))
+    throw new Error("INVALID_INDEPENDENT_PRIVACY_INDEX");
+  return index;
+}
+async function optionalRemoteIndex(config: Config) {
+  try {
+    return await config.recoveryStore!.read("ledger/index.json");
+  } catch (error) {
+    if (
+      (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+        ?.httpStatusCode === 404
+    )
+      return undefined;
+    throw error;
+  }
+}
+/** Caller serializes publication with the same database advisory lock as erasure. */
+export async function publishPrivacyLedger(config: Config) {
+  if (!config.privacy || !config.recoveryStore)
+    throw new Error("INDEPENDENT_PRIVACY_STORAGE_REQUIRED");
+  await privacyTombstones(config);
+  const local = await readIndex(config),
+    remote = await optionalRemoteIndex(config);
+  const prior: { ids: string[] } = remote
+    ? parseRemoteIndex(remote.bytes, config)
+    : { ids: [] };
+  if (prior.ids.some((id) => !local.ids.includes(id)))
+    throw new Error("INDEPENDENT_LEDGER_NEWER_KEEP_OFFLINE");
+  for (const id of local.ids.filter((id) => !prior.ids.includes(id))) {
+    const key = "ledger/" + id + ".json",
+      bytes = await readFile(join(config.privacy.tombstoneDir, id + ".json"));
+    try {
+      await config.recoveryStore.put(key, bytes, { absent: true });
+    } catch (error) {
+      if (
+        (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+          ?.httpStatusCode !== 412
+      )
+        throw error;
+      if (!(await config.recoveryStore.read(key)).bytes.equals(bytes))
+        throw new Error("INDEPENDENT_TOMBSTONE_CONFLICT");
+    }
+  }
+  await config.recoveryStore.put(
+    "ledger/index.json",
+    await readFile(join(config.privacy.tombstoneDir, "index.json")),
+    remote ? { etag: remote.etag } : { absent: true },
+  );
+  return { entries: local.ids.length };
+}
+export async function validateIndependentPrivacyLedger(config: Config) {
+  if (!config.recoveryStore || !config.privacy)
+    throw new Error("INDEPENDENT_PRIVACY_STORAGE_REQUIRED");
+  await privacyTombstones(config);
+  const local = await readIndex(config),
+    remote = await config.recoveryStore.read("ledger/index.json"),
+    index = parseRemoteIndex(remote.bytes, config);
+  if (JSON.stringify(local.ids) !== JSON.stringify(index.ids))
+    throw new Error("INDEPENDENT_PRIVACY_LEDGER_NOT_CURRENT");
+  for (const id of index.ids)
+    if (
+      !(await config.recoveryStore.read("ledger/" + id + ".json")).bytes.equals(
+        await readFile(join(config.privacy.tombstoneDir, id + ".json")),
+      )
+    )
+      throw new Error("INDEPENDENT_TOMBSTONE_CONFLICT");
+  return { entries: index.ids.length };
+}
+export async function fetchIndependentPrivacyLedger(config: Config) {
+  if (!config.recoveryStore || !config.privacy)
+    throw new Error("INDEPENDENT_PRIVACY_STORAGE_REQUIRED");
+  await mkdir(config.privacy.tombstoneDir, { recursive: true, mode: 0o700 });
+  if ((await readdir(config.privacy.tombstoneDir)).length)
+    throw new Error("EMPTY_LEDGER_TARGET_REQUIRED");
+  const remote = await config.recoveryStore.read("ledger/index.json"),
+    index = parseRemoteIndex(remote.bytes, config);
+  for (const id of index.ids) {
+    const copy = await config.recoveryStore.read("ledger/" + id + ".json"),
+      file = await open(
+        join(config.privacy.tombstoneDir, id + ".json"),
+        "wx",
+        0o600,
+      );
+    try {
+      await file.writeFile(copy.bytes);
+      await file.sync();
+    } finally {
+      await file.close();
+    }
+  }
+  const file = await open(
+    join(config.privacy.tombstoneDir, "index.json"),
+    "wx",
+    0o600,
+  );
+  try {
+    await file.writeFile(remote.bytes);
+    await file.sync();
+  } finally {
+    await file.close();
+  }
+  return validateIndependentPrivacyLedger(config);
 }
 export async function privacyTombstones(config: Config) {
   if (!config.privacy) throw new Error("PRIVACY_STORAGE_REQUIRED");

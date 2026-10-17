@@ -15,11 +15,17 @@ import { availabilityWorker } from "./availability.js";
 import { RequestLifecycle } from "./request-lifecycle.js";
 import { PrivacyWorker } from "./privacy-worker.js";
 import {privacyTombstones} from './privacy-ledger.js';
+import {assertDeploymentReady} from './deployment.js';
 
 async function main() {
   const config = loadConfig();
   if(config.mode==='production')await privacyTombstones(config);
   const database = new Database(config.databaseUrl);
+  const deployment=await assertDeploymentReady(config,database).catch(async error=>{await database.close();throw error;});
+  if(deployment.recoveryPending&&process.env.RECOVERY_RECONCILIATION_ONLY!=='true'){
+    await database.close();throw new Error('Recovery requires isolated reconciliation workers; ordinary workers stay stopped.');
+  }
+  const reconciliationOnly=deployment.recoveryPending||process.env.RECOVERY_RECONCILIATION_ONLY==='true';
   const worker = new MailWorker(database, config);
   const payments = new PaymentEvents(
     database,
@@ -85,7 +91,7 @@ async function main() {
   // Independent loops keep slow provider reconciliation from delaying committed notices.
   try {
     await Promise.all(
-      loops.map(async ([name, tick]) => {
+      loops.filter(([name])=>!reconciliationOnly||['payments','financial-events','settlements'].includes(name)).map(async ([name, tick]) => {
         while (!stopping) {
           try {
             const worked=await tick();
@@ -101,6 +107,7 @@ async function main() {
     );
   } finally {
     await database.close();
+    config.recoveryStore?.destroy();
   }
 }
 main().catch(() => {

@@ -1,0 +1,109 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Reviewable isolated Tutor Marketplace pilot. Regional inventory, encryption, budget and owner approvals must be checked before creating a change set.",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "AllowedValues": ["staging", "production"]
+    },
+    "LinuxBlueprintId": {
+      "Type": "String",
+      "Description": "Pin an available patched Linux blueprint from regional inventory; no unverified default."
+    },
+    "ApplicationBundleId": {
+      "Type": "String",
+      "Description": "Pin reviewed 4GB/2CPU IPv4 bundle and actual regional cost."
+    },
+    "PostgresBlueprintId": {
+      "Type": "String",
+      "AllowedPattern": "postgres_16.*",
+      "Description": "Pin the actual available PostgreSQL 16 blueprint returned by the regional API."
+    },
+    "EncryptedDatabaseBundleId": {
+      "Type": "String",
+      "AllowedValues": ["small_2_0"],
+      "Description": "Verify isActive=true, isEncrypted=true, RAM=2GB and actual cost from regional bundle inventory before provisioning."
+    },
+    "AdminSshCidr": {
+      "Type": "String",
+      "AllowedPattern": "[0-9.]+/32",
+      "Description": "The operator's single IPv4 address; never 0.0.0.0/0."
+    },
+    "SshKeyPairName": { "Type": "String" },
+    "DatabasePassword": {
+      "Type": "String",
+      "NoEcho": true,
+      "MinLength": 32,
+      "MaxLength": 41,
+      "Description": "Supply through a protected deployment session; never a tracked parameters file or command line."
+    }
+  },
+  "Resources": {
+    "Application": {
+      "Type": "AWS::Lightsail::Instance",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "InstanceName": { "Fn::Sub": "tutoring-${Environment}-app" },
+        "BlueprintId": { "Ref": "LinuxBlueprintId" },
+        "BundleId": { "Ref": "ApplicationBundleId" },
+        "KeyPairName": { "Ref": "SshKeyPairName" },
+        "Networking": {
+          "Ports": [
+            {
+              "FromPort": 22,
+              "ToPort": 22,
+              "Protocol": "tcp",
+              "Cidrs": [{ "Ref": "AdminSshCidr" }]
+            },
+            {
+              "FromPort": 80,
+              "ToPort": 80,
+              "Protocol": "tcp",
+              "Cidrs": ["0.0.0.0/0"]
+            },
+            {
+              "FromPort": 443,
+              "ToPort": 443,
+              "Protocol": "tcp",
+              "Cidrs": ["0.0.0.0/0"]
+            }
+          ]
+        },
+        "Tags": [{ "Key": "environment", "Value": { "Ref": "Environment" } }]
+      }
+    },
+    "StaticAddress": {
+      "Type": "AWS::Lightsail::StaticIp",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "StaticIpName": { "Fn::Sub": "tutoring-${Environment}-ip" },
+        "AttachedTo": { "Ref": "Application" }
+      }
+    },
+    "Database": {
+      "Type": "AWS::Lightsail::Database",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "RelationalDatabaseName": { "Fn::Sub": "tutoring-${Environment}-db" },
+        "RelationalDatabaseBlueprintId": { "Ref": "PostgresBlueprintId" },
+        "RelationalDatabaseBundleId": { "Ref": "EncryptedDatabaseBundleId" },
+        "MasterDatabaseName": { "Fn::Sub": "tutoring_${Environment}" },
+        "MasterUsername": "tutoring_owner",
+        "MasterUserPassword": { "Ref": "DatabasePassword" },
+        "PubliclyAccessible": false,
+        "BackupRetention": true,
+        "PreferredBackupWindow": "18:00-19:00",
+        "Tags": [{ "Key": "environment", "Value": { "Ref": "Environment" } }]
+      }
+    }
+  },
+  "Outputs": {
+    "ApplicationAddress": {
+      "Value": { "Fn::GetAtt": ["StaticAddress", "IpAddress"] }
+    },
+    "DatabaseArn": { "Value": { "Fn::GetAtt": ["Database", "DatabaseArn"] } }
+  }
+}

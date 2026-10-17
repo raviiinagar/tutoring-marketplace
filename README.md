@@ -4,6 +4,8 @@ Tasks 01–25 and 29 implement verified accounts, roles, account security, a sco
 
 ## Run locally
 
+Task 26 adds encrypted exports, independently verified storage/erasure ledgers, fresh-cluster recovery, Finance/MFA recovery release, compatible rollback checks and reviewable deployment files. See the [deployment and recovery runbook](docs/ops/pilot-deployment-recovery.md). Real staging/regional measurements and actual infrastructure/location/cost approvals remain pending.
+
 Use Node.js 24 LTS and run these commands from the repository root:
 
 ```powershell
@@ -20,6 +22,8 @@ Setup creates random local credentials in `.env`, initializes PostgreSQL under `
 Email capture is local development only; mail is not sent to real inboxes. The browser inbox is disabled in production builds, and the API capture endpoint is absent in production. Native PostgreSQL provisioning uses the pinned embedded-postgres wrapper; it does not create operating-system users. Linux users must run local setup/tests as a non-root user.
 
 ## Verify
+
+Recovery tests also need PostgreSQL **16 client tools**. Set `PG_RECOVERY_BIN` to their `bin` directory (for example `C:\Program Files\PostgreSQL\16\bin`); the embedded engine package does not include dump/restore clients. The runbook links the official Windows binaries. CI supplies these tools and runs the isolated suite on PG16; existing local data continues using PG18 by default.
 
 ```powershell
 npm test

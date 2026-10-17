@@ -1,0 +1,17 @@
+{
+  "scope": "LOCAL_FICTIONAL_PG16_AND_S3_PROTOCOL_FIXTURE_ONLY",
+  "archive_id": "7e74dc8e-d4c3-4d7e-be15-c098c3f5f841",
+  "source_snapshot_at": "2026-10-17T20:31:46.627Z",
+  "restored_at": "2026-10-17T20:32:14.378Z",
+  "duration_ms": 4473,
+  "tombstones_reapplied": 1,
+  "checkout_paused": true,
+  "money_reconciliation_required": true,
+  "release": "test-release",
+  "fresh_cluster_local_recovery_ms": 27190,
+  "archive_sha256": "447dd1c20038cc5a22996897103e49329c20db5cd642358e53ea58ffe71935b8",
+  "tables_verified": 98,
+  "financial_postings": 2,
+  "original_portrait_verified": true,
+  "warning": "Not a deployed regional RPO/RTO result. No real AWS storage or external money provider was used."
+}

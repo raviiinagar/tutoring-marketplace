@@ -1,0 +1,30 @@
+{
+    email {$TLS_CONTACT_EMAIL}
+    admin localhost:2019
+}
+
+{$PUBLIC_HOST} {
+    encode zstd gzip
+    header Strict-Transport-Security "max-age=31536000"
+    header X-Content-Type-Options nosniff
+
+    # Root/operator creates this file before a restore or migration. Caddy runs
+    # independently of the application and keeps traffic closed on app failure.
+    @maintenance {
+        not remote_ip 127.0.0.1 ::1
+        file {
+            root /var/lib/tutoring
+            try_files MAINTENANCE
+        }
+    }
+    handle @maintenance {
+        header Retry-After 300
+        respond "Temporarily unavailable for maintenance." 503
+    }
+    handle /v1/* {
+        reverse_proxy 127.0.0.1:4000
+    }
+    handle {
+        reverse_proxy 127.0.0.1:3000
+    }
+}

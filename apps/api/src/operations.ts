@@ -22,6 +22,16 @@ export const checkoutControl = z.strictObject({
   paused: z.boolean(),
   reason: operationReason,
 });
+export const recoveryRelease = z.strictObject({
+  recovery_id: z.uuid(),
+  reconciliation_ids: z.array(z.uuid()).max(24),
+  evidence_reference: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:/-]{7,159}$/),
+  checked_through: z.iso.datetime(),
+  provider_checked: z.literal(true),
+  refunds_checked: z.literal(true),
+  bank_checked: z.literal(true),
+  reason: operationReason,
+});
 export const observationInput = z.strictObject({
   request_key: z.uuid(),
   kind: z.enum(["WEBHOOK_DELIVERY", "BACKUP", "SECURITY"]),
@@ -53,11 +63,11 @@ export async function checkoutOpen(
 ) {
   const row = (
     await client.query(
-      "SELECT paused FROM operations_checkout WHERE singleton" +
+      "SELECT paused,EXISTS(SELECT 1 FROM deployment_recoveries WHERE state<>'RELEASED') AS recovery_pending FROM operations_checkout WHERE singleton" +
         (lock ? " FOR SHARE" : ""),
     )
   ).rows[0];
-  return !!row && !row.paused;
+  return !!row && !row.paused && !row.recovery_pending;
 }
 export class Operations {
   constructor(
@@ -104,6 +114,19 @@ export class Operations {
             "SELECT paused,revision,updated_at FROM operations_checkout WHERE singleton",
           )
         ).rows[0],
+        recoveries:
+          input.scope === "FINANCE"
+            ? (
+                await client.query(
+                  "SELECT id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at,released_at FROM deployment_recoveries ORDER BY started_at DESC LIMIT 10",
+                )
+              ).rows
+            : [],
+        recovery_payment_mode:
+          !this.config.payments &&
+          this.config.deploymentEnvironment === "staging"
+            ? "DISABLED_ISOLATED"
+            : "CONFIGURED",
         routing: {
           email:
             this.config.operations?.ownerId &&
@@ -144,6 +167,161 @@ export class Operations {
           )
         ).rows[0],
       };
+    });
+  }
+  async releaseRecovery(
+    account: string | undefined,
+    elevated: string | undefined,
+    input: z.infer<typeof recoveryRelease>,
+  ) {
+    return this.database.transaction(async (client) => {
+      const actor = await this.staff.authorize(
+        client,
+        account,
+        elevated,
+        "FINANCE",
+      );
+      await client.query(
+        "SELECT 1 FROM operations_checkout WHERE singleton FOR UPDATE",
+      );
+      const row = (
+        await client.query(
+          "SELECT * FROM deployment_recoveries WHERE id=$1 FOR UPDATE",
+          [input.recovery_id],
+        )
+      ).rows[0];
+      if (!row)
+        throw new ApiProblem(404, "NOT_FOUND", "Recovery record not found.");
+      const fingerprint = createHash("sha256")
+        .update(
+          JSON.stringify({
+            ...input,
+            reconciliation_ids: [...new Set(input.reconciliation_ids)].sort(),
+          }),
+        )
+        .digest("hex");
+      if (row.state === "RELEASED") {
+        if (
+          row.release_fingerprint !== fingerprint ||
+          row.released_by !== actor.id
+        )
+          throw new ApiProblem(
+            409,
+            "RECOVERY_ALREADY_RELEASED",
+            "This recovery has a different immutable review.",
+          );
+        return {
+          recovery_released: true,
+          correlation_id: row.release_correlation,
+        };
+      }
+      const checked = new Date(input.checked_through),
+        at = this.now();
+      const reject = () =>
+        new ApiProblem(
+          409,
+          "RECOVERY_REVIEW_REQUIRED",
+          "Reapply privacy, finish fresh full-month provider reconciliation, resolve financial exceptions and explicitly review refunds and bank evidence before release.",
+        );
+      if (
+        !row.privacy_reapplied_at ||
+        checked > at ||
+        checked.getTime() <
+          Math.max(
+            new Date(row.started_at).getTime(),
+            at.getTime() - 15 * 60000,
+          )
+      )
+        throw reject();
+      if (!this.config.payments) {
+        if (
+          this.config.deploymentEnvironment !== "staging" ||
+          (
+            await client.query(
+              "SELECT 1 FROM purchase_cycles UNION ALL SELECT 1 FROM financial_entries UNION ALL SELECT 1 FROM provider_recon_rows UNION ALL SELECT 1 FROM provider_settlements UNION ALL SELECT 1 FROM bank_receipts UNION ALL SELECT 1 FROM refund_reserves UNION ALL SELECT 1 FROM refund_reserve_funding UNION ALL SELECT 1 FROM finance_exceptions UNION ALL SELECT 1 FROM finance_observations UNION ALL SELECT 1 FROM payment_webhook_inbox UNION ALL SELECT 1 FROM reconciliation_runs LIMIT 1",
+            )
+          ).rowCount
+        )
+          throw reject();
+      } else {
+        const runs = (
+          await client.query(
+            "SELECT selection FROM reconciliation_runs WHERE id=ANY($1::uuid[]) AND provider_key_id=$2 AND test_only=$3 AND status='COMPLETED' AND created_at>=$4 AND updated_at>=$5",
+            [
+              input.reconciliation_ids,
+              this.config.payments.keyId,
+              this.config.mode !== "production",
+              row.started_at,
+              checked,
+            ],
+          )
+        ).rows;
+        const month = new Date(row.source_snapshot_at);
+        month.setUTCDate(1);
+        month.setUTCHours(0, 0, 0, 0);
+        let months = 0;
+        while (month <= checked) {
+          if (
+            ++months > 24 ||
+            !runs.some(
+              (r) =>
+                r.selection.year === month.getUTCFullYear() &&
+                r.selection.month === month.getUTCMonth() + 1 &&
+                !r.selection.day,
+            )
+          )
+            throw reject();
+          month.setUTCMonth(month.getUTCMonth() + 1);
+        }
+        if (
+          (
+            await client.query(
+              "SELECT 1 FROM finance_exceptions WHERE status='OPEN' AND (provider_key_id=$1 OR provider_key_id IS NULL) LIMIT 1",
+              [this.config.payments.keyId],
+            )
+          ).rowCount
+        )
+          throw reject();
+        if (
+          (
+            await client.query(
+              "SELECT 1 FROM payment_webhook_inbox WHERE provider_key_id=$1 AND status<>'PROCESSED' LIMIT 1",
+              [this.config.payments.keyId],
+            )
+          ).rowCount
+        )
+          throw reject();
+      }
+      const correlation = randomUUID();
+      await client.query(
+        "UPDATE deployment_recoveries SET state='RELEASED',released_at=$2,evidence_reference=$3,released_by=$4,release_fingerprint=$5,release_correlation=$6,reconciliation_ids=$7 WHERE id=$1",
+        [
+          row.id,
+          at,
+          input.evidence_reference,
+          actor.id,
+          fingerprint,
+          correlation,
+          input.reconciliation_ids,
+        ],
+      );
+      await this.audit(
+        client,
+        actor.id,
+        "RECOVERY_MONEY_REVIEW_RELEASED",
+        correlation,
+        {
+          recovery_id: row.id,
+          reason: input.reason,
+          evidence_reference: input.evidence_reference,
+          checked_through: input.checked_through,
+          provider_checked: true,
+          refunds_checked: true,
+          bank_checked: true,
+          reconciliation_ids: input.reconciliation_ids,
+        },
+      );
+      return { recovery_released: true, correlation_id: correlation };
     });
   }
   private async audit(
@@ -194,6 +372,19 @@ export class Operations {
           );
         return previous.result;
       }
+      if (
+        !input.paused &&
+        (
+          await client.query(
+            "SELECT 1 FROM deployment_recoveries WHERE state<>'RELEASED' LIMIT 1",
+          )
+        ).rowCount
+      )
+        throw new ApiProblem(
+          409,
+          "RECOVERY_REVIEW_REQUIRED",
+          "Complete privacy and external payment reconciliation before resuming checkout.",
+        );
       const updated = (
         await client.query(
           "UPDATE operations_checkout SET paused=$1,revision=revision+1,updated_at=$2 WHERE singleton AND revision=$3 RETURNING paused,revision,updated_at",

@@ -24,6 +24,8 @@ import { decrypt } from "../src/security.js";
 import { assignStaff, type StaffScope } from "../src/staff.js";
 import { totp } from "../src/totp.js";
 import { grantContactFixture } from "../../../scripts/contact-request-fixture.js";
+import { checkoutOpen } from "../src/operations.js";
+import { productionPrivacyFixture } from "./privacy-fixture.js";
 // @ts-expect-error Local JavaScript helper has no declaration.
 import { startDatabase } from "../../../scripts/postgres.mjs";
 
@@ -1007,4 +1009,260 @@ test("recovery acknowledgement failure can resume the same command after its ori
     await get("/v1/me/purchases/" + cycle.id, s.owner.cookie).expect(200)
   ).body.purchase;
   assert.equal(detail.journal.length, 1);
+});
+
+test("only Finance with MFA can release recovery after fresh provider reconciliation and explicit refund/bank review", async () => {
+  const finance = await fixture(["FINANCE"]),
+    mfa = await enroll(finance.cookie),
+    support = await fixture(["SUPPORT"]),
+    sm = await enroll(support.cookie);
+  const id = randomUUID(),
+    started = new Date(clock.getTime() - 60000),
+    snapshot = new Date(clock.getTime() - 3600000);
+  await database.pool.query(
+    "INSERT INTO deployment_recoveries(id,archive_id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at) VALUES($1,$2,$3,'fixture-release','MONEY_REVIEW',$4,$5)",
+    [id, randomUUID(), snapshot, started, clock],
+  );
+  await database.pool.query(
+    "UPDATE operations_checkout SET paused=true WHERE singleton",
+  );
+  const body = {
+    recovery_id: id,
+    reconciliation_ids: [],
+    evidence_reference: "TEST-RECOVERY-BANK-AND-REFUNDS",
+    checked_through: clock.toISOString(),
+    provider_checked: true,
+    refunds_checked: true,
+    bank_checked: true,
+    reason: "Review fictional recovery provider and bank facts",
+  };
+  await post(
+    "/v1/staff/operations/recovery-releases",
+    body,
+    finance.cookie,
+  ).expect(403);
+  await post("/v1/staff/operations/recovery-releases", body, sm.cookie).expect(
+    403,
+  );
+  await post("/v1/staff/operations/recovery-releases", body, mfa.cookie).expect(
+    409,
+  );
+  const run = randomUUID();
+  await database.pool.query(
+    "INSERT INTO reconciliation_runs(id,request_key,provider_key_id,test_only,selection,actor_id,reason,status,created_at,updated_at) VALUES($1,$2,$3,true,$4,$5,'Fictional recovery provider read','COMPLETED',$6,$6)",
+    [
+      run,
+      randomUUID(),
+      config.payments!.keyId,
+      { year: clock.getUTCFullYear(), month: clock.getUTCMonth() + 1 },
+      finance.id,
+      clock,
+    ],
+  );
+  await database.pool.query(
+    "UPDATE finance_exceptions SET status='RESOLVED',resolved_by=$1,resolved_at=$2,resolution_reason='Fictional recovery fixture reviewed all earlier scenarios' WHERE status='OPEN'",
+    [finance.id, clock],
+  );
+  const release = { ...body, reconciliation_ids: [run] };
+  await database.pool.query(
+    "UPDATE payment_webhook_inbox SET status='PROCESSED',processed_at=$1 WHERE provider_key_id=$2",
+    [clock, config.payments!.keyId],
+  );
+  const result = await post(
+    "/v1/staff/operations/recovery-releases",
+    release,
+    mfa.cookie,
+  ).expect(200);
+  assert.equal(result.body.recovery_released, true);
+  assert.equal(
+    await checkoutOpen(database.pool),
+    false,
+    "release does not automatically resume checkout",
+  );
+  await post(
+    "/v1/staff/operations/recovery-releases",
+    release,
+    mfa.cookie,
+  ).expect(200);
+  const control = (
+    await database.pool.query(
+      "SELECT revision FROM operations_checkout WHERE singleton",
+    )
+  ).rows[0];
+  await post(
+    "/v1/staff/operations/checkout",
+    {
+      request_key: randomUUID(),
+      revision: control.revision,
+      paused: false,
+      reason: "Resume after fictional external reconciliation",
+    },
+    mfa.cookie,
+  ).expect(200);
+  assert.equal(await checkoutOpen(database.pool), true);
+  const verification = (
+    await post(
+      "/v1/me/privacy/verifications",
+      { password, purpose: "EXPORT" },
+      finance.cookie,
+    ).expect(200)
+  ).body;
+  await database.pool.query(
+    "INSERT INTO deployment_recoveries(id,archive_id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at,released_at,evidence_reference,released_by,release_fingerprint,release_correlation,reconciliation_ids) VALUES($1,$2,$3,'other-release','RELEASED',$3,$3,$3,'OTHER-PRIVATE-REVIEW',$4,$5,$6,'{}')",
+    [
+      randomUUID(),
+      randomUUID(),
+      clock,
+      support.id,
+      "0".repeat(64),
+      randomUUID(),
+    ],
+  );
+  const job = (
+    await post(
+      "/v1/me/privacy/requests",
+      {
+        request_key: randomUUID(),
+        kind: "EXPORT",
+        verification: verification.proof,
+      },
+      finance.cookie,
+    ).expect(202)
+  ).body.request;
+  const { PrivacyWorker } = await import("../src/privacy-worker.js");
+  await new PrivacyWorker(database, config, now).tick();
+  const downloadProof = (
+    await post(
+      "/v1/me/privacy/verifications",
+      { password, purpose: "DOWNLOAD" },
+      finance.cookie,
+    ).expect(200)
+  ).body.proof;
+  const exported = (
+    await post(
+      "/v1/me/privacy/requests/" + job.id + "/download",
+      { verification: downloadProof },
+      finance.cookie,
+    ).expect(200)
+  ).body;
+  assert.equal(exported.deployment_recoveries.length, 1);
+  assert.equal(exported.deployment_recoveries[0].id, id);
+  assert.ok(
+    !JSON.stringify(exported.deployment_recoveries).includes(
+      "release_fingerprint",
+    ),
+  );
+  assert.ok(
+    !JSON.stringify(exported.deployment_recoveries).includes(
+      "OTHER-PRIVATE-REVIEW",
+    ),
+  );
+});
+
+test("isolated staging without a payment account can release empty recovery, while production cannot skip provider review", async () => {
+  const previous = { app, database, config };
+  await cluster.createDatabase("staging_restore_test");
+  const url = new URL(config.databaseUrl);
+  url.pathname = "/staging_restore_test";
+  config = {
+    ...config,
+    databaseUrl: url.href,
+    payments: undefined,
+    deploymentEnvironment: "staging",
+  };
+  database = new Database(config.databaseUrl);
+  await migrate(database);
+  app = await createApplication(config, database, now);
+  try {
+    const finance = await fixture(["FINANCE"]),
+      mfa = await enroll(finance.cookie),
+      id = randomUUID();
+    await database.pool.query(
+      "INSERT INTO deployment_recoveries(id,archive_id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at) VALUES($1,$2,$3,'isolated-stage','MONEY_REVIEW',$3,$3)",
+      [id, randomUUID(), clock],
+    );
+    await database.pool.query(
+      "UPDATE operations_checkout SET paused=true WHERE singleton",
+    );
+    const body = {
+      recovery_id: id,
+      reconciliation_ids: [],
+      evidence_reference: "ISOLATED-STAGING-NO-EXTERNAL-MONEY",
+      checked_through: clock.toISOString(),
+      provider_checked: true,
+      refunds_checked: true,
+      bank_checked: true,
+      reason: "Verify isolated staging has no payment account or money history",
+    };
+    config.deploymentEnvironment = "production";
+    await post(
+      "/v1/staff/operations/recovery-releases",
+      body,
+      mfa.cookie,
+    ).expect(409);
+    config.deploymentEnvironment = "staging";
+    const released = await post(
+      "/v1/staff/operations/recovery-releases",
+      body,
+      mfa.cookie,
+    ).expect(200);
+    assert.equal(released.body.recovery_released, true);
+    assert.equal(await checkoutOpen(database.pool), false);
+    const pending = randomUUID();
+    await database.pool.query(
+      "INSERT INTO deployment_recoveries(id,archive_id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at) VALUES($1,$2,$3,'stage-orphan-check','MONEY_REVIEW',$3,$3)",
+      [pending, randomUUID(), clock],
+    );
+    await database.pool.query(
+      "INSERT INTO finance_exceptions(id,kind,reference,details,created_at) VALUES($1,'UNKNOWN_PROVIDER_TRANSACTION','FICTIONAL_ORPHAN_PROVIDER_ROW','{}',$2)",
+      [randomUUID(), clock],
+    );
+    await post(
+      "/v1/staff/operations/recovery-releases",
+      { ...body, recovery_id: pending },
+      mfa.cookie,
+    ).expect(409);
+  } finally {
+    await app.close();
+    await database.close();
+    app = previous.app;
+    database = previous.database;
+    config = previous.config;
+  }
+});
+
+test("production HTTPS health becomes unavailable when critical workers or the monitor stop", async () => {
+  const productionConfig = loadConfig({
+    ...productionPrivacyFixture(),
+    NODE_ENV: "production",
+    DATABASE_URL: config.databaseUrl,
+    AUTH_SECRET: config.authSecret,
+    WEB_ORIGIN: "https://health.example.test",
+    MAIL_TRANSPORT: "smtp",
+    SMTP_HOST: "smtp.example.test",
+    SMTP_USER: "fictional",
+    SMTP_PASSWORD: "fictional",
+    SMTP_FROM: "fictional@example.test",
+  });
+  const production = await createApplication(productionConfig, database, now);
+  const health = () => request(production.getHttpServer()).get("/v1/health");
+  try {
+    await health().expect(503);
+    const { workerNames } = await import("../src/operations-monitor.js");
+    for (const name of workerNames)
+      await database.pool.query(
+        "INSERT INTO operations_worker_health(name,last_seen_at,last_success_at,consecutive_errors) VALUES($1,now(),now(),0) ON CONFLICT(name) DO UPDATE SET last_seen_at=now(),last_success_at=now(),consecutive_errors=0",
+        [name],
+      );
+    await database.pool.query(
+      "UPDATE operations_monitor_checkpoint SET checked_at=now() WHERE singleton",
+    );
+    await health().expect(200);
+    await database.pool.query(
+      "UPDATE operations_worker_health SET last_success_at=now()-interval '10 minutes' WHERE name='payments'",
+    );
+    await health().expect(503);
+  } finally {
+    await production.close();
+  }
 });

@@ -1,0 +1,11 @@
+[Unit]
+Description=Export every twelve hours, with recovery-age headroom
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00 UTC
+Persistent=true
+RandomizedDelaySec=60
+Unit=tutoring-backup.service
+
+[Install]
+WantedBy=timers.target

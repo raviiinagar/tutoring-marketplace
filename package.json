@@ -25,13 +25,18 @@
     "start:api": "node --env-file=.env apps/api/dist/main.js",
     "start:worker": "node --env-file=.env apps/api/dist/worker.js",
     "start:ui": "npm --prefix lovable-ui start",
-    "privacy:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/privacy-operator.ts"
+    "privacy:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/privacy-operator.ts",
+    "test:recovery": "node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/recovery.test.ts apps/api/test/recovery-storage.test.ts",
+    "recovery:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/recovery-operator.ts",
+    "release:check": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/release-operator.ts",
+    "release:manifest": "node scripts/release-manifest.mjs write"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
     "@types/node": "^24.0.0",
     "concurrently": "^9.2.0",
     "embedded-postgres": "18.4.0-beta.17",
+    "embedded-postgres-pilot": "npm:embedded-postgres@16.14.0-beta.17",
     "tsx": "^4.20.0",
     "typescript": "5.9.3"
   }

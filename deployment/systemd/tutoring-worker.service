@@ -1,0 +1,26 @@
+[Unit]
+Description=Tutor Marketplace durable workers
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tutoring
+Group=tutoring
+WorkingDirectory=/opt/tutoring/current
+EnvironmentFile=/etc/tutoring/api.env
+EnvironmentFile=/etc/tutoring/worker-credentials.env
+ExecStartPre=/usr/bin/node scripts/release-manifest.mjs verify /opt/tutoring/current
+ExecStart=/usr/bin/node apps/api/dist/worker.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=90
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/tutoring
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

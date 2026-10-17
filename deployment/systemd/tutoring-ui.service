@@ -1,0 +1,23 @@
+[Unit]
+Description=Tutor Marketplace web UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tutoring-ui
+Group=tutoring-ui
+WorkingDirectory=/opt/tutoring/current/lovable-ui
+EnvironmentFile=/etc/tutoring/ui.env
+ExecStartPre=/usr/bin/node /opt/tutoring/current/scripts/release-manifest.mjs verify /opt/tutoring/current
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

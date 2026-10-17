@@ -1,0 +1,22 @@
+{
+  "ceiling_inr": 10000,
+  "monthly_usd": {
+    "production_vm": 24,
+    "encrypted_database": 30,
+    "snapshots_allowance": 4,
+    "independent_exports_allowance": 3,
+    "s3_requests_allowance": 1,
+    "network_allowance": 5,
+    "external_monitoring_allowance": 5,
+    "email_logs_domain_allowance": 5,
+    "persistent_isolated_staging": 54,
+    "regional_rehearsal": null,
+    "additional_usage": null
+  },
+  "effective_billing_inr_per_usd": null,
+  "applicable_tax_fraction": null,
+  "inr_billing_fees": null,
+  "price_evidence_reference": null,
+  "recovery_region_approved": false,
+  "warning": "Allowances are planning inputs. Enter measured/regional prices, rehearsal costs, billing FX and applicable tax. No paid provisioning is authorized by this worksheet."
+}

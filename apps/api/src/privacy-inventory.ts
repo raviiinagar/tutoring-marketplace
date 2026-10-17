@@ -234,6 +234,7 @@ export async function personalExport(
     operations_commands:await rows("SELECT request_key,correlation_id,result,created_at FROM operations_commands WHERE actor_id=$1"),
     operations_replays:await rows("SELECT request_key,kind,target_id,status,correlation_id,created_at FROM operations_replays WHERE actor_id=$1"),
     operations_observations:await rows("SELECT kind,healthy,observed_at,valid_until,evidence_reference,created_at FROM operations_observations WHERE actor_id=$1"),
+    deployment_recoveries:await rows("SELECT id,archive_id,source_snapshot_at,release_id,state,started_at,privacy_reapplied_at,released_at,evidence_reference,reconciliation_ids FROM deployment_recoveries WHERE released_by=$1"),
     staff_membership: await rows(
       "SELECT scopes,enabled,(encrypted_secret IS NOT NULL) AS mfa_enrolled,updated_at FROM staff_accounts WHERE user_id=$1",
     ),

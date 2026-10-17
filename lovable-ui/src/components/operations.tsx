@@ -9,6 +9,8 @@ import {
   type StaffAccess,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Notice } from "@/components/account/ui";
 const labels: Record<string, string> = {
   UNKNOWN_PAYMENTS: "Unknown payment outcomes",
@@ -41,6 +43,10 @@ export function OperationsDesk() {
   const [kind, setKind] = useState<OperationObservation["kind"]>("BACKUP"),
     [healthy, setHealthy] = useState(false),
     [evidence, setEvidence] = useState("");
+  const [reconciliationIds, setReconciliationIds] = useState(""),
+    [recoveryEvidence, setRecoveryEvidence] = useState(""),
+    [reviewedMoney, setReviewedMoney] = useState(false),
+    [moneyCheckedThrough, setMoneyCheckedThrough] = useState("");
   const keys = useRef(new Map<string, string>()),
     generation = useRef(0);
   const stableKey = (shape: string) => {
@@ -163,6 +169,24 @@ export function OperationsDesk() {
       }),
     );
   };
+  const pendingRecovery = report?.recoveries?.find((r) => r.state === "MONEY_REVIEW");
+  const recoveryIds = reconciliationIds.split(/[\s,]+/).filter(Boolean);
+  const isolatedRecovery = report?.recovery_payment_mode === "DISABLED_ISOLATED";
+  const recoveryValid =
+    reviewedMoney &&
+    Number.isFinite(Date.parse(moneyCheckedThrough)) &&
+    /^[A-Za-z0-9][A-Za-z0-9_.:/-]{7,159}$/.test(recoveryEvidence) &&
+    (isolatedRecovery ||
+      (recoveryIds.length > 0 &&
+        recoveryIds.every((id) =>
+          /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id),
+        )));
+  useEffect(() => {
+    setReconciliationIds("");
+    setRecoveryEvidence("");
+    setReviewedMoney(false);
+    setMoneyCheckedThrough("");
+  }, [pendingRecovery?.id]);
   const active = report?.alerts.filter((a) => a.status === "OPEN") || [],
     stale =
       !report?.monitor.checked_at ||
@@ -270,9 +294,101 @@ export function OperationsDesk() {
                 Verification, refunds and existing records remain available. An already opened
                 provider window cannot be recalled.
               </p>
-              <Button type="button" disabled={busy || !valid} onClick={checkout}>
+              <Button
+                type="button"
+                disabled={busy || !valid || (!!pendingRecovery && report.checkout.paused)}
+                onClick={checkout}
+              >
                 {report.checkout.paused ? "Resume new checkout" : "Pause new checkout"}
               </Button>
+            </section>
+          )}
+          {scope === "FINANCE" && pendingRecovery && (
+            <section className="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-5">
+              <h2 className="text-xl font-semibold">Recovery review</h2>
+              <p className="text-sm text-muted-foreground">
+                Checkout stays blocked until privacy is reapplied and Finance reviews external
+                money. Complete full-month provider reconciliation from{" "}
+                {time(pendingRecovery.source_snapshot_at)} through the current review, including
+                refunds and bank evidence.
+              </p>
+              <p className="text-sm">
+                Privacy replay: {pendingRecovery.privacy_reapplied_at ? "Recorded" : "Required"}
+              </p>
+              {isolatedRecovery ? (
+                <p className="text-sm">
+                  Payments are disabled in this isolated staging environment. The server requires no
+                  purchases or financial history before release.
+                </p>
+              ) : (
+                <label className="block space-y-2">
+                  <span>Completed reconciliation IDs</span>
+                  <Textarea
+                    className="w-full rounded-xl border bg-background p-3"
+                    value={reconciliationIds}
+                    onChange={(e) => setReconciliationIds(e.target.value)}
+                    placeholder="Comma-separated reconciliation IDs"
+                  />
+                </label>
+              )}
+              <label className="block space-y-2">
+                <span>Money checked through (your local time)</span>
+                <Input
+                  type="datetime-local"
+                  aria-describedby="recovery-cutoff-hint"
+                  className="w-full rounded-xl border bg-background p-3"
+                  value={moneyCheckedThrough}
+                  onChange={(e) => setMoneyCheckedThrough(e.target.value)}
+                />
+              </label>
+              <p id="recovery-cutoff-hint" className="text-xs text-muted-foreground">
+                Use the verified cutoff covered by all completed reconciliation runs, within the
+                last 15 minutes.
+              </p>
+              <label className="block space-y-2">
+                <span>Recovery evidence reference</span>
+                <Input
+                  className="w-full rounded-xl border bg-background p-3"
+                  value={recoveryEvidence}
+                  onChange={(e) => setRecoveryEvidence(e.target.value)}
+                  placeholder="Private review reference, without bank or personal details"
+                />
+              </label>
+              <label className="flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={reviewedMoney}
+                  onChange={(e) => setReviewedMoney(e.target.checked)}
+                />
+                <span>
+                  I checked provider payments, refunds and bank evidence for this recovery.
+                </span>
+              </label>
+              <Button
+                type="button"
+                disabled={busy || !valid || !recoveryValid || !pendingRecovery.privacy_reapplied_at}
+                onClick={() =>
+                  void action(() =>
+                    api.releaseRecovery({
+                      recovery_id: pendingRecovery.id,
+                      reconciliation_ids: recoveryIds,
+                      evidence_reference: recoveryEvidence.trim(),
+                      checked_through: new Date(moneyCheckedThrough).toISOString(),
+                      provider_checked: true,
+                      refunds_checked: true,
+                      bank_checked: true,
+                      reason: reason.trim(),
+                    }),
+                  )
+                }
+              >
+                Record recovery review
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                The server checks fresh reconciliation and unresolved exceptions. Recording this
+                review leaves checkout paused for a separate deliberate resume.
+              </p>
             </section>
           )}
           <section className="space-y-3">

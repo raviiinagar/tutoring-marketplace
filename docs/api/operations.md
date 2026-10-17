@@ -35,6 +35,8 @@ The console shows the last completed monitor scan and warns after two minutes wi
 
 ## Checkout control
 
+Task 26 adds an independent recovery hold: ordinary checkout resume cannot bypass it. Finance/MFA must first release a privacy-complete recovery using fresh provider reconciliation and an audited refund/bank review; a separate checkout command is still required afterwards. `/staff/operations` displays this review. Recovery decisions appear only in their actor's personal-data export, without fingerprints. Follow the [deployment/recovery runbook](../ops/pilot-deployment-recovery.md).
+
 Finance uses `POST /v1/staff/operations/checkout` with `{request_key,revision,paused,reason}`. The database control survives restart; stale revisions and conflicting key reuse return 409. Same-command retries return the original correlation/result. This is an explicit operator control, not automatic checkout enablement when an alert disappears.
 
 Pausing prevents new purchase reservations and stops returning hosted checkout options, including for existing ready Orders. Payment-policy and request-access projections reflect the pause. Original purchase-key retries still return existing status. Existing capture confirmation, webhook processing, refunds, history and established communication continue; no money record is removed. Already reserved provider requests or an already opened provider window may complete, so reconciliation must continue during a pause. The flag cannot remotely recall a provider window or substitute for disabling a compromised merchant credential at the provider.

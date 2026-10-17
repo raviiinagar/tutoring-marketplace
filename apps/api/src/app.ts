@@ -1,4 +1,5 @@
 import {Operations} from './operations.js';
+import {workerNames} from './operations-monitor.js';
 import {OperationsController} from './operations-controller.js';
 import {MarketplaceMetrics} from './marketplace-metrics.js';
 import {MarketplaceMetricsController} from './marketplace-metrics-controller.js';
@@ -108,6 +109,10 @@ class AccountController {
   @Get("health")
   async health() {
     await this.database.pool.query("SELECT 1");
+    if(this.config.mode==='production'){
+      const fresh=(await this.database.pool.query("SELECT EXISTS(SELECT 1 FROM operations_monitor_checkpoint WHERE singleton AND checked_at BETWEEN now()-interval '2 minutes' AND now()+interval '5 minutes') AND NOT EXISTS(SELECT 1 FROM unnest($1::text[]) AS required(name) WHERE NOT EXISTS(SELECT 1 FROM operations_worker_health h WHERE h.name=required.name AND h.last_success_at BETWEEN now()-interval '2 minutes' AND now()+interval '5 minutes')) AS ready",[[...workerNames]])).rows[0]?.ready;
+      if(!fresh)throw new ApiProblem(503,'PLATFORM_UNAVAILABLE','The platform is temporarily unavailable.');
+    }
     return {status:"ok"};
   }
   @Post("auth/registrations")
@@ -223,8 +228,8 @@ export async function createApplication(config: Config,database: Database,now:()
   const app = await NestFactory.create(ApplicationModule,{logger:false,bodyParser:false});
   const express = app.getHttpAdapter().getInstance();
   express.disable("x-powered-by");
-  app.use((request:Request,response:Response,next:()=>void)=>{if(!/^\/v1\/discovery\/[a-f0-9-]{36}\/photos\/[a-f0-9-]{36}$/.test(request.path))response.setHeader('X-Robots-Tag','noindex');next();});
-  express.set("trust proxy",false);
+  app.use((request:Request,response:Response,next:()=>void)=>{if(config.deploymentEnvironment==='staging'||!/^\/v1\/discovery\/[a-f0-9-]{36}\/photos\/[a-f0-9-]{36}$/.test(request.path))response.setHeader('X-Robots-Tag','noindex');next();});
+  express.set("trust proxy",config.mode==='production'?'loopback':false);
   app.use((request: AuthRequest,response: Response,next:()=>void)=>{
     request.correlationId=randomUUID();
     response.setHeader("X-Correlation-Id",request.correlationId);
@@ -232,6 +237,10 @@ export async function createApplication(config: Config,database: Database,now:()
     next();
   });
   app.use(helmet());
+  if(config.recoveryConsole)app.use((request:Request,response:Response,next:()=>void)=>{
+    if(request.path.startsWith('/v1/staff/')||request.path.startsWith('/v1/auth/')||request.method==='GET'&&request.path==='/v1/me'){next();return;}
+    response.status(503).json({code:'RECOVERY_IN_PROGRESS',message:'The platform is temporarily unavailable during recovery.'});
+  });
   app.enableCors({credentials:true,origin:(origin: string | undefined,callback: (error: Error | null,allow: boolean)=>void)=>callback(null,!origin||config.allowedOrigins.includes(origin))});
   app.use((request:AuthRequest,response:Response,next:()=>void)=>{
     if (request.method==='POST'&&request.path==='/v1/payments/razorpay/webhooks') {next();return;}
