@@ -14,6 +14,18 @@ export function BrandWordmark({className=''}:{className?:string}){
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', escape);
+    return () => document.removeEventListener('keydown', escape);
+  }, [open]);
   const [mounted,setMounted]=useState(false);
   useEffect(()=>setMounted(true),[]);
   const session=useQuery({queryKey:accountSessionKey,queryFn:api.me,enabled:mounted,retry:false,staleTime:0});
@@ -29,7 +41,7 @@ export function SiteHeader() {
           <Link to="/tutors" className="hover:text-coral-strong">Find Tutors</Link><a href="/#tutors" className="hover:text-coral-strong">Become a tutor</a>
           {accountNavigation}
         </nav>
-        <Button variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
+        <Button ref={menuButton} disabled={!mounted} variant="ghost" size="icon" className="lg:hidden" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls={open ? "mobile-navigation" : undefined} onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</Button>
       </div>
       {open && <nav id="mobile-navigation" aria-label="Mobile navigation" className="absolute inset-x-0 top-full grid gap-4 border-b bg-background px-5 py-6 shadow-sm lg:hidden" onClick={() => setOpen(false)}>
         <Link to="/tutors">Find Tutors</Link><a href="/#subjects">Explore subjects</a><a href="/#tutors">Become a tutor</a>{accountNavigation}
@@ -45,7 +57,7 @@ export function AuthShell({ title, intro, children, footer }: { title: string; i
     <AccountReady.Provider value={ready}>
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-lg px-5 pb-16 pt-10 sm:pt-16">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-lg px-5 pb-16 pt-10 sm:pt-16">
         <div className="card-surface animate-rise">
           <h1 className="text-3xl font-semibold sm:text-4xl">{title}</h1>
           {intro && <div className="mt-3 text-muted-foreground">{intro}</div>}
@@ -73,7 +85,7 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
       {hint && <p id={hintId} className="text-sm text-muted-foreground">{hint}</p>}
       <input id={fid} className="input" aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...rest} disabled={rest.disabled || !ready} />
       {error && (
-        <p id={errId} className="text-sm font-medium text-destructive">{error}</p>
+        <p id={errId} role="alert" className="text-sm font-medium text-destructive">{error}</p>
       )}
     </div>
   );

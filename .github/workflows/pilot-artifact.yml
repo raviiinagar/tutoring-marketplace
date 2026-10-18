@@ -57,3 +57,44 @@ jobs:
             .local/tutoring-release.tgz.sha256
           retention-days: 14
           compression-level: 0
+  pilot-quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      LOCAL_POSTGRES_MAJOR: "16"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            lovable-ui/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix lovable-ui
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Accessible core journeys with isolated local adapters
+        run: npm run test:pilot-browser
+      - name: Mobile LCP on the production build
+        env:
+          PLAYWRIGHT_BUILT_UI: "true"
+        run: npm run test:pilot-mobile
+      - name: Pilot traffic and permission verification (sequential, browsers stopped)
+        run: npm run test:pilot-load
+      - name: Retain fictional test evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pilot-quality-${{ github.sha }}
+          path: |
+            .local/pilot-browser-results.json
+            .local/pilot-mobile-lcp.json
+            .local/pilot-mobile-browser-results.json
+            .local/pilot-mobile-results/
+            .local/pilot-load/*/report.json
+            test-results/
+          retention-days: 14

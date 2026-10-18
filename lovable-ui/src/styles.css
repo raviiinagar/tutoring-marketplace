@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 @source "../src";
 
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 300 900; font-display: swap; src: url("/fonts/figtree-latin.woff2") format("woff2"); }
+@font-face { font-family: "Outfit"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/outfit-latin.woff2") format("woff2"); }
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -112,6 +115,9 @@
   box-shadow: var(--shadow-soft);
 }
 html { scroll-behavior: smooth; }
+.skip-link { position: fixed; z-index: 100; top: 8px; left: 8px; transform: translateY(-200%); padding: 12px 18px; border-radius: 8px; background: var(--background); color: var(--foreground); font-weight: 600; }
+.skip-link:focus { transform: none; }
+main { scroll-margin-top: 90px; }
 .hero-photo { object-position: center 54%; }
 .community-hero { min-height: 550px; }
 .hero-inner { padding-top: 52px; padding-bottom: 36px; }
@@ -233,7 +239,7 @@ html { scroll-behavior: smooth; }
 .teacher-portrait { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .teacher-cover:has(.teacher-portrait)::after { content:''; position:absolute; inset:35% 0 0; background:linear-gradient(transparent,#14121bb3); }
 .teacher-cover .teacher-cover-name,.teacher-cover .teacher-cover-note { z-index:1; }
-:root { --background: #fff; --foreground: #222126; --primary: #d63c4c; --primary-foreground: #fff; --coral-strong: #b73545; --coral-soft: #fff1f2; --border: #ecebed; --input: #e4e2e5; --muted-foreground: #66636a; --secondary: #f8f7f8; --secondary-foreground: #403d43; --success-soft: #edf6f0; }
+:root { --background: #fff; --foreground: #222126; --primary: #d63c4c; --primary-foreground: #fff; --coral-strong: #b73545; --coral-soft: #fff1f2; --border: #ecebed; --input: #8b858f; --muted-foreground: #66636a; --secondary: #f8f7f8; --secondary-foreground: #403d43; --success-soft: #edf6f0; }
 .brand-wordmark { font-size: clamp(21px, 2vw, 26px); }
 .site-header { border-color: transparent; box-shadow: 0 1px 0 #f4f2f3; }
 .market-hero { padding: 48px 0 30px; border-radius: 0 0 32px 32px; background: linear-gradient(180deg,#fff 0%,#fff3f4 32%,#ffcfd1 100%); }
@@ -264,6 +270,7 @@ html { scroll-behavior: smooth; }
 .teacher-cover:hover { transform: translateY(-3px); box-shadow: 0 12px 25px #24202414; }
 .teacher-initials { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: 22px; font-family: var(--font-display); font-size: 78px; font-weight: 500; letter-spacing: -.06em; color: #ffffffb3; }
 .teacher-cover-name { position: absolute; bottom: 20px; left: 20px; right: 20px; z-index: 1; font-size: 21px; font-weight: 650; color: #fff; overflow-wrap: anywhere; }
+.teacher-cover-name { width: fit-content; max-width: calc(100% - 40px); padding: 4px 8px; border-radius: 6px; background: #14121bd9; }
 .teacher-cover-note { position: absolute; top: 17px; left: 17px; z-index: 1; padding: 5px 10px; border-radius: 999px; background: #ffffffd9; font-size: 10px; font-weight: 600; color: #3d363e; }
 .teacher-card .font-display.text-xl { font-size: 16px; }
 .teacher-card .space-y-3 > :not(:last-child) { overflow-wrap: anywhere; }

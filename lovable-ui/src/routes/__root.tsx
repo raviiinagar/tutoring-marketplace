@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -84,9 +84,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" },
+      { rel: "preload", href: "/fonts/outfit-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      { rel: "preload", href: "/fonts/figtree-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
@@ -113,9 +112,36 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const lastPath = useRef(router.state.location.pathname);
+  const [announcement, setAnnouncement] = useState('');
+  useEffect(() => {
+    let previousMain = document.getElementById('main-content');
+    let observer: MutationObserver | undefined;
+    const unsubscribe = router.subscribe('onResolved', () => {
+      if (lastPath.current === router.state.location.pathname) return;
+      lastPath.current = router.state.location.pathname;
+      observer?.disconnect();
+      // Client-only routes can resolve before their main element has mounted.
+      const focus = () => {
+        const main = document.getElementById('main-content');
+        if (!main || main === previousMain) return;
+        previousMain = main;
+        main.focus();
+        setAnnouncement(document.title);
+        observer?.disconnect();
+      };
+      observer = new MutationObserver(focus);
+      observer.observe(document.body, {childList: true, subtree: true});
+      requestAnimationFrame(focus);
+    });
+    return () => {unsubscribe(); observer?.disconnect();};
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</span>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

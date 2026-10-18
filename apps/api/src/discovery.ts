@@ -1,4 +1,5 @@
 import {ReviewPublication} from './review-publication.js';
+import sharp from 'sharp';
 import {z} from 'zod';
 import type {Config} from './config.js';
 import {Database} from './database.js';
@@ -91,5 +92,18 @@ export class DiscoveryService {
   async firstAvailable(input:Filters){let cursor:string|undefined;do{const page=await this.search({...input,limit:24,cursor});if(page.offers.length)return page.offers[0];cursor=page.next_cursor||undefined;}while(cursor);return undefined;}
   async detail(id:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3',[at,this.config.mode==='production',id])).rows[0];if(row)await this.enrichReviews(client,[row]);const listing=row?this.project(row,at):undefined;if(!listing)throw new ApiProblem(404,'OFFER_UNAVAILABLE','This teaching offer is currently unavailable.');return {listing};});}
   async reviewPage(id:string,cursor?:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3',[at,this.config.mode==='production',id])).rows[0];if(!row||!this.project(row,at))throw new ApiProblem(404,'OFFER_UNAVAILABLE','This teaching offer is currently unavailable.');return this.reviews.page(client,row.user_id,cursor);});}
-  async photo(id:string,photoId:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3 AND photo.id=$4',[at,this.config.mode==='production',id,photoId])).rows[0];if(!row||!this.project(row,at))throw new ApiProblem(404,'OFFER_UNAVAILABLE','This photo is currently unavailable.');const file=(await client.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photoId])).rows[0];return Buffer.from(decrypt<{data:string}>(file.encrypted_payload,this.config.authSecret).data,'base64');});}
+  async photo(id:string,photoId:string,variant?:'card'|'portrait'){
+    const bytes=await this.database.transaction(async client=>{
+      await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+      const at=this.now();
+      const row=(await client.query(availableSql+' AND l.id=$3 AND photo.id=$4',[at,this.config.mode==='production',id,photoId])).rows[0];
+      if(!row||!this.project(row,at))throw new ApiProblem(404,'OFFER_UNAVAILABLE','This photo is currently unavailable.');
+      const file=(await client.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photoId])).rows[0];
+      return Buffer.from(decrypt<{data:string}>(file.encrypted_payload,this.config.authSecret).data,'base64');
+    });
+    // Reauthorize every delivery, including derivatives; retain no image cache or extra personal-data copy.
+    // CPU work happens after returning the read-only connection to the database pool.
+    if(!variant)return bytes;
+    return sharp(bytes,{limitInputPixels:640*800}).resize(variant==='card'?384:640,variant==='card'?480:800,{fit:'cover'}).webp({quality:72,effort:3}).timeout({seconds:2}).toBuffer();
+  }
 }

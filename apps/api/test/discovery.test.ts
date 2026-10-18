@@ -1,4 +1,5 @@
 import {productionPrivacyFixture} from './privacy-fixture.js';
+import sharp from 'sharp';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -56,6 +57,30 @@ async function submitted(user:{cookie:string}){const row=await draft(user);retur
 async function publish(user:Awaited<ReturnType<typeof tutor>>){const row=await submitted(user);return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact school Physics offer checked'},user.reviewer!.cookie).expect(200)).body.listing;}
 async function publishOffer(user:Awaited<ReturnType<typeof tutor>>,payload:unknown){let row=(await post('/v1/me/listings',payload,user.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact public discovery fixture checked'},user.reviewer!.cookie).expect(200)).body.listing;}
 const find=(query:Record<string,string|number>={})=>request(app.getHttpServer()).get('/v1/discovery').query(query);
+
+test('public card portraits are smaller, metadata-free and still denied immediately after withdrawal',async()=>{
+ const user=await tutor();const listing=await publish(user);
+ const pixels=Buffer.alloc(320*400*3);let seed=1;
+ for(let i=0;i<pixels.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;pixels[i]=seed>>>24;}
+ const image=await sharp(pixels,{raw:{width:320,height:400,channels:3}}).withMetadata({exif:{IFD0:{ImageDescription:'FICTIONAL-TUTOR-EVIDENCE'}}}).jpeg({quality:80}).toBuffer();
+ const photo=(await post('/v1/me/tutor/photo',{media_type:'image/jpeg',data:image.toString('base64'),public_consent:true},user.cookie).expect(201)).body.photo;
+ await post('/v1/staff/tutor-photos/'+photo.id+'/reviews',{outcome:'APPROVE',reason:'Fictional portrait for mobile performance'},user.reviewer!.cookie).expect(200);
+ const path='/v1/discovery/'+listing.id+'/photos/'+photo.id;
+ const original=await get(path).expect(200).expect('Content-Type',/image\/jpeg/);
+ const card=await get(path+'?variant=card').expect(200).expect('Content-Type',/image\/webp/);
+ const metadata=await sharp(card.body).metadata();
+ assert.equal(metadata.width,384);assert.equal(metadata.height,480);assert.equal(metadata.exif,undefined);
+ assert(card.body.length<original.body.length/2,'card transfer is materially smaller than the full portrait');
+ const portrait=await get(path+'?variant=portrait').expect(200).expect('Content-Type',/image\/webp/);
+ assert.equal((await sharp(portrait.body).metadata()).width,640);
+ await get(path+'?variant=unbounded').expect(400);
+ const otherListing=await publish(user);const otherPath='/v1/discovery/'+otherListing.id+'/photos/'+photo.id;
+ await post('/v1/staff/listings/'+listing.id+'/safety',{revision:listing.revision,action:'SUSPEND',reason:'Fictional public portrait permission verification'},user.reviewer!.cookie).expect(200);
+ await get(path+'?variant=card').expect(404);await get(path+'?variant=portrait').expect(404);
+ await get(otherPath+'?variant=card').expect(200);
+ await request(app.getHttpServer()).delete('/v1/me/tutor/photo/'+photo.id).set('Origin',origin).set('Content-Type','application/json').set('Cookie',user.cookie).send({}).expect(204);
+ await get(otherPath).expect(404);await get(otherPath+'?variant=card').expect(404);await get(otherPath+'?variant=portrait').expect(404);
+});
 test('filters match one exact offer rather than mixing CBSE Physics and JEE Mathematics profile claims',async()=>{
  const user=await tutor(true,['subject-physics','subject-mathematics']);const physics=await publishOffer(user,offer);const maths=await publishOffer(user,{...offer,title:'JEE Mathematics exam preparation',domain_id:'entrance',subject_id:'subject-mathematics',level_id:'level-repeater',curriculum_id:undefined,exam_id:'exam-jee',language_ids:['language-hindi'],rate_paise:75000});
  const exact=await find({subject_id:'subject-physics',curriculum_id:'curriculum-cbse',level_id:'level-class-10',language_id:'language-english'}).expect(200);assert.deepEqual(exact.body.offers.map((r:{id:string})=>r.id),[physics.id]);const noCross=await find({subject_id:'subject-physics',exam_id:'exam-jee'}).expect(200);assert.equal(noCross.body.offers.length,0);

@@ -1,0 +1,114 @@
+{
+  "profile": "isolated-local-pilot-v1",
+  "started_at": "2026-10-18T04:59:39.410Z",
+  "seconds": 180,
+  "target_rps": 20,
+  "sessions": 100,
+  "postgres_major": 16,
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "11th Gen Intel(R) Core(TM) i5-1155G7 @ 2.50GHz",
+    "logical_cpus": 8,
+    "memory_gib": 8
+  },
+  "limitations": [
+    "Local loopback, co-located generator/API/PostgreSQL; not deployed Mumbai capacity.",
+    "Injected payment provider and captured email. No live payment, SMTP, malware service or bank latency.",
+    "100 authenticated logical sessions, 20 persistent realtime streams; HTTP requests scheduled open-loop at 20/s."
+  ],
+  "failures": [],
+  "realtime_streams": 20,
+  "background_workers": [
+    "payments (injected provider)",
+    "notifications (captured email)",
+    "verification-email (captured)",
+    "request-deadlines"
+  ],
+  "elapsed_seconds": 179.97228259999997,
+  "achieved_rps": 20.003080185415175,
+  "counts": {
+    "search": 1800,
+    "history": 360,
+    "chat": 360,
+    "preferences-write": 180,
+    "checkout-retry": 180,
+    "payment-callback": 180,
+    "deny-cross-account": 180,
+    "deny-blocked": 180,
+    "deny-suspended": 180
+  },
+  "sessions_exercised": 100,
+  "peak_http_inflight": 2,
+  "max_scheduler_lag_ms": 31.19640000000072,
+  "latency_ms": {
+    "search": {
+      "count": 1800,
+      "p50": 44.463599999995495,
+      "p95": 56.42949999999837,
+      "max": 84.36549999999988
+    },
+    "history": {
+      "count": 360,
+      "p50": 22.02160000000731,
+      "p95": 28.508599999997386,
+      "max": 36.39420000000973
+    },
+    "chat": {
+      "count": 360,
+      "p50": 26.200799999991432,
+      "p95": 32.18419999999605,
+      "max": 54.38060000000405
+    },
+    "preferences-write": {
+      "count": 180,
+      "p50": 21.681400000001304,
+      "p95": 25.59990000000107,
+      "max": 39.10729999999967
+    },
+    "checkout-retry": {
+      "count": 180,
+      "p50": 28.232999999978347,
+      "p95": 42.29189999999653,
+      "max": 60.96229999999923
+    },
+    "payment-callback": {
+      "count": 180,
+      "p50": 17.326499999995576,
+      "p95": 21.127699999997276,
+      "max": 26.167900000000373
+    },
+    "deny-cross-account": {
+      "count": 180,
+      "p50": 18.819699999992736,
+      "p95": 22.78819999999905,
+      "max": 37.586999999999534
+    },
+    "deny-blocked": {
+      "count": 180,
+      "p50": 23.83729999999923,
+      "p95": 33.88509999999951,
+      "max": 53.90250000001106
+    },
+    "deny-suspended": {
+      "count": 180,
+      "p50": 21.98519999999553,
+      "p95": 29.1446999999971,
+      "max": 48.89480000000913
+    }
+  },
+  "process": {
+    "rss_mib": 260.5703125,
+    "cpu_ms": 30734,
+    "event_loop_p95_ms": 34.177023
+  },
+  "permissions": {
+    "live_block_and_suspension_revoke": true,
+    "denied_under_load": 540,
+    "reconnect_denied": true,
+    "acknowledged_messages_recovered": 360,
+    "capture_cycles": 12,
+    "duplicate_capture_effects": 0
+  },
+  "passed": true
+}

@@ -36,3 +36,7 @@ node scripts/create-photo-fixture.mjs
 Upload `.local/fictional-tutor-photo.jpg` from the Tutor page, inspect and approve it as a different MFA-enabled Trust account, then check a published offer. The sample is a colour block, not a claimed real Tutor portrait. The image and script use no real identity data. The helper refuses production execution; API/configuration and discovery separately refuse fictional scanners/assets in production.
 
 Live portraits require the configured ClamAV scanner and actual operator review. Staff reasons/decisions and photo lifecycle changes are audited without image bytes. Production deployment, approved retention and real operational scanner maintenance remain their existing release gates.
+
+## Responsive public delivery
+
+The public `/v1/discovery/:listingId/photos/:photoId` endpoint keeps its default metadata-free JPEG response. Optional `?variant=card` returns a 384?480 WebP and `?variant=portrait` a 640?800 WebP. Other variants/parameters are rejected. Public cards choose these via `srcset` and `sizes`; the full approved portrait remains available for compatibility. Every request rechecks current Listing/photo/evidence eligibility before deriving bytes. Transformation runs outside the database transaction, with fixed dimensions and a two-second processing limit. No derivative cache or additional retained personal-data copy is created; no-store and withdrawal/suspension rules also apply to variants.

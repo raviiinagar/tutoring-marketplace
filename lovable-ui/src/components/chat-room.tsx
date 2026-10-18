@@ -324,7 +324,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-secondary/30">
       <SiteHeader />
-      <main className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
         <Link
           to="/connections"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -440,7 +440,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
                         <p
                           className={`mt-1 text-[11px] text-muted-foreground ${message.your_message ? "text-right" : ""}`}
                         >
-                          <a className="link mr-2" href={"/safety/connection/"+encodeURIComponent(connectionId)+"?message="+message.sequence} aria-label={"Report message "+message.sequence}>Report #{message.sequence}</a><time dateTime={message.created_at}>
+                          <a className="link mr-2" href={"/safety/connection/"+encodeURIComponent(connectionId)+"?message="+message.sequence} aria-label={"Report message "+message.sequence}>Report message {message.sequence}</a><time dateTime={message.created_at}>
                             {new Date(message.created_at).toLocaleString(undefined, {
                               month: "short",
                               day: "numeric",

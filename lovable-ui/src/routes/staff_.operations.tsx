@@ -15,7 +15,7 @@ function Page() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-5 py-10">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-5 py-10">
         <Link to="/staff" className="link">
           Back to staff console
         </Link>

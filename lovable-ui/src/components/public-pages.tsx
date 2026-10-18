@@ -21,7 +21,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-5 py-10 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-5xl px-5 py-10 lg:px-8">
         <Link to="/tutors" className="link">
           Back to Tutor search
         </Link>
@@ -79,7 +79,7 @@ export function CategoryPage({ page }: { page: PublicCategoryPage }) {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-5 py-10 lg:px-8">
         <Link to="/tutors" className="link">
           Explore all Tutors
         </Link>
@@ -118,4 +118,4 @@ export function CategoryPage({ page }: { page: PublicCategoryPage }) {
   );
 }
 
-export function PublicTeacherMissing(){return <div className="min-h-screen"><SiteHeader/><main className="mx-auto max-w-5xl px-5 py-12"><h1 className="text-3xl font-semibold">This offer is currently unavailable</h1><p className="mt-4 text-muted-foreground">The offer may be paused or its approval may have changed.</p><Link to="/tutors" className="link mt-6 inline-block">Back to Tutor search</Link></main></div>;}
+export function PublicTeacherMissing(){return <div className="min-h-screen"><SiteHeader/><main id="main-content" tabIndex={-1} className="mx-auto max-w-5xl px-5 py-12"><h1 className="text-3xl font-semibold">This offer is currently unavailable</h1><p className="mt-4 text-muted-foreground">The offer may be paused or its approval may have changed.</p><Link to="/tutors" className="link mt-6 inline-block">Back to Tutor search</Link></main></div>;}

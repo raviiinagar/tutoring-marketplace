@@ -1,0 +1,47 @@
+{
+  "profile": "populated-mobile-local-v1",
+  "fixture": {
+    "tutors": 2,
+    "published_offers": 6,
+    "approved_textured_images": 2,
+    "test_only": true
+  },
+  "conditions": {
+    "viewport": "390x844",
+    "dpr": 1,
+    "cpu_slowdown": 4,
+    "latency_ms": 150,
+    "download_mbps": 1.6,
+    "upload_mbps": 0.75,
+    "cold_contexts_per_route": 5,
+    "browser": "installed Microsoft Edge, Playwright Chromium CDP",
+    "compression": "gzip on built UI text, matching deployment Caddy",
+    "source": "local production build; not field p75 or deployed AWS capacity"
+  },
+  "target_p75_lcp_ms": 2500,
+  "routes": [
+    {
+      "path": "/",
+      "samples_ms": [
+        2400,
+        2408,
+        2408,
+        2416,
+        2424
+      ],
+      "p75_ms": 2416
+    },
+    {
+      "path": "/tutors",
+      "samples_ms": [
+        2148,
+        2212,
+        2224,
+        2240,
+        2324
+      ],
+      "p75_ms": 2240
+    }
+  ],
+  "passed": true
+}

@@ -206,7 +206,7 @@ export function PaymentCheckout({
           <p className="text-xs font-semibold uppercase tracking-widest text-coral-strong">
             One-time platform access
           </p>
-          <h3 className="mt-2 text-xl font-semibold">Access Pass</h3>
+          <h2 className="mt-2 text-xl font-semibold">Access Pass</h2>
         </div>
         <ShieldCheck aria-hidden className="size-6 shrink-0 text-coral-strong" />
       </div>

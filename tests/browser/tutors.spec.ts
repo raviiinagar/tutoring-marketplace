@@ -1,3 +1,4 @@
+import {auditAccessibility} from './accessibility';
 import {test,expect,type Page} from '@playwright/test';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -12,7 +13,7 @@ async function signup(page:Page,email:string){
   await page.goto('/auth/signin');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
   const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);await expect(page.getByRole('heading',{name:'Hello, Fictional adult',exact:true})).toBeVisible();
 }
-test('fictional Tutor evidence, private reviewer download, approvals and revocation',async({page,browser})=>{
+test('fictional Tutor evidence, private reviewer download, approvals and revocation',async({page,browser},testInfo)=>{
   test.setTimeout(360_000);const tutorEmail=`tutor-${Date.now()}@example.test`,staffEmail=`tutor-reviewer-${Date.now()}@example.test`;
   const other=await browser.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100'});const reviewer=await other.newPage();const visitorContext=await browser.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100',viewport:{width:390,height:844}});const visitor=await visitorContext.newPage();let granted=false;
   try{
@@ -77,7 +78,7 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     await visitor.goto('/connections');
     await page.getByLabel('Message',{exact:true}).fill('Unread until the learner opens chat.');await page.getByRole('button',{name:'Send message',exact:true}).click();await expect(page.getByRole('log')).toContainText('Unread until the learner opens chat.');
     await visitor.getByRole('button',{name:'Refresh Connections',exact:true}).click();await expect(visitor.getByRole('link',{name:/Open chat/})).toContainText('1 unread');
-    await visitor.getByRole('link',{name:/Open chat/}).click();await expect(visitor.getByRole('log')).toContainText('Unread until the learner opens chat.');
+    await visitor.getByRole('link',{name:/Open chat/}).click();await expect(visitor.getByRole('log')).toContainText('Unread until the learner opens chat.');await visitor.emulateMedia({reducedMotion:'reduce'});await auditAccessibility(visitor,testInfo,'connected-mobile-chat');
     await visitor.screenshot({path:'.local/task12-mobile-chat.png',fullPage:true});expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     // An isolated fixture ages only this fictional Connection; HTTP tests cover the exact boundary.
     await execute(process.execPath,['--env-file=.local/browser-tests.env','node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','tests/browser/review-fixture.ts',connectionId],{timeout:30_000});

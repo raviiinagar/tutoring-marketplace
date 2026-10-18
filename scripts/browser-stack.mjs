@@ -23,4 +23,15 @@ try{
   const migration=spawn(process.execPath,['node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','apps/api/src/migrate.ts'],{stdio:'inherit',windowsHide:true});
   await new Promise((resolve,reject)=>{migration.on('error',reject);migration.on('exit',code=>code===0?resolve():reject(new Error('Browser fixture migration failed')));});
 }finally{await cluster.stop();}
-await import('./dev.mjs');
+if(process.env.PLAYWRIGHT_BUILT_UI==='true') {
+  const {default:concurrently}=await import('concurrently');
+  const cluster=await startDatabase(settings.DATABASE_URL,settings.DEV_DATABASE_DIR);
+  const uiPort=Number(origin.port)+1;
+  const {result}=concurrently([
+    {name:'api',command:'node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/main.ts'},
+    {name:'worker',command:'node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/worker.ts'},
+    {name:'ui',command:'node .output/server/index.mjs',cwd:resolve('lovable-ui'),env:{NODE_ENV:'production',HOST:'127.0.0.1',PORT:String(uiPort),API_INTERNAL_URL:'http://127.0.0.1:4100'}},
+    {name:'proxy',command:'node scripts/browser-ui-proxy.mjs',env:{BROWSER_FRONT_PORT:origin.port,BROWSER_UI_PORT:String(uiPort)}},
+  ],{killOthersOn:['failure','success']});
+  try {await result;}catch {process.exitCode=1;}finally {await cluster.stop();}
+} else await import('./dev.mjs');

@@ -19,7 +19,7 @@
     "dev:worker": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/worker.ts",
     "staff:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/staff-operator.ts",
     "build": "npm run build -w @tutoring/contracts && npm run build -w @tutoring/api && npm --prefix lovable-ui run build",
-    "typecheck": "npm run build -w @tutoring/contracts && npm run typecheck --workspaces --if-present && npm --prefix lovable-ui run typecheck",
+    "typecheck": "npm run build -w @tutoring/contracts && npm run typecheck --workspaces --if-present && npm --prefix lovable-ui run typecheck && tsc -p tests/pilot/tsconfig.json",
     "test": "npm run build -w @tutoring/contracts && tsx --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/*.test.ts && npm --prefix lovable-ui test",
     "test:browser": "playwright test",
     "start:api": "node --env-file=.env apps/api/dist/main.js",
@@ -29,9 +29,13 @@
     "test:recovery": "node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/recovery.test.ts apps/api/test/recovery-storage.test.ts",
     "recovery:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/recovery-operator.ts",
     "release:check": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/release-operator.ts",
-    "release:manifest": "node scripts/release-manifest.mjs write"
+    "release:manifest": "node scripts/release-manifest.mjs write",
+    "test:pilot-load": "npm run build -w @tutoring/contracts && tsx --tsconfig apps/api/tsconfig.json scripts/pilot-load.ts",
+    "test:pilot-browser": "playwright test tests/browser/accessibility.spec.ts tests/browser/tutors.spec.ts tests/browser/payments.spec.ts tests/browser/support.spec.ts tests/browser/privacy.spec.ts",
+    "test:pilot-mobile": "playwright test tests/browser/mobile-performance.spec.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.64.0",
     "@types/node": "^24.0.0",
     "concurrently": "^9.2.0",

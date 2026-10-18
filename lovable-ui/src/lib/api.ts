@@ -162,6 +162,7 @@ async function request<T>(
 }
 
 export const assetUrl=(path:string)=>apiBaseUrl()+path;
+export const publicPortraitUrl=(path:string,variant:'card'|'portrait')=>assetUrl(path+'?variant='+variant);
 export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>void,onDisconnect:(revoked:boolean)=>void){
  const source=new EventSource(apiBaseUrl()+'/v1/me/connections/'+encodeURIComponent(id)+'/events?after='+after,{withCredentials:true});
  source.addEventListener('state',event=>{try{onState(JSON.parse((event as MessageEvent).data) as ChatState);}catch{source.close();onDisconnect(false);}});
