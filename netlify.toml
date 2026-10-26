@@ -10,6 +10,13 @@
   NPM_FLAGS = "--include=dev"
   NITRO_PRESET = "netlify"
 
+# Keep browser cookies and API requests on the UI origin.
+[[redirects]]
+  from = "/v1/*"
+  to = "https://ravii-tutoring-test.duckdns.org/v1/:splat"
+  status = 200
+  force = true
+
 # This is a preview target; keep it out of search results until launch approval.
 [[headers]]
   for = "/*"
