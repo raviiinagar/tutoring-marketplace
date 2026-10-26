@@ -91,6 +91,7 @@ export function SiteHeader() {
   );
   return (
     <header className="site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-xl">
+      <div role="status" className="border-b bg-coral-soft px-5 py-2 text-center text-sm font-semibold">Payment sandbox · Fictional accounts only · No real money</div>
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-4 lg:flex lg:justify-between lg:px-8">
         <Link to="/" aria-label="Tutor Marketplace home" className="brand-link min-w-0 rounded-md">
           <BrandWordmark />

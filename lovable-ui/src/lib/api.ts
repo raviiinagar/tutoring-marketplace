@@ -113,7 +113,8 @@ async function request<T>(
   }
   let res: Response;
   try {
-    const origin=import.meta.env.SSR?(process.env['API_INTERNAL_URL']||'http://127.0.0.1:4000'):apiBaseUrl();
+    // This isolated branch must never render data from the ordinary staging API.
+    const origin=import.meta.env.SSR?'https://ravii-tutoring-test.duckdns.org/payment-sandbox':apiBaseUrl();
     if(import.meta.env.SSR)init.signal=AbortSignal.timeout(5000);
     res = await fetch(`${origin}${path}`, init);
   } catch {

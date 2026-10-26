@@ -13,7 +13,7 @@
 # Keep browser cookies and API requests on the UI origin.
 [[redirects]]
   from = "/v1/*"
-  to = "https://ravii-tutoring-test.duckdns.org/v1/:splat"
+to = "https://ravii-tutoring-test.duckdns.org/payment-sandbox/v1/:splat"
   status = 200
   force = true
 
