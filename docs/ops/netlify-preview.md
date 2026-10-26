@@ -1,6 +1,6 @@
 # Netlify preview deployment
 
-Prepared 26 October 2026. The Netlify SSR build was verified locally; no Netlify site has been created or published. This target does not replace the recorded production pilot in ADR 0008 or satisfy the Task 28 launch gates.
+Prepared and deployed 26 October 2026. The Netlify Free project is connected to the hosting branch, and hosted sign-in/sign-up screens return HTTP 200. The API is not deployed: the homepage currently returns HTTP 500 and backend-dependent actions are unavailable. See the [deployment record](netlify-deployment-2026-10-26.md). This target does not replace the recorded production pilot in ADR 0008 or satisfy the Task 28 launch gates.
 
 ## What this configuration deploys
 
@@ -11,6 +11,8 @@ This is not a static SPA. Do not add `/* /index.html 200`, upload only `dist` th
 **The current homepage requires the API during server rendering. Without a reachable API it shows an unavailable/error page.** Sign-in/sign-up screens can render, but authentication, catalogue data, Tutor workflows, private chat and payments cannot operate. A successful UI build is not a working marketplace deployment.
 
 ## Owner setup
+
+The account connection, project creation and repository integration below are already complete for `tutoring-marketplace-ravii-preview`. These instructions remain for reference. The next prerequisite is a backend host and its separate credentials.
 
 1. Sign up at [Netlify](https://app.netlify.com/signup) using GitHub. Choose the **Free** plan; check the allowance shown in your account. A paid domain is not needed for the initial `*.netlify.app` address.
 2. Allow Netlify access to `raviiinagar/tutoring-marketplace`. Prefer granting access to this repository only.
