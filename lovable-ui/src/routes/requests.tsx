@@ -57,7 +57,18 @@ function Requests() {
         </p>
       ) : (
         <div className="mt-5 space-y-5">
-          {!rows.length && <p>No Contact Requests yet. Browse an available offer to begin.</p>}
+          {!rows.length && (
+            <div className="space-y-3 rounded-xl border bg-muted/30 p-5">
+              <h2 className="font-semibold">No enquiries yet</h2>
+              <p className="text-sm text-muted-foreground">
+                Find a teaching offer, choose a Learner profile and send an enquiry. Your Tutor
+                responses will appear here.
+              </p>
+              <Button asChild>
+                <Link to="/tutors">Find a Tutor</Link>
+              </Button>
+            </div>
+          )}
           {rows.map((row) => (
             <article key={row.id} className="rounded-2xl border p-5">
               <h2 className="font-semibold">{row.offer.title}</h2>

@@ -1,37 +1,12 @@
-import {TutorPhotoEditor} from '@/components/tutor-photo-editor';
-import {createFileRoute,Link} from '@tanstack/react-router';
-import {useEffect,useState,type FormEvent} from 'react';
-import {api,describeFailure,type TutorState,type TutorPolicy,type TutorClaim,type Catalogue} from '@/lib/api';
-import {AuthShell,Field,Notice,SubmitButton,useSingleFlight} from '@/components/account/ui';
-import {Button} from '@/components/ui/button';
-export const Route=createFileRoute('/tutor')({ssr:false,component:TutorOnboarding,head:()=>({meta:[{title:'Tutor onboarding — Tutor Marketplace'},{name:'robots',content:'noindex'}]})});
-function TutorOnboarding(){
-  const [state,setState]=useState<TutorState>();const [policy,setPolicy]=useState<TutorPolicy>();const [catalogue,setCatalogue]=useState<Catalogue>();const [error,setError]=useState<string>();const [name,setName]=useState('');const [bio,setBio]=useState('');const [birth,setBirth]=useState('');const [adult,setAdult]=useState(false);const [file,setFile]=useState<File>();const [kind,setKind]=useState<TutorClaim['kind']>('IDENTITY');const [subject,setSubject]=useState('');const [description,setDescription]=useState('');const [evidence,setEvidence]=useState('');const {loading,run}=useSingleFlight();
-  const load=async()=>{const result=await api.tutor();if(result.ok){setState(result.data);if(result.data.profile){setName(result.data.profile.display_name);setBio(result.data.profile.biography);setBirth(result.data.profile.birth_date);}}else setError(describeFailure(result.error));};
-  useEffect(()=>{void load();void api.tutorPolicy().then(r=>{if(r.ok)setPolicy(r.data);});void api.catalogue().then(r=>{if(r.ok)setCatalogue(r.data);});},[]);
-  const save=(event:FormEvent)=>{event.preventDefault();void run(async()=>{setError(undefined);const result=await api.saveTutor(name,bio,birth,adult);if(result.ok){setState(result.data);setAdult(false);}else setError(describeFailure(result.error));});};
-  const upload=(fictional=false)=>run(async()=>{
-    setError(undefined);let data:string;let media:string;
-    if(fictional&&policy?.test_only){media='application/pdf';data=btoa('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n% Fake identity/qualification sample for local testing only.\n%%EOF\n');}
-    else{if(!file)return;if(!policy||file.size>policy.max_bytes||!policy.media_types.includes(file.type)){setError('Use a PDF, PNG or JPEG of at most 1 MiB.');return;}media=file.type;const bytes=new Uint8Array(await file.arrayBuffer());let value='';for(let i=0;i<bytes.length;i+=32768)value+=String.fromCharCode(...bytes.subarray(i,i+32768));data=btoa(value);}
-    const result=await api.uploadTutorEvidence(media,data);if(result.ok){setFile(undefined);await load();}else setError(describeFailure(result.error));
-  });
-  const addClaim=(event:FormEvent)=>{event.preventDefault();void run(async()=>{setError(undefined);const result=await api.tutorClaim(kind,description,evidence,kind==='IDENTITY'?undefined:subject);if(result.ok){setState(result.data);setDescription('');setEvidence('');}else setError(describeFailure(result.error));});};
-  const submit=()=>run(async()=>{setError(undefined);const result=await api.submitTutor();if(result.ok)setState(result.data);else setError(describeFailure(result.error));});
-  return <AuthShell title="Tutor onboarding" intro="Create your adult Tutor profile and submit private identity and subject-specific evidence for Trust review." footer={<Link to="/account" className="link">Back to your account</Link>}>
-    <Link to="/tutor/listings" className="link mb-5 inline-block">Manage teaching offers</Link>
-    {error&&<Notice tone="error">{error}</Notice>}{!state?<><p role="status">Loading Tutor profile…</p><Button onClick={()=>void load()}>Reload profile</Button></>:<>
-      {state.profile&&<Notice tone="info">Profile: {state.profile.status}. {state.profile.eligible?'Current evidence approvals are valid. Listing publication follows a separate review.':'Not currently eligible for publication.'}</Notice>}
-      <form onSubmit={save} className="mt-5 space-y-4"><Field label="Tutor display name" value={name} onChange={e=>setName(e.target.value)} maxLength={80}/><label className="block">Biography<textarea aria-label="Biography" className="input mt-2 min-h-28" value={bio} onChange={e=>setBio(e.target.value)} maxLength={1000}/></label><Field label="Date of birth" type="date" hint="Private. Used to confirm that you are at least 18." value={birth} onChange={e=>setBirth(e.target.value)}/><label className="flex items-start gap-2"><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)}/>I am at least 18 and will provide my own identity evidence.</label>{state.profile&&<p className="text-xs text-muted-foreground">Saving changes starts a new draft revision. Add claims again using clean evidence; earlier approvals do not apply to the revised profile.</p>}<SubmitButton loading={loading} loadingText="Saving…">{state.profile?'Save revised profile':'Create Tutor profile'}</SubmitButton></form>
-      {state.profile&&<>
-        <TutorPhotoEditor/>
-        <section className="mt-7 space-y-4"><h2 className="font-semibold">Private evidence</h2>{policy?.test_only?<Notice tone="info">Fictional testing only. Do not upload real identity documents. Use the fictional sample to test this workflow.</Notice>:!policy?.uploads_enabled?<Notice tone="info">Document uploads are unavailable until the scanning service is configured.</Notice>:<p className="text-sm text-muted-foreground">PDF, PNG or JPEG, at most 1 MiB each. Files stay private and must pass scanning before review. Mask unnecessary identity numbers before uploading.</p>}
-          <input aria-label="Evidence file" type="file" accept="application/pdf,image/png,image/jpeg" disabled={loading||!policy?.uploads_enabled||policy.test_only} onChange={e=>setFile(e.target.files?.[0])}/><Button disabled={loading||!file||!policy?.uploads_enabled} onClick={()=>void upload()}>Upload evidence</Button>{policy?.test_only&&<Button disabled={loading} onClick={()=>void upload(true)}>Upload fictional sample</Button>}
-          <ul className="space-y-2">{state.evidence.map(item=><li key={item.id} className="rounded-lg border p-3 text-sm"><p className="break-all">Evidence {item.id}</p><p>{item.media_type} · {item.byte_length} bytes · Scan: {item.scan_status}</p>{['REJECTED','ERROR'].includes(item.scan_status)&&<p className="text-muted-foreground">This file cannot be used for approval. Withdraw it and upload a replacement.</p>}<Button variant="outline" disabled={loading} onClick={()=>void run(async()=>{setError(undefined);const r=await api.withdrawTutorEvidence(item.id);if(r.ok)await load();else setError(describeFailure(r.error));})}>Withdraw evidence {item.id.slice(0,8)}</Button></li>)}</ul>
-        </section>
-        {state.profile.status==='DRAFT'&&<form onSubmit={addClaim} className="mt-7 space-y-4"><h2 className="font-semibold">Add an evidence claim</h2><label className="block">Claim type<select aria-label="Claim type" className="input mt-2" value={kind} onChange={e=>setKind(e.target.value as TutorClaim['kind'])}><option value="IDENTITY">Identity and adult status</option><option value="QUALIFICATION">Subject qualification</option><option value="EXPERIENCE">Subject experience</option></select></label>{kind!=='IDENTITY'&&<label className="block">Subject<select aria-label="Subject" className="input mt-2" value={subject} onChange={e=>setSubject(e.target.value)}><option value="">Choose Subject</option>{catalogue?.terms.filter(t=>t.kind==='SUBJECT').map(t=><option key={t.id} value={t.id}>{t.label}</option>)}</select></label>}<Field label="Claim description" value={description} maxLength={300} onChange={e=>setDescription(e.target.value)}/><label className="block">Clean evidence<select aria-label="Clean evidence" className="input mt-2" value={evidence} onChange={e=>setEvidence(e.target.value)}><option value="">Choose a scanned file</option>{state.evidence.filter(item=>item.scan_status==='CLEAN'&&!state.claims.some(c=>c.evidence_id===item.id)).map(item=><option key={item.id} value={item.id}>{item.id}</option>)}</select></label><SubmitButton loading={loading} loadingText="Adding…">Add claim</SubmitButton></form>}
-        <section className="mt-7 space-y-3"><h2 className="font-semibold">Claims and review outcomes</h2>{state.claims.length===0?<p className="text-sm">Add one identity claim and at least one qualification or experience claim before submitting.</p>:state.claims.map(claim=><article key={claim.id} className="rounded-lg border p-4 text-sm"><p className="font-semibold">{claim.kind} · {claim.status}</p><p>{claim.description}</p>{claim.reviewed_check&&<p>Check: {claim.reviewed_check}</p>}{claim.review_reason&&<p>Review reason: {claim.review_reason}</p>}{claim.expires_at&&<p>Approval expires: {new Date(claim.expires_at).toLocaleDateString()}</p>}</article>)}<Button disabled={loading||state.profile.status!=='DRAFT'} onClick={()=>void submit()}>Submit Tutor profile for review</Button><Button variant="outline" disabled={loading} onClick={()=>void load()}>Refresh review status</Button></section>
-      </>}
-    </>}
-  </AuthShell>;
-}
+﻿import { createFileRoute } from "@tanstack/react-router";
+import { TutorOnboarding } from "@/components/tutor-onboarding";
+export const Route = createFileRoute("/tutor")({
+  ssr: false,
+  component: TutorOnboarding,
+  head: () => ({
+    meta: [
+      { title: "Tutor onboarding — Tutor Marketplace" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+});

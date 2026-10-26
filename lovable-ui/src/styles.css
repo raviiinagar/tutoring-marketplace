@@ -2,6 +2,22 @@
 @import "tw-animate-css";
 @source "../src";
 
+/* Shared workspace controls stay readable and easy to tap on small screens. */
+.workspace-nav a { border: 1px solid var(--border); border-radius: 999px; padding: 10px 15px; background: var(--card); }
+.workspace-nav a:hover, .workspace-nav .workspace-active { background: var(--coral-soft); border-color: var(--coral); }
+.account-content { overflow-wrap: anywhere; }
+.account-content section + section { padding-top: 24px; border-top: 1px solid var(--border); }
+.account-content .interactive-button { min-height: 44px; height: auto; white-space: normal; text-align: center; }
+.account-content input[type='checkbox'] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--primary); }
+.account-content select, .account-content textarea, .account-content input:not([type='checkbox']):not([type='file']) { max-width: 100%; font-size: 16px; }
+.account-content input[type='file'] { width: 100%; border: 1px dashed var(--border); border-radius: 12px; padding: 12px; font-size: 14px; }
+.account-content input[type='file']::file-selector-button { border: 0; border-radius: 8px; padding: 8px 12px; margin-right: 10px; background: var(--coral-soft); color: var(--foreground); cursor: pointer; }
+.task-link { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; transition: background .15s; }
+.task-link:hover { background: var(--coral-soft); }
+.task-link span { font-size: 14px; color: var(--muted-foreground); }
+.onboarding-section { scroll-margin-top: 110px; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: 24px; }
+.onboarding-section summary { cursor: pointer; font-weight: 600; }
+
 @font-face { font-family: "Figtree"; font-style: normal; font-weight: 300 900; font-display: swap; src: url("/fonts/figtree-latin.woff2") format("woff2"); }
 @font-face { font-family: "Outfit"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("/fonts/outfit-latin.woff2") format("woff2"); }
 
