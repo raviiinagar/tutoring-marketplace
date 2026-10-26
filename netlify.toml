@@ -1,0 +1,18 @@
+# UI hosting target. The NestJS API, PostgreSQL and worker deploy separately.
+# See docs/ops/netlify-preview.md before publishing a working marketplace.
+[build]
+  base = "lovable-ui"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+  NPM_FLAGS = "--include=dev"
+  NITRO_PRESET = "netlify"
+
+# This is a preview target; keep it out of search results until launch approval.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Content-Type-Options = "nosniff"

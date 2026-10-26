@@ -12,6 +12,7 @@ test-results/
 **/.nitro/
 **/.tanstack/
 **/.wrangler/
+**/.netlify/
 *.log
 *.pem
 *.key

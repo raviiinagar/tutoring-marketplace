@@ -7,7 +7,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  nitro: { preset: "node-server" },
+  // Keep local/VM builds unchanged; hosting builds select their SSR adapter.
+  nitro: { preset: process.env['NITRO_PRESET'] || "node-server" },
   vite: {
     server: {
       host: "127.0.0.1", port: 3000, strictPort: true,
