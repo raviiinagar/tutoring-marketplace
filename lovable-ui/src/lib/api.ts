@@ -164,12 +164,33 @@ async function request<T>(
 export const assetUrl=(path:string)=>apiBaseUrl()+path;
 export const publicPortraitUrl=(path:string,variant:'card'|'portrait')=>assetUrl(path+'?variant='+variant);
 export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>void,onDisconnect:(revoked:boolean)=>void){
- const source=new EventSource(apiBaseUrl()+'/v1/me/connections/'+encodeURIComponent(id)+'/events?after='+after,{withCredentials:true});
- source.addEventListener('state',event=>{try{onState(JSON.parse((event as MessageEvent).data) as ChatState);}catch{source.close();onDisconnect(false);}});
- source.addEventListener('access-revoked',()=>{source.close();onDisconnect(true);});
- source.addEventListener('reconnect',()=>{source.close();onDisconnect(false);});
- source.onerror=()=>{source.close();onDisconnect(false);};
- return ()=>source.close();
+ const path='/v1/me/connections/'+encodeURIComponent(id);
+ const source=new EventSource(apiBaseUrl()+path+'/events?after='+after,{withCredentials:true});
+ let active=true,polling=false,cursor=after;
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ const stop=()=>{active=false;clearTimeout(timer);source.close();};
+ const disconnect=(revoked:boolean)=>{if(!active)return;stop();onDisconnect(revoked);};
+ const poll=async()=>{
+   if(!active||!polling)return;
+   const result=await request<ChatState>('GET',path+'/messages?after='+cursor+'&limit=100');
+   if(!active)return;
+   if(!result.ok){disconnect(result.error.kind==='http'&&[401,403,404].includes(result.error.status));return;}
+   cursor=Math.max(cursor,result.data.next_after);
+   onState(result.data);
+   if(active)timer=setTimeout(()=>void poll(),result.data.has_more?0:2000);
+ };
+ // Some hosting proxies buffer an open event stream indefinitely. Fall back
+ // to the same participant-authorized history endpoint if no frame arrives.
+ timer=setTimeout(()=>{if(!active)return;polling=true;source.close();void poll();},3000);
+ source.addEventListener('state',event=>{
+   if(!active||polling)return;
+   clearTimeout(timer);
+   try{const frame=JSON.parse((event as MessageEvent).data) as ChatState;cursor=Math.max(cursor,frame.next_after);onState(frame);}catch{disconnect(false);}
+ });
+ source.addEventListener('access-revoked',()=>disconnect(true));
+ source.addEventListener('reconnect',()=>{if(!polling)disconnect(false);});
+ source.onerror=()=>{if(!polling)disconnect(false);};
+ return stop;
 }
 export type ReviewRow={id:string;connection_id:string;rating:number;text:string|null;status:string;revision:number;created_at:string;test_only:boolean;relationship?:'AUTHOR'|'TUTOR';decisions?:{id:string;outcome:string;policy_code:string;reason:string;created_at:string}[];appeals?:{id:string;status:string;review_revision:number}[]};
 export type ReviewContext={eligible:boolean;eligible_at:string;server_time:string;review:ReviewRow|null;policy_version:'review-v1';policy:string};
