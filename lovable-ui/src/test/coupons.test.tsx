@@ -7,6 +7,21 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
+it("shows the existing coupon-funded pass instead of another full-price checkout", async () => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+    String(input).endsWith("/policy")
+      ? json(policy)
+      : String(input).endsWith("/request-access")
+        ? json({
+            coverage: { source: "COUPON", status: "ACTIVE", expires_at: "2026-11-27T04:00:00Z" },
+          })
+        : json({ purchase: null }),
+  );
+  render(<PaymentCheckout />);
+  expect(await screen.findByText("Access Pass active · Fully covered by coupon")).toBeTruthy();
+  expect(screen.queryByText(/₹599/)).toBeNull();
+  expect(screen.queryByRole("button", { name: /Pay / })).toBeNull();
+});
 const policy = {
   policy: {
     version: "access-v1",
