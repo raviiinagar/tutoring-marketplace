@@ -1,0 +1,3 @@
+# Support discounted and fully coupon-funded Access Passes
+
+On 27 October 2026 the owner requested coupons, including 100% discounts for ordinary registered users testing without payment. This extends ADR-0007: partial discounts retain verified payment of the server-calculated balance, while a fully discounted Coupon Redemption provides separate non-cash coverage with a 72-hour matching window and 30 days from first eligible Tutor acceptance. Never fabricate capture, refund or revenue for a free redemption; retain immutable discount terms, bounded audited campaigns, one redemption per account per code and all existing recipient, Guardian and safety checks.

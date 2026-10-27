@@ -1,3 +1,4 @@
+import { CouponHistory } from "@/components/coupon-history";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AuthShell } from "@/components/account/ui";
 import { PaymentCheckout } from "@/components/payment-checkout";
@@ -19,7 +20,11 @@ export const Route = createFileRoute("/payments")({
         </Link>
       }
     >
-      <PaymentCheckout /><Link to="/payments/history" className="link mt-5 inline-block">Payment history and receipts</Link>
+      <PaymentCheckout />
+      <CouponHistory />
+      <Link to="/payments/history" className="link mt-5 inline-block">
+        Payment history and receipts
+      </Link>
     </AuthShell>
   ),
 });

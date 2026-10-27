@@ -18,6 +18,7 @@ export async function personalExport(
   const read = (payload: any) =>
     payload ? decrypt<Row>(payload, config.authSecret) : null;
   // Older recovery archives may be erased before additive migrations run.
+  const couponTable=(await client.query("SELECT to_regclass('public.coupon_redemptions') AS present")).rows[0].present;
   const classTable=(await client.query("SELECT to_regclass('public.class_invitations') AS present")).rows[0].present;
   const profile = (
     await rows(
@@ -213,6 +214,7 @@ export async function personalExport(
       "SELECT id,created_at,expires_at,revoked_at FROM sessions WHERE user_id=$1",
     ),
     purchase_domains: await rows('SELECT f.cycle_id,f.domain_id,f.recorded_at FROM purchase_domain_facts f JOIN purchase_cycles p ON p.id=f.cycle_id WHERE p.payer_id=$1'),
+    coupon_redemptions: couponTable ? await rows("SELECT id,code,policy_version,percent_off,base_paise,discount_paise,total_paise,cycle_id,created_at FROM coupon_redemptions WHERE payer_id=$1") : [],
     access_entitlements: await rows(
       "SELECT id,policy_version,status,captured_at,matching_deadline,starts_at,ends_at,created_at FROM access_entitlements WHERE payer_id=$1",
     ),
