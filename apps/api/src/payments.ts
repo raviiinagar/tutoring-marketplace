@@ -11,6 +11,8 @@ import { ListingsService } from "./listings.js";
 import { RateLimiter } from "./rate-limit.js";
 import { ApiProblem } from "./errors.js";
 import { validSignature, type PaymentProvider } from "./payment-provider.js";
+import {CouponsService,couponCode,couponPrice} from './coupons.js';
+import {tokenHash} from './security.js';
 
 export const purchaseInput = z.strictObject({
   request_key: z.uuid(),
@@ -18,6 +20,7 @@ export const purchaseInput = z.strictObject({
   listing_revision: z.number().int().positive(),
   learner_id: z.uuid(),
   policy_version: z.literal("access-v1"),
+  coupon_code: couponCode.optional(),
 });
 export const confirmationInput = z.strictObject({
   razorpay_order_id: z.string().regex(/^order_[A-Za-z0-9]+$/),
@@ -38,6 +41,7 @@ export class PaymentsService {
     private readonly paidAccess: PaidAccess,
     private readonly provider: PaymentProvider | undefined,
     private readonly now: () => Date = () => new Date(),
+    private readonly coupons?: CouponsService,
   ) {
     this.limits = new RateLimiter(database, config.authSecret, now);
   }
@@ -140,6 +144,7 @@ export class PaymentsService {
       id: row.id,
       status: row.status,
       policy_version: row.policy_version,
+      coupon: row.coupon_redemption_id ? (await client.query('SELECT code,base_paise,discount_paise,total_paise,percent_off FROM coupon_redemptions WHERE id=$1',[row.coupon_redemption_id])).rows[0] : null,
       amount_paise: row.amount_paise,
       currency: row.currency,
       disclosures: row.disclosures,
@@ -265,12 +270,6 @@ export class PaymentsService {
       30,
       900000,
     );
-    if (!this.provider || !this.config.payments)
-      throw fail(
-        "CHECKOUT_UNAVAILABLE",
-        "Access Pass purchases are not available yet.",
-        503,
-      );
     const reservation = await this.database.transaction(async (client) => {
       const recipient = (
         await client.query(
@@ -283,14 +282,16 @@ export class PaymentsService {
         token,
         recipient ? [recipient.user_id] : [],
       );
+      const hash=tokenHash(JSON.stringify(input));
+      const priorCoupon=(await client.query('SELECT * FROM coupon_redemptions WHERE payer_id=$1 AND request_key=$2',[user.id,input.request_key])).rows[0];
+      if(priorCoupon){if(priorCoupon.test_only!==(this.config.mode!=='production'))throw fail('COVERAGE_UNAVAILABLE','This redemption is unavailable in this environment.',403);if(priorCoupon.payload_hash!==hash)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used for different details.');return priorCoupon.cycle_id?{row:(await client.query('SELECT * FROM purchase_cycles WHERE id=$1',[priorCoupon.cycle_id])).rows[0],created:false}:{promotion:await this.coupons!.view(client,priorCoupon),created:false};}
       const retry = (
         await client.query(
           "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND request_key=$2 FOR UPDATE",
           [user.id, input.request_key],
         )
       ).rows[0];
-      if (retry) return { row: retry, created: false };
-      if(!await checkoutOpen(client,true))throw fail("CHECKOUT_PAUSED","New Access Pass purchases are temporarily paused. Existing payment verification and refunds remain available.",503);
+      if (retry) {if(input.coupon_code)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used without this coupon.');return { row: retry, created: false };}
       await this.recipient(client, user.id, input);
       const existing = (
         await client.query(
@@ -299,23 +300,35 @@ export class PaymentsService {
         )
       ).rows[0];
       if (existing) {
-        if (!(await this.paidAccess.canRepurchase(client, existing)))
+        if (!(await this.paidAccess.canRepurchase(client, existing))) {
+          if(input.coupon_code)throw fail('PURCHASE_ALREADY_OPEN','You already have a purchase awaiting payment, matching or resolution. Check it before redeeming a new coupon.');
           return { row: existing, created: false };
+        }
         await client.query(
           "UPDATE purchase_cycles SET open=false,updated_at=$2 WHERE id=$1",
           [existing.id, this.now()],
         );
       }
+      if(await this.paidAccess.forPayer(client,user.id,this.now()))throw fail('ACCESS_ALREADY_AVAILABLE','You already have usable Access Pass coverage. Send an enquiry instead.');
       const policy = (
         await client.query("SELECT * FROM payment_policies WHERE version=$1", [
           input.policy_version,
         ])
       ).rows[0];
+      const campaign=input.coupon_code?await this.coupons!.eligible(client,user.id,input.coupon_code,true):undefined;
+      const price=couponPrice(policy.amount_paise,campaign?.percent_off||0);
+      if(campaign&&price.total_paise===0){if((await client.query("SELECT 1 FROM deployment_recoveries WHERE state<>'RELEASED' LIMIT 1")).rowCount)throw fail('RECOVERY_IN_PROGRESS','New access is unavailable during recovery.',503);const redemption=await this.coupons!.record(client,campaign,user.id,input.request_key,hash,policy,null);return {promotion:await this.coupons!.view(client,redemption),created:false};}
+      if(!this.provider||!this.config.payments)throw fail('CHECKOUT_UNAVAILABLE','Paid checkout is unavailable. You can use a valid 100% off coupon without payment.',503);
+      if(!await checkoutOpen(client,true))throw fail('CHECKOUT_PAUSED','Paid Access Pass purchases are temporarily paused. A valid 100% off coupon can still be redeemed.',503);
       const id = randomUUID();
+      const redemptionId=campaign?randomUUID():null;
       const at = this.now();
+      const terms=this.config.payments!.disclosures;
+      const tax=campaign?Math.round(price.total_paise*terms.tax_paise/policy.amount_paise):terms.tax_paise;
+      const disclosures=campaign?{...terms,base_paise:price.total_paise-tax,tax_paise:tax}:terms;
       const row = (
         await client.query(
-          "INSERT INTO purchase_cycles(id,payer_id,learner_id,listing_id,listing_revision,request_key,policy_version,amount_paise,currency,provider_key_id,test_only,disclosures,status,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'CREATING',$13,$13) RETURNING *",
+          "INSERT INTO purchase_cycles(id,payer_id,learner_id,listing_id,listing_revision,request_key,policy_version,amount_paise,currency,provider_key_id,test_only,disclosures,status,created_at,updated_at,coupon_redemption_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'CREATING',$13,$13,$14) RETURNING *",
           [
             id,
             user.id,
@@ -324,15 +337,17 @@ export class PaymentsService {
             input.listing_revision,
             input.request_key,
             policy.version,
-            policy.amount_paise,
+            price.total_paise,
             policy.currency,
             this.config.payments!.keyId,
             this.config.payments!.mode === "test",
-            this.config.payments!.disclosures,
+            disclosures,
             at,
+            redemptionId,
           ],
         )
       ).rows[0];
+      if(campaign)await this.coupons!.record(client,campaign,user.id,input.request_key,hash,policy,id,redemptionId!);
       await client.query(
         "INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,'CHECKOUT_RESERVED',$3,$4,$5)",
         [
@@ -345,10 +360,11 @@ export class PaymentsService {
       );
       return { row, created: true };
     });
+    if('promotion' in reservation)return {purchase:null,promotion:reservation.promotion};
     if (reservation.created) {
       try {
         // Commit before the external request. Never repeat a possibly successful Order POST.
-        const order = await this.provider.createOrder(
+        const order = await this.provider!.createOrder(
           reservation.row.id,
           reservation.row.amount_paise,
           reservation.row.currency,

@@ -69,8 +69,12 @@ The platform product granting time-limited rights to establish new tutor connect
 _Avoid_: Tuition fee, lesson payment.
 
 **Pass Activation**:
-The beginning of an Access Pass's usable period once its payment and first eligible tutor acceptance qualify.
+The beginning of an Access Pass's usable period once its payment or full Coupon Redemption and first eligible tutor acceptance qualify.
 _Avoid_: Checkout completion, tutor acceptance alone.
+
+**Coupon Redemption**:
+An account's use of an eligible promotional code to reduce the Access Pass price. A full discount provides access without collecting money.
+_Avoid_: Payment capture, tuition discount, refund.
 
 **No-match Refund**:
 A return of the platform access charge when a purchase receives no eligible tutor acceptance by its matching deadline.

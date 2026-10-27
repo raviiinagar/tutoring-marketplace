@@ -1,3 +1,4 @@
+import { StaffCoupons } from "@/components/staff-coupons";
 import { FinanceReconciliation } from "@/components/finance-reconciliation";
 import { FinanceReviews } from "@/components/refund-cases";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -69,6 +70,7 @@ function Finance() {
         </Link>
       }
     >
+      <StaffCoupons />
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
       <form onSubmit={inspect} className="space-y-4">

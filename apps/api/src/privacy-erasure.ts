@@ -363,6 +363,7 @@ export async function erasePrivacyData(
     "FINANCE",
     {
       purchases: snapshot.purchases,
+      coupon_redemptions: snapshot.coupon_redemptions,
       documents: snapshot.payment_documents,
       refund_cases: snapshot.refund_cases,
     },

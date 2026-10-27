@@ -1,4 +1,4 @@
-import {RefundPanel} from './refund-panel';
+import { RefundPanel } from "./refund-panel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import {
@@ -7,6 +7,8 @@ import {
   type PaymentPolicy,
   type Purchase,
   type CheckoutConfirmation,
+  type CouponQuote,
+  type CouponRedemption,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Notice, useSingleFlight } from "@/components/account/ui";
@@ -70,6 +72,9 @@ export function PaymentCheckout({
   const [error, setError] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [accepted, setAccepted] = useState(false);
+  const [coupon, setCoupon] = useState("");
+  const [quote, setQuote] = useState<CouponQuote>();
+  const [promotion, setPromotion] = useState<CouponRedemption>();
   const key = useRef(crypto.randomUUID());
   const { loading, run } = useSingleFlight();
   const refresh = useCallback(async () => {
@@ -100,11 +105,12 @@ export function PaymentCheckout({
       active = false;
     };
   }, [refresh]);
+  const purchaseStatus = purchase?.status;
   useEffect(() => {
-    if (!purchase || !["CREATING", "VERIFYING"].includes(purchase.status)) return;
+    if (!purchaseStatus || !["CREATING", "VERIFYING"].includes(purchaseStatus)) return;
     const timer = window.setInterval(() => void refresh(), 5000);
     return () => window.clearInterval(timer);
-  }, [purchase?.status, refresh]);
+  }, [purchaseStatus, refresh]);
   const repurchasing =
     purchase?.access?.status === "EXPIRED" &&
     !!purchase.access.starts_at &&
@@ -119,7 +125,7 @@ export function PaymentCheckout({
   }, [refresh]);
   const open = () =>
     void run(async () => {
-      if (!policy?.checkout_available || !accepted) return;
+      if ((!policy?.checkout_available && quote?.total_paise !== 0) || !accepted || !policy) return;
       setError(undefined);
       setMessage(undefined);
       if (repurchasing) key.current = crypto.randomUUID();
@@ -132,12 +138,22 @@ export function PaymentCheckout({
           listing_revision: listing.revision,
           learner_id: learnerId,
           policy_version: policy.policy.version,
+          ...(quote ? { coupon_code: quote.code } : {}),
         });
         if (!created.ok) {
           setError(describeFailure(created.error));
           return;
         }
-        current = created.data.purchase;
+        current = created.data.purchase ?? undefined;
+        if (created.data.promotion) {
+          setPromotion(created.data.promotion);
+          setMessage(
+            "Coupon redeemed and saved. No payment required. Send an enquiry to start matching.",
+          );
+          await onAccessChange?.();
+          return;
+        }
+        if (!current) return;
         setPurchase(current);
       } else {
         const latest = await api.purchase(current.id);
@@ -193,9 +209,20 @@ export function PaymentCheckout({
         );
       }
     });
-  const disclosure = repurchasing
-    ? policy?.disclosures
-    : purchase?.disclosures || policy?.disclosures;
+  const previewTax =
+    quote && policy?.disclosures
+      ? Math.round((quote.total_paise * policy.disclosures.tax_paise) / policy.policy.amount_paise)
+      : undefined;
+  const disclosure =
+    quote && previewTax !== undefined && (!purchase || repurchasing)
+      ? {
+          ...policy!.disclosures!,
+          base_paise: quote.total_paise - previewTax,
+          tax_paise: previewTax,
+        }
+      : repurchasing
+        ? policy?.disclosures
+        : purchase?.disclosures || policy?.disclosures;
   return (
     <section
       aria-label="Access Pass checkout"
@@ -219,19 +246,88 @@ export function PaymentCheckout({
               <p className="text-3xl font-semibold">
                 {money(
                   repurchasing
-                    ? policy.policy.amount_paise
-                    : (purchase?.amount_paise ?? policy.policy.amount_paise),
+                    ? (quote?.total_paise ?? policy.policy.amount_paise)
+                    : (purchase?.amount_paise ?? quote?.total_paise ?? policy.policy.amount_paise),
                 )}{" "}
                 <span className="text-sm font-normal text-muted-foreground">total</span>
               </p>
+              {(quote || purchase?.coupon) && (
+                <div className="space-y-1 rounded-xl bg-background/80 p-4 text-sm" role="status">
+                  <p>Original price: {money((purchase?.coupon || quote)!.base_paise)}</p>
+                  <p className="font-semibold text-success">
+                    Coupon {(purchase?.coupon || quote)!.code}:{" "}
+                    {(purchase?.coupon || quote)!.percent_off}% off · −
+                    {money((purchase?.coupon || quote)!.discount_paise)}
+                  </p>
+                  <p>Final amount: {money((purchase?.coupon || quote)!.total_paise)}</p>
+                  {(purchase?.coupon || quote)!.total_paise === 0 && (
+                    <p className="font-semibold">No payment required. No card or UPI needed.</p>
+                  )}
+                </div>
+              )}
+              {listing && learnerId && (!purchase || repurchasing) && !promotion && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium">
+                    Coupon code
+                    <input
+                      className="input mt-2 uppercase"
+                      aria-label="Coupon code"
+                      value={coupon}
+                      maxLength={32}
+                      placeholder="Enter your code"
+                      disabled={loading}
+                      onChange={(e) => {
+                        setCoupon(e.target.value.toUpperCase());
+                        setQuote(undefined);
+                        key.current = crypto.randomUUID();
+                      }}
+                    />
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={loading || coupon.trim().length < 4}
+                      onClick={() =>
+                        void run(async () => {
+                          setError(undefined);
+                          setQuote(undefined);
+                          const r = await api.couponQuote(coupon.trim());
+                          if (r.ok) {
+                            setQuote(r.data.quote);
+                            key.current = crypto.randomUUID();
+                          } else setError(describeFailure(r.error));
+                        })
+                      }
+                    >
+                      Apply coupon
+                    </Button>
+                    {quote && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={loading}
+                        onClick={() => {
+                          setCoupon("");
+                          setQuote(undefined);
+                          key.current = crypto.randomUUID();
+                        }}
+                      >
+                        Remove coupon
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
               <p className="text-sm leading-relaxed">
                 Connect with Tutors through a 30-day pass. Your access period starts after confirmed
-                payment and the first eligible Tutor acceptance. Tuition and trial fees are paid
-                directly to the Tutor.
+                payment (or a full coupon redemption) and the first eligible Tutor acceptance.
+                Tuition and trial fees are paid directly to the Tutor.
               </p>
               <p className="text-sm text-muted-foreground">
-                No automatic renewal. The first matching deadline is 72 hours from payment capture.
-                No eligible match within that period qualifies for a full platform-fee refund.
+                No automatic renewal. The matching window is 72 hours from payment capture or full
+                coupon redemption. With no eligible match, a paid pass qualifies for a refund of the
+                amount paid; a free coupon pass expires with no refund.
               </p>
             </>
           )}
@@ -314,16 +410,23 @@ export function PaymentCheckout({
               <p className="break-all text-xs text-muted-foreground">
                 Purchase reference: {purchase.id}
               </p>
-              <RefundPanel purchaseId={purchase.id} onChange={refresh}/>
+              <RefundPanel purchaseId={purchase.id} onChange={refresh} />
             </div>
           )}
           {!policy?.checkout_available && (
             <p className="text-sm text-muted-foreground">
-              Access Pass purchases are not available yet. Browsing Tutors is free.
+              Paid Access Pass purchases are not available yet. A valid 100% off coupon can still
+              provide access without payment. Browsing Tutors is free.
             </p>
           )}
           {message && <Notice tone="info">{message}</Notice>}
-          {policy?.checkout_available &&
+          {promotion && (
+            <p role="status" className="font-semibold">
+              Coupon saved · Awaiting Tutor acceptance. Your 30-day pass has not started yet.
+            </p>
+          )}
+          {(policy?.checkout_available || quote?.total_paise === 0) &&
+            !promotion &&
             (!purchase || purchase.checkout || (repurchasing && listing && learnerId)) && (
               <>
                 <label className="flex items-start gap-3 text-sm">
@@ -351,7 +454,11 @@ export function PaymentCheckout({
                     ? "Preparing secure checkout…"
                     : purchase && !repurchasing
                       ? "Resume same checkout"
-                      : "Pay " + money(policy.policy.amount_paise) + " securely"}
+                      : quote?.total_paise === 0
+                        ? "Redeem coupon · ₹0"
+                        : "Pay " +
+                          money(quote?.total_paise ?? policy!.policy.amount_paise) +
+                          " securely"}
                 </Button>
               </>
             )}

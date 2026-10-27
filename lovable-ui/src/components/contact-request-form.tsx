@@ -149,8 +149,11 @@ export function ContactRequestForm({
           )}
           {access?.coverage?.status === "MATCHING" && (
             <Notice tone="info">
-              Payment confirmed. Send your first enquiry; your 30-day pass starts with the first
-              eligible Tutor acceptance.
+              {access.coverage.source === "COUPON"
+                ? "Coupon redeemed. No payment required."
+                : "Payment confirmed."}{" "}
+              Send your first enquiry; your 30-day pass starts with the first eligible Tutor
+              acceptance.
             </Notice>
           )}
           {access?.coverage?.status === "ACTIVE" && (

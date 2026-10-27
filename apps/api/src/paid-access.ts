@@ -8,7 +8,7 @@ export const testCoverage = (snapshot: Row) =>
 export const coverageAllowed = (config: Config, snapshot: Row) =>
   snapshot.source === "FIXTURE"
     ? config.mode !== "production"
-    : snapshot.source === "PAYMENT" &&
+    : ["PAYMENT", "COUPON"].includes(snapshot.source) &&
       snapshot.test_only === (config.mode !== "production");
 const denied = (code: string, message: string) =>
   new ApiProblem(403, code, message);
@@ -89,6 +89,8 @@ export class PaidAccess {
       )
         return grant;
     }
+    const coupon = (await client.query("SELECT e.* FROM access_entitlements e JOIN coupon_redemptions r ON r.id=e.coupon_redemption_id AND r.payer_id=e.payer_id WHERE e.payer_id=$1 AND e.source='COUPON' AND r.total_paise=0 AND e.test_only=$3 AND r.test_only=e.test_only AND ((e.status='ACTIVE' AND e.starts_at<=$2 AND e.ends_at>$2) OR (e.status='MATCHING' AND e.issued_at<=$2 AND e.matching_deadline>$2)) ORDER BY e.created_at DESC,e.id DESC LIMIT 1 FOR UPDATE OF e",[payer,at,this.config.mode!=='production'])).rows[0];
+    if(coupon)return coupon;
     if (this.config.mode === "production") return undefined;
     return (
       await client.query(
@@ -127,6 +129,7 @@ export class PaidAccess {
     if (
       !grant ||
       grant.source !== snapshot.source ||
+      (grant.test_only !== snapshot.test_only && grant.source !== 'FIXTURE') ||
       grant.policy_version !== snapshot.policy_version ||
       grant.status === "REVOKED" ||
       (cycle &&
@@ -138,6 +141,8 @@ export class PaidAccess {
         "ACCESS_REVOKED",
         "The request coverage is unavailable or revoked.",
       );
+    if(grant.source==='COUPON'&&!(await client.query('SELECT 1 FROM coupon_redemptions WHERE id=$1 AND payer_id=$2 AND total_paise=0 AND test_only=$3',[grant.coupon_redemption_id,row.payer_id,grant.test_only])).rowCount)
+      throw denied('ACCESS_REVOKED','Coupon coverage is unavailable.');
     const submitted = new Date(row.created_at).getTime();
     const active =
       snapshot.status === "ACTIVE" &&
@@ -145,7 +150,7 @@ export class PaidAccess {
       new Date(snapshot.ends_at).getTime() > submitted;
     const matching =
       snapshot.status === "MATCHING" &&
-      new Date(snapshot.captured_at).getTime() <= submitted &&
+      new Date(snapshot.captured_at || snapshot.issued_at).getTime() <= submitted &&
       new Date(snapshot.matching_deadline).getTime() > submitted &&
       new Date(row.expires_at) <= new Date(snapshot.matching_deadline);
     if (!active && !matching)
@@ -161,7 +166,7 @@ export class PaidAccess {
     at: Date,
     decision: { actor_id: string; request_id: string; correlation: string },
   ) {
-    if (grant.source !== "PAYMENT") return grant.status === "ACTIVE";
+    if (!["PAYMENT", "COUPON"].includes(grant.source)) return grant.status === "ACTIVE";
     if (grant.status === "ACTIVE") return true;
     if (grant.status !== "MATCHING" || new Date(grant.matching_deadline) <= at)
       throw new ApiProblem(
