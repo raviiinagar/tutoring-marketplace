@@ -11,6 +11,7 @@ import {
 } from "@/lib/api";
 import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
+import {UpcomingClass} from '@/components/class-invitations';
 
 type Pending = { id: string; text: string; retry: boolean };
 type Commands = {
@@ -332,6 +333,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
           <ArrowLeft size={16} />
           Your Connections
         </Link>
+        {state&&<UpcomingClass key={connectionId} connectionId={connectionId}/>}
         <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border bg-background shadow-sm">
           <header className="flex items-start gap-3 border-b px-5 py-5 sm:px-7">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-coral-soft text-coral-strong">

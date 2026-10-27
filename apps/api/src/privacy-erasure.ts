@@ -275,6 +275,7 @@ export async function erasePrivacyData(
     (await client.query(sql, params)).rows;
   const secret = config.authSecret,
     redact = (value: unknown) => encrypt(value, secret);
+  const classTable=(await client.query("SELECT to_regclass('public.class_invitations') AS present")).rows[0].present;
   await client.query("SELECT set_config('app.privacy_request',$1,true)", [
     job.id,
   ]);
@@ -306,6 +307,10 @@ export async function erasePrivacyData(
     await client.query(
       "UPDATE conversation_messages SET encrypted_text=$2 WHERE conversation_id IN (SELECT c.id FROM conversations c JOIN connections x ON x.id=c.connection_id WHERE x.request_id=ANY($1::uuid[]))",
       [ids, redact({ text: "[withdrawn]" })],
+    );
+    if(classTable)await client.query(
+      "UPDATE class_invitations SET status='CANCELLED',encrypted_payload=$2,revision=revision+1,updated_at=$3 WHERE connection_id IN (SELECT id FROM connections WHERE request_id=ANY($1::uuid[]))",
+      [ids,redact({title:'[withdrawn]',meet_url:null}),at],
     );
     await client.query(
       "UPDATE connection_reviews SET status='WITHDRAWN',published_text=NULL,encrypted_text=$2,revision=revision+1,updated_at=$3 WHERE connection_id IN (SELECT id FROM connections WHERE request_id=ANY($1::uuid[])) AND author_id=$4",
@@ -399,6 +404,10 @@ export async function erasePrivacyData(
         at,
       );
   }
+  if(classTable)await client.query(
+    "UPDATE class_invitations SET status='CANCELLED',encrypted_payload=$2,revision=revision+1,updated_at=$3 WHERE connection_id IN (SELECT connection_id FROM connection_participants WHERE user_id=$1)",
+    [user.id,redact({title:'[erased]',meet_url:null}),at],
+  );
   await client.query(
     "UPDATE tutor_photos SET status='REMOVED',encrypted_payload=NULL,byte_length=0,review_reason='[erased]' WHERE user_id=$1",
     [user.id],

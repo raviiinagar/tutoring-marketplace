@@ -17,6 +17,8 @@ export async function personalExport(
     (await client.query(sql, params)).rows;
   const read = (payload: any) =>
     payload ? decrypt<Row>(payload, config.authSecret) : null;
+  // Older recovery archives may be erased before additive migrations run.
+  const classTable=(await client.query("SELECT to_regclass('public.class_invitations') AS present")).rows[0].present;
   const profile = (
     await rows(
       "SELECT display_name,biography,encrypted_birth_date,status,revision,created_at FROM tutor_profiles WHERE user_id=$1",
@@ -125,6 +127,10 @@ export async function personalExport(
     connections: await rows(
       "SELECT c.id,c.status,c.created_at,p.role FROM connections c JOIN connection_participants p ON p.connection_id=c.id WHERE p.user_id=$1",
     ),
+    own_class_invitations: (
+      classTable?await rows('SELECT id,connection_id,encrypted_payload,starts_at,duration_minutes,status,revision,created_at,updated_at FROM class_invitations WHERE created_by=$1 ORDER BY starts_at,id'):[]
+    ).map(r=>{const {encrypted_payload,...metadata}=r;return {...metadata,details:read(encrypted_payload)};}),
+    received_class_invitations: classTable?await rows('SELECT c.id,c.connection_id,c.starts_at,c.duration_minutes,c.status,c.revision,c.created_at,c.updated_at FROM class_invitations c JOIN connection_participants p ON p.connection_id=c.connection_id WHERE p.user_id=$1 AND c.created_by<>$1 ORDER BY c.starts_at,c.id'):[],
     own_messages: (
       await rows(
         "SELECT conversation_id,sequence,encrypted_text,created_at FROM conversation_messages WHERE sender_id=$1 ORDER BY conversation_id,sequence",

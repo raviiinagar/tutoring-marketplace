@@ -60,6 +60,10 @@ _Avoid_: Completed lesson, attendance.
 Feedback from a connected learner or guardian who attests to actual interaction with the tutor.
 _Avoid_: Verified lesson review, proof of attendance unless lesson attendance is independently established.
 
+**Class Invitation**:
+A Tutor's proposed teaching time and online meeting place shared with the Learner or Guardian in an existing Connection. It does not establish attendance or payment of Tuition Fees.
+_Avoid_: Confirmed lesson, attendance record, tuition purchase.
+
 **Access Pass**:
 The platform product granting time-limited rights to establish new tutor connections.
 _Avoid_: Tuition fee, lesson payment.

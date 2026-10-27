@@ -12,6 +12,9 @@ export type User = {
   roles: ('LEARNER' | 'TUTOR')[];
 };
 export type AccountSession = {id:string;created_at:string;expires_at:string;current:boolean};
+export type ClassInvitation={id:string;title:string;starts_at:string;ends_at:string;duration_minutes:number;status:'SCHEDULED'|'CANCELLED';revision:number;updated_at:string;can_join:boolean;meet_url?:string|null};
+export type ClassDetails={title:string;starts_at:string;duration_minutes:number;meet_url:string};
+export type ClassInvitations={viewer_role:'TUTOR'|'PAYER';server_time:string;classes:ClassInvitation[]};
 export type SupportPolicy={hours:string;timezone:string;open_now:boolean;next_opening_at:string|null;notice:string};
 export type SupportEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;message?:string;reason?:string;actor_id?:string;source_result?:{refund_case_id?:string;cycle_id?:string;outcome?:string}};
 export type SupportCase={id:string;category:string;required_scope:StaffScope;status:string;revision:number;assigned:boolean;assigned_to?:string|null;source_id:string|null;related_id:string|null;source_revision:number|null;created_at:string;updated_at:string;subject?:string;description?:string;events?:SupportEvent[]};
@@ -214,6 +217,11 @@ export type OperationJob={id:string;kind:'NOTIFICATION'|'AUTH_MAIL'|'PAYMENT_EVE
 export type OperationObservation={kind:'WEBHOOK_DELIVERY'|'BACKUP'|'SECURITY';healthy:boolean;observed_at:string;valid_until:string;stale:boolean};
 export type OperationsReport={recovery_payment_mode?:'CONFIGURED'|'DISABLED_ISOLATED';recoveries?:{id:string;source_snapshot_at:string;release_id:string;state:'MONEY_REVIEW'|'RELEASED';started_at:string;privacy_reapplied_at:string|null;released_at?:string|null}[];as_of:string;scope:OperationsScope;test_only:boolean;correlation_id:string;checkout:{paused:boolean;revision:number;updated_at?:string};routing:{email:'CONFIGURED'|'CONFIG_REQUIRED';sms:boolean;outside_support_hours:true};alerts:{id:string;code:string;status:'OPEN'|'RESOLVED';scope:OperationsScope;count:number;opened_at:string;last_seen_at?:string;resolved_at?:string|null}[];jobs:OperationJob[];observations:OperationObservation[];replays:{kind:string;target_id:string;status:string;correlation_id:string;created_at:string}[];monitor:{checked_at:string|null};job_limit:number};
 export const api = {
+  classes:(connection:string)=>request<ClassInvitations>('GET','/v1/me/connections/'+encodeURIComponent(connection)+'/classes'),
+  createClass:(connection:string,details:ClassDetails,request_key:string)=>request<{class:ClassInvitation;replayed:boolean}>('POST','/v1/me/connections/'+encodeURIComponent(connection)+'/classes',{...details,request_key}),
+  editClass:(connection:string,id:string,details:ClassDetails,revision:number)=>request<{class:ClassInvitation}>('POST','/v1/me/connections/'+encodeURIComponent(connection)+'/classes/'+encodeURIComponent(id),{...details,revision}),
+  cancelClass:(connection:string,id:string,revision:number)=>request<{class:ClassInvitation}>('POST','/v1/me/connections/'+encodeURIComponent(connection)+'/classes/'+encodeURIComponent(id)+'/cancellation',{revision}),
+  joinClass:(connection:string,id:string)=>request<{url:string}>('POST','/v1/me/connections/'+encodeURIComponent(connection)+'/classes/'+encodeURIComponent(id)+'/join'),
   operations:(scope:OperationsScope,reason:string)=>request<OperationsReport>('GET','/v1/staff/operations?'+new URLSearchParams({scope,reason})),
   releaseRecovery:(body:{recovery_id:string;reconciliation_ids:string[];evidence_reference:string;checked_through:string;provider_checked:true;refunds_checked:true;bank_checked:true;reason:string})=>request<{recovery_released:boolean;correlation_id:string}>('POST','/v1/staff/operations/recovery-releases',body),
   controlCheckout:(body:{request_key:string;revision:number;paused:boolean;reason:string})=>request<{checkout:OperationsReport['checkout'];correlation_id:string}>('POST','/v1/staff/operations/checkout',body),
