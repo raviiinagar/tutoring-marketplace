@@ -9,6 +9,7 @@ import {
   type CheckoutConfirmation,
   type CouponQuote,
   type CouponRedemption,
+  type RequestAccess,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Notice, useSingleFlight } from "@/components/account/ui";
@@ -71,10 +72,11 @@ export function PaymentCheckout({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string>();
   const [message, setMessage] = useState<string>();
-  const [accepted, setAccepted] = useState(false);
+  const [acceptedFor, setAcceptedFor] = useState<string>();
   const [coupon, setCoupon] = useState("");
   const [quote, setQuote] = useState<CouponQuote>();
   const [promotion, setPromotion] = useState<CouponRedemption>();
+  const [couponCoverage, setCouponCoverage] = useState<RequestAccess["coverage"]>();
   const key = useRef(crypto.randomUUID());
   const { loading, run } = useSingleFlight();
   const refresh = useCallback(async () => {
@@ -90,6 +92,10 @@ export function PaymentCheckout({
         setError(undefined);
         await onAccessChange?.();
       } else setError(describeFailure(result.error));
+    } else {
+      const access = await api.requestAccess();
+      if (access.ok)
+        setCouponCoverage(access.data.coverage?.source === "COUPON" ? access.data.coverage : null);
     }
   }, [onAccessChange]);
   useEffect(() => {
@@ -115,9 +121,8 @@ export function PaymentCheckout({
     purchase?.access?.status === "EXPIRED" &&
     !!purchase.access.starts_at &&
     !purchase.resolution_required;
-  useEffect(() => {
-    setAccepted(false);
-  }, [repurchasing, purchase?.id]);
+  const acceptanceKey = `${purchase?.id || "new"}:${repurchasing}:${listing?.id || ""}:${learnerId || ""}:${quote?.code || ""}`;
+  const accepted = acceptedFor === acceptanceKey;
   useEffect(() => {
     const focus = () => void refresh();
     window.addEventListener("focus", focus);
@@ -223,6 +228,40 @@ export function PaymentCheckout({
       : repurchasing
         ? policy?.disclosures
         : purchase?.disclosures || policy?.disclosures;
+  if (couponCoverage?.source === "COUPON")
+    return (
+      <section
+        aria-label="Access Pass checkout"
+        className="space-y-3 rounded-2xl border bg-coral-soft/30 p-5"
+      >
+        <h2 className="text-xl font-semibold">Your Access Pass</h2>
+        <p className="font-semibold" role="status">
+          {couponCoverage.status === "ACTIVE"
+            ? "Access Pass active · Fully covered by coupon"
+            : "Coupon redeemed · Awaiting Tutor acceptance"}
+        </p>
+        <p className="text-sm">No payment required. Tuition stays payable directly to the Tutor.</p>
+        <p className="text-sm">
+          {couponCoverage.status === "ACTIVE"
+            ? "Access ends: "
+            : "Send enquiries and get an eligible Tutor acceptance before: "}
+          {new Intl.DateTimeFormat("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short",
+            timeZone: "Asia/Kolkata",
+          }).format(new Date(couponCoverage.expires_at))}{" "}
+          IST
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={loading}
+          onClick={() => void run(refresh)}
+        >
+          Refresh Access Pass status
+        </Button>
+      </section>
+    );
   return (
     <section
       aria-label="Access Pass checkout"
@@ -434,7 +473,9 @@ export function PaymentCheckout({
                     className="mt-1 size-4 shrink-0 accent-coral-strong"
                     type="checkbox"
                     checked={accepted}
-                    onChange={(event) => setAccepted(event.target.checked)}
+                    onChange={(event) =>
+                      setAcceptedFor(event.target.checked ? acceptanceKey : undefined)
+                    }
                   />
                   I understand that the Access Pass is a separate platform charge and tuition is
                   paid directly to Tutors.
