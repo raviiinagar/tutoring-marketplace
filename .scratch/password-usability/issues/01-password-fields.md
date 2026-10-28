@@ -7,3 +7,5 @@ Acceptance: server/UI agree on 8-128 for new/reset passwords; 7 rejected, 8 acce
 ## Comments
 
 28 October 2026: implementation in progress. Existing unrelated workspace changes preserved.
+
+Source implemented and pushed as 62e31fd. Thirteen auth API scenarios and 52 UI tests passed; UI typecheck and focused formatting/lint completed. Live promotion awaits the pending AWS login browser approval after session expiry/operator IP change. Prepared artifact and exact continuation steps: [password rollout](../../../docs/ops/password-usability-2026-10-28.md).
