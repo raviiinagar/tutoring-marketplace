@@ -14,6 +14,7 @@ import {
   PaymentsService,
   purchaseInput,
   confirmationInput,
+
 } from "./payments.js";
 import { sessionCookieName, type Config } from "./config.js";
 import { PaymentEvents } from "./payment-events.js";
@@ -63,6 +64,8 @@ export class PaymentsController {
       parse(confirmationInput, body),
     );
   }
+  @Get('me/tutor/pro') pro(@Req() r:Request){return this.payments.pro(this.token(r));}
+  @Post('me/tutor/pro/purchases') @HttpCode(200) buyPro(@Req() r:Request&{correlationId:string},@Body() body:unknown){return this.payments.createPro(this.token(r),parse(z.strictObject({request_key:z.uuid(),policy_version:z.literal('tutor-pro-v1'),coupon_code:z.string().trim().toUpperCase().regex(/^[A-Z0-9][A-Z0-9_-]{3,31}$/).optional()}),body),r.correlationId);}
   @Get("payments/policy") policy() {
     return this.payments.policy();
   }

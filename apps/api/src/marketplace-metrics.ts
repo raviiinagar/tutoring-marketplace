@@ -222,7 +222,7 @@ export class MarketplaceMetrics {
       const purchases = (
         await client.query(
           `WITH cohort AS (
-    SELECT p.* FROM purchase_cycles p WHERE p.test_only=$4 AND EXISTS(SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.kind='CAPTURE' AND j.captured_at>=$1 AND j.captured_at<$2 AND j.captured_at<=$3)
+    SELECT p.* FROM purchase_cycles p WHERE p.product='LEARNER_ACCESS' AND p.test_only=$4 AND EXISTS(SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.kind='CAPTURE' AND j.captured_at>=$1 AND j.captured_at<$2 AND j.captured_at<=$3)
    ) SELECT f.domain_id,count(*) AS captured_purchases,sum(m.captured_paise) AS captured_paise,sum(m.unexpected_capture_paise) AS unexpected_capture_paise,
     sum(o.intents) AS refund_intents,sum(v.refunds) AS confirmed_refunds,sum(v.refunded_paise) AS refunded_paise,sum(v.chargeback_paise) AS chargeback_paise,
     count(*) FILTER(WHERE p.matching_deadline<=$3) AS mature_paid_purchases,

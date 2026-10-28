@@ -1,0 +1,55 @@
+# API-only temporary test host; the UI stays on Netlify.
+# Keep /var/lib/tutoring/MAINTENANCE present until deployment gates pass.
+{
+	admin localhost:2019
+}
+
+ravii-tutoring-test.duckdns.org {
+	# Exclude persistent chat events from compression buffering.
+    @compressible {
+        not path /v1/me/connections/*/events /payment-sandbox/v1/me/connections/*/events
+    }
+    encode @compressible zstd gzip
+	header Strict-Transport-Security "max-age=31536000"
+	header X-Content-Type-Options nosniff
+	header X-Robots-Tag "noindex, nofollow"
+
+	@maintenance {
+		file {
+			root /var/lib/tutoring
+			try_files MAINTENANCE
+		}
+	}
+	handle @maintenance {
+		header Cache-Control "no-store"
+		header Retry-After 300
+		respond "Temporarily unavailable for maintenance." 503
+	}
+
+    # Isolated payment sandbox routes; keep ordinary staging unchanged.
+    @sandbox_collection path /payment-sandbox/v1/auth/registrations /payment-sandbox/v1/auth/verification-emails /payment-sandbox/v1/auth/recovery-emails /payment-sandbox/v1/availability/subscriptions /payment-sandbox/v1/me/tutor/evidence /payment-sandbox/v1/me/tutor/identity /payment-sandbox/v1/me/tutor/photo
+    @sandbox_upload {
+        path /payment-sandbox/v1/me/tutor/photo /payment-sandbox/v1/me/tutor/evidence /payment-sandbox/v1/me/tutor/identity
+        method POST
+    }
+    handle @sandbox_upload {
+        respond "Document uploads are disabled on the fictional payment sandbox." 403
+    }
+    @sandbox_registration path /payment-sandbox/v1/auth/registrations /payment-sandbox/v1/auth/verification-emails /payment-sandbox/v1/auth/recovery-emails /payment-sandbox/v1/availability/subscriptions
+    handle @sandbox_registration {
+        respond "Use the supplied fictional payment-test accounts." 403
+    }
+    handle /payment-sandbox/v1/* {
+        uri strip_prefix /payment-sandbox
+        reverse_proxy 127.0.0.1:4100 {
+            header_down Set-Cookie "(.*)" "$1; Secure"
+        }
+    }
+
+	handle /v1/* {
+		reverse_proxy 127.0.0.1:4000
+	}
+	handle {
+		respond "Not found." 404
+	}
+}

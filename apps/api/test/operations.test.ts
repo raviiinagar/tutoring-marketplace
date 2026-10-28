@@ -1,3 +1,4 @@
+import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import {
   ConfiguredNotificationDelivery,
   DeliveryConfigurationError,
@@ -248,7 +249,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
         },
         mfa.cookie,
       ).expect(200);
-    return { ...user, reviewer: mfa };
+    await grantTutorProFixture(database,config,user.email,clock);return { ...user, reviewer: mfa };
   }
   return { ...user, reviewer: undefined };
 }

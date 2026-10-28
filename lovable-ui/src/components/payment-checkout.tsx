@@ -35,7 +35,7 @@ declare global {
   }
 }
 let script: Promise<void> | undefined;
-async function loadCheckout() {
+export async function loadCheckout() {
   if (window.Razorpay) return;
   script ??= new Promise<void>((resolve, reject) => {
     const element = document.createElement("script");

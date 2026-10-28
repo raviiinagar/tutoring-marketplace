@@ -1,3 +1,4 @@
+import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { PaymentEvents } from "../src/payment-events.js";
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
@@ -211,7 +212,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
         },
         mfa.cookie,
       ).expect(200);
-    return { ...user, reviewer: mfa };
+    await grantTutorProFixture(database,config,user.email,clock);return { ...user, reviewer: mfa };
   }
   return { ...user, reviewer: undefined };
 }
@@ -688,6 +689,9 @@ test("ordinary production-mode verified accounts can redeem a non-cash coupon wh
       (await read("/v1/payments/policy", owner.cookie)).body.checkout_available,
       false,
     );
+    const proCode='PRO'+randomBytes(6).toString('hex').toUpperCase();
+    await write('/v1/staff/coupons',{code:proCode,product:'TUTOR_PRO',percent_off:100,max_uses:5,starts_at:clock.toISOString(),expires_at:new Date(clock.getTime()+86400000).toISOString(),reason:'Isolated production-mode Tutor Pro coverage'},mfa.cookie).expect(201);
+    await write('/v1/me/tutor/pro/purchases',{request_key:randomUUID(),policy_version:'tutor-pro-v1',coupon_code:proCode},teacher.cookie).expect(200);
     await write(
       "/v1/me/purchases",
       { ...purchase(owner, listing), coupon_code: code },

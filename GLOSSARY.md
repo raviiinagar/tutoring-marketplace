@@ -48,6 +48,14 @@ _Avoid_: Platform employee unless an employment relationship is explicitly estab
 A tutor's public offer describing the subjects, learner levels, teaching mode, rates and terms offered.
 _Avoid_: Lesson, booking.
 
+**Public Tutor Profile**:
+A Tutor's identity-reviewed public introduction, declared Subjects, indicative rate and self-described experience. Publication does not establish verified teaching expertise or an available teaching offer.
+_Avoid_: Approved teaching offer, qualification verification.
+
+**Tutor Pro Pass**:
+The Tutor's time-limited platform product permitting teaching offers and consented public contact publication. It is separate from the Learner's Access Pass and from Tuition Fees.
+_Avoid_: Learner Access Pass, teaching qualification, tuition payment.
+
 **Contact Request**:
 A learner or guardian's enquiry asking a particular tutor to establish contact about tutoring.
 _Avoid_: Confirmed lesson, booking.

@@ -31,7 +31,7 @@ export function RefundCasePanel({ purchaseId }: { purchaseId: string }) {
     <section className="mt-5 space-y-4" aria-label="Reviewed refund requests">
       <h3 className="font-semibold">Request a refund review</h3>
       <p className="text-sm text-muted-foreground">
-        Your Access Pass has started. Finance reviews post-connection adjustments individually;
+        Your pass has started. Finance reviews refund requests individually;
         submitting a case does not confirm a refund. Keep child details and private documents out of
         your reason.
       </p>
