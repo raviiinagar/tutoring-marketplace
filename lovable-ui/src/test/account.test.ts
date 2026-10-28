@@ -20,7 +20,8 @@ describe("validation", () => {
     expect(validateEmail("nope")).toBeDefined();
   });
   it("password 12–128, never trimmed", () => {
-    expect(validateNewPassword("x".repeat(11))).toBeDefined();
+    expect(validateNewPassword("x".repeat(7))).toBeDefined();
+    expect(validateNewPassword("x".repeat(8))).toBeUndefined();
     expect(validateNewPassword("          ab")).toBeUndefined();
     expect(validateNewPassword("x".repeat(129))).toBeDefined();
   });

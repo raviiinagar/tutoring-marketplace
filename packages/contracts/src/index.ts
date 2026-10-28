@@ -3,7 +3,7 @@ import { z } from "zod";
 export const RegistrationSchema = z.strictObject({
   display_name: z.string().trim().min(2).max(80),
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
-  password: z.string().min(12).max(128),
+  password: z.string().min(8).max(128),
 });
 export const LoginSchema = z.strictObject({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
