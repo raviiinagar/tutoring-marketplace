@@ -1,3 +1,4 @@
+import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -308,7 +309,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
         },
         mfa.cookie,
       ).expect(200);
-    return { ...user, reviewer: mfa };
+    await grantTutorProFixture(database,config,user.email,clock);return { ...user, reviewer: mfa };
   }
   return { ...user, reviewer: undefined };
 }

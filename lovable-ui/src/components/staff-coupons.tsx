@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 export function StaffCoupons() {
   const [rows, setRows] = useState<CouponCampaign[]>();
   const [code, setCode] = useState("");
+  const [product,setProduct]=useState<"LEARNER_ACCESS"|"TUTOR_PRO">("LEARNER_ACCESS");
   const [percent, setPercent] = useState("100");
   const [limit, setLimit] = useState("100");
   const [days, setDays] = useState("7");
@@ -29,7 +30,7 @@ export function StaffCoupons() {
       setNotice(undefined);
       const at = new Date();
       const r = await api.createCoupon({
-        code,
+        code,product,
         percent_off: Number(percent),
         max_uses: Number(limit),
         starts_at: at.toISOString(),
@@ -62,7 +63,7 @@ export function StaffCoupons() {
       </Button>
       {rows && (
         <>
-          <form className="space-y-4" onSubmit={create}>
+          <form className="space-y-4" onSubmit={create}><label className="block text-sm font-semibold">Pass product<select className="input mt-2" value={product} onChange={e=>setProduct(e.target.value as "LEARNER_ACCESS"|"TUTOR_PRO")}><option value="LEARNER_ACCESS">Learner Access Pass · ₹599</option><option value="TUTOR_PRO">Tutor Pro · ₹600</option></select></label>
             <Field
               label="Coupon code"
               required
@@ -118,7 +119,7 @@ export function StaffCoupons() {
           {rows.map((row) => (
             <article key={row.id} className="space-y-2 rounded-xl border p-4">
               <h3 className="font-semibold break-all">
-                {row.code} · {row.percent_off}% off
+                {row.code} · {row.product==='TUTOR_PRO'?'Tutor Pro':'Learner Access Pass'} · {row.percent_off}% off
               </h3>
               <p className="text-sm">
                 {!row.enabled

@@ -1,3 +1,4 @@
+import {tutorProPredicate} from './tutor-pro-access.js';
 import {ReviewPublication} from './review-publication.js';
 import sharp from 'sharp';
 import {z} from 'zod';
@@ -15,7 +16,7 @@ export const discoveryInput=z.strictObject({domain_id:slug.optional(),subject_id
 });
 type Filters=z.infer<typeof discoveryInput>;
 // One row per exact offer. Independent profile tags never participate in matching.
-const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,photo.id AS photo_id,
+export const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,p.onboarding_version,photo.id AS photo_id,
   (SELECT jsonb_agg(jsonb_build_object('kind',c.kind,'reviewed_at',c.reviewed_at,'expires_at',c.expires_at) ORDER BY c.kind,c.id)
    FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
    WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.status='APPROVED' AND c.expires_at>$1
@@ -29,9 +30,10 @@ const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_name,p.
    AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
      WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.kind='IDENTITY' AND c.adult_identity_confirmed
        AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only))
-   AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
+   AND ((p.onboarding_version=2 AND l.payload->>'subject_id'=ANY(p.subject_ids)) OR EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
      WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.subject_id=l.payload->>'subject_id'
-       AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only))
+       AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only)))
+   AND ${tutorProPredicate('l.user_id','$1','NOT $2::boolean')}
    AND NOT EXISTS (SELECT 1 FROM (VALUES ('SUBJECT',l.payload->>'subject_id'),('LEVEL',l.payload->>'level_id'),('CURRICULUM',l.payload->>'curriculum_id'),('EXAM',l.payload->>'exam_id')) AS field(kind,id)
      WHERE field.id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM catalogue_terms t WHERE t.id=field.id AND t.kind=field.kind AND t.active AND l.payload->>'domain_id'=ANY(t.domain_ids)))
    AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements_text(l.payload->'language_ids') AS language(id)
@@ -65,7 +67,7 @@ export class DiscoveryService {
   }
   private async enrichReviews(client:PoolClient,rows:Record<string,any>[]){if(!rows.length)return;const summaries=await this.reviews.summaries(client,[...new Set(rows.map(row=>row.user_id))]);for(const row of rows)row.review_summary=summaries.get(row.user_id);}
   private project(row:Record<string,any>,at:Date){
-    if(!isAdult(decrypt<{birth_date:string}>(row.encrypted_birth_date,this.config.authSecret).birth_date,at))return undefined;
+    if(row.onboarding_version!==2&&!isAdult(decrypt<{birth_date:string}>(row.encrypted_birth_date,this.config.authSecret).birth_date,at))return undefined;
     // Reviewed profile names are public, but a contact accidentally entered as a
     // display name must not become a public contact field.
     const name=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(row.display_name)?'Tutor':row.display_name;

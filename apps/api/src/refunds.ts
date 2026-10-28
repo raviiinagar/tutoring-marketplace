@@ -92,7 +92,7 @@ export class RefundsService {
         ).rows[0] || null;
       const activated = !!(
         await client.query(
-          "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL",
+          "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL UNION ALL SELECT 1 FROM tutor_pro_grants WHERE cycle_id=$1",
           [id],
         )
       ).rowCount;
@@ -118,6 +118,7 @@ export class RefundsService {
       "UPDATE purchase_cycles SET resolution_required=true,updated_at=$2 WHERE id=$1",
       [cycle.id, this.now()],
     );
+    await client.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE cycle_id=$1 AND status<>'REVOKED'",[cycle.id]);
     await client.query(
       "UPDATE access_entitlements SET status='REVOKED' WHERE cycle_id=$1 AND status<>'REVOKED'",
       [cycle.id],
@@ -142,7 +143,7 @@ export class RefundsService {
     if (previous) return;
     const grant = (
       await client.query(
-        "SELECT * FROM access_entitlements WHERE cycle_id=$1 FOR UPDATE",
+        "SELECT starts_at FROM access_entitlements WHERE cycle_id=$1 UNION ALL SELECT starts_at FROM tutor_pro_grants WHERE cycle_id=$1",
         [cycle.id],
       )
     ).rows[0];
@@ -438,7 +439,7 @@ export class RefundsService {
       const cycle = (
         await client.query(
           `SELECT p.* FROM purchase_cycles p WHERE p.test_only=$2 AND (
-    (p.captured_at IS NOT NULL AND p.matching_deadline<=$1 AND NOT EXISTS (SELECT 1 FROM access_entitlements a WHERE a.cycle_id=p.id AND a.starts_at IS NOT NULL) AND NOT EXISTS (SELECT 1 FROM purchase_cancellations c WHERE c.cycle_id=p.id))
+    (p.product='LEARNER_ACCESS' AND p.captured_at IS NOT NULL AND p.matching_deadline<=$1 AND NOT EXISTS (SELECT 1 FROM access_entitlements a WHERE a.cycle_id=p.id AND a.starts_at IS NOT NULL) AND NOT EXISTS (SELECT 1 FROM purchase_cancellations c WHERE c.cycle_id=p.id))
     OR EXISTS (SELECT 1 FROM purchase_cancellations c JOIN payment_journal j ON j.cycle_id=c.cycle_id WHERE c.cycle_id=p.id AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.capture_id=j.id))
     OR EXISTS (SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.kind='UNEXPECTED_CAPTURE' AND NOT EXISTS (SELECT 1 FROM refund_operations r WHERE r.capture_id=j.id))
     ) ORDER BY p.created_at,p.id LIMIT 1 FOR UPDATE OF p SKIP LOCKED`,
@@ -448,7 +449,7 @@ export class RefundsService {
       if (!cycle) return false;
       const activated = !!(
         await client.query(
-          "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL",
+          "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL UNION ALL SELECT 1 FROM tutor_pro_grants WHERE cycle_id=$1",
           [cycle.id],
         )
       ).rowCount;

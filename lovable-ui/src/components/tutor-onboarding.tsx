@@ -1,745 +1,486 @@
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { CheckCircle2, Circle, FileText } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { CheckCircle2, FileCheck, ShieldCheck } from "lucide-react";
 import {
   api,
   describeFailure,
   type TutorState,
   type TutorPolicy,
-  type TutorClaim,
-  type TutorEvidence,
   type Catalogue,
+  type TutorIntroduction,
 } from "@/lib/api";
-import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
-import { Button } from "@/components/ui/button";
-import { TutorPhotoEditor } from "@/components/tutor-photo-editor";
-
-const claimNames = {
-  IDENTITY: "Identity and adult status",
-  QUALIFICATION: "Subject qualification",
-  EXPERIENCE: "Subject experience",
+import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "./account/ui";
+import { Button } from "./ui/button";
+import { TutorPhotoEditor } from "./tutor-photo-editor";
+import { TutorPro } from "./tutor-pro";
+const initial: TutorIntroduction = {
+  display_name: "",
+  biography: "",
+  subject_ids: [],
+  hourly_rate_paise: 50000,
+  identity_country: "IN",
+  identity_document: "AADHAAR",
+  adult_confirmed: false,
+  public_email_consent: false,
+  replace_identity: false,
 };
-const statusNames: Record<string, string> = {
-  DRAFT: "Draft — not submitted",
-  SUBMITTED: "Submitted — waiting for Trust review",
-  PENDING: "Waiting for review",
-  APPROVED: "Approved",
-  CHANGES_REQUESTED: "Changes requested",
-  REJECTED: "Not approved",
-  REVOKED: "Approval withdrawn",
-  EXPIRED: "Approval expired",
-};
-const scanNames: Record<TutorEvidence["scan_status"], string> = {
-  CLEAN: "Scan passed",
-  QUARANTINED: "Scan in progress",
-  REJECTED: "Scan rejected",
-  ERROR: "Scan failed",
-  WITHDRAWN: "Withdrawn",
-};
-
 export function TutorOnboarding() {
-  const [state, setState] = useState<TutorState>();
-  const [policy, setPolicy] = useState<TutorPolicy>();
-  const [catalogue, setCatalogue] = useState<Catalogue>();
-  const [error, setError] = useState<string>();
-  const [notice, setNotice] = useState<string>();
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const [birth, setBirth] = useState("");
-  const [adult, setAdult] = useState(false);
-  const [file, setFile] = useState<File>();
-  const [kind, setKind] = useState<TutorClaim["kind"]>("IDENTITY");
-  const [subject, setSubject] = useState("");
-  const [description, setDescription] = useState("");
-  const [evidence, setEvidence] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<
-    Partial<Record<"name" | "bio" | "birth" | "adult", string>>
-  >({});
-  const [editing, setEditing] = useState(false);
-  const uploadInput = useRef<HTMLInputElement>(null);
-  const profileForm = useRef<HTMLFormElement>(null);
+  const [state, setState] = useState<TutorState>(),
+    [policy, setPolicy] = useState<TutorPolicy>(),
+    [catalogue, setCatalogue] = useState<Catalogue>(),
+    [form, setForm] = useState(initial),
+    [file, setFile] = useState<File>(),
+    [error, setError] = useState<string>(),
+    [notice, setNotice] = useState<string>(),
+    [errors, setErrors] = useState<Record<string, string[]>>({}),
+    [editing, setEditing] = useState(true);
   const { loading, run } = useSingleFlight();
-  const apply = useCallback((data: TutorState) => {
-    setState(data);
-    if (data.claims.some((c) => c.kind === "IDENTITY"))
-      setKind((current) => (current === "IDENTITY" ? "QUALIFICATION" : current));
-    if (data.profile) {
-      setName(data.profile.display_name);
-      setBio(data.profile.biography);
-      setBirth(data.profile.birth_date);
+  const input = useRef<HTMLInputElement>(null);
+  const apply = (next: TutorState) => {
+    setState(next);
+    const p = next.profile;
+    if (p) {
+      setForm({
+        display_name: p.display_name,
+        biography: p.biography,
+        subject_ids: p.subject_ids || [],
+        hourly_rate_paise: p.hourly_rate_paise || 50000,
+        identity_country: p.identity_country || "IN",
+        identity_document: p.identity_document || "AADHAAR",
+        adult_confirmed: true,
+        public_email_consent: !!p.public_email_consent,
+        replace_identity: false,
+        expected_public_revision: p.public_revision,
+      });
+      setEditing(p.onboarding_version !== 2);
     }
-  }, []);
+  };
   const load = async () => {
-    setError(undefined);
-    const r = await api.tutor();
-    if (r.ok) {
-      if (editing) setState(r.data);
-      else apply(r.data);
-    } else setError(describeFailure(r.error));
+    const [a, b, c] = await Promise.all([api.tutor(), api.tutorPolicy(), api.catalogue()]);
+    if (a.ok) apply(a.data);
+    else if (a.error.kind === "http" && a.error.code === "TUTOR_ROLE_REQUIRED")
+      setState({ profile: null, claims: [], evidence: [] });
+    else setError(describeFailure(a.error));
+    if (b.ok) setPolicy(b.data);
+    else setError(describeFailure(b.error));
+    if (c.ok) setCatalogue(c.data);
+    else setError(describeFailure(c.error));
   };
   useEffect(() => {
-    void api.tutor().then((r) => {
-      if (r.ok) apply(r.data);
-      else setError(describeFailure(r.error));
-    });
-    void api.tutorPolicy().then((r) => {
-      if (r.ok) setPolicy(r.data);
-      else setError(describeFailure(r.error));
-    });
-    void api.catalogue().then((r) => {
-      if (r.ok) setCatalogue(r.data);
-      else setError(describeFailure(r.error));
-    });
-  }, [apply]);
-  const start = () => {
-    setError(undefined);
-    setNotice(undefined);
-  };
-  const save = (event: FormEvent) => {
-    event.preventDefault();
-    start();
-    const errors: Partial<Record<"name" | "bio" | "birth" | "adult", string>> = {};
-    if (name.trim().length < 2 || name.trim().length > 80)
-      errors.name = "Enter a display name between 2 and 80 characters.";
-    if (bio.trim().length < 40 || bio.trim().length > 1000)
-      errors.bio =
-        "Write at least 40 characters about your subjects and teaching experience (maximum 1,000).";
-    const date = new Date(birth + "T00:00:00Z");
-    const now = new Date();
-    let age = now.getUTCFullYear() - date.getUTCFullYear();
-    if (
-      now.getUTCMonth() < date.getUTCMonth() ||
-      (now.getUTCMonth() === date.getUTCMonth() && now.getUTCDate() < date.getUTCDate())
-    )
-      age--;
-    if (
-      !Number.isFinite(date.getTime()) ||
-      date.toISOString().slice(0, 10) !== birth ||
-      age < 18 ||
-      age > 110
-    )
-      errors.birth = "Enter a valid date of birth. Tutors must be at least 18.";
-    if (!adult) errors.adult = "Tick the adult confirmation before saving.";
-    setFieldErrors(errors);
-    if (Object.keys(errors).length) {
-      setError("Profile not saved. Fix the highlighted fields below.");
-      requestAnimationFrame(() =>
-        profileForm.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
-      );
-      return;
-    }
+    void load();
+  }, []);
+  const change = <K extends keyof TutorIntroduction>(k: K, v: TutorIntroduction[K]) =>
+    setForm((p) => ({ ...p, [k]: v }));
+  const save = (e: FormEvent) => {
+    e.preventDefault();
     void run(async () => {
-      const r = await api.saveTutor(name, bio, birth, adult);
+      setError(undefined);
+      setNotice(undefined);
+      setErrors({});
+      const r = await api.saveTutorIntroduction(form);
       if (r.ok) {
         apply(r.data);
-        setAdult(false);
-        setEditing(false);
         setNotice(
-          "Profile saved. Next: upload your documents and add the two required evidence details.",
-        );
-      } else setError(describeFailure(r.error));
-    });
-  };
-  const upload = (fictional = false) =>
-    run(async () => {
-      start();
-      let data: string;
-      let media: string;
-      if (fictional && policy?.test_only) {
-        media = "application/pdf";
-        data = btoa(
-          "%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n% Fake identity/qualification sample for local testing only.\n%%EOF\n",
+          "Profile saved. " +
+            (r.data.profile?.eligible
+              ? "Your public profile is updated."
+              : "Next: upload one identity document."),
         );
       } else {
+        setError(describeFailure(r.error));
+        setErrors(("field_errors" in r.error ? r.error.field_errors : undefined) || {});
+      }
+    });
+  };
+  const upload = (sample = false) =>
+    void run(async () => {
+      setError(undefined);
+      setNotice(undefined);
+      let media: string, data: string;
+      if (sample) {
+        media = "application/pdf";
+        data = btoa("%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n");
+      } else {
         if (!file) return;
-        if (!policy || file.size > policy.max_bytes || !policy.media_types.includes(file.type)) {
-          setError("Use a PDF, PNG or JPEG of at most 1 MiB.");
+        if (file.size > 1048576) {
+          setError("Choose one PDF, PNG or JPEG up to 1 MiB.");
           return;
         }
         media = file.type;
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        let value = "";
-        for (let i = 0; i < bytes.length; i += 32768)
-          value += String.fromCharCode(...bytes.subarray(i, i + 32768));
-        data = btoa(value);
+        data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+          reader.onerror = () => reject(new Error("File could not be read"));
+          reader.readAsDataURL(file);
+        });
       }
-      const r = await api.uploadTutorEvidence(media, data);
+      const r = await api.submitTutorIdentity(media, data);
       if (r.ok) {
+        apply(r.data);
         setFile(undefined);
-        if (uploadInput.current) uploadInput.current.value = "";
-        await load();
+        if (input.current) input.current.value = "";
         setNotice(
-          "Document uploaded. Check its scan status below, then choose what it proves in step 3.",
+          r.data.upload
+            ? "Upload received. Scan: " +
+                r.data.upload.scan_status +
+                ". Replace the file if scanning failed."
+            : "ID uploaded, scan passed, and submitted for Trust review.",
         );
       } else setError(describeFailure(r.error));
     });
-  const addClaim = (event: FormEvent) => {
-    event.preventDefault();
-    start();
-    if (description.trim().length < 10) {
-      setError("Describe what this document proves in at least 10 characters.");
-      return;
-    }
-    void run(async () => {
-      const r = await api.tutorClaim(
-        kind,
-        description,
-        evidence,
-        kind === "IDENTITY" ? undefined : subject,
-      );
-      if (r.ok) {
-        setState(r.data);
-        setDescription("");
-        setEvidence("");
-        if (kind === "IDENTITY") setKind("QUALIFICATION");
-        setNotice("Evidence details saved. Your document is linked to this profile revision.");
-      } else setError(describeFailure(r.error));
-    });
-  };
-  const submit = () =>
-    run(async () => {
-      start();
-      const r = await api.submitTutor();
-      if (r.ok) {
-        setState(r.data);
-        setNotice("Profile submitted. Trust will review your documents; check the results here.");
-      } else setError(describeFailure(r.error));
-    });
-  const identity = state?.claims.some((c) => c.kind === "IDENTITY") ?? false;
-  const teaching = state?.claims.some((c) => c.kind !== "IDENTITY") ?? false;
-  const clean = state?.evidence.filter((e) => e.scan_status === "CLEAN") ?? [];
-  const available = clean.filter((e) => !state?.claims.some((c) => c.evidence_id === e.id));
-  const ready =
-    identity && teaching && state?.claims.every((c) => clean.some((e) => e.id === c.evidence_id));
-  const draft = state?.profile?.status === "DRAFT";
-  const submitted = !!state?.profile && !draft;
-  const reviewLabel = (claim: TutorClaim) =>
-    draft && claim.status === "PENDING"
-      ? "Saved — not submitted"
-      : (statusNames[claim.status] ?? claim.status);
-  const label = (item: TutorEvidence) =>
-    `Document ${(state?.evidence.findIndex((e) => e.id === item.id) ?? 0) + 1} · ${item.media_type === "application/pdf" ? "PDF" : item.media_type === "image/png" ? "PNG" : "JPEG"} · ${Math.ceil(item.byte_length / 1024)} KB`;
-  const steps = [
-    {
-      id: "profile",
-      title: "Save your profile",
-      done: !!state?.profile,
-      detail: state?.profile ? "Saved" : "Name, biography and adult confirmation",
-    },
-    {
-      id: "documents",
-      title: "Upload private documents",
-      done: clean.length >= 2,
-      detail: `${state?.evidence.length ?? 0} uploaded · ${clean.length} scan passed`,
-    },
-    {
-      id: "evidence-details",
-      title: "Explain your evidence",
-      done: identity && teaching,
-      detail: `Identity: ${identity ? "added" : "needed"} · Teaching: ${teaching ? "added" : "needed"}`,
-    },
-    {
-      id: "review",
-      title: "Submit for review",
-      done: submitted,
-      detail: submitted
-        ? (statusNames[state!.profile!.status] ?? state!.profile!.status)
-        : "Submit after steps 1–3",
-    },
-  ];
+  const p = state?.profile,
+    identity = state?.claims.find((c) => c.kind === "IDENTITY"),
+    evidence = state?.evidence.find((e) => e.id === identity?.evidence_id);
+  const approved = !!p?.eligible && !!p.hourly_rate_paise && !!p.subject_ids?.length;
   return (
     <AuthShell
       wide
       title="Your Tutor profile"
-      intro="Follow these four steps. Your progress is saved to your account; you can come back later."
-      footer={
-        <Link to="/account" className="link">
-          Back to your account
-        </Link>
-      }
+      intro="Introduce yourself, upload one ID, and track approval here. Your profile is free after identity review."
     >
-      <div className="mb-6 flex flex-wrap gap-3">
-        <Button asChild variant="outline">
-          <Link to="/tutor/listings">Manage teaching offers</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link to="/tutor/requests">Incoming enquiries</Link>
-        </Button>
-      </div>
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
       {!state ? (
-        <div className="mt-4 space-y-3">
-          <p role="status">Loading your saved progress…</p>
-          <Button variant="outline" onClick={() => void load()}>
-            Reload profile
-          </Button>
-        </div>
+        <p role="status">Loading your profile…</p>
       ) : (
-        <>
-          <nav aria-label="Tutor setup progress" className="my-6 grid gap-3 sm:grid-cols-2">
-            {steps.map((step, i) => (
-              <a
-                key={step.id}
-                href={`#${step.id}`}
-                className="flex gap-3 rounded-xl border p-4 hover:bg-muted/40"
+        <div className="space-y-6">
+          <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
+            {[
+              ["Profile saved", !!p],
+              ["ID submitted", !!identity],
+              ["Profile public", approved],
+            ].map(([label, done]) => (
+              <li
+                key={String(label)}
+                className="flex items-center gap-2 rounded-xl border bg-muted/30 p-4 text-sm"
               >
-                {step.done ? (
-                  <CheckCircle2
-                    aria-label="Complete"
-                    className="mt-0.5 h-5 w-5 shrink-0 text-success"
-                  />
-                ) : (
-                  <Circle
-                    aria-label="Not complete"
-                    className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground"
-                  />
-                )}
+                <CheckCircle2
+                  aria-hidden
+                  className={done ? "size-5 text-success" : "size-5 text-muted-foreground"}
+                />
                 <span>
-                  <strong className="block text-sm">
-                    {i + 1}. {step.title}
-                  </strong>
-                  <span className="mt-1 block text-sm text-muted-foreground">{step.detail}</span>
+                  {label}: <strong>{done ? "Done" : "Pending"}</strong>
                 </span>
-              </a>
+              </li>
             ))}
-          </nav>
-          {state.profile && (
-            <Notice tone={state.profile.eligible ? "success" : "info"}>
-              <strong>{statusNames[state.profile.status] ?? state.profile.status}</strong>
-              <p>
-                {state.profile.eligible
-                  ? "Profile evidence is approved. Create a teaching offer for separate publication review."
-                  : draft
-                    ? ready
-                      ? "Your evidence details are ready. Go to step 4 to submit."
-                      : "Next: " +
-                        (!identity
-                          ? "add identity evidence details in step 3."
-                          : !teaching
-                            ? "add qualification or experience details in step 3."
-                            : "check your documents before submitting.")
-                    : "Your profile is not yet eligible for publication. Check the review outcomes in step 4."}
-              </p>
-            </Notice>
-          )}
-          <section id="profile" className="onboarding-section space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">1. Profile details</h2>
-              {state.profile && (
-                <span className="rounded-full bg-success-soft px-3 py-1 text-sm text-success">
-                  Saved · revision {state.profile.revision}
-                </span>
+          </ol>
+          <section className="onboarding-section space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">1. About you</h2>
+              {p && !editing && (
+                <Button variant="outline" onClick={() => setEditing(true)}>
+                  Edit profile
+                </Button>
               )}
             </div>
-            {state.profile && !editing ? (
+            {!editing && p ? (
               <>
-                <p className="font-medium">{state.profile.display_name}</p>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                  {state.profile.biography}
+                <h3 className="text-xl font-semibold">{p.display_name}</h3>
+                <p className="whitespace-pre-wrap break-words text-sm">{p.biography}</p>
+                <p className="text-sm">
+                  {p.subject_ids
+                    ?.map((id) => catalogue?.terms.find((t) => t.id === id)?.label || id)
+                    .join(" · ")}{" "}
+                  · ₹{(p.hourly_rate_paise || 0) / 100}/hour
                 </p>
-                <Button variant="outline" onClick={() => setEditing(true)}>
-                  Edit profile details
-                </Button>
                 <p className="text-xs text-muted-foreground">
-                  Editing starts a new draft. You will need to add your evidence details again and
-                  resubmit.
+                  Subjects, skills and experience are self-declared.
                 </p>
+                {approved && p.public_id && (
+                  <Button variant="outline" asChild>
+                    <Link to="/profiles/$profileId" params={{ profileId: p.public_id }}>
+                      View your public profile
+                    </Link>
+                  </Button>
+                )}
               </>
             ) : (
-              <form ref={profileForm} onSubmit={save} noValidate className="space-y-4">
+              <form onSubmit={save} className="space-y-5">
                 <Field
-                  label="Tutor display name"
-                  value={name}
-                  error={fieldErrors.name}
-                  onChange={(e) => setName(e.target.value)}
-                  maxLength={80}
+                  label="Your public name"
                   required
-                  hint="The name learners will see. 2–80 characters."
+                  minLength={2}
+                  maxLength={80}
+                  value={form.display_name}
+                  error={errors["display_name"]?.join(" ")}
+                  onChange={(e) => change("display_name", e.target.value)}
                 />
-                <div className="space-y-2">
-                  <label htmlFor="tutor-bio" className="block text-sm font-semibold">
-                    Biography
-                  </label>
-                  <p id="bio-hint" className="text-sm text-muted-foreground">
-                    Tell learners what you teach and about your experience. 40–1,000 characters.
+                <fieldset>
+                  <legend className="text-sm font-semibold">Subjects you teach</legend>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Select up to 10. No qualification document required.
                   </p>
-                  <textarea
-                    id="tutor-bio"
-                    className="input min-h-28"
-                    aria-invalid={!!fieldErrors.bio}
-                    aria-describedby={`bio-hint${fieldErrors.bio ? " bio-error" : ""}`}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    maxLength={1000}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {bio.trim().length}/1,000 characters
-                    {bio.trim().length < 40 ? ` · ${40 - bio.trim().length} more needed` : ""}
-                  </p>
-                  {fieldErrors.bio && (
-                    <p id="bio-error" className="text-sm text-destructive">
-                      {fieldErrors.bio}
+                  <div className="mt-3 grid max-h-64 gap-2 overflow-auto sm:grid-cols-2">
+                    {catalogue?.terms
+                      .filter((t) => t.kind === "SUBJECT" && t.active)
+                      .map((t) => (
+                        <label className="flex gap-2 rounded-lg border p-3 text-sm" key={t.id}>
+                          <input
+                            type="checkbox"
+                            checked={form.subject_ids.includes(t.id)}
+                            disabled={
+                              !form.subject_ids.includes(t.id) && form.subject_ids.length >= 10
+                            }
+                            onChange={(e) =>
+                              change(
+                                "subject_ids",
+                                e.target.checked
+                                  ? [...form.subject_ids, t.id]
+                                  : form.subject_ids.filter((id) => id !== t.id),
+                              )
+                            }
+                          />
+                          {t.label}
+                        </label>
+                      ))}
+                  </div>
+                  {errors["subject_ids"] && (
+                    <p role="alert" className="mt-2 text-sm text-destructive">
+                      Choose at least one Subject.
                     </p>
                   )}
-                </div>
+                </fieldset>
                 <Field
-                  label="Date of birth"
-                  type="date"
-                  value={birth}
-                  error={fieldErrors.birth}
-                  onChange={(e) => setBirth(e.target.value)}
-                  hint="Private. Used only to confirm you are at least 18."
+                  label="Hourly tuition rate (INR)"
+                  type="number"
+                  required
+                  min={1}
+                  max={100000}
+                  step="0.01"
+                  value={form.hourly_rate_paise / 100}
+                  onChange={(e) =>
+                    change("hourly_rate_paise", Math.round(Number(e.target.value) * 100))
+                  }
+                  error={errors["hourly_rate_paise"]?.join(" ")}
+                  hint="An indicative rate for your profile. Tuition is paid directly to you."
                 />
+                <label className="block space-y-2 text-sm font-semibold">
+                  About you, skills and experience
+                  <textarea
+                    className="input min-h-32 font-normal"
+                    required
+                    minLength={40}
+                    maxLength={1000}
+                    value={form.biography}
+                    onChange={(e) => change("biography", e.target.value)}
+                  />
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    {form.biography.length}/1,000 characters · minimum 40. Keep phone numbers,
+                    emails and links out.
+                  </span>
+                  {errors["biography"] && (
+                    <span className="text-destructive">{errors["biography"].join(" ")}</span>
+                  )}
+                </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="text-sm font-semibold">
+                    Identity country
+                    <select
+                      className="input mt-2"
+                      value={form.identity_country}
+                      onChange={(e) => {
+                        change("identity_country", e.target.value as "IN" | "OTHER");
+                        change(
+                          "identity_document",
+                          e.target.value === "IN" ? "AADHAAR" : "PASSPORT",
+                        );
+                      }}
+                    >
+                      <option value="IN">India</option>
+                      <option value="OTHER">Other country</option>
+                    </select>
+                  </label>
+                  <label className="text-sm font-semibold">
+                    Identity document
+                    <select
+                      className="input mt-2"
+                      value={form.identity_document}
+                      onChange={(e) =>
+                        change(
+                          "identity_document",
+                          e.target.value as TutorIntroduction["identity_document"],
+                        )
+                      }
+                    >
+                      {form.identity_country === "IN" && (
+                        <>
+                          <option value="AADHAAR">Aadhaar</option>
+                          <option value="GOVERNMENT_ID">Other government photo ID</option>
+                        </>
+                      )}
+                      <option value="PASSPORT">Passport</option>
+                    </select>
+                  </label>
+                </div>
                 <label className="flex items-start gap-3 text-sm">
                   <input
                     type="checkbox"
-                    checked={adult}
-                    aria-invalid={!!fieldErrors.adult}
-                    aria-describedby={fieldErrors.adult ? "adult-error" : undefined}
-                    onChange={(e) => setAdult(e.target.checked)}
+                    required
+                    checked={form.adult_confirmed}
+                    onChange={(e) => change("adult_confirmed", e.target.checked)}
                   />
-                  I am at least 18 and will provide my own identity evidence.
+                  I am at least 18 and will upload my own identity document.
                 </label>
-                {fieldErrors.adult && (
-                  <p id="adult-error" className="text-sm text-destructive">
-                    {fieldErrors.adult}
-                  </p>
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.public_email_consent}
+                    onChange={(e) => change("public_email_consent", e.target.checked)}
+                  />
+                  <span>
+                    Show my verified email publicly to everyone when my Tutor Pro pass is active and
+                    a teaching offer is published. I can withdraw this consent here.
+                  </span>
+                </label>
+                {p && (
+                  <>
+                    <label className="flex items-start gap-3 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.replace_identity}
+                        onChange={(e) => change("replace_identity", e.target.checked)}
+                      />
+                      Replace my identity document and start a new review.
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Changing your identity name, country or document type also starts a new
+                      review. About, Subject, rate and contact-consent edits retain your current
+                      identity approval.
+                    </p>
+                  </>
                 )}
-                {state.profile && (
-                  <Notice tone="info">
-                    Saving creates a new draft revision. Add your evidence details again; earlier
-                    approvals do not apply to the new revision.
-                  </Notice>
-                )}
-                <SubmitButton loading={loading} loadingText="Saving profile…">
-                  {state.profile ? "Save revised profile" : "Save profile and continue"}
+                <SubmitButton loading={loading} disabled={!catalogue} loadingText="Saving…">
+                  {p ? "Save profile changes" : "Save profile and continue"}
                 </SubmitButton>
-                {state.profile && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      apply(state);
-                      setEditing(false);
-                      setFieldErrors({});
-                      setError(undefined);
-                    }}
-                  >
+                {p && (
+                  <Button type="button" variant="outline" onClick={() => apply(state)}>
                     Cancel editing
                   </Button>
                 )}
               </form>
             )}
           </section>
-          {state.profile ? (
+          {p && (
             <>
-              <section id="documents" className="onboarding-section space-y-4">
-                <h2 className="text-lg font-semibold">2. Private documents</h2>
+              <section className="onboarding-section space-y-4">
+                <h2 className="flex items-center gap-2 text-lg font-semibold">
+                  <FileCheck aria-hidden className="size-5" />
+                  2. One private identity document
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Upload a separate file for identity and for qualification or teaching experience.
-                  After scanning, explain each document in step 3. Uploading alone does not submit
-                  your profile.
+                  {p.identity_country === "OTHER"
+                    ? "Upload your passport."
+                    : "Upload your Aadhaar, passport or another government photo ID."}{" "}
+                  PDF, PNG or JPEG, up to 1 MiB. Mask unnecessary identity numbers. Your ID stays
+                  private; it is never your public photo.
                 </p>
-                <div className="rounded-xl bg-muted/40 p-4">
-                  <strong className="text-sm">
-                    {state.evidence.length} document{state.evidence.length === 1 ? "" : "s"}{" "}
-                    uploaded
-                  </strong>
-                  <p className="text-sm text-muted-foreground">
-                    {clean.length} passed scanning. Scan passed means the file can be used for
-                    review; it does not mean Trust has approved it.
-                  </p>
-                </div>
-                {policy?.test_only ? (
-                  <Notice tone="info">
-                    Fictional testing only. Do not upload real identity documents.
-                  </Notice>
-                ) : policy && !policy.uploads_enabled ? (
-                  <Notice tone="info">
-                    Document uploads are temporarily unavailable. Your saved documents are listed
-                    below.
-                  </Notice>
-                ) : (
-                  <p className="text-sm">
-                    PDF, PNG or JPEG · up to 1 MiB each · private. Mask unnecessary identity
-                    numbers.
-                  </p>
-                )}
-                <ul aria-label="Uploaded documents" className="space-y-3">
-                  {state.evidence.map((item, index) => {
-                    const claim = state.claims.find((c) => c.evidence_id === item.id);
-                    const locked = claim && ["PENDING", "APPROVED"].includes(claim.status);
-                    return (
-                      <li key={item.id} className="rounded-xl border p-4">
-                        <div className="flex items-start gap-3">
-                          <FileText
-                            aria-hidden="true"
-                            className="h-5 w-5 shrink-0 text-muted-foreground"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold">
-                              {claim ? claimNames[claim.kind] : label(item)}
-                            </h3>
-                            {claim && (
-                              <p className="text-sm text-muted-foreground">{label(item)}</p>
-                            )}
-                            <p className="mt-2 text-sm">
-                              <strong>Uploaded</strong> · {scanNames[item.scan_status]}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {claim
-                                ? `Linked: ${claim.description}`
-                                : item.scan_status === "CLEAN"
-                                  ? "Next: select this document in step 3 and explain what it proves."
-                                  : item.scan_status === "QUARANTINED"
-                                    ? "Waiting for scanning. Refresh status to check again."
-                                    : "Withdraw this file and upload a replacement."}
-                            </p>
-                            {claim && (
-                              <p className="mt-1 text-sm">Trust review: {reviewLabel(claim)}</p>
-                            )}
-                            <details className="mt-3 text-xs text-muted-foreground">
-                              <summary>Document reference</summary>
-                              <p className="mt-1 break-all">{item.id}</p>
-                              <p>
-                                Original filenames are not retained. Use the document number and
-                                evidence description to identify this file.
-                              </p>
-                            </details>
-                            <Button
-                              className="mt-3"
-                              variant="outline"
-                              disabled={loading || !!locked}
-                              onClick={() =>
-                                void run(async () => {
-                                  start();
-                                  const r = await api.withdrawTutorEvidence(item.id);
-                                  if (r.ok) {
-                                    await load();
-                                    setNotice("Document withdrawn.");
-                                  } else setError(describeFailure(r.error));
-                                })
-                              }
-                            >
-                              Withdraw document {index + 1}
-                            </Button>
-                            {locked && (
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                Start a revised profile before withdrawing evidence under review or
-                                approved.
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {!state.evidence.length && (
-                  <p className="text-sm text-muted-foreground">
-                    No documents uploaded yet. Choose your first file below.
-                  </p>
-                )}
-                <label className="block text-sm font-semibold" htmlFor="evidence-upload">
-                  Choose a private document
-                </label>
-                <input
-                  ref={uploadInput}
-                  id="evidence-upload"
-                  aria-label="Evidence file"
-                  type="file"
-                  accept="application/pdf,image/png,image/jpeg"
-                  disabled={loading || !policy?.uploads_enabled || policy.test_only}
-                  onChange={(e) => setFile(e.target.files?.[0])}
-                />
-                {file && (
-                  <p className="text-sm">
-                    Selected: {file.name} · {Math.ceil(file.size / 1024)} KB. Click Upload evidence
-                    to save it.
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={loading || !file || !policy?.uploads_enabled}
-                    onClick={() => void upload()}
-                  >
-                    {loading ? "Please wait…" : "Upload evidence"}
-                  </Button>
-                  {policy?.test_only && (
-                    <Button disabled={loading} onClick={() => void upload(true)}>
-                      Upload fictional sample
-                    </Button>
-                  )}
-                  <Button variant="outline" disabled={loading} onClick={() => void load()}>
-                    Refresh document status
-                  </Button>
-                </div>
-              </section>
-              <section id="evidence-details" className="onboarding-section space-y-4">
-                <h2 className="text-lg font-semibold">3. Explain what your documents prove</h2>
-                <p className="text-sm text-muted-foreground">
-                  Add one identity entry and at least one subject qualification or experience entry.
-                  Each entry needs its own scanned document. These are your evidence claims for
-                  Trust review.
-                </p>
-                <ul className="space-y-2 text-sm">
-                  <li>{identity ? "✓ Identity evidence added" : "○ Identity evidence needed"}</li>
-                  <li>
-                    {teaching
-                      ? "✓ Qualification or experience added"
-                      : "○ Qualification or experience needed"}
-                  </li>
-                </ul>
-                {draft ? (
-                  <form onSubmit={addClaim} className="space-y-4">
-                    <label className="block text-sm font-semibold">
-                      Claim type
-                      <select
-                        aria-label="Claim type"
-                        className="input mt-2"
-                        value={kind}
-                        onChange={(e) => setKind(e.target.value as TutorClaim["kind"])}
-                      >
-                        {Object.entries(claimNames).map(([value, label]) => (
-                          <option
-                            key={value}
-                            value={value}
-                            disabled={value === "IDENTITY" && identity}
-                          >
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {kind !== "IDENTITY" && (
-                      <label className="block text-sm font-semibold">
-                        Subject
-                        <select
-                          required
-                          aria-label="Subject"
-                          className="input mt-2"
-                          value={subject}
-                          onChange={(e) => setSubject(e.target.value)}
-                        >
-                          <option value="">Choose the subject you teach</option>
-                          {catalogue?.terms
-                            .filter((t) => t.kind === "SUBJECT" && t.active)
-                            .map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.label}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
-                    )}
-                    <Field
-                      label="Claim description"
-                      hint={
-                        kind === "IDENTITY"
-                          ? "Explain how this document confirms your identity and adult status. At least 10 characters."
-                          : "Describe the qualification or teaching experience shown in this document. At least 10 characters."
-                      }
-                      value={description}
-                      required
-                      minLength={10}
-                      maxLength={300}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                    <label className="block text-sm font-semibold">
-                      Clean evidence
-                      <select
-                        required
-                        aria-label="Clean evidence"
-                        className="input mt-2"
-                        value={evidence}
-                        onChange={(e) => setEvidence(e.target.value)}
-                      >
-                        <option value="">Choose an uploaded document</option>
-                        {available.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {label(item)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {!available.length && (
-                      <p className="text-sm text-muted-foreground">
-                        Upload a separate document in step 2, or wait for its scan to pass. Each
-                        file can support only one entry.
-                      </p>
-                    )}
-                    <SubmitButton
-                      loading={loading}
-                      loadingText="Saving evidence details…"
-                      disabled={!available.length || (kind === "IDENTITY" && identity)}
-                    >
-                      Add claim
-                    </SubmitButton>
-                  </form>
-                ) : (
-                  <p className="text-sm">
-                    Your submitted evidence details are listed below. Edit your profile to begin a
-                    new revision if corrections are needed.
-                  </p>
-                )}
-              </section>
-              <section id="review" className="onboarding-section space-y-4">
-                <h2 className="text-lg font-semibold">4. Submit and track your review</h2>
-                {state.claims.map((claim) => (
-                  <article key={claim.id} className="space-y-2 rounded-xl border p-4 text-sm">
-                    <h3 className="font-semibold">
-                      {claimNames[claim.kind]} · {reviewLabel(claim)}
-                    </h3>
-                    {claim.subject_id && (
+                {identity ? (
+                  <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
+                    <p>
+                      <strong>ID uploaded</strong> ·{" "}
+                      {evidence?.scan_status === "CLEAN"
+                        ? "Scan passed"
+                        : evidence?.scan_status || "Checking scan"}
+                    </p>
+                    <p>
+                      Trust review:{" "}
+                      <strong>
+                        {p.status === "SUBMITTED"
+                          ? "Waiting for review"
+                          : approved
+                            ? "Identity approved"
+                            : identity.status}
+                      </strong>
+                    </p>
+                    {identity.review_reason && <p>Reviewer feedback: {identity.review_reason}</p>}
+                    {identity.expires_at && (
                       <p>
-                        Subject:{" "}
-                        {catalogue?.terms.find((t) => t.id === claim.subject_id)?.label ??
-                          claim.subject_id}
+                        Approval valid until {new Date(identity.expires_at).toLocaleDateString()}.
                       </p>
                     )}
-                    <p>{claim.description}</p>
-                    {claim.reviewed_check && <p>Check: {claim.reviewed_check}</p>}
-                    {claim.review_reason && <p>Review reason: {claim.review_reason}</p>}
-                    {claim.expires_at && (
-                      <p>Approval expires: {new Date(claim.expires_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">
+                      To replace this ID, edit your profile and select “Replace my identity
+                      document”.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">
+                      No identity document submitted for this revision yet.
+                    </p>
+                    {state.evidence
+                      .filter(
+                        (item) =>
+                          !state.claims.some((c) => c.evidence_id === item.id) &&
+                          ["ERROR", "REJECTED", "QUARANTINED"].includes(item.scan_status),
+                      )
+                      .slice(-1)
+                      .map((item) => (
+                        <Notice key={item.id} tone="error">
+                          Last upload: {item.scan_status}. This document was not submitted for
+                          approval. Upload a replacement.
+                        </Notice>
+                      ))}
+                    {policy?.test_only ? (
+                      <Notice tone="info">Fictional testing only. Do not upload a real ID.</Notice>
+                    ) : (
+                      <>
+                        <input
+                          ref={input}
+                          aria-label="Identity document"
+                          type="file"
+                          accept="application/pdf,image/png,image/jpeg"
+                          disabled={loading || editing || !policy?.uploads_enabled}
+                          onChange={(e) => setFile(e.target.files?.[0])}
+                        />
+                        {file && (
+                          <p className="text-sm">
+                            Selected: {file.name} · {Math.ceil(file.size / 1024)} KB
+                          </p>
+                        )}
+                      </>
                     )}
-                  </article>
-                ))}
-                {draft && !ready && (
-                  <p className="text-sm">
-                    Before submitting: {!identity ? "add identity evidence. " : ""}
-                    {!teaching ? "add subject qualification or experience evidence. " : ""}All
-                    linked documents must pass scanning.
-                  </p>
+                    <Button
+                      disabled={
+                        loading ||
+                        editing ||
+                        !policy?.uploads_enabled ||
+                        (!policy.test_only && !file)
+                      }
+                      onClick={() => upload(!!policy?.test_only)}
+                    >
+                      {loading
+                        ? "Uploading and submitting…"
+                        : policy?.test_only
+                          ? "Submit fictional ID sample"
+                          : "Upload ID and submit for review"}
+                    </Button>
+                  </>
                 )}
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={loading || !draft || !ready || editing}
-                    onClick={() => void submit()}
-                  >
-                    {submitted ? "Profile already submitted" : "Submit Tutor profile for review"}
-                  </Button>
-                  <Button variant="outline" disabled={loading} onClick={() => void load()}>
-                    Refresh review status
-                  </Button>
-                </div>
-                {editing && (
-                  <p className="text-sm">Save or cancel your profile changes before submitting.</p>
+                <Button variant="outline" disabled={loading} onClick={() => void run(load)}>
+                  Refresh review status
+                </Button>
+                {approved && (
+                  <Notice tone="success">
+                    <ShieldCheck aria-hidden className="mr-2 inline size-4" />
+                    Identity approved. Your profile can appear publicly without a pass or teaching
+                    offer.
+                  </Notice>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Approval of profile evidence and approval of a teaching offer are separate.
-                  Neither is a guarantee of teaching quality.
-                </p>
               </section>
-              <TutorPhotoEditor />
+              <details className="onboarding-section">
+                <summary className="cursor-pointer font-semibold">
+                  Public profile photo · optional
+                </summary>
+                <p className="my-3 text-sm text-muted-foreground">
+                  You can add your own portrait later. It is reviewed separately.
+                </p>
+                <TutorPhotoEditor />
+              </details>
+              <TutorPro identityApproved={approved} />
             </>
-          ) : (
-            <Notice tone="info">
-              Save your profile in step 1 to unlock document uploads and review.
-            </Notice>
           )}
-        </>
+        </div>
       )}
     </AuthShell>
   );

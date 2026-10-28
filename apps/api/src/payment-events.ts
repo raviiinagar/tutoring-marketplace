@@ -1,3 +1,4 @@
+import {activateTutorPro} from './tutor-pro-access.js';
 import { normalizeFinancialEvent } from "./financial-events.js";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -258,7 +259,7 @@ export class PaymentEvents {
               cycle.id,
               captured,
               deadline,
-              deadline <= this.now() || actual.status === "refunded",
+              (cycle.product!=='TUTOR_PRO' && deadline <= this.now()) || actual.status === "refunded",
               this.now(),
             ],
           );
@@ -267,6 +268,7 @@ export class PaymentEvents {
             "UPDATE purchase_cycles SET status='REVIEW',resolution_required=true,updated_at=$2 WHERE id=$1",
             [cycle.id, this.now()],
           );
+        if(kind==='CAPTURE')await activateTutorPro(client,cycle,this.now());
         await mark("PROCESSED");
       });
     } catch {

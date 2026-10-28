@@ -6,6 +6,8 @@ Decision date: 10 October 2026
 
 The owner instructed the design process to use recommended defaults for subsequent questions. The decisions below therefore include confirmed answers and explicitly identified adopted defaults. This specification supersedes the older narrow catalogue assumptions. Business naming, legal merchant identity, live credentials and external approvals remain release dependencies, not invented facts.
 
+Owner amendment, 28 October 2026: [ADR 0011](../../docs/adr/0011-identity-first-profiles-and-tutor-pro.md) and the [short Tutor onboarding spec](../tutor-simple/spec.md) supersede the earlier mandatory qualification-document and private-only Tutor-contact rules. Identity-reviewed public introductions are free; Tutor Pro INR600/30 days unlocks teaching offers and explicitly consented public email. The Learner Access Pass remains separate.
+
 ## Problem Statement
 
 Learners across India need to find suitable, responsive tutors across school, entrance examination, higher education, career and other learning domains. Tutors need relevant enquiries and a trustworthy way to describe their offers. The owner needs a production application that charges for useful tutor connections, protects private information, accounts for money correctly, and supports failed matches, refunds and safety cases.

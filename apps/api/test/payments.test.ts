@@ -1,3 +1,4 @@
+import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { PaymentEvents } from "../src/payment-events.js";
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
@@ -211,7 +212,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
         },
         mfa.cookie,
       ).expect(200);
-    return { ...user, reviewer: mfa };
+    await grantTutorProFixture(database,config,user.email,clock);return { ...user, reviewer: mfa };
   }
   return { ...user, reviewer: undefined };
 }
@@ -886,6 +887,7 @@ test("ordinary expiry preserves covered requests and established contacts; only 
   clock = new Date(new Date(active.ends_at).getTime() - 3600000);
   await refreshSession(owner);
   await refreshSession(teacher);
+  await grantTutorProFixture(database,config,teacher.email,clock); // Keep supply available while testing Learner expiry.
   const later = (
     await submitEnquiry(enquiry(owner, otherListing), owner.cookie).expect(200)
   ).body.request;

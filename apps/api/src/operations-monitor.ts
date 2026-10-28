@@ -69,7 +69,7 @@ export class OperationsMonitor {
       await count(
         "CAPTURE_WITHOUT_ACTIVATION",
         "FINANCE",
-        `SELECT count(*) n FROM purchase_cycles p WHERE provider_key_id=$1 AND test_only=$2 AND captured_at IS NOT NULL AND matching_deadline<=$3 AND NOT EXISTS(SELECT 1 FROM access_entitlements e WHERE e.cycle_id=p.id AND e.starts_at IS NOT NULL) AND EXISTS(SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.amount_paise>(SELECT COALESCE(sum(amount_paise),0) FROM reversal_journal r WHERE r.capture_id=j.id))`,
+        `SELECT count(*) n FROM purchase_cycles p WHERE product='LEARNER_ACCESS' AND provider_key_id=$1 AND test_only=$2 AND captured_at IS NOT NULL AND matching_deadline<=$3 AND NOT EXISTS(SELECT 1 FROM access_entitlements e WHERE e.cycle_id=p.id AND e.starts_at IS NOT NULL) AND EXISTS(SELECT 1 FROM payment_journal j WHERE j.cycle_id=p.id AND j.amount_paise>(SELECT COALESCE(sum(amount_paise),0) FROM reversal_journal r WHERE r.capture_id=j.id))`,
         [key, testOnly, at],
       );
       await count(
