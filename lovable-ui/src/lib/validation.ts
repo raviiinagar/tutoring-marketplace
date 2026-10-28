@@ -22,7 +22,7 @@ export function validateEmail(raw: string): string | undefined {
 /** Passwords are never trimmed. */
 export function validateNewPassword(pw: string): string | undefined {
   if (!pw) return "Enter a password.";
-  if (pw.length < 12) return "Password must be at least 12 characters.";
+  if (pw.length < 8) return "Password must be at least 8 characters.";
   if (pw.length > 128) return "Password must be 128 characters or fewer.";
   return undefined;
 }

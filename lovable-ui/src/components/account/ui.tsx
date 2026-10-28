@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Eye, EyeOff, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -220,6 +220,8 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export function Field({ label, error, hint, id, ...rest }: FieldProps) {
   const ready = useContext(AccountReady);
+  const [visible, setVisible] = useState(false);
+  const password = rest.type === "password";
   const auto = useId();
   const fid = id ?? auto;
   const errId = `${fid}-error`;
@@ -236,14 +238,35 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
           {hint}
         </p>
       )}
-      <input
-        id={fid}
-        className="input"
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        {...rest}
-        disabled={rest.disabled || !ready}
-      />
+      <div className="relative">
+        <input
+          id={fid}
+          className={password ? "input pr-14" : "input"}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          {...rest}
+          type={password && visible ? "text" : rest.type}
+          disabled={rest.disabled || !ready}
+        />
+        {password && (
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-lg text-muted-foreground hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+            aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
+            aria-controls={fid}
+            aria-pressed={visible}
+            disabled={rest.disabled || !ready}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => setVisible((value) => !value)}
+          >
+            {visible ? (
+              <EyeOff aria-hidden className="size-5" />
+            ) : (
+              <Eye aria-hidden className="size-5" />
+            )}
+          </button>
+        )}
+      </div>
       {error && (
         <p id={errId} role="alert" className="text-sm font-medium text-destructive">
           {error}
