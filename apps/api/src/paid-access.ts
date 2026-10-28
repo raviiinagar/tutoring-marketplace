@@ -45,7 +45,7 @@ export class PaidAccess {
   async forPayer(client: PoolClient, payer: string, at: Date) {
     const cycle = (
       await client.query(
-        "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND open FOR UPDATE",
+        "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND product='LEARNER_ACCESS' AND open FOR UPDATE",
         [payer],
       )
     ).rows[0];

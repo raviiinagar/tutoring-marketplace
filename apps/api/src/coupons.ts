@@ -12,8 +12,10 @@ export const couponCode = z
   .trim()
   .toUpperCase()
   .regex(/^[A-Z0-9][A-Z0-9_-]{3,31}$/);
+export const passProduct=z.enum(['LEARNER_ACCESS','TUTOR_PRO']);
 export const campaignInput = z.strictObject({
   code: couponCode,
+  product: passProduct.default("LEARNER_ACCESS"),
   percent_off: z.number().int().min(1).max(100),
   starts_at: z.iso.datetime({ offset: true }),
   expires_at: z.iso.datetime({ offset: true }),
@@ -52,6 +54,7 @@ export class CouponsService {
     payer: string,
     code: string,
     lock = false,
+    product: string = "LEARNER_ACCESS",
   ) {
     const row = (
       await client.query(
@@ -63,7 +66,7 @@ export class CouponsService {
     const at = this.now();
     if (
       !row ||
-      !row.enabled ||
+      !row.enabled || row.product !== product ||
       row.test_only !== (this.config.mode !== "production") ||
       new Date(row.starts_at) > at ||
       new Date(row.expires_at) <= at
@@ -78,14 +81,14 @@ export class CouponsService {
     if (uses.total >= row.max_uses || uses.already_used) throw unavailable();
     return row;
   }
-  async quote(token: string | undefined, code: string) {
+  async quote(token: string | undefined, code: string, product="LEARNER_ACCESS") {
     await this.limits.consume("coupon-quote", token || "anonymous", 30, 900000);
     return this.database.transaction(async (client) => {
       const { user } = await this.auth.authenticated(client, token);
-      const row = await this.eligible(client, user.id, code);
+      const row = await this.eligible(client, user.id, code, false, product);
       const policy = (
         await client.query(
-          "SELECT * FROM payment_policies WHERE version='access-v1'",
+          "SELECT * FROM payment_policies WHERE product=$1", [product],
         )
       ).rows[0];
       return {
@@ -113,7 +116,7 @@ export class CouponsService {
     const at = this.now();
     const row = (
       await client.query(
-        "INSERT INTO coupon_redemptions(id,coupon_id,payer_id,request_key,payload_hash,policy_version,code,percent_off,base_paise,discount_paise,total_paise,test_only,cycle_id,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *",
+        "INSERT INTO coupon_redemptions(id,coupon_id,payer_id,request_key,payload_hash,policy_version,code,percent_off,base_paise,discount_paise,total_paise,test_only,cycle_id,created_at,product) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *",
         [
           id,
           campaign.id,
@@ -128,11 +131,14 @@ export class CouponsService {
           price.total_paise,
           campaign.test_only,
           cycle,
-          at,
+          at, policy.product,
         ],
       )
     ).rows[0];
-    if (price.total_paise === 0)
+    if (price.total_paise === 0 && policy.product === 'TUTOR_PRO') {
+      await client.query("INSERT INTO tutor_pro_grants(id,payer_id,source,coupon_redemption_id,test_only,starts_at,ends_at,created_at) VALUES($1,$2,'COUPON',$3,$4,$5,$6,$5)",[randomUUID(),payer,id,campaign.test_only,at,new Date(at.getTime()+30*86400000)]);
+    }
+    if (price.total_paise === 0 && policy.product === 'LEARNER_ACCESS')
       await client.query(
         "INSERT INTO access_entitlements(id,payer_id,source,policy_version,status,test_only,coupon_redemption_id,issued_at,matching_deadline,created_at) VALUES($1,$2,'COUPON',$3,'MATCHING',$4,$5,$6,$7,$6)",
         [
@@ -166,13 +172,13 @@ export class CouponsService {
   async view(client: PoolClient, row: Row) {
     const grant = (
       await client.query(
-        "SELECT * FROM access_entitlements WHERE coupon_redemption_id=$1",
+        (row.product==='TUTOR_PRO'?"SELECT * FROM tutor_pro_grants WHERE coupon_redemption_id=$1":"SELECT * FROM access_entitlements WHERE coupon_redemption_id=$1"),
         [row.id],
       )
     ).rows[0];
     const at = this.now();
     return {
-      id: row.id,
+      id: row.id, product: row.product,
       code: row.code,
       base_paise: row.base_paise,
       discount_paise: row.discount_paise,
@@ -188,7 +194,7 @@ export class CouponsService {
                 : new Date(grant.ends_at || grant.matching_deadline) <= at
                   ? "EXPIRED"
                   : grant.status,
-            matching_deadline: new Date(grant.matching_deadline).toISOString(),
+            matching_deadline: grant.matching_deadline?new Date(grant.matching_deadline).toISOString():null,
             starts_at: grant.starts_at
               ? new Date(grant.starts_at).toISOString()
               : null,
@@ -199,13 +205,13 @@ export class CouponsService {
         : null,
     };
   }
-  async history(token?: string) {
+  async history(token?: string, product="LEARNER_ACCESS") {
     return this.database.transaction(async (client) => {
       const { user } = await this.auth.safetyIdentity(client, token);
       const rows = (
         await client.query(
-          "SELECT * FROM coupon_redemptions WHERE payer_id=$1 AND test_only=$2 ORDER BY created_at DESC,id DESC LIMIT 50",
-          [user.id, this.config.mode !== "production"],
+          "SELECT * FROM coupon_redemptions WHERE payer_id=$1 AND test_only=$2 AND product=$3 ORDER BY created_at DESC,id DESC LIMIT 50",
+          [user.id, this.config.mode !== "production", product],
         )
       ).rows;
       const redemptions = [];
@@ -218,7 +224,7 @@ export class CouponsService {
       const { user } = await this.auth.authenticated(client, token);
       const redemption = (
         await client.query(
-          "SELECT * FROM coupon_redemptions WHERE id=$1 AND payer_id=$2 AND total_paise=0 AND test_only=$3",
+          "SELECT * FROM coupon_redemptions WHERE id=$1 AND payer_id=$2 AND total_paise=0 AND product='LEARNER_ACCESS' AND test_only=$3",
           [id, user.id, this.config.mode !== "production"],
         )
       ).rows[0];
@@ -289,7 +295,7 @@ export class CouponsService {
         );
       const row = (
         await client.query(
-          "INSERT INTO access_coupons(id,code,percent_off,starts_at,expires_at,max_uses,test_only,created_by,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(code) DO NOTHING RETURNING *",
+          "INSERT INTO access_coupons(id,code,percent_off,starts_at,expires_at,max_uses,test_only,created_by,created_at,product) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(code) DO NOTHING RETURNING *",
           [
             randomUUID(),
             input.code,
@@ -299,7 +305,7 @@ export class CouponsService {
             input.max_uses,
             this.config.mode !== "production",
             actor.id,
-            at,
+            at, input.product,
           ],
         )
       ).rows[0];

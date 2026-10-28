@@ -127,7 +127,7 @@ export class ReconciliationService {
         provider_payment_id: capture.provider_payment_id,
         test_only: cycle.test_only,
         description:
-          "One-time platform Access Pass. Direct tuition is excluded.",
+          cycle.product==='TUTOR_PRO'?"One-time Tutor Pro, 30 days. Direct tuition is excluded.":"One-time platform Access Pass. Direct tuition is excluded.",
         tax_document_notice:
           "This payment confirmation is not a tax invoice. Tax documents require the approved merchant invoice configuration.",
       };

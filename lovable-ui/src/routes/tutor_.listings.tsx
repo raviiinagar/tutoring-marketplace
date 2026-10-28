@@ -114,6 +114,7 @@ function TutorListings() {
   const [ready, setReady] = useState(false);
   const { loading, run } = useSingleFlight();
   const [eligibleSubjects, setEligibleSubjects] = useState<string[]>([]);
+  const [proActive,setProActive]=useState(false);
   const [approvalsReady, setApprovalsReady] = useState(false);
   const initialized = useRef(false);
   const unavailableApprovals =
@@ -121,7 +122,7 @@ function TutorListings() {
   const load = async () => {
     const r = await api.listings();
     if (r.ok) {
-      setListings(r.data.listings);
+      setListings(r.data.listings);setProActive(r.data.tutor_pro_active===true);
       const available = Array.isArray(r.data.eligible_subject_ids);
       setEligibleSubjects(available ? r.data.eligible_subject_ids : []);
       setApprovalsReady(available);
@@ -264,7 +265,7 @@ function TutorListings() {
               . Choose the matching Subject and learning requirements below.
               {!terms("SUBJECT").length && (
                 <p className="mt-2">
-                  No approved Subject belongs to this Learning Domain. Choose a matching domain or
+                  No declared or approved Subject belongs to this Learning Domain. Choose a matching domain or
                   complete another Subject evidence review.
                 </p>
               )}
@@ -358,7 +359,8 @@ function TutorListings() {
           Refresh offers
         </Button>
       </section>
-      <form onSubmit={save} className="mt-8 space-y-4">
+      {!proActive&&<Notice tone="info">An active Tutor Pro pass is required to create or publish teaching offers. Your identity-approved profile stays free. <Link to="/tutor" hash="tutor-pro" className="font-semibold underline">Get Tutor Pro</Link></Notice>}
+      <form onSubmit={save} className="mt-8 space-y-4"><fieldset disabled={!proActive} className="space-y-4">
         <h2 className="font-semibold">
           {editing ? "Edit teaching offer" : "Create teaching offer"}
         </h2>
@@ -539,7 +541,7 @@ function TutorListings() {
             Cancel editing
           </Button>
         )}
-      </form>
+      </fieldset></form>
     </AuthShell>
   );
 }

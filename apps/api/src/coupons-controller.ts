@@ -6,11 +6,11 @@ import {
   Inject,
   Param,
   Post,
-  Req,
+  Req, Query,
 } from "@nestjs/common";
 import type { Request } from "express";
 import { z } from "zod";
-import { CouponsService, couponCode, campaignInput } from "./coupons.js";
+import { CouponsService, couponCode, campaignInput, passProduct } from "./coupons.js";
 import { sessionCookieName, type Config } from "./config.js";
 import { staffCookieName } from "./staff.js";
 import { ApiProblem } from "./errors.js";
@@ -47,13 +47,10 @@ export class CouponsController {
     @Req() r: Request,
     @Body() body: unknown,
   ) {
-    return this.coupons.quote(
-      this.account(r),
-      parse(z.strictObject({ code: couponCode }), body).code,
-    );
+    const input=parse(z.strictObject({code:couponCode,product:passProduct.default("LEARNER_ACCESS")}),body);return this.coupons.quote(this.account(r),input.code,input.product);
   }
-  @Get("me/coupon-redemptions") history(@Req() r: Request) {
-    return this.coupons.history(this.account(r));
+  @Get("me/coupon-redemptions") history(@Req() r: Request,@Query("product") product?:string) {
+    return this.coupons.history(this.account(r),parse(passProduct,product||"LEARNER_ACCESS"));
   }
   @Post("me/coupon-redemptions/:id/cancellation") @HttpCode(200) cancel(
     @Req() r: Request,

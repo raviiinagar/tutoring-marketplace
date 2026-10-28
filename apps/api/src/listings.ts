@@ -1,3 +1,4 @@
+import {currentTutorPro} from './tutor-pro-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
@@ -27,7 +28,7 @@ export const offerInput=z.strictObject({
   if(v.domain_id==='entrance'&&!v.exam_id)invalid('Entrance offers require an Exam Track.');
   if(v.exam_id&&['exam-jee','exam-jee-main','exam-jee-advanced'].includes(v.exam_id)&&!['subject-physics','subject-chemistry','subject-mathematics'].includes(v.subject_id))invalid('Choose a JEE Subject.');
   if(v.exam_id==='exam-neet'&&!['subject-physics','subject-chemistry','subject-biology'].includes(v.subject_id))invalid('Choose a NEET Subject.');
-  if(v.curriculum_id==='curriculum-icse'&&['level-class-11','level-class-12'].includes(v.level_id)||v.curriculum_id==='curriculum-isc'&&!['level-class-11','level-class-12'].includes(v.level_id))invalid('Use ICSE through class 10 and ISC for classes 11–12.');
+  if(v.curriculum_id==='curriculum-icse'&&['level-class-11','level-class-12'].includes(v.level_id)||v.curriculum_id==='curriculum-isc'&&!['level-class-11','level-class-12'].includes(v.level_id))invalid('Use ICSE through class 10 and ISC for classes 11ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ12.');
 });
 export const versionInput=z.strictObject({revision:z.number().int().positive()});
 export const editOfferInput=z.strictObject({revision:versionInput.shape.revision,offer:offerInput});
@@ -43,12 +44,12 @@ export class ListingsService {
   private version(row:Record<string,any>,revision:number){if(row.revision!==revision)throw fail('STALE_LISTING','This offer changed. Refresh it before continuing.');}
   private async selection(client:PoolClient,offer:Offer){for(const language_id of offer.language_ids)await this.catalogue.requireSelection(client,{domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,curriculum_id:offer.curriculum_id,exam_id:offer.exam_id,language_id});}
   private async audit(client:PoolClient,actor:string,id:string,event:string,correlation:string,reason?:string){await client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),actor,event,correlation,this.now(),{target:id,...(reason?{reason}:{})}]);}
-  private async view(client:PoolClient,row:Record<string,any>){
+  private async view(client:PoolClient,row:Record<string,any>,existingRequest=false){
     const profile=(await client.query('SELECT revision FROM tutor_profiles WHERE user_id=$1',[row.user_id])).rows[0];
     const stale=profile?.revision!==row.profile_revision;let eligible=false;
     if(row.status==='PUBLISHED'&&row.approved&&!row.safety_suspended&&!stale){
       // Eligibility failures are ordinary state; database/programming failures must propagate.
-      try{await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
+      try{if(!existingRequest)await this.tutors.requirePro(client,row.user_id);await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
     }
     return {id:row.id,user_id:row.user_id,offer:row.payload,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':stale&&row.status!=='DRAFT'?'CHANGES_REQUESTED':row.status,eligible,requires_profile_review:stale,review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }
@@ -56,13 +57,14 @@ export class ListingsService {
     const {user}=await this.auth.authenticated(client,token);this.role(user);
     const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 ORDER BY created_at,id',[user.id])).rows;const listings=[];
     for(const row of rows)listings.push(await this.view(client,row));
-    const candidates=(await client.query("SELECT DISTINCT c.subject_id FROM tutor_claims c JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision JOIN catalogue_terms t ON t.id=c.subject_id AND t.kind='SUBJECT' AND t.active WHERE c.user_id=$1 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' ORDER BY c.subject_id",[user.id])).rows;
+    const declared=(await client.query('SELECT subject_ids,onboarding_version FROM tutor_profiles WHERE user_id=$1',[user.id])).rows[0];
+    const candidates=declared?.onboarding_version===2?declared.subject_ids.map((subject_id:string)=>({subject_id})):(await client.query("SELECT DISTINCT c.subject_id FROM tutor_claims c JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision JOIN catalogue_terms t ON t.id=c.subject_id AND t.kind='SUBJECT' AND t.active WHERE c.user_id=$1 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' ORDER BY c.subject_id",[user.id])).rows;
     const eligible_subject_ids:string[]=[];
     for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
-    return {listings,eligible_subject_ids};
+    let tutor_pro_active=true;try{await this.tutors.requirePro(client,user.id);}catch(error){if(!(error instanceof ApiProblem))throw error;tutor_pro_active=false;}return {listings,eligible_subject_ids,tutor_pro_active};
   });}
   async create(token:string|undefined,offer:Offer,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id);await this.selection(client,offer);
+    const {user}=await this.auth.authenticated(client,token);this.role(user);await this.tutors.requirePro(client,user.id);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id);await this.selection(client,offer);
     if(Number((await client.query('SELECT count(*) FROM teaching_listings WHERE user_id=$1',[user.id])).rows[0].count)>=20)throw fail('LISTING_LIMIT','At most twenty offers per Tutor.',429);
     const id=randomUUID();await client.query('INSERT INTO teaching_listings(id,user_id,payload,profile_revision,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$5)',[id,user.id,offer,qualified.profile_revision,this.now()]);await this.audit(client,user.id,id,'LISTING_CREATED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
@@ -79,7 +81,7 @@ export class ListingsService {
     if(action==='PAUSE'){if(row.status!=='PUBLISHED')throw fail('INVALID_LISTING_STATE','Only a published offer can be paused.');status='PAUSED';}
     else{
       if(row.profile_revision!==profile.revision)throw fail('PROFILE_CHANGED','Save the offer again after your revised Tutor profile is approved.');
-      await this.tutors.requireQualified(client,user.id,row.payload.subject_id);await this.selection(client,row.payload);
+      await this.tutors.requirePro(client,user.id);await this.tutors.requireQualified(client,user.id,row.payload.subject_id);await this.selection(client,row.payload);
       if(action==='SUBMIT'){if(!['DRAFT','CHANGES_REQUESTED'].includes(row.status))throw fail('INVALID_LISTING_STATE','Only draft or corrected offers can be submitted.');status='REVIEW';}
       else{if(row.status!=='PAUSED'||!row.approved)throw fail('INVALID_LISTING_STATE','Only an approved paused offer can resume.');status='PUBLISHED';}
     }
@@ -101,6 +103,7 @@ export class ListingsService {
   private async decision(client:PoolClient,actor:string,row:Record<string,any>,outcome:string,reason:string,correlation:string){await client.query('INSERT INTO listing_decisions(id,listing_id,actor_id,revision,outcome,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)',[randomUUID(),row.id,actor,row.revision,outcome,reason,this.now()]);await this.audit(client,actor,row.id,'LISTING_'+outcome,correlation,reason);}
   async safety(account:string|undefined,token:string|undefined,id:string,input:z.infer<typeof listingSafetyInput>,correlation:string){return this.database.transaction(async client=>{const {actor,row}=await this.staffTarget(client,account,token,id);this.version(row,input.revision);const suspend=input.action==='SUSPEND';if(row.safety_suspended===suspend)throw fail('INVALID_LISTING_STATE','That restriction state is already recorded.');await client.query("UPDATE teaching_listings SET safety_suspended=$2,status=CASE WHEN status='PUBLISHED' THEN 'PAUSED' ELSE status END,revision=revision+1,safety_reason=$3,safety_actor=$4,updated_at=$5 WHERE id=$1",[id,suspend,input.reason,actor.id,this.now()]);await this.decision(client,actor.id,row,input.action,input.reason,correlation);return {listing:await this.view(client,await this.row(client,id))};});}
   // Task 08 and later commands use this seam; they never trust a stored status alone.
-  async requireAvailable(client:PoolClient,id:string){const found=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[id])).rows[0];if(!found)throw fail('NOT_FOUND','Listing unavailable.',404);await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[found.user_id]);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[found.user_id]);const row=await this.row(client,id);const view=await this.view(client,row);if(!view.eligible)throw fail('NOT_FOUND','Listing unavailable.',404);return view;}
-  async publicOffer(id:string){return this.database.transaction(async client=>{const view=await this.requireAvailable(client,id);return {listing:{id:view.id,...view.offer,verification:'Identity and matching Subject evidence reviewed; approval is not a teaching-quality guarantee.'}};});}
+  // Only the committed-request acceptance path may honor an existing request after ordinary Pro expiry.
+  async requireAvailable(client:PoolClient,id:string,existingRequest=false){const found=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[id])).rows[0];if(!found)throw fail('NOT_FOUND','Listing unavailable.',404);await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[found.user_id]);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[found.user_id]);const row=await this.row(client,id);const view=await this.view(client,row,existingRequest);if(!view.eligible)throw fail('NOT_FOUND','Listing unavailable.',404);return view;}
+  async publicOffer(id:string){return this.database.transaction(async client=>{const view=await this.requireAvailable(client,id);return {listing:{id:view.id,...view.offer,verification:'Identity reviewed. Subject expertise may be self-declared; see the evidence labels on the full offer.'}};});}
 }

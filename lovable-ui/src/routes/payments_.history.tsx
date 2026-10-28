@@ -43,7 +43,7 @@ function History() {
   return (
     <AuthShell
       title="Payment history"
-      intro="Your platform Access Pass purchases and reversals. Direct tuition is paid to Tutors and is excluded."
+      intro="Your Learner Access Pass and Tutor Pro purchases and reversals. Direct tuition is paid to Tutors and is excluded."
       footer={
         <Link to="/account" className="link">
           Back to your account
@@ -56,7 +56,7 @@ function History() {
       <div className="space-y-6">
         {rows.map((row) => (
           <article key={row.id} className="rounded-2xl border p-5">
-            <p className="font-semibold">Access Pass · ₹{(row.amount_paise / 100).toFixed(2)}</p>
+            <p className="font-semibold">{row.product==='TUTOR_PRO'?'Tutor Pro':'Learner Access Pass'} · ₹{(row.amount_paise / 100).toFixed(2)}</p>
             <p className="mt-2 text-sm">
               {row.status} · {new Date(row.created_at).toLocaleString()}
             </p>

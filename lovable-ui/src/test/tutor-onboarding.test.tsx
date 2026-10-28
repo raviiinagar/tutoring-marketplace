@@ -23,6 +23,14 @@ const profile = {
   display_name: "Fictional Tutor",
   biography: "I teach Physics using worked examples and patient explanations.",
   birth_date: "1995-01-01",
+  public_id: "44444444-4444-4444-8444-444444444444",
+  public_revision: 1,
+  onboarding_version: 2,
+  subject_ids: ["subject-physics"],
+  hourly_rate_paise: 50000,
+  identity_country: "IN" as const,
+  identity_document: "AADHAAR" as const,
+  public_email_consent: false,
   revision: 1,
   status: "DRAFT",
   eligible: false,
@@ -69,6 +77,16 @@ function mount() {
 }
 beforeEach(() => {
   saved = { profile: { ...profile }, evidence: [...docs], claims: [] };
+  vi.spyOn(api, "tutorPro").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      policy: { version: "tutor-pro-v1", amount_paise: 60000, currency: "INR", access_days: 30 },
+      checkout_available: false,
+      active: null,
+      purchase: null,
+    },
+  });
   vi.spyOn(api, "tutor").mockImplementation(async () => ({
     ok: true,
     status: 200,
@@ -130,63 +148,58 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
-it("restores uploaded documents without presenting a clean scan as approval", async () => {
+
+it("shows a short saved profile and a single ID action without qualification or date-of-birth steps", async () => {
+  mount();
+  expect(await screen.findByRole("heading", { name: "1. About you" })).toBeVisible();
+  expect(screen.getByText(/Subjects, skills and experience are self-declared/)).toBeVisible();
+  expect(screen.queryByLabelText("Date of birth")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Add claim" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Submit fictional ID sample" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Continue to test payment" })).toBeDisabled();
+});
+it("one upload automatically submits identity and restores scan and pending review status after reload", async () => {
+  vi.spyOn(api, "submitTutorIdentity").mockImplementation(async () => {
+    saved = {
+      ...saved,
+      profile: { ...profile, status: "SUBMITTED" },
+      claims: [claim("IDENTITY", 0)],
+    };
+    return { ok: true, status: 200, data: structuredClone(saved) };
+  });
   const view = mount();
-  expect(await screen.findByText("2 documents uploaded")).toBeVisible();
-  expect(screen.getByRole("button", { name: "Submit Tutor profile for review" })).toBeDisabled();
-  const list = screen.getByRole("list", { name: "Uploaded documents" });
-  expect(within(list).getAllByText(/Scan passed/)).toHaveLength(2);
-  expect(screen.getByRole("option", { name: "Document 1 · PDF · 2 KB" })).toBeInTheDocument();
-  expect(await screen.findByText("Photo: Uploaded — waiting for Trust review")).toBeVisible();
+  fireEvent.click(await screen.findByRole("button", { name: "Submit fictional ID sample" }));
+  expect(
+    await screen.findByText(/ID uploaded, scan passed, and submitted for Trust review/),
+  ).toBeVisible();
+  expect(screen.getByText("Waiting for review")).toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "Submit fictional ID sample" }),
+  ).not.toBeInTheDocument();
   view.unmount();
   mount();
-  expect(await screen.findByText("2 documents uploaded")).toBeVisible();
-  expect(screen.getByText(/Scan passed means/)).toHaveTextContent(
-    "does not mean Trust has approved it",
-  );
+  expect(await screen.findByText("Waiting for review")).toBeVisible();
+  expect(screen.getByText("Scan passed", { exact: false })).toBeVisible();
 });
-it("identifies invalid fields before sending a profile revision", async () => {
-  const save = vi.spyOn(api, "saveTutor");
+it("approved identity has a public-profile link while Tutor Pro stays a separate optional step", async () => {
+  saved = {
+    ...saved,
+    profile: { ...profile, status: "APPROVED", eligible: true },
+    claims: [{ ...claim("IDENTITY", 0), status: "APPROVED" }],
+  };
   mount();
-  fireEvent.click(await screen.findByRole("button", { name: "Edit profile details" }));
-  fireEvent.change(screen.getByLabelText("Biography"), { target: { value: "Too short" } });
-  fireEvent.click(screen.getByRole("button", { name: "Save revised profile" }));
-  expect(await screen.findByText(/Write at least 40 characters/)).toBeVisible();
-  expect(screen.getByText("Tick the adult confirmation before saving.")).toBeVisible();
-  expect(screen.getByLabelText("Biography")).toHaveAttribute("aria-invalid", "true");
-  expect(save).not.toHaveBeenCalled();
+  expect(await screen.findByRole("link", { name: "View your public profile" })).toBeVisible();
+  expect(
+    screen.getByText(/Your profile can appear publicly without a pass or teaching offer/),
+  ).toBeVisible();
+  expect(screen.getByLabelText("Tutor Pro coupon (optional)")).toBeEnabled();
 });
-it("unlocks submission only after both evidence entries and retains the submitted state", async () => {
-  vi.spyOn(api, "tutorClaim").mockImplementation(async (kind) => {
-    saved.claims.push(claim(kind, saved.claims.length));
-    return { ok: true, status: 200, data: structuredClone(saved) };
-  });
-  const submit = vi.spyOn(api, "submitTutor").mockImplementation(async () => {
-    saved.profile!.status = "SUBMITTED";
-    return { ok: true, status: 200, data: structuredClone(saved) };
-  });
+it("profile editing names the public email consent and avoids a compulsory portrait or qualification document", async () => {
   mount();
-  await screen.findByText("2 documents uploaded");
-  fireEvent.change(screen.getByLabelText("Claim description"), {
-    target: { value: "Fictional identity document" },
-  });
-  fireEvent.change(screen.getByLabelText("Clean evidence"), { target: { value: docs[0]!.id } });
-  fireEvent.click(screen.getByRole("button", { name: "Add claim" }));
-  await waitFor(() => expect(screen.getByLabelText("Claim type")).toHaveValue("QUALIFICATION"));
-  expect(screen.getByRole("button", { name: "Submit Tutor profile for review" })).toBeDisabled();
-  fireEvent.change(screen.getByLabelText("Subject"), { target: { value: "subject-physics" } });
-  fireEvent.change(screen.getByLabelText("Claim description"), {
-    target: { value: "Fictional Physics qualification" },
-  });
-  fireEvent.change(screen.getByLabelText("Clean evidence"), { target: { value: docs[1]!.id } });
-  fireEvent.click(screen.getByRole("button", { name: "Add claim" }));
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Submit Tutor profile for review" })).toBeEnabled(),
-  );
-  expect(screen.getAllByText(/Saved — not submitted/).length).toBeGreaterThan(0);
-  fireEvent.click(screen.getByRole("button", { name: "Submit Tutor profile for review" }));
-  expect(await screen.findByRole("button", { name: "Profile already submitted" })).toBeDisabled();
-  expect(submit).toHaveBeenCalledTimes(1);
-  fireEvent.click(screen.getByRole("button", { name: "Refresh review status" }));
-  expect(await screen.findByText("Profile already submitted")).toBeDisabled();
+  fireEvent.click(await screen.findByRole("button", { name: "Edit profile" }));
+  expect(screen.getByLabelText(/Show my verified email publicly to everyone/)).not.toBeChecked();
+  expect(screen.getByRole("group", { name: "Subjects you teach" })).toBeInTheDocument();
+  expect(screen.queryByLabelText("Date of birth")).not.toBeInTheDocument();
+  expect(screen.getByText("Public profile photo · optional")).toBeVisible();
+  expect(screen.getByText(/No qualification document required/)).toBeVisible();
 });

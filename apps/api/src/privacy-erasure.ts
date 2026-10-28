@@ -421,6 +421,10 @@ export async function erasePrivacyData(
     "DELETE FROM tutor_download_grants WHERE evidence_id IN (SELECT id FROM tutor_evidence WHERE user_id=$1) OR actor_id=$1",
     [user.id],
   );
+  if((await client.query("SELECT to_regclass('tutor_pro_grants') AS relation")).rows[0].relation){
+    await client.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[user.id]);
+    await client.query("UPDATE tutor_profiles SET public_email_consent_at=NULL,public_email_consent_version=NULL,subject_ids='{}',hourly_rate_paise=NULL,identity_country=NULL,identity_document=NULL WHERE user_id=$1",[user.id]);
+  }
   await client.query(
     "UPDATE tutor_profiles SET display_name='Deleted account',biography='[erased]',encrypted_birth_date=$2 WHERE user_id=$1",
     [user.id, redact({ birth_date: "1900-01-01" })],

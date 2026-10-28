@@ -20,9 +20,10 @@ export async function personalExport(
   // Older recovery archives may be erased before additive migrations run.
   const couponTable=(await client.query("SELECT to_regclass('public.coupon_redemptions') AS present")).rows[0].present;
   const classTable=(await client.query("SELECT to_regclass('public.class_invitations') AS present")).rows[0].present;
+  const proTable=(await client.query("SELECT to_regclass('public.tutor_pro_grants') AS present")).rows[0].present;
   const profile = (
     await rows(
-      "SELECT display_name,biography,encrypted_birth_date,status,revision,created_at FROM tutor_profiles WHERE user_id=$1",
+      "SELECT * FROM tutor_profiles WHERE user_id=$1",
     )
   )[0];
   const cleanAsset = (row: Row) => {
@@ -92,6 +93,7 @@ export async function personalExport(
       ? {
           display_name: profile.display_name,
           biography: profile.biography,
+          ...(proTable?{public_id:profile.public_id,public_revision:profile.public_revision,subject_ids:profile.subject_ids,hourly_rate_paise:profile.hourly_rate_paise,identity_country:profile.identity_country,identity_document:profile.identity_document,public_email_consent_at:profile.public_email_consent_at,public_email_consent_version:profile.public_email_consent_version}:{}),
           birth_date: read(profile.encrypted_birth_date)?.birth_date,
           status: profile.status,
           revision: profile.revision,
@@ -180,6 +182,7 @@ export async function personalExport(
       return { ...m, ...read(encrypted_description) };
     }),
     support_cases: support,
+    tutor_pro_grants:proTable?await rows("SELECT id,source,cycle_id,coupon_redemption_id,status,test_only,starts_at,ends_at,created_at FROM tutor_pro_grants WHERE payer_id=$1"):[],
     purchases: await rows(
       "SELECT id,policy_version,amount_paise,currency,disclosures,status,captured_at,created_at FROM purchase_cycles WHERE payer_id=$1",
     ),

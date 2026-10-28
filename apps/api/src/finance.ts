@@ -16,7 +16,7 @@ export const refundCaseInput = z.strictObject({
 export const refundReviewInput = z.discriminatedUnion("outcome", [
   z.strictObject({
     outcome: z.literal("APPROVE"),
-    amount_paise: z.number().int().positive().max(59900),
+    amount_paise: z.number().int().positive().max(60000),
     access_treatment: z.enum(["KEEP", "REVOKE_FUTURE"]),
     reason: financeReason,
   }),
@@ -148,7 +148,7 @@ export class FinanceService {
       if (
         !(
           await client.query(
-            "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL",
+            "SELECT 1 FROM access_entitlements WHERE cycle_id=$1 AND starts_at IS NOT NULL UNION ALL SELECT 1 FROM tutor_pro_grants WHERE cycle_id=$1",
             [id],
           )
         ).rowCount

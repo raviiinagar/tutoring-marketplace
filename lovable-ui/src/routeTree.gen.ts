@@ -36,6 +36,7 @@ import { Route as ChatConnectionIdRouteImport } from './routes/chat.$connectionI
 import { Route as ConnectionsConnectionIdRouteImport } from './routes/connections_.$connectionId'
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
+import { Route as ProfilesProfileIdRouteImport } from './routes/profiles_.$profileId'
 import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
@@ -192,6 +193,11 @@ const PaymentsHistoryRoute = PaymentsHistoryRouteImport.update({
   path: '/payments/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfilesProfileIdRoute = ProfilesProfileIdRouteImport.update({
+  id: '/profiles_/$profileId',
+  path: '/profiles/$profileId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReviewsConnectionIdRoute = ReviewsConnectionIdRouteImport.update({
   id: '/reviews_/$connectionId',
   path: '/reviews/$connectionId',
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
+  '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/connections/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
+  '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/connections_/$connectionId': typeof ConnectionsConnectionIdRoute
   '/dev/inbox': typeof DevInboxRoute
   '/payments_/history': typeof PaymentsHistoryRoute
+  '/profiles_/$profileId': typeof ProfilesProfileIdRoute
   '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/finance': typeof StaffFinanceRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/payments/history'
+    | '/profiles/$profileId'
     | '/reviews/$connectionId'
     | '/staff/catalogue'
     | '/staff/finance'
@@ -520,6 +530,7 @@ export interface FileRouteTypes {
     | '/connections/$connectionId'
     | '/dev/inbox'
     | '/payments/history'
+    | '/profiles/$profileId'
     | '/reviews/$connectionId'
     | '/staff/catalogue'
     | '/staff/finance'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/connections_/$connectionId'
     | '/dev/inbox'
     | '/payments_/history'
+    | '/profiles_/$profileId'
     | '/reviews_/$connectionId'
     | '/staff_/catalogue'
     | '/staff_/finance'
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   ConnectionsConnectionIdRoute: typeof ConnectionsConnectionIdRoute
   DevInboxRoute: typeof DevInboxRoute
   PaymentsHistoryRoute: typeof PaymentsHistoryRoute
+  ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
   ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffFinanceRoute: typeof StaffFinanceRoute
@@ -832,6 +845,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentsHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profiles_/$profileId': {
+      id: '/profiles_/$profileId'
+      path: '/profiles/$profileId'
+      fullPath: '/profiles/$profileId'
+      preLoaderRoute: typeof ProfilesProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reviews_/$connectionId': {
       id: '/reviews_/$connectionId'
       path: '/reviews/$connectionId'
@@ -1003,6 +1023,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectionsConnectionIdRoute: ConnectionsConnectionIdRoute,
   DevInboxRoute: DevInboxRoute,
   PaymentsHistoryRoute: PaymentsHistoryRoute,
+  ProfilesProfileIdRoute: ProfilesProfileIdRoute,
   ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffFinanceRoute: StaffFinanceRoute,

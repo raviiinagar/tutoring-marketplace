@@ -1,3 +1,4 @@
+import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -212,6 +213,7 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
     rate_unit: "HOUR",
     trial_kind: "NONE",
   };
+  await grantTutorProFixture(database,config,teacher.email,clock);
   let listing = (
     await post("/v1/me/listings", offer, teacher.cookie).expect(201)
   ).body.listing;

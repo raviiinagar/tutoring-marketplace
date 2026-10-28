@@ -1,3 +1,5 @@
+import {TutorsService} from './tutors.js';
+import {currentTutorPro,tutorProSummary} from './tutor-pro-access.js';
 import {checkoutOpen} from './operations.js';
 import { PaidAccess } from "./paid-access.js";
 import { randomUUID } from "node:crypto";
@@ -42,8 +44,47 @@ export class PaymentsService {
     private readonly provider: PaymentProvider | undefined,
     private readonly now: () => Date = () => new Date(),
     private readonly coupons?: CouponsService,
+    private readonly tutors?: TutorsService,
   ) {
     this.limits = new RateLimiter(database, config.authSecret, now);
+  }
+  async pro(token?:string){return this.database.transaction(async client=>{
+    const {user}=await this.auth.safetyIdentity(client,token);
+    const active=await currentTutorPro(client,user.id,this.now(),this.config.mode!=='production');
+    const purchase=(await client.query("SELECT * FROM purchase_cycles WHERE payer_id=$1 AND product='TUTOR_PRO' AND open AND test_only=$2",[user.id,this.config.mode!=='production'])).rows[0];
+    const grant=purchase?(await client.query('SELECT ends_at FROM tutor_pro_grants WHERE cycle_id=$1',[purchase.id])).rows[0]:undefined;
+    const expired=grant&&new Date(grant.ends_at)<=this.now()&&!purchase.resolution_required;
+    return {policy:{version:'tutor-pro-v1',amount_paise:60000,currency:'INR',access_days:30},checkout_available:!!this.provider&&this.config.payments?.mode==='test'&&await checkoutOpen(client),active:active?{starts_at:new Date(active.starts_at).toISOString(),ends_at:new Date(active.ends_at).toISOString()}:null,purchase:purchase&&!expired?await this.view(client,purchase):null};
+  });}
+  async createPro(token:string|undefined,input:{request_key:string;policy_version:'tutor-pro-v1';coupon_code?:string},correlation:string){
+    await this.limits.consume('tutor-pro-create',token||'anonymous',30,900000);
+    const reservation=await this.database.transaction(async client=>{
+      const {user}=await this.auth.authenticated(client,token);
+      await this.tutors!.requireIdentity(client,user.id);
+      const hash=tokenHash(JSON.stringify(input));
+      const prior=(await client.query('SELECT * FROM coupon_redemptions WHERE payer_id=$1 AND request_key=$2',[user.id,input.request_key])).rows[0];
+      if(prior){if(prior.product!=='TUTOR_PRO'||prior.payload_hash!==hash||prior.test_only!==(this.config.mode!=='production'))throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used for different details.');return prior.cycle_id?{row:(await client.query('SELECT * FROM purchase_cycles WHERE id=$1',[prior.cycle_id])).rows[0],created:false}:{promotion:await this.coupons!.view(client,prior)};}
+      const retry=(await client.query('SELECT * FROM purchase_cycles WHERE payer_id=$1 AND request_key=$2 FOR UPDATE',[user.id,input.request_key])).rows[0];
+      if(retry){if(retry.product!=='TUTOR_PRO'||input.coupon_code||retry.test_only!==(this.config.mode!=='production'))throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used for different details.');return {row:retry,created:false};}
+      if(await currentTutorPro(client,user.id,this.now(),this.config.mode!=='production'))throw fail('TUTOR_PRO_ACTIVE','Your Tutor Pro pass is already active. Renew after it expires.');
+      const old=(await client.query("SELECT * FROM purchase_cycles WHERE payer_id=$1 AND product='TUTOR_PRO' AND open FOR UPDATE",[user.id])).rows[0];
+      if(old){const grant=(await client.query('SELECT * FROM tutor_pro_grants WHERE cycle_id=$1',[old.id])).rows[0];const cancelled=!!(await client.query('SELECT 1 FROM purchase_cancellations WHERE cycle_id=$1',[old.id])).rowCount;
+        if(!cancelled&&(!grant||new Date(grant.ends_at)>this.now())||old.resolution_required)throw fail('PURCHASE_ALREADY_OPEN','Check your existing Tutor Pro purchase before starting another checkout.');
+        await client.query('UPDATE purchase_cycles SET open=false,updated_at=$2 WHERE id=$1',[old.id,this.now()]);}
+      if((await client.query("SELECT 1 FROM deployment_recoveries WHERE state<>'RELEASED' LIMIT 1")).rowCount)throw fail('RECOVERY_IN_PROGRESS','Purchases are unavailable during recovery.',503);
+      const policy=(await client.query("SELECT * FROM payment_policies WHERE version='tutor-pro-v1' AND product='TUTOR_PRO'")).rows[0];
+      const campaign=input.coupon_code?await this.coupons!.eligible(client,user.id,input.coupon_code,true,'TUTOR_PRO'):undefined;
+      const price=couponPrice(policy.amount_paise,campaign?.percent_off||0);
+      if(campaign&&price.total_paise===0){const redemption=await this.coupons!.record(client,campaign,user.id,input.request_key,hash,policy,null);return {promotion:await this.coupons!.view(client,redemption)};}
+      if(!this.provider||this.config.payments?.mode!=='test'||!await checkoutOpen(client,true))throw fail('CHECKOUT_UNAVAILABLE','Paid Tutor Pro checkout is not available. A valid 100% Tutor Pro coupon can be used without payment.',503);
+      const id=randomUUID(),redemptionId=campaign?randomUUID():null,at=this.now();
+      const disclosures={...this.config.payments.disclosures,base_paise:price.total_paise,tax_paise:0,product:'TUTOR_PRO',description:'Tutor Pro - 30 days, one-time purchase; no automatic renewal',test_only:true};
+      const row=(await client.query("INSERT INTO purchase_cycles(id,payer_id,request_key,policy_version,amount_paise,currency,provider_key_id,test_only,disclosures,status,created_at,updated_at,coupon_redemption_id,product) VALUES($1,$2,$3,'tutor-pro-v1',$4,'INR',$5,true,$6,'CREATING',$7,$7,$8,'TUTOR_PRO') RETURNING *",[id,user.id,input.request_key,price.total_paise,this.config.payments.keyId,disclosures,at,redemptionId])).rows[0];
+      if(campaign)await this.coupons!.record(client,campaign,user.id,input.request_key,hash,policy,id,redemptionId!);
+      await client.query("INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,'TUTOR_PRO_CHECKOUT_RESERVED',$3,$4,$5)",[randomUUID(),user.id,correlation,at,{target:id}]);return {row,created:true};
+    });
+    if('promotion' in reservation)return {purchase:null,promotion:reservation.promotion};
+    return this.finishOrder(token,reservation);
   }
   async policy() {
     const policy = (
@@ -122,7 +163,7 @@ export class PaymentsService {
       row.status === "CAPTURED"
     ) {
       try {
-        await this.recipient(client, row.payer_id, {
+        if(row.product==='TUTOR_PRO')await this.tutors!.requireIdentity(client,row.payer_id);else await this.recipient(client, row.payer_id, {
           learner_id: row.learner_id,
           listing_id: row.listing_id,
           listing_revision: row.listing_revision,
@@ -138,10 +179,10 @@ export class PaymentsService {
         [row.id],
       )
     ).rows;
-    const access = await this.paidAccess.summary(client, row);
+    const access = row.product==='TUTOR_PRO'?await tutorProSummary(client,row,this.now()):await this.paidAccess.summary(client, row);
     const cancelled=!!(await client.query('SELECT 1 FROM purchase_cancellations WHERE cycle_id=$1',[row.id])).rowCount;
     return {
-      id: row.id,
+      id: row.id, product:row.product,
       status: row.status,
       policy_version: row.policy_version,
       coupon: row.coupon_redemption_id ? (await client.query('SELECT code,base_paise,discount_paise,total_paise,percent_off FROM coupon_redemptions WHERE id=$1',[row.coupon_redemption_id])).rows[0] : null,
@@ -152,7 +193,7 @@ export class PaymentsService {
       captured_at: row.captured_at
         ? new Date(row.captured_at).toISOString()
         : null,
-      matching_deadline: row.matching_deadline
+      matching_deadline: row.product!=='TUTOR_PRO' && row.matching_deadline
         ? new Date(row.matching_deadline).toISOString()
         : null,
       resolution_required: row.resolution_required,
@@ -185,7 +226,7 @@ export class PaymentsService {
       const { user } = await this.auth.safetyIdentity(client, token);
       const row = (
         await client.query(
-          "SELECT id FROM purchase_cycles WHERE payer_id=$1 AND open AND (NOT $2::boolean OR NOT test_only)",
+          "SELECT id FROM purchase_cycles WHERE payer_id=$1 AND product='LEARNER_ACCESS' AND open AND (NOT $2::boolean OR NOT test_only)",
           [user.id, this.config.mode === "production"],
         )
       ).rows[0];
@@ -284,18 +325,18 @@ export class PaymentsService {
       );
       const hash=tokenHash(JSON.stringify(input));
       const priorCoupon=(await client.query('SELECT * FROM coupon_redemptions WHERE payer_id=$1 AND request_key=$2',[user.id,input.request_key])).rows[0];
-      if(priorCoupon){if(priorCoupon.test_only!==(this.config.mode!=='production'))throw fail('COVERAGE_UNAVAILABLE','This redemption is unavailable in this environment.',403);if(priorCoupon.payload_hash!==hash)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used for different details.');return priorCoupon.cycle_id?{row:(await client.query('SELECT * FROM purchase_cycles WHERE id=$1',[priorCoupon.cycle_id])).rows[0],created:false}:{promotion:await this.coupons!.view(client,priorCoupon),created:false};}
+      if(priorCoupon){if(priorCoupon.product!=='LEARNER_ACCESS')throw fail('IDEMPOTENCY_CONFLICT','This key belongs to another product.');if(priorCoupon.test_only!==(this.config.mode!=='production'))throw fail('COVERAGE_UNAVAILABLE','This redemption is unavailable in this environment.',403);if(priorCoupon.payload_hash!==hash)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used for different details.');return priorCoupon.cycle_id?{row:(await client.query('SELECT * FROM purchase_cycles WHERE id=$1',[priorCoupon.cycle_id])).rows[0],created:false}:{promotion:await this.coupons!.view(client,priorCoupon),created:false};}
       const retry = (
         await client.query(
           "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND request_key=$2 FOR UPDATE",
           [user.id, input.request_key],
         )
       ).rows[0];
-      if (retry) {if(input.coupon_code)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used without this coupon.');return { row: retry, created: false };}
+      if (retry) {if(retry.product!=='LEARNER_ACCESS')throw fail('IDEMPOTENCY_CONFLICT','This key belongs to another product.');if(input.coupon_code)throw fail('IDEMPOTENCY_CONFLICT','This checkout key was used without this coupon.');return { row: retry, created: false };}
       await this.recipient(client, user.id, input);
       const existing = (
         await client.query(
-          "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND open FOR UPDATE",
+          "SELECT * FROM purchase_cycles WHERE payer_id=$1 AND product='LEARNER_ACCESS' AND open FOR UPDATE",
           [user.id],
         )
       ).rows[0];
@@ -361,6 +402,9 @@ export class PaymentsService {
       return { row, created: true };
     });
     if('promotion' in reservation)return {purchase:null,promotion:reservation.promotion};
+    return this.finishOrder(token,reservation);
+  }
+  private async finishOrder(token:string|undefined,reservation:{row:Row;created:boolean}){
     if (reservation.created) {
       try {
         // Commit before the external request. Never repeat a possibly successful Order POST.
