@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin-shell";
 import { Link } from "@tanstack/react-router";
 import {
   createContext,
@@ -154,6 +155,14 @@ export function AuthShell({
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
+  if (ready && window.location.pathname.startsWith("/staff"))
+    return (
+      <AccountReady.Provider value={ready}>
+        <AdminShell title={title} intro={intro} footer={footer}>
+          {children}
+        </AdminShell>
+      </AccountReady.Provider>
+    );
   return (
     <AccountReady.Provider value={ready}>
       <div className="min-h-screen">

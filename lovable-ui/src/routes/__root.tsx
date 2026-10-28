@@ -1,3 +1,4 @@
+import {PublicTraffic} from "@/components/public-traffic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -143,6 +144,7 @@ function RootComponent() {
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</span>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <PublicTraffic />
       <Outlet />
     </QueryClientProvider>
   );
