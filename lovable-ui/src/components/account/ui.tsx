@@ -159,6 +159,7 @@ export function AuthShell({
     return (
       <AccountReady.Provider value={ready}>
         <AdminShell title={title} intro={intro} footer={footer}>
+          <div role="status" className="mb-6 rounded-xl border border-coral/20 bg-coral-soft px-4 py-3 text-sm font-semibold">Payment sandbox ? Fictional accounts only ? No real money</div>
           {children}
         </AdminShell>
       </AccountReady.Provider>
