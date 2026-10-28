@@ -56,7 +56,7 @@ function SignUp() {
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field label="Your name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.display_name} maxLength={200} />
         <Field label="Email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
-        <Field label="Password" type="password" autoComplete="new-password" hint="12 to 128 characters." value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} />
+        <Field label="Password" type="password" autoComplete="new-password" hint="8 to 128 characters." value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} />
         <SubmitButton loading={loading} loadingText="Creating account…">Create account</SubmitButton>
       </form>
     </AuthShell>

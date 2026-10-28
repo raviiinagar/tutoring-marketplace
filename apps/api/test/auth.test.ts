@@ -17,7 +17,7 @@ import {startDatabase} from '../../../scripts/postgres.mjs';
 
 let app:INestApplication;let database:Database;let cluster:Awaited<ReturnType<typeof startDatabase>>;let config:Config;
 let clock=new Date();const now=()=>clock;
-const password='Correct-Horse-321!';const origin='http://localhost:3000';
+const password='Eight123';const origin='http://localhost:3000';
 const post=(path:string,body:unknown)=>request(app.getHttpServer()).post(path).set('Origin',origin).send(body);
 async function register(email:string){return post('/v1/auth/registrations',{display_name:'Test learner',email,password}).expect(202);}
 async function getToken(email:string){const result=await database.pool.query('SELECT encrypted_payload FROM mail_outbox m JOIN users u ON u.id=m.user_id WHERE u.email=$1 ORDER BY m.created_at DESC,m.id DESC',[email]);return new URL(decrypt<{verification_url:string}>(result.rows[0].encrypted_payload,config.authSecret).verification_url).hash.slice(7);}
@@ -39,7 +39,7 @@ test('development accepts loopback aliases but still rejects unrelated origins',
   await database.pool.query("UPDATE mail_outbox SET status='EXPIRED' WHERE user_id=(SELECT id FROM users WHERE email='alias@example.test')");
 });
 test('verified account journey, secure storage, cookie authentication and revocation',async()=>{
-  const email='journey@example.test';await register(email);
+  const email='journey@example.test';await post('/v1/auth/registrations',{display_name:'Test learner',email,password:'seven77'}).expect(400);await register(email);
   await post('/v1/auth/sessions',{email,password}).expect(403).expect(r=>assert.equal(r.body.code,'EMAIL_NOT_VERIFIED'));
   const token=await getToken(email);
   const stored=(await database.pool.query('SELECT password_hash FROM users WHERE email=$1',[email])).rows[0].password_hash;
@@ -96,7 +96,7 @@ test('rate limits, duplicate signup and strict request/origin validation',async(
   await request(app.getHttpServer()).post('/v1/auth/registrations').send({}).expect(403);
   await request(app.getHttpServer()).post('/v1/auth/registrations').set('Origin','https://evil.example').send({}).expect(403);
   await request(app.getHttpServer()).post('/v1/auth/registrations').set('Origin',origin).set('Content-Type','text/plain').send('hello').expect(415);
-  await post('/v1/auth/registrations',{display_name:'T',email:'bad',password:'short'}).expect(400);
+  await post('/v1/auth/registrations',{display_name:'T',email:'bad',password:'seven77'}).expect(400);
 });
 test('production refuses capture/missing secrets and does not expose development mail',async()=>{
   const base={...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://tutoring.example'};
@@ -171,16 +171,16 @@ test('password recovery is generic, encrypted, expiring, single-use and revokes 
   assert.equal((await database.pool.query('SELECT token_hash FROM password_resets WHERE user_id=(SELECT id FROM users WHERE email=$1)',[email])).rows[0].token_hash,tokenHash(expired));
   assert.ok(!JSON.stringify((await database.pool.query('SELECT encrypted_payload FROM mail_outbox')).rows).includes(expired));
   clock=new Date(clock.getTime()+15*60_000);
-  await post('/v1/auth/password-resets',{token:expired,password:'New-password-456!'}).expect(400);
+  await post('/v1/auth/password-resets',{token:expired,password:'Reset123'}).expect(400);
   await post('/v1/auth/recovery-emails',{email}).expect(202);const token=await resetToken();assert.notEqual(token,expired);
   await database.pool.query("UPDATE mail_outbox SET status='EXPIRED' WHERE status IN ('PENDING','PROCESSING') AND user_id<>(SELECT id FROM users WHERE email=$1)",[email]);
   await new MailWorker(database,config,now).tick();
   const inbox=await request(app.getHttpServer()).get('/dev/mail').expect(200);assert.ok(inbox.body.messages.some((m:any)=>m.to===email&&m.reset_url));
-  await post('/v1/auth/password-resets',{token,password:'short'}).expect(400);
-  const race=await Promise.all([post('/v1/auth/password-resets',{token,password:'New-password-456!'}),post('/v1/auth/password-resets',{token,password:'New-password-456!'})]);assert.deepEqual(race.map(r=>r.status).sort(),[200,400]);
+  await post('/v1/auth/password-resets',{token,password:'seven77'}).expect(400);
+  const race=await Promise.all([post('/v1/auth/password-resets',{token,password:'Reset123'}),post('/v1/auth/password-resets',{token,password:'Reset123'})]);assert.deepEqual(race.map(r=>r.status).sort(),[200,400]);
   await request(app.getHttpServer()).get('/v1/me').set('Cookie',cookie).expect(401);
   await post('/v1/auth/sessions',{email,password}).expect(401);
-  await post('/v1/auth/sessions',{email,password:'New-password-456!'}).expect(200);
+  await post('/v1/auth/sessions',{email,password:'Reset123'}).expect(200);
   await post('/v1/auth/password-resets',{token,password:'Other-password-789!'}).expect(400);
   await post('/v1/auth/recovery-emails',{email}).expect(202);await post('/v1/auth/recovery-emails',{email}).expect(429);
   const audits=(await database.pool.query("SELECT * FROM audit_events WHERE user_id=(SELECT id FROM users WHERE email=$1) AND event_type='PASSWORD_RESET'",[email])).rows;

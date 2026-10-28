@@ -21,7 +21,7 @@ export default function AuthPage({params}:{params:Promise<{step:string}>}){
   if(!['signup','signin','verify'].includes(step))return <section><h1>Page unavailable</h1><a href="/">Go home</a></section>;
   return <section><h1>{step==='signup'?'Create your account':step==='signin'?'Welcome back':'Verify your email'}</h1>{verified?<><p role="status">Email verified. You can now sign in.</p><a href="/auth/signin">Sign in</a></>:<form onSubmit={submit}>
     {step==='signup'&&<label>Display name<input name="display_name" required minLength={2} maxLength={80} autoComplete="name"/></label>}
-    {step!=='verify'&&<><label>Email<input name="email" type="email" required maxLength={254} autoComplete="email"/></label><label>Password<input name="password" type="password" required minLength={step==='signup'?12:1} maxLength={128} autoComplete={step==='signup'?'new-password':'current-password'}/></label>{step==='signup'&&<small>Use 12–128 characters.</small>}</>}
+    {step!=='verify'&&<><label>Email<input name="email" type="email" required maxLength={254} autoComplete="email"/></label><label>Password<input name="password" type="password" required minLength={step==='signup'?8:1} maxLength={128} autoComplete={step==='signup'?'new-password':'current-password'}/></label>{step==='signup'&&<small>Use 12–128 characters.</small>}</>}
     {step==='verify'&&<p>Select the button to confirm your email. Opening this page does not use the link.</p>}
     {error&&<p role="alert" className="error">{error}</p>}
     <button disabled={busy||(step==='verify'&&!token)}>{busy?'Please wait…':step==='signup'?'Create account':step==='signin'?'Sign in':'Verify email'}</button>
