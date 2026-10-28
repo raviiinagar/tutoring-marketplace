@@ -31,6 +31,25 @@ const stamp = (v: string) =>
     timeStyle: "short",
     timeZone: "Asia/Kolkata",
   }).format(new Date(v)) + " IST";
+const activityLabel = (type: string) =>
+  ({
+    ACCOUNT_REGISTERED: "Account registered",
+    EMAIL_VERIFIED: "Email verified",
+    CONTACT_REQUEST_SUBMITTED: "Enquiry submitted",
+    CONTACT_REQUEST_ACCEPT: "Enquiry accepted",
+    CONNECTION_ESTABLISHED: "Connection established",
+    ACCESS_COUPON_REDEEMED: "Access Pass coupon redeemed",
+    ACCESS_COUPON_CREATED: "Coupon created",
+    ACCESS_PASS_ACTIVATED: "Access Pass activated",
+    TUTOR_CLAIM_APPROVE: "Tutor evidence approved",
+    TUTOR_CLAIM_REJECT: "Tutor evidence declined",
+    LISTING_APPROVE: "Teaching offer approved",
+    LISTING_CHANGES_REQUESTED: "Teaching offer needs changes",
+  })[type] ||
+  type
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/^./, (c) => c.toUpperCase());
 const dayLabel = (v: string) =>
   new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", timeZone: "UTC" }).format(
     new Date(v + "T00:00:00Z"),
@@ -70,53 +89,66 @@ function Trend({ report }: { report: AdminOverview }) {
           ))}
         </div>
       </div>
-      <svg
-        viewBox="0 0 730 215"
-        role="img"
-        aria-label={`${series} trend over ${report.days} days`}
-        className="admin-chart"
-      >
-        <defs>
-          <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ec6476" stopOpacity=".22" />
-            <stop offset="100%" stopColor="#ec6476" stopOpacity=".01" />
-          </linearGradient>
-        </defs>
-        {[0, 0.5, 1].map((f) => (
-          <g key={f}>
-            <line
-              x1="30"
-              x2="700"
-              y1={175 - f * 140}
-              y2={175 - f * 140}
-              stroke="#e8ebf0"
-              strokeDasharray="4 5"
-            />
-            <text x="24" y={179 - f * 140} textAnchor="end" fill="#8a93a5" fontSize="11">
-              {Math.round(max * f)}
-            </text>
-          </g>
-        ))}
-        <path d={area} fill={`url(#${gradient})`} />
-        <path d={line} fill="none" stroke="#e75b70" strokeWidth="3" strokeLinejoin="round" />
-        {pts.map((p, i) => (
-          <circle key={p.row.day} cx={p.x} cy={p.y} r={i === pts.length - 1 ? 4 : 2} fill="#e75b70">
-            <title>
-              {dayLabel(p.row.day)}: {number(p.row[series])} {series}
-            </title>
-          </circle>
-        ))}
-        {rows.length > 0 && (
-          <>
-            <text x="30" y="202" fill="#8a93a5" fontSize="12">
-              {dayLabel(rows[0]!.day)}
-            </text>
-            <text x="700" y="202" textAnchor="end" fill="#8a93a5" fontSize="12">
-              {dayLabel(rows[rows.length - 1]!.day)}
-            </text>
-          </>
-        )}
-      </svg>
+      {series === "visits" && !report.audience.tracking_started_at ? (
+        <div className="admin-chart-empty">
+          <strong>No public visits observed yet</strong>
+          <span>Visits will appear here after public pages are opened.</span>
+        </div>
+      ) : (
+        <svg
+          viewBox="0 0 730 215"
+          role="img"
+          aria-label={`${series} trend over ${report.days} days`}
+          className="admin-chart"
+        >
+          <defs>
+            <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ec6476" stopOpacity=".22" />
+              <stop offset="100%" stopColor="#ec6476" stopOpacity=".01" />
+            </linearGradient>
+          </defs>
+          {[0, 0.5, 1].map((f) => (
+            <g key={f}>
+              <line
+                x1="30"
+                x2="700"
+                y1={175 - f * 140}
+                y2={175 - f * 140}
+                stroke="#e8ebf0"
+                strokeDasharray="4 5"
+              />
+              <text x="24" y={179 - f * 140} textAnchor="end" fill="#65738a" fontSize="11">
+                {Math.round(max * f)}
+              </text>
+            </g>
+          ))}
+          <path d={area} fill={`url(#${gradient})`} />
+          <path d={line} fill="none" stroke="#e75b70" strokeWidth="3" strokeLinejoin="round" />
+          {pts.map((p, i) => (
+            <circle
+              key={p.row.day}
+              cx={p.x}
+              cy={p.y}
+              r={i === pts.length - 1 ? 4 : 2}
+              fill="#e75b70"
+            >
+              <title>
+                {dayLabel(p.row.day)}: {number(p.row[series])} {series}
+              </title>
+            </circle>
+          ))}
+          {rows.length > 0 && (
+            <>
+              <text x="30" y="202" fill="#65738a" fontSize="12">
+                {dayLabel(rows[0]!.day)}
+              </text>
+              <text x="700" y="202" textAnchor="end" fill="#65738a" fontSize="12">
+                {dayLabel(rows[rows.length - 1]!.day)}
+              </text>
+            </>
+          )}
+        </svg>
+      )}
       {!report.audience.tracking_started_at ? (
         <p className="admin-measure-note">
           Visit tracking has just been enabled. Counts appear after public pages are visited.
@@ -225,7 +257,7 @@ function Accounts() {
                 <tr>
                   <th>Account</th>
                   <th>Status</th>
-                  <th>Roles</th>
+                  <th>Marketplace roles</th>
                   <th>Joined</th>
                   <th>Last successful login</th>
                 </tr>
@@ -513,12 +545,7 @@ export function AdminDashboard() {
                           <CheckCircle2 aria-hidden size={16} />
                         </span>
                         <div>
-                          <p>
-                            {a.event_type
-                              .toLowerCase()
-                              .replaceAll("_", " ")
-                              .replace(/^./, (c) => c.toUpperCase())}
-                          </p>
+                          <p>{activityLabel(a.event_type)}</p>
                           <time>{stamp(a.created_at)}</time>
                         </div>
                       </div>
