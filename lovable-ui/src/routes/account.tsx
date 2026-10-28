@@ -215,7 +215,7 @@ function Account() {
       </section>
       {hasStaff && (
         <Link to="/staff" className="link mt-5 inline-block">
-          Open staff console
+          Open admin dashboard
         </Link>
       )}
       <section className="mt-6 space-y-3" aria-labelledby="roles-title">

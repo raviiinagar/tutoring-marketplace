@@ -131,6 +131,11 @@ export class StaffService {
     if(!context.staff.encrypted_secret||!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
     return context.user;
   }
+  async authorizeOverview(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined){
+    const context=await this.context(client,accountToken);
+    if(!context.staff.encrypted_secret||!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
+    return {user:context.user,scopes:context.staff.scopes as StaffScope[]};
+  }
   async signOut(accountToken:string|undefined,staffToken:string|undefined,correlation:string){
     await this.database.transaction(async client=>{
       const {user,session}=await this.context(client,accountToken);

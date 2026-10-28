@@ -3,6 +3,8 @@
  * Sessions live in an HttpOnly cookie set by the backend; this module never reads or stores tokens.
  */
 
+export type AdminAccount={id:string;display_name:string;email:string;status:string;roles:string[];created_at:string;email_verified_at:string|null;last_sign_in_at:string|null};
+export type AdminOverview={as_of:string;days:number;timezone:string;environment:string;test_only:boolean;scopes:StaffScope[];audience:{accounts_total:number;verified_accounts:number;new_accounts:number;successful_logins:number;signed_in_accounts:number;valid_sessions:number;visits:number|null;page_views:number|null;tracking_started_at:string|null};business:{enquiries:number;pending_enquiries:number;accepted_enquiries:number};finance:null|{captured_paise:number;captures:number;unexpected_paise:number;coupon_redemptions:number;free_passes:number;coupon_discount_paise:number;refunded_paise:number};trend:{day:string;signups:number;logins:number;visits:number|null}[];queues:{key:string;label:string;count:number;href:string}[];alerts:{code:string;scope:string;count:number;opened_at:string}[];workers:{name:string;last_success_at:string|null;consecutive_errors:number}[];activity:{id:string;event_type:string;created_at:string}[]};
 export type User = {
   id: string;
   display_name: string;
@@ -379,6 +381,8 @@ export const api = {
   sessions: () => request<{sessions:AccountSession[]}>('GET','/v1/auth/sessions'),
   revokeSession: (id:string) => request<void>('DELETE','/v1/auth/sessions/by-id/'+encodeURIComponent(id)),
   revokeOthers: () => request<void>('DELETE','/v1/auth/sessions/others'),
+  adminOverview:(days:number)=>request<AdminOverview>('GET','/v1/staff/admin/overview?days='+days),
+  adminAccounts:(query:string,cursor?:string)=>request<{accounts:AdminAccount[];next_cursor:string|null}>('POST','/v1/staff/admin/accounts/search',{query,...(cursor?{cursor}:{})}),
   staffAccess: () => request<StaffAccess>('GET','/v1/staff/access'),
   enrollMfa: (password:string) => request<StaffEnrollment>('POST','/v1/staff/mfa/enrollments',{password}),
   confirmMfa: (code:string) => request<{recovery_codes:string[]}>('POST','/v1/staff/mfa/confirmations',{code}),
