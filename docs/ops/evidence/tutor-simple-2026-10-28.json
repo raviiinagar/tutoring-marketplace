@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-28",
+  "source_commit": "5241c9e90afa66357c5cecba7c2b1f00faf8c910",
+  "release_id": "tutors-20261028-5241c9e90afa",
+  "archive_sha256": "35208cbebcd6ef9d5fb76a52ea0fc790c5d779106a7417a8b80d945a254edd59",
+  "base_release": "admin-20261028-c1e3a5132224",
+  "migration": 32,
+  "manifest_files": 440,
+  "new_aws_resources": 0,
+  "backup_before_and_after": true,
+  "private_configuration_changed_keys": [
+    "RELEASE_ID"
+  ],
+  "ordinary_live_paid_checkout": false,
+  "sandbox_razorpay_mode": "test",
+  "normal_coupon": {
+    "code": "TUTOR100",
+    "product": "TUTOR_PRO",
+    "percent_off": 100,
+    "max_uses": 100,
+    "once_per_account": true,
+    "expires_ist": "2026-10-29 23:59"
+  },
+  "main_ui": {
+    "commit": "bda6d55ca855dbb22f8bc895cee6de828be42f9f",
+    "deploy_id": "6ae2304f3c2f11eff6c888c2",
+    "ready": true
+  },
+  "sandbox_ui": {
+    "commit": "49c7993526bbfcf20ab92438bdc87812c4cac171",
+    "deploy_id": "6ae22f1e6db5882349d8cc81",
+    "ready": true
+  },
+  "local_checks": {
+    "api_typecheck": true,
+    "ui_typecheck": true,
+    "ui_production_build": true,
+    "ui_tests": 62,
+    "ui_test_files": 20,
+    "classes_finance_listings_privacy_tests": 27,
+    "chat_coupons_payments_and_initial_pro_tests": 35,
+    "expiry_regression_corrected_and_retested": true,
+    "dedicated_pro_tests": 4,
+    "covered_request_expiry_and_revocation_final_retest": true,
+    "chat_persistence_final_retest": true,
+    "desktop_mobile_browser": true
+  },
+  "hosted_main": {
+    "checked_at": "2026-10-28T17:29:12.304Z",
+    "ordinary_preview": true,
+    "new_profile_directory": true,
+    "public_identity_fields_absent": true,
+    "paid_checkout_disabled": true,
+    "pro_requires_auth": true,
+    "staff_sign_in_guard": true,
+    "mobile_no_overflow": true,
+    "real_account_changed": false,
+    "real_payment_collected": false
+  },
+  "hosted_sandbox": {
+    "checked_at": "2026-10-28T17:24:59.298Z",
+    "sandbox_hosted": true,
+    "profile_and_pro_status": true,
+    "consented_fictional_public_email": true,
+    "self_declared_labels": true,
+    "directory_profile": true,
+    "mobile_no_overflow": true,
+    "no_store": true,
+    "no_private_identity_fields": true,
+    "learner_purchase_separate": true,
+    "public_sandbox_uploads_blocked": true,
+    "real_identity_uploaded": false,
+    "real_payment_collected": false
+  },
+  "one_id_hosted_sandbox_review": true,
+  "free_hosted_profile_before_pro": true,
+  "hosted_pro_coupon_without_provider_charge": true,
+  "consent_withdrawal_hides_hosted_email": true,
+  "hosted_paid_600_capture_claimed": false,
+  "vm_stop_deadline_ist": "2026-10-30 00:23:31"
+}
