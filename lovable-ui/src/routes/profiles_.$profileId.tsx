@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api, assetUrl, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
+import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
+import { TutorPortrait } from "@/components/tutor-portrait";
 import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/profiles_/$profileId")({
@@ -42,15 +43,16 @@ function Profile() {
           </p>
         ) : (
           <article className="mt-6 space-y-8 rounded-3xl border bg-card p-6 sm:p-10">
-            <header className="flex flex-wrap items-center gap-5">
+            <header className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-8">
               {p.photo_url && (
-                <img
-                  className="h-40 w-32 rounded-2xl object-cover"
-                  src={assetUrl(p.photo_url)}
-                  alt={p.display_name}
+                <TutorPortrait
+                  className="aspect-[4/5] w-full max-w-72 shrink-0 rounded-3xl object-cover object-top sm:w-56"
+                  url={p.photo_url}
+                  name={p.display_name}
+                  priority
                 />
               )}
-              <div>
+              <div className="min-w-0">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
                   Meet your next Tutor
                 </p>
