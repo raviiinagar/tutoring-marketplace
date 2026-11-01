@@ -87,7 +87,7 @@ export class PublicPages {
       catalogue,
       seo: this.seo(
         "/learn/" + domain + "/" + subject,
-        s.label + " online Tutors for " + d.label,
+        s.label + " Tutors for " + d.label,
         "Compare currently available " +
           s.label +
           " teaching offers, tuition units and evidence-review labels. Tuition is paid directly to Tutors.",
@@ -127,7 +127,7 @@ export class PublicPages {
       seo: this.seo(
         "/",
         "Find your next teacher",
-        "Find approved online teaching offers across India. Compare subjects, tuition terms and current availability.",
+        "Find reviewed online and in-person teaching offers across India. Compare subjects, tuition terms and current availability.",
         offers.length > 0,
       ),
     };

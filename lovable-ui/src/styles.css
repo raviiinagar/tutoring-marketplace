@@ -367,3 +367,19 @@ main { scroll-margin-top: 90px; }
 .teacher-card .space-y-3 { font-size: 12px; }
 @media(max-width:640px) { .market-hero { padding-top: 30px; border-radius: 0 0 24px 24px; } .market-search { gap: 8px; margin-top: 25px; border-width: 4px; padding-left: 13px; } .market-search-button { height: 43px; padding-inline: 17px; } .market-search-button svg { display: none; } .market-search input { font-size: 14px; } .market-shortcuts { margin-top: 20px; padding: 6px; border-radius: 20px; } .market-content { padding-inline: 20px; } .market-tutor-banner { flex-direction: column; align-items: flex-start; padding: 26px; } .teacher-cover { border-radius: 24px; } }
 @media(prefers-reduced-motion:reduce) { .market-title { animation: none; } .subject-shortcut,.teacher-cover { transition: none; } .subject-shortcut:hover,.teacher-cover:hover { transform: none; } }
+
+/* Subject and class-location search, retaining the light-yellow marketplace. */
+.teacher-search-shell { position:relative; max-width:840px; margin:32px auto 0; text-align:left; z-index:10; }
+.market-search.location-search-form { display:grid; grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr) auto; gap:0; max-width:none; margin:0; padding:7px; border-width:7px; min-height:88px; }
+.teacher-search-field { display:flex; align-items:center; gap:14px; min-width:0; padding:14px 18px; }
+.teacher-search-field input { min-width:0; min-height:28px; }
+.teacher-search-divider { width:1px; height:32px; align-self:center; background:#e9e5dc; }
+.location-search-form .market-search-button { min-height:58px; padding-inline:30px; border-radius:999px; font-size:15px; font-weight:650; }
+.location-search-form .market-search-button:focus-visible,.teacher-search-option:focus-visible { outline:3px solid var(--foreground); outline-offset:3px; }
+.teacher-search-suggestions { position:absolute; top:calc(100% + 10px); left:0; right:0; padding:12px; border:1px solid var(--border); border-radius:24px; background:#fff; box-shadow:0 20px 48px #53462c20; max-height:350px; overflow:auto; }
+.teacher-search-option { display:flex; width:100%; align-items:center; gap:14px; padding:13px 16px; border-radius:14px; text-align:left; font-size:15px; }
+.teacher-search-option svg { flex-shrink:0; color:#858079; }
+.teacher-search-option.is-active,.teacher-search-option:hover { background:#fff8dc; }
+@media(max-width:640px) { .teacher-search-shell { margin-top:26px; } .market-search.location-search-form { grid-template-columns:minmax(0,1fr); border-radius:26px; padding:8px; gap:2px; border-width:5px; } .teacher-search-divider { display:none; } .teacher-search-field { padding:12px 10px; } .teacher-search-field:first-child { border-bottom:1px solid #eee8d5; } .location-search-form .market-search-button { width:100%; min-height:46px; margin-top:5px; } .teacher-search-suggestions { border-radius:20px; } }
+
+.teacher-search-option span { min-width:0; overflow-wrap:anywhere; }

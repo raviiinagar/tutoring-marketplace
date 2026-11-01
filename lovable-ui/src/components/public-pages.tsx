@@ -41,7 +41,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
             </p>
           </div>
           <aside className="rounded-xl bg-secondary p-5">
-            <p className="mb-4 text-sm font-semibold text-success">Currently available online</p>
+            <p className="mb-4 text-sm font-semibold text-success">{listing.offer.teaching_mode==='IN_PERSON'?'In-person teaching offer':'Online teaching offer'}</p>
             <PublicOfferTerms offer={listing.offer} catalogue={catalogue} />
             <p className="mt-5 text-xs text-muted-foreground">
               Tuition and any trial fee are paid directly to the Tutor. Browsing this offer is free.

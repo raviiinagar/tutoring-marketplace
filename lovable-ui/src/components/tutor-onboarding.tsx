@@ -1,3 +1,4 @@
+import {TutorPresenceEditor} from './tutor-presence-editor';
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CheckCircle2, FileCheck, ShieldCheck } from "lucide-react";
@@ -477,6 +478,7 @@ export function TutorOnboarding() {
                 </p>
                 <TutorPhotoEditor />
               </details>
+              <TutorPresenceEditor/>
               <TutorPro identityApproved={approved} />
             </>
           )}

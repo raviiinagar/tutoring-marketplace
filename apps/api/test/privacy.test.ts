@@ -314,6 +314,7 @@ test("deletion revokes activity, clears personal assets, reports retention and r
     },
     owner.cookie,
   ).expect(200);
+  await post('/v1/me/tutor/presence', {expected_revision:0,location:{city:'Mumbai',area:'Andheri',country:'India'},teaching_modes:['ONLINE','IN_PERSON'],accepting_students:true,weekly_slots:[{day:'MON',start_minute:960,end_minute:1080}],timezone:'Asia/Kolkata'},owner.cookie).expect(200);
   await post(
     "/v1/me/tutor/evidence",
     {
@@ -349,6 +350,7 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   const result = state.requests.find((r: any) => r.id === job.id);
   assert.equal(state.authenticated, false);
   assert.equal(result.status, "COMPLETED");
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM tutor_presence WHERE user_id=$1',[owner.id])).rows[0].count,0);
   assert.ok(result.result.retained.some((r: any) => r.class === "EVIDENCE"));
   assert.ok(!JSON.stringify(state).includes(owner.email));
   assert.ok(

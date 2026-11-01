@@ -71,6 +71,8 @@ export function OfferSummary({
     id ? catalogue?.terms.find((t) => t.id === id)?.label || id : "Not applicable";
   return (
     <dl className="space-y-2 text-sm">
+      <div><dt className="font-semibold">Class mode</dt><dd>{offer.teaching_mode==='IN_PERSON'?'In person':'Online'}</dd></div>
+      {offer.class_location&&<div><dt className="font-semibold">Public class location</dt><dd>{[offer.class_location.area,offer.class_location.city,offer.class_location.country].filter(Boolean).join(', ')}</dd></div>}
       <div>
         <dt className="font-semibold">Teaching combination</dt>
         <dd>
@@ -79,7 +81,7 @@ export function OfferSummary({
         </dd>
       </div>
       <div>
-        <dt className="font-semibold">Online tuition, paid directly to Tutor</dt>
+        <dt className="font-semibold">Tuition, paid directly to Tutor</dt>
         <dd>
           ₹{(offer.rate_paise / 100).toFixed(2)} / {offer.rate_unit.toLowerCase()}
           {offer.lesson_minutes ? ` (${offer.lesson_minutes} minutes)` : ""}
@@ -114,7 +116,7 @@ function TutorListings() {
   const [ready, setReady] = useState(false);
   const { loading, run } = useSingleFlight();
   const [eligibleSubjects, setEligibleSubjects] = useState<string[]>([]);
-  const [proActive,setProActive]=useState(false);
+  const [proActive, setProActive] = useState(false);
   const [approvalsReady, setApprovalsReady] = useState(false);
   const initialized = useRef(false);
   const unavailableApprovals =
@@ -122,7 +124,8 @@ function TutorListings() {
   const load = async () => {
     const r = await api.listings();
     if (r.ok) {
-      setListings(r.data.listings);setProActive(r.data.tutor_pro_active===true);
+      setListings(r.data.listings);
+      setProActive(r.data.tutor_pro_active === true);
       const available = Array.isArray(r.data.eligible_subject_ids);
       setEligibleSubjects(available ? r.data.eligible_subject_ids : []);
       setApprovalsReady(available);
@@ -265,8 +268,8 @@ function TutorListings() {
               . Choose the matching Subject and learning requirements below.
               {!terms("SUBJECT").length && (
                 <p className="mt-2">
-                  No declared or approved Subject belongs to this Learning Domain. Choose a matching domain or
-                  complete another Subject evidence review.
+                  No declared or approved Subject belongs to this Learning Domain. Choose a matching
+                  domain or complete another Subject evidence review.
                 </p>
               )}
             </>
@@ -306,7 +309,7 @@ function TutorListings() {
                 }{" "}
                 · {item.eligible ? "Available for discovery" : "Currently unavailable"}
               </p>
-              <OfferSummary offer={item.offer} catalogue={catalogue} />
+              <OfferSummary offer={{...item.offer,class_location:item.class_location??undefined}} catalogue={catalogue} />
               {item.requires_profile_review && (
                 <Notice tone="info">
                   Your Tutor profile changed. Complete its evidence review, then save and resubmit
@@ -359,189 +362,215 @@ function TutorListings() {
           Refresh offers
         </Button>
       </section>
-      {!proActive&&<Notice tone="info">An active Tutor Pro pass is required to create or publish teaching offers. Your identity-approved profile stays free. <Link to="/tutor" hash="tutor-pro" className="font-semibold underline">Get Tutor Pro</Link></Notice>}
-      <form onSubmit={save} className="mt-8 space-y-4"><fieldset disabled={!proActive} className="space-y-4">
-        <h2 className="font-semibold">
-          {editing ? "Edit teaching offer" : "Create teaching offer"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Saving edits removes publication approval and starts a new draft. Keep contact details and
-          links out of the public text.
-        </p>
-        <Field
-          label="Offer title"
-          hint="Describe your subject and learner level. 10–100 characters."
-          required
-          minLength={10}
-          value={offer.title}
-          maxLength={100}
-          onChange={(e) => change("title", e.target.value)}
-        />
-        <label className="block">
-          Offer description
-          <textarea
-            aria-label="Offer description"
-            className="input mt-2 min-h-28"
-            value={offer.description}
-            maxLength={1500}
-            minLength={40}
-            aria-describedby="offer-description-hint"
-            onChange={(e) => change("description", e.target.value)}
+      {!proActive && (
+        <Notice tone="info">
+          An active Tutor Pro pass is required to create or publish teaching offers. Your
+          identity-approved profile stays free.{" "}
+          <Link to="/tutor" hash="tutor-pro" className="font-semibold underline">
+            Get Tutor Pro
+          </Link>
+        </Notice>
+      )}
+      <form onSubmit={save} className="mt-8 space-y-4">
+        <fieldset disabled={!proActive} className="space-y-4">
+          <h2 className="font-semibold">
+            {editing ? "Edit teaching offer" : "Create teaching offer"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Saving edits removes publication approval and starts a new draft. Keep contact details
+            and links out of the public text.
+          </p>
+          <Field
+            label="Offer title"
+            hint="Describe your subject and learner level. 10–100 characters."
             required
+            minLength={10}
+            value={offer.title}
+            maxLength={100}
+            onChange={(e) => change("title", e.target.value)}
           />
-          <span id="offer-description-hint" className="mt-2 block text-sm text-muted-foreground">
-            40–1,500 characters. Explain what learners will learn and how you teach.
-          </span>
-        </label>
-        <label className="block">
-          Learning Domain
-          <select
-            aria-label="Learning Domain"
-            className="input mt-2"
-            value={offer.domain_id}
-            onChange={(e) =>
-              setOffer((v) => ({
-                ...v,
-                domain_id: e.target.value,
-                subject_id: "",
-                level_id: "",
-                curriculum_id: undefined,
-                exam_id: undefined,
-              }))
-            }
-          >
-            {catalogue?.domains.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.label}
-              </option>
+          <label className="block">
+            Offer description
+            <textarea
+              aria-label="Offer description"
+              className="input mt-2 min-h-28"
+              value={offer.description}
+              maxLength={1500}
+              minLength={40}
+              aria-describedby="offer-description-hint"
+              onChange={(e) => change("description", e.target.value)}
+              required
+            />
+            <span id="offer-description-hint" className="mt-2 block text-sm text-muted-foreground">
+              40–1,500 characters. Explain what learners will learn and how you teach.
+            </span>
+          </label>
+          <label className="block">
+            Learning Domain
+            <select
+              aria-label="Learning Domain"
+              className="input mt-2"
+              value={offer.domain_id}
+              onChange={(e) =>
+                setOffer((v) => ({
+                  ...v,
+                  domain_id: e.target.value,
+                  subject_id: "",
+                  level_id: "",
+                  curriculum_id: undefined,
+                  exam_id: undefined,
+                }))
+              }
+            >
+              {catalogue?.domains.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-medium">
+            Class mode
+            <select
+              className="input mt-2"
+              value={offer.teaching_mode}
+              onChange={(e) =>
+                change("teaching_mode", e.target.value as TeachingOffer["teaching_mode"])
+              }
+            >
+              <option value="ONLINE">Online</option>
+              <option value="IN_PERSON">In person</option>
+            </select>
+          </label>
+          {select("Subject", "SUBJECT", "subject_id")}
+          {select("Learner Level", "LEVEL", "level_id")}
+          {select("Curriculum", "CURRICULUM", "curriculum_id", offer.domain_id !== "school")}
+          {select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
+          <fieldset className="space-y-2">
+            <legend className="font-medium">Teaching languages (choose 1–3)</legend>
+            {terms("LANGUAGE").map((t) => (
+              <label key={t.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={offer.language_ids.includes(t.id)}
+                  onChange={(e) =>
+                    change(
+                      "language_ids",
+                      e.target.checked
+                        ? [...offer.language_ids, t.id]
+                        : offer.language_ids.filter((id) => id !== t.id),
+                    )
+                  }
+                />
+                {t.label}
+              </label>
             ))}
-          </select>
-        </label>
-        {select("Subject", "SUBJECT", "subject_id")}
-        {select("Learner Level", "LEVEL", "level_id")}
-        {select("Curriculum", "CURRICULUM", "curriculum_id", offer.domain_id !== "school")}
-        {select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
-        <fieldset className="space-y-2">
-          <legend className="font-medium">Teaching languages (choose 1–3)</legend>
-          {terms("LANGUAGE").map((t) => (
-            <label key={t.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={offer.language_ids.includes(t.id)}
-                onChange={(e) =>
-                  change(
-                    "language_ids",
-                    e.target.checked
-                      ? [...offer.language_ids, t.id]
-                      : offer.language_ids.filter((id) => id !== t.id),
-                  )
-                }
-              />
-              {t.label}
-            </label>
-          ))}
-        </fieldset>
-        <Field
-          label="Tuition rate (INR)"
-          type="number"
-          min={1}
-          max={100000}
-          step="0.01"
-          value={offer.rate_paise / 100}
-          onChange={(e) => change("rate_paise", Math.round(Number(e.target.value) * 100))}
-        />
-        <label className="block">
-          Rate unit
-          <select
-            aria-label="Rate unit"
-            className="input mt-2"
-            value={offer.rate_unit}
-            onChange={(e) =>
-              setOffer((v) => ({
-                ...v,
-                rate_unit: e.target.value as "HOUR" | "LESSON",
-                lesson_minutes: e.target.value === "LESSON" ? 60 : undefined,
-              }))
-            }
-          >
-            <option value="HOUR">Per hour</option>
-            <option value="LESSON">Per lesson</option>
-          </select>
-        </label>
-        {offer.rate_unit === "LESSON" && (
+          </fieldset>
           <Field
-            label="Lesson duration (minutes)"
-            type="number"
-            min={30}
-            max={180}
-            value={offer.lesson_minutes || 60}
-            onChange={(e) => change("lesson_minutes", Number(e.target.value))}
-          />
-        )}
-        <label className="block">
-          Trial type
-          <select
-            aria-label="Trial type"
-            className="input mt-2"
-            value={offer.trial_kind}
-            onChange={(e) =>
-              setOffer((v) => ({
-                ...v,
-                trial_kind: e.target.value as TeachingOffer["trial_kind"],
-                trial_minutes: e.target.value === "NONE" ? undefined : 30,
-                trial_price_paise: e.target.value === "PAID" ? 10000 : undefined,
-              }))
-            }
-          >
-            <option value="NONE">No trial</option>
-            <option value="FREE">Free trial</option>
-            <option value="PAID">Paid trial</option>
-          </select>
-        </label>
-        {offer.trial_kind !== "NONE" && (
-          <Field
-            label="Trial duration (minutes)"
-            type="number"
-            min={15}
-            max={90}
-            value={offer.trial_minutes || 30}
-            onChange={(e) => change("trial_minutes", Number(e.target.value))}
-          />
-        )}
-        {offer.trial_kind === "PAID" && (
-          <Field
-            label="Trial price (INR)"
+            label="Tuition rate (INR)"
             type="number"
             min={1}
             max={100000}
             step="0.01"
-            value={(offer.trial_price_paise || 100) / 100}
-            onChange={(e) => change("trial_price_paise", Math.round(Number(e.target.value) * 100))}
+            value={offer.rate_paise / 100}
+            onChange={(e) => change("rate_paise", Math.round(Number(e.target.value) * 100))}
           />
-        )}
-        <p className="text-sm text-muted-foreground">
-          Online teaching only. Tuition and any trial fee are paid directly to the Tutor.
-        </p>
-        <SubmitButton
-          loading={loading}
-          disabled={!ready || (!editing && !eligibleSubjects.includes(offer.subject_id))}
-          loadingText="Saving…"
-        >
-          {editing ? "Save revised offer" : "Save draft offer"}
-        </SubmitButton>
-        {editing && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setEditing(undefined);
-              setOffer(approvedDraft(catalogue, eligibleSubjects));
-            }}
+          <label className="block">
+            Rate unit
+            <select
+              aria-label="Rate unit"
+              className="input mt-2"
+              value={offer.rate_unit}
+              onChange={(e) =>
+                setOffer((v) => ({
+                  ...v,
+                  rate_unit: e.target.value as "HOUR" | "LESSON",
+                  lesson_minutes: e.target.value === "LESSON" ? 60 : undefined,
+                }))
+              }
+            >
+              <option value="HOUR">Per hour</option>
+              <option value="LESSON">Per lesson</option>
+            </select>
+          </label>
+          {offer.rate_unit === "LESSON" && (
+            <Field
+              label="Lesson duration (minutes)"
+              type="number"
+              min={30}
+              max={180}
+              value={offer.lesson_minutes || 60}
+              onChange={(e) => change("lesson_minutes", Number(e.target.value))}
+            />
+          )}
+          <label className="block">
+            Trial type
+            <select
+              aria-label="Trial type"
+              className="input mt-2"
+              value={offer.trial_kind}
+              onChange={(e) =>
+                setOffer((v) => ({
+                  ...v,
+                  trial_kind: e.target.value as TeachingOffer["trial_kind"],
+                  trial_minutes: e.target.value === "NONE" ? undefined : 30,
+                  trial_price_paise: e.target.value === "PAID" ? 10000 : undefined,
+                }))
+              }
+            >
+              <option value="NONE">No trial</option>
+              <option value="FREE">Free trial</option>
+              <option value="PAID">Paid trial</option>
+            </select>
+          </label>
+          {offer.trial_kind !== "NONE" && (
+            <Field
+              label="Trial duration (minutes)"
+              type="number"
+              min={15}
+              max={90}
+              value={offer.trial_minutes || 30}
+              onChange={(e) => change("trial_minutes", Number(e.target.value))}
+            />
+          )}
+          {offer.trial_kind === "PAID" && (
+            <Field
+              label="Trial price (INR)"
+              type="number"
+              min={1}
+              max={100000}
+              step="0.01"
+              value={(offer.trial_price_paise || 100) / 100}
+              onChange={(e) =>
+                change("trial_price_paise", Math.round(Number(e.target.value) * 100))
+              }
+            />
+          )}
+          <p className="text-sm text-muted-foreground">
+            Choose Online or In person. For in-person classes, save your public city in Tutor
+            location settings first. Tuition and any trial fee are paid directly to the Tutor.
+          </p>
+          <SubmitButton
+            loading={loading}
+            disabled={!ready || (!editing && !eligibleSubjects.includes(offer.subject_id))}
+            loadingText="Saving…"
           >
-            Cancel editing
-          </Button>
-        )}
-      </fieldset></form>
+            {editing ? "Save revised offer" : "Save draft offer"}
+          </SubmitButton>
+          {editing && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEditing(undefined);
+                setOffer(approvedDraft(catalogue, eligibleSubjects));
+              }}
+            >
+              Cancel editing
+            </Button>
+          )}
+        </fieldset>
+      </form>
     </AuthShell>
   );
 }

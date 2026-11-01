@@ -1,3 +1,4 @@
+import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
@@ -66,6 +67,10 @@ function Profile() {
                 </p>
               </div>
             </header>
+            <section>
+              <h2 className="mb-4 text-xl font-semibold">Location & availability</h2>
+              <TutorPresenceSummary presence={p.presence} detail />
+            </section>
             <section>
               <h2 className="text-xl font-semibold">Subjects & expertise</h2>
               <div className="mt-3 flex flex-wrap gap-2">

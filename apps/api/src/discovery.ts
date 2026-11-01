@@ -1,3 +1,4 @@
+import {presenceFilters,addPresenceFilters,publicPresence} from './tutor-presence.js';
 import {tutorProPredicate} from './tutor-pro-access.js';
 import {ReviewPublication} from './review-publication.js';
 import sharp from 'sharp';
@@ -10,21 +11,22 @@ import {decrypt} from './security.js';
 import type {PoolClient} from 'pg';
 const slug=z.string().regex(/^[a-z][a-z0-9-]{1,79}$/);
 const integer=(min:number,max:number)=>z.string().regex(/^\d{1,8}$/).transform(Number).pipe(z.number().int().min(min).max(max));
-export const discoveryInput=z.strictObject({domain_id:slug.optional(),subject_id:slug.optional(),level_id:slug.optional(),curriculum_id:slug.optional(),exam_id:slug.optional(),language_id:slug.optional(),rate_unit:z.enum(['HOUR','LESSON']).optional(),min_rate_paise:integer(100,10000000).optional(),max_rate_paise:integer(100,10000000).optional(),cursor:z.uuid().optional(),limit:integer(1,24).optional()}).superRefine((v,c)=>{
+export const discoveryInput=z.strictObject({...presenceFilters,domain_id:slug.optional(),subject_id:slug.optional(),level_id:slug.optional(),curriculum_id:slug.optional(),exam_id:slug.optional(),language_id:slug.optional(),rate_unit:z.enum(['HOUR','LESSON']).optional(),min_rate_paise:integer(100,10000000).optional(),max_rate_paise:integer(100,10000000).optional(),cursor:z.uuid().optional(),limit:integer(1,24).optional()}).superRefine((v,c)=>{
+  if(v.at_time!==undefined&&!v.day)c.addIssue({code:'custom',message:'Choose a day for the preferred time.'});
   if((v.min_rate_paise!==undefined||v.max_rate_paise!==undefined)&&!v.rate_unit)c.addIssue({code:'custom',message:'Choose an hourly or per-lesson unit when filtering by price.'});
   if(v.min_rate_paise!==undefined&&v.max_rate_paise!==undefined&&v.min_rate_paise>v.max_rate_paise)c.addIssue({code:'custom',message:'Minimum price must not exceed maximum price.'});
 });
 type Filters=z.infer<typeof discoveryInput>;
 // One row per exact offer. Independent profile tags never participate in matching.
-export const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,p.onboarding_version,photo.id AS photo_id,
+export const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_name,p.encrypted_birth_date,p.onboarding_version,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at,photo.id AS photo_id,
   (SELECT jsonb_agg(jsonb_build_object('kind',c.kind,'reviewed_at',c.reviewed_at,'expires_at',c.expires_at) ORDER BY c.kind,c.id)
    FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
    WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.status='APPROVED' AND c.expires_at>$1
      AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only)
      AND (c.kind='IDENTITY' OR c.subject_id=l.payload->>'subject_id')) AS evidence_labels
- FROM teaching_listings l JOIN tutor_profiles p ON p.user_id=l.user_id JOIN users u ON u.id=l.user_id
+ FROM teaching_listings l JOIN tutor_profiles p ON p.user_id=l.user_id JOIN users u ON u.id=l.user_id LEFT JOIN tutor_presence tp ON tp.user_id=l.user_id
  LEFT JOIN tutor_photos photo ON photo.user_id=l.user_id AND photo.status='APPROVED' AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
- WHERE l.status='PUBLISHED' AND l.approved AND NOT l.safety_suspended
+ WHERE tp.accepting_students IS DISTINCT FROM FALSE AND l.payload->>'teaching_mode'=ANY(COALESCE(tp.teaching_modes,ARRAY['ONLINE'])) AND (l.payload->>'teaching_mode'<>'IN_PERSON' OR tp.location->>'city' IS NOT NULL) AND l.status='PUBLISHED' AND l.approved AND NOT l.safety_suspended
    AND NOT EXISTS (SELECT 1 FROM safety_restrictions sr WHERE sr.lifted_at IS NULL AND ((sr.target_type='ACCOUNT' AND sr.target_id=u.id) OR (sr.target_type='LISTING' AND sr.target_id=l.id)))
    AND p.status='APPROVED' AND p.revision=l.profile_revision AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL AND 'TUTOR'=ANY(u.roles)
    AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
@@ -72,7 +74,7 @@ export class DiscoveryService {
     // display name must not become a public contact field.
     const name=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(row.display_name)?'Tutor':row.display_name;
     const offer=row.payload;
-    return {id:row.id,public_path:'/teachers/'+offer.subject_id.replace(/^subject-/, '')+'-'+row.id,revision:row.revision,review_summary:row.review_summary||{count:0,average:null,label:'Connection-linked reviews'},tutor:{display_name:name,...(row.photo_id?{photo_url:`/v1/discovery/${row.id}/photos/${row.photo_id}`}:{})},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
+    return {id:row.id,public_path:'/teachers/'+offer.subject_id.replace(/^subject-/, '')+'-'+row.id,revision:row.revision,presence:publicPresence(row),class_location:row.payload.teaching_mode==='IN_PERSON'?row.location:null,review_summary:row.review_summary||{count:0,average:null,label:'Connection-linked reviews'},tutor:{display_name:name,...(row.photo_id?{photo_url:`/v1/discovery/${row.id}/photos/${row.photo_id}`}:{})},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,...(offer.teaching_mode==='IN_PERSON'?{class_location:row.location}:{}),rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
   }
   async search(input:Filters){return this.database.transaction(async client=>{
     // Catalogue validation and the result projection share one read-only snapshot.
@@ -82,7 +84,8 @@ export class DiscoveryService {
     for(const [kind,key] of fields){const id=input[key];if(!id)continue;const term=(await client.query('SELECT kind,active,domain_ids FROM catalogue_terms WHERE id=$1',[id])).rows[0];if(!term||!term.active||term.kind!==kind||input.domain_id&&!term.domain_ids.includes(input.domain_id))throw new ApiProblem(400,'INVALID_FILTER','Choose active filters of the correct type and Learning Domain.');}
     const at=this.now();const values:unknown[]=[at,this.config.mode==='production'];let sql=availableSql;
     const add=(fragment:(placeholder:string)=>string,value:unknown)=>{values.push(value);sql+=' AND '+fragment('$'+values.length);};
-    for(const key of ['domain_id','subject_id','level_id','curriculum_id','exam_id','rate_unit'] as const)if(input[key])add(p=>`l.payload->>'${key}'=${p}`,input[key]);
+    for(const key of ['domain_id','subject_id','level_id','curriculum_id','exam_id','rate_unit','teaching_mode'] as const)if(input[key])add(p=>`l.payload->>'${key}'=${p}`,input[key]);
+    addPresenceFilters(input,add);
     if(input.language_id)add(p=>`(l.payload->'language_ids') ? ${p}`,input.language_id);
     if(input.min_rate_paise!==undefined)add(p=>`(l.payload->>'rate_paise')::integer>=${p}`,input.min_rate_paise);
     if(input.max_rate_paise!==undefined)add(p=>`(l.payload->>'rate_paise')::integer<=${p}`,input.max_rate_paise);
