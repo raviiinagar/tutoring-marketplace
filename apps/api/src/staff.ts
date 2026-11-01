@@ -184,7 +184,7 @@ export class StaffService {
   async revokeAdmin(accountToken:string|undefined,staffToken:string|undefined,id:string,reason:string,correlation:string){
     return this.database.transaction(async client=>{
       const owner=await this.teamOwner(client,accountToken,staffToken);
-      if(id===owner.id)throw new ApiProblem(400,'SUPER_ADMIN_PROTECTED','The Super Admin cannot revoke their own access.');
+      if(id.toLowerCase()===owner.id.toLowerCase())throw new ApiProblem(400,'SUPER_ADMIN_PROTECTED','The Super Admin cannot revoke their own access.');
       const target=(await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id])).rows[0];
       if(!target)throw new ApiProblem(404,'ADMIN_NOT_FOUND','Admin account was not found.');
       const changed=await client.query('UPDATE staff_accounts SET enabled=false,updated_at=$2,encrypted_pending_secret=NULL,pending_session_id=NULL,pending_expires_at=NULL WHERE user_id=$1',[id,this.now()]);
