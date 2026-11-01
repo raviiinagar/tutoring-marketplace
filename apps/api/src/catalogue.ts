@@ -20,10 +20,10 @@ export class CatalogueService {
     return {domains,terms};
   }
   async publicCatalogue(){return this.database.transaction(client=>this.snapshot(client,false));}
-  async staffCatalogue(account?:string,token?:string){return this.database.transaction(async client=>{await this.staff.authorize(client,account,token,'TRUST');return this.snapshot(client,true);});}
+  async staffCatalogue(account?:string,token?:string){return this.database.transaction(async client=>{await this.staff.authorizeSuper(client,account,token,'TRUST');return this.snapshot(client,true);});}
   async save(account:string|undefined,token:string|undefined,input:z.infer<typeof termInput>,correlation:string){
     return this.database.transaction(async client=>{
-      const user=await this.staff.authorize(client,account,token,'TRUST');
+      const user=await this.staff.authorizeSuper(client,account,token,'TRUST');
       // Serialize name ownership changes, including aliases of inactive terms.
       await client.query('SELECT pg_advisory_xact_lock(73501905)');
       const domains=(await client.query('SELECT id FROM learning_domains WHERE id=ANY($1::text[])',[input.domain_ids])).rows;

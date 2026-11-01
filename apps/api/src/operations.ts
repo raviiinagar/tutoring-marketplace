@@ -93,7 +93,7 @@ export class Operations {
     input: z.infer<typeof operationsQuery>,
   ) {
     return this.database.transaction(async (client) => {
-      const actor = await this.staff.authorize(
+      const actor = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -175,7 +175,7 @@ export class Operations {
     input: z.infer<typeof recoveryRelease>,
   ) {
     return this.database.transaction(async (client) => {
-      const actor = await this.staff.authorize(
+      const actor = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -342,7 +342,7 @@ export class Operations {
     input: z.infer<typeof checkoutControl>,
   ) {
     return this.database.transaction(async (client) => {
-      const actor = await this.staff.authorize(
+      const actor = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -431,7 +431,7 @@ export class Operations {
         .digest("hex"),
       lease = randomUUID();
     const reservation = await this.database.transaction(async (client) => {
-      const actor = await this.staff.authorize(
+      const actor = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -526,7 +526,7 @@ export class Operations {
       let scheduled = true;
       if (input.kind === "PAYMENT_EVENT" || input.kind === "AUTH_MAIL")
         await this.database.transaction(async (client) => {
-          await this.staff.authorize(client, account, elevated, scope);
+          await this.staff.authorizeSuper(client, account, elevated, scope);
           if (input.kind === "PAYMENT_EVENT")
             scheduled = !!(
               await client.query(
@@ -575,7 +575,7 @@ export class Operations {
   ) {
     return this.database.transaction(async (client) => {
       const scope = input.kind === "WEBHOOK_DELIVERY" ? "FINANCE" : "SUPPORT",
-        actor = await this.staff.authorize(client, account, elevated, scope);
+        actor = await this.staff.authorizeSuper(client, account, elevated, scope);
       await client.query(
         "SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
         ["operation-command:" + input.request_key],

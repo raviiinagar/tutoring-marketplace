@@ -199,6 +199,10 @@ class DevelopmentMailController {
   }
 }
 export async function createApplication(config: Config,database: Database,now:()=>Date=()=>new Date(),verifier:GuardianVerifier|undefined=guardianVerifier(config),scanner:EvidenceScanner|undefined=evidenceScanner(config),paymentProvider:PaymentProvider|undefined=config.payments?new RazorpayProvider(config.payments):undefined,notificationDelivery?:NotificationDelivery): Promise<INestApplication> {
+  if(config.staffPolicy){
+    const owner=(await database.pool.query('SELECT u.id FROM users u JOIN staff_accounts s ON s.user_id=u.id WHERE u.id=$1 AND u.status=\'ACTIVE\' AND u.email_verified_at IS NOT NULL AND s.enabled=true',[config.staffPolicy.superAdminId])).rows[0];
+    if(!owner)throw new Error('Configured Super Admin must already be an active verified staff account');
+  }
   const auth = new AuthService(database,config,now);
   const staff = new StaffService(database,config,auth,now);
   const learners=new LearnersService(database,config,auth,staff,verifier,now);

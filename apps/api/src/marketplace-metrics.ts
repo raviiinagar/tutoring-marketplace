@@ -121,7 +121,7 @@ export class MarketplaceMetrics {
     const testOnly = this.config.mode !== "production";
     return this.database.transaction(async (client) => {
       await client.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-      const actor = await this.staff.authorize(
+      const actor = await this.staff.authorizeSuper(
         client,
         account,
         elevated,

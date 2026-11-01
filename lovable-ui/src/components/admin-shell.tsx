@@ -18,10 +18,26 @@ import {
   Menu,
   GraduationCap,
   ClipboardCheck,
+  UserCog,
 } from "lucide-react";
 import { api, type StaffScope } from "@/lib/api";
+const ownerAreas = [
+  "/staff/finance",
+  "/staff/metrics",
+  "/staff/operations",
+  "/staff/notifications",
+  "/staff/catalogue",
+  "/staff/admins",
+];
 const items = [
   { group: "Workspace", label: "Overview", to: "/staff", icon: LayoutDashboard },
+  {
+    group: "Workspace",
+    label: "Manage admins",
+    to: "/staff/admins",
+    icon: UserCog,
+    superOnly: true,
+  },
   {
     group: "Trust & safety",
     label: "Tutor evidence",
@@ -125,6 +141,8 @@ export function AdminShell({
     (item) =>
       item.to === "/staff" ||
       (allowed &&
+        (!("superOnly" in item) || allowed.role === "SUPER_ADMIN") &&
+        (allowed.role !== "ADMIN" || !ownerAreas.includes(item.to)) &&
         (!("scope" in item) || allowed.scopes.includes(item.scope)) &&
         (!("any" in item) || item.any.some((s) => allowed.scopes.includes(s as StaffScope)))),
   );
@@ -144,7 +162,7 @@ export function AdminShell({
             className="admin-nav-link"
           >
             <Icon aria-hidden size={18} />
-            {item.label}
+            {item.to === "/staff" && allowed?.role === "ADMIN" ? "Review workspace" : item.label}
           </Link>
         </div>
       );
@@ -169,7 +187,10 @@ export function AdminShell({
           <ArrowUpRight aria-hidden size={16} />
         </a>
         <p className="admin-secure">
-          <LockKeyhole aria-hidden size={14} /> Protected by staff MFA
+          <LockKeyhole aria-hidden size={14} />{" "}
+          {access.data?.ok && access.data.data.mfa_required === false
+            ? "Testing: password-protected access"
+            : "Protected by staff MFA"}
         </p>
       </aside>
       <div className="admin-main">
@@ -188,7 +209,13 @@ export function AdminShell({
           <div className="flex items-center gap-3">
             <div className="admin-access-pill">
               <span className={allowed ? "admin-dot" : "admin-dot-muted"} />
-              {allowed ? "Staff access verified" : "Verify staff access"}
+              {allowed
+                ? allowed.role === "SUPER_ADMIN"
+                  ? "Super Admin"
+                  : allowed.role === "ADMIN"
+                    ? "Review Admin"
+                    : "Staff access verified"
+                : "Verify staff access"}
             </div>
             {allowed && (
               <button
@@ -225,7 +252,23 @@ export function AdminShell({
             <h1>{title}</h1>
             {intro && <div className="admin-intro">{intro}</div>}
           </div>
-          <div className="admin-content">{children}</div>
+          <div className="admin-content">
+            {allowed?.role === "ADMIN" &&
+            ownerAreas.some(
+              (path) =>
+                window.location.pathname === path ||
+                window.location.pathname.startsWith(path + "/"),
+            ) ? (
+              <div role="alert" className="rounded-xl border p-5">
+                <p>This area is available only to the Super Admin.</p>
+                <Link className="link mt-3 inline-block" to="/staff">
+                  Back to your review workspace
+                </Link>
+              </div>
+            ) : (
+              children
+            )}
+          </div>
           {footer && <footer className="admin-page-footer">{footer}</footer>}
         </main>
       </div>

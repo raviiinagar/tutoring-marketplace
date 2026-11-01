@@ -250,6 +250,7 @@ test("anonymous public traffic deduplicates concurrent retries and tab visits wi
   assert.equal(report.trend.filter((r: any) => r.visits === null).length, 6);
 });
 test("IST midnight separates daily visits and lazy retention drops only old hashed receipts", async () => {
+  const baseline = new Map((await database.pool.query("SELECT to_char(day,'YYYY-MM-DD') AS day,visits FROM admin_visit_daily WHERE day BETWEEN '2026-11-01' AND '2026-11-02'")).rows.map(row => [row.day,Number(row.visits)]));
   clock = new Date("2026-11-01T18:29:59.000Z");
   const session = randomUUID();
   await post("/v1/public/traffic", {
@@ -269,8 +270,8 @@ test("IST midnight separates daily visits and lazy retention drops only old hash
     )
   ).rows;
   assert.deepEqual(rows, [
-    { day: "2026-11-01", visits: 1 },
-    { day: "2026-11-02", visits: 1 },
+    { day: "2026-11-01", visits: (baseline.get('2026-11-01') || 0) + 1 },
+    { day: "2026-11-02", visits: (baseline.get('2026-11-02') || 0) + 1 },
   ]);
   clock = new Date("2026-11-06T06:00:00.000Z");
   await post("/v1/public/traffic", {

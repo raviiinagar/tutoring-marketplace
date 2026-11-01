@@ -511,7 +511,7 @@ const refundCase = (s: any) =>
 test("Finance MFA pauses only new checkout and versioned control retries preserve the original purchase", async () => {
   const finance = await fixture(["FINANCE"]),
     mfa = await enroll(finance.cookie),
-    ordinary = await fixture(null);
+    ordinary = await learner();
   const query =
     "/v1/staff/operations?scope=FINANCE&reason=Inspect%20unsafe%20billing%20operations";
   await get(query, ordinary.cookie).expect(403);
@@ -550,7 +550,7 @@ test("Finance MFA pauses only new checkout and versioned control retries preserv
   );
   await post(
     "/v1/me/purchases",
-    { ...body, request_key: randomUUID() },
+    { ...body, learner_id: ordinary.profile.id, request_key: randomUUID() },
     ordinary.cookie,
   ).expect(503);
   const retried = (

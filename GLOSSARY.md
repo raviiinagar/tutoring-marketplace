@@ -4,6 +4,14 @@ A marketplace connecting learners with tutors. The platform's contact service an
 
 ## Language
 
+**Super Admin**:
+The single owner administrator responsible for all administration areas and for granting or revoking delegated Admin access.
+_Avoid_: Any staff member, public account role.
+
+**Admin**:
+A delegated reviewer responsible for Tutor submissions, marketplace safety, support and privacy work. This role does not include owner dashboards, finance, platform controls or delegation authority.
+_Avoid_: Super Admin, owner.
+
 **Learning Domain**:
 A broad area of learning, such as school academics, entrance-exam preparation, higher education or professional skills.
 _Avoid_: Subject, exam when referring to the broad grouping.
