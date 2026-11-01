@@ -53,6 +53,7 @@ function StaffConsole() {
   );
   const load = useCallback(async () => {
     const result = await api.staffAccess();
+    queryClient.setQueryData(["admin-staff-access"], result);
     if (result.ok) {
       setAccess(result.data);
       setDenied(false);
@@ -62,7 +63,7 @@ function StaffConsole() {
       setAccess(undefined);
       setWorkspace(undefined);
     } else fail(result.error);
-  }, [fail]);
+  }, [fail, queryClient]);
   useEffect(() => {
     void load();
   }, [load]);
