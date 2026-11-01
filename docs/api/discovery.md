@@ -1,5 +1,7 @@
 # Public Tutor discovery and offer detail
 
+Update 1 November 2026: [city/area, mode and weekly-hours filters](tutor-location-and-availability.md) extend the query contract. Discovery checks current new-student acceptance and exact offer mode; weekly hours are declared preferences in IST.
+
 Task 08 connects `/tutors` search and `/tutors/:listingId` public detail pages to approved, currently available teaching offers. A result is one precise Listing, not a unique Tutor count: a Tutor can have several independently approved offers. Catalogue coverage does not imply actual supply. Empty searches show no fabricated Tutor cards, ratings, reviews or checkout.
 
 ## Filters and pagination

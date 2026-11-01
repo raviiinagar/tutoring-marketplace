@@ -1,5 +1,7 @@
 # Teaching offers and availability
 
+Update 1 November 2026: offers support `ONLINE` and `IN_PERSON`. Saved matching teaching preferences and a public city are required for in-person offers. [Location and availability](tutor-location-and-availability.md) documents current publication, pause, revision and privacy rules and supersedes online-only wording below.
+
 Task 07 adds `/tutor/listings` for Tutor-owned offers and `/staff/listings` for Trust/MFA review. A Listing represents exactly one Subject, Learner Level, optional Curriculum and optional Exam Track within one Learning Domain; it does not form a cross product of profile tags. Tutor evidence approval is separate from Listing publication approval. Task 08's [public discovery guide](discovery.md) describes search and detail pages.
 
 ## Offer fields and validation
