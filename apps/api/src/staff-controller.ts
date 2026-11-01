@@ -1,4 +1,4 @@
-import {Body,Controller,Delete,Get,HttpCode,Inject,Param,Post,Req,Res} from '@nestjs/common';
+import {Body,Controller,Delete,Get,HttpCode,Inject,Param,Post,Query,Req,Res} from '@nestjs/common';
 import type {Request,Response} from 'express';
 import {z} from 'zod';
 import {LoginSchema} from '@tutoring/contracts';
@@ -33,7 +33,7 @@ export class StaffController {
   @Post('sessions')
   @HttpCode(200)
   async signIn(@Body() body:unknown,@Req() request:StaffRequest,@Res({passthrough:true}) response:Response){
-    const input=parse(z.strictObject({password,code}),body);const result=await this.staff.signIn(this.account(request),input.password,input.code,request.ip||'unknown',request.correlationId);this.issue(response,result);return {expires_at:result.expires.toISOString()};
+    const input=parse(z.strictObject({password,code:code.optional()}),body);const result=await this.staff.signIn(this.account(request),input.password,input.code,request.ip||'unknown',request.correlationId);this.issue(response,result);return {expires_at:result.expires.toISOString()};
   }
   @Post('mfa/recoveries')
   @HttpCode(200)
@@ -49,4 +49,12 @@ export class StaffController {
   @Post('workspaces/:scope/access-checks')
   @HttpCode(200)
   accessCheck(@Param('scope') scope:unknown,@Body() body:unknown,@Req() request:StaffRequest){return this.staff.workspace(this.account(request),this.token(request),parse(scopeSchema,scope),parse(z.strictObject({reason:z.string().trim().min(10).max(240)}),body).reason,request.correlationId);}
+  @Get('admins')
+  team(@Query() query:unknown,@Req() request:StaffRequest){const input=parse(z.strictObject({cursor:z.uuid().optional()}),query);return this.staff.team(this.account(request),this.token(request),input.cursor);}
+  @Post('admins/grants')
+  @HttpCode(200)
+  grant(@Body() body:unknown,@Req() request:StaffRequest){const input=parse(z.strictObject({email:z.string().trim().toLowerCase().pipe(z.email()),reason:z.string().trim().min(10).max(240)}),body);return this.staff.grantAdmin(this.account(request),this.token(request),input.email,input.reason,request.correlationId);}
+  @Post('admins/:id/revocations')
+  @HttpCode(200)
+  revoke(@Param('id') id:unknown,@Body() body:unknown,@Req() request:StaffRequest){const input=parse(z.strictObject({reason:z.string().trim().min(10).max(240)}),body);return this.staff.revokeAdmin(this.account(request),this.token(request),parse(z.uuid(),id),input.reason,request.correlationId);}
 }

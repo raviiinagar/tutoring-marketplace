@@ -10,6 +10,8 @@ Owner amendment, 28 October 2026: [ADR 0011](../../docs/adr/0011-identity-first-
 
 ## Problem Statement
 
+Owner amendment, 1 November 2026: [ADR 0012](../../docs/adr/0012-single-super-admin-and-bounded-test-authentication.md) and the [administration governance spec](../admin-governance/spec.md) introduce a single configured Super Admin and delegated review Admins. The owner explicitly permits password-only staff elevation solely during the bounded staging testing window; mandatory MFA remains the production default and returns automatically at the configured exception deadline.
+
 Learners across India need to find suitable, responsive tutors across school, entrance examination, higher education, career and other learning domains. Tutors need relevant enquiries and a trustworthy way to describe their offers. The owner needs a production application that charges for useful tutor connections, protects private information, accounts for money correctly, and supports failed matches, refunds and safety cases.
 
 ## Solution

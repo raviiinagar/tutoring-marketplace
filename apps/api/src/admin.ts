@@ -314,7 +314,7 @@ export class AdminService {
     input: z.infer<typeof accountSearchInput>,
   ) {
     return this.database.transaction(async (client) => {
-      const user = await this.staff.authorize(
+      const user = await this.staff.authorizeSuper(
         client,
         account,
         elevated,

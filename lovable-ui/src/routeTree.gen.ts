@@ -38,6 +38,7 @@ import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
 import { Route as ProfilesProfileIdRouteImport } from './routes/profiles_.$profileId'
 import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
+import { Route as StaffAdminsRouteImport } from './routes/staff_.admins'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
@@ -203,6 +204,11 @@ const ReviewsConnectionIdRoute = ReviewsConnectionIdRouteImport.update({
   path: '/reviews/$connectionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffAdminsRoute = StaffAdminsRouteImport.update({
+  id: '/staff_/admins',
+  path: '/staff/admins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
   id: '/staff_/catalogue',
   path: '/staff/catalogue',
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
+  '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
+  '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/payments_/history': typeof PaymentsHistoryRoute
   '/profiles_/$profileId': typeof ProfilesProfileIdRoute
   '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
+  '/staff_/admins': typeof StaffAdminsRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
   '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/payments/history'
     | '/profiles/$profileId'
     | '/reviews/$connectionId'
+    | '/staff/admins'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
@@ -532,6 +542,7 @@ export interface FileRouteTypes {
     | '/payments/history'
     | '/profiles/$profileId'
     | '/reviews/$connectionId'
+    | '/staff/admins'
     | '/staff/catalogue'
     | '/staff/finance'
     | '/staff/guardians'
@@ -582,6 +593,7 @@ export interface FileRouteTypes {
     | '/payments_/history'
     | '/profiles_/$profileId'
     | '/reviews_/$connectionId'
+    | '/staff_/admins'
     | '/staff_/catalogue'
     | '/staff_/finance'
     | '/staff_/guardians'
@@ -633,6 +645,7 @@ export interface RootRouteChildren {
   PaymentsHistoryRoute: typeof PaymentsHistoryRoute
   ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
   ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
+  StaffAdminsRoute: typeof StaffAdminsRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
   StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
@@ -859,6 +872,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewsConnectionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/admins': {
+      id: '/staff_/admins'
+      path: '/staff/admins'
+      fullPath: '/staff/admins'
+      preLoaderRoute: typeof StaffAdminsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/catalogue': {
       id: '/staff_/catalogue'
       path: '/staff/catalogue'
@@ -1025,6 +1045,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentsHistoryRoute: PaymentsHistoryRoute,
   ProfilesProfileIdRoute: ProfilesProfileIdRoute,
   ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
+  StaffAdminsRoute: StaffAdminsRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
   StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,

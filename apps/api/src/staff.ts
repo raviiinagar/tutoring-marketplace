@@ -18,7 +18,7 @@ async function audit(client:PoolClient,userId:string,event:string,correlation:st
 }
 
 // Only an operator with direct database/config access can invoke this command.
-// No HTTP endpoint exposes assignment or creates/verifies a public identity.
+// Web delegation is separately restricted to the single configured Super Admin.
 export async function assignStaff(database:Database,email:string,scopes:StaffScope[]|null,reason:string,operator:string){
   return database.transaction(async client=>{
     const user=(await client.query('SELECT id,status,email_verified_at FROM users WHERE email=$1 FOR UPDATE',[email])).rows[0];
@@ -37,14 +37,24 @@ export async function assignStaff(database:Database,email:string,scopes:StaffSco
 
 export class StaffService {
   constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly now=nowDefault){}
+  private role(userId:string){return !this.config.staffPolicy?'OPERATOR' as const:userId===this.config.staffPolicy.superAdminId?'SUPER_ADMIN' as const:'ADMIN' as const;}
+  private scopes(userId:string,assigned:StaffScope[]):StaffScope[]{return this.role(userId)==='SUPER_ADMIN'?['SUPPORT','TRUST','FINANCE']:this.role(userId)==='ADMIN'?assigned.filter(s=>s!=='FINANCE'):assigned;}
+  private testMfaUntil(){
+    const until=this.config.staffPolicy?.testMfaBypassUntil;
+    return until&&['staging','payment-sandbox','staging-payment-sandbox'].includes(this.config.deploymentEnvironment||'')&&this.config.payments?.mode!=='live'&&Date.parse(until)>this.now().getTime()?new Date(until):undefined;
+  }
+  private requireOwner(userId:string){if(this.config.staffPolicy&&this.role(userId)!=='SUPER_ADMIN')throw forbidden();}
   private async context(client:PoolClient,accountToken?:string,participants:string[]=[]){
     const {user,session}=await this.auth.authenticated(client,accountToken,participants);
     const staff=(await client.query('SELECT * FROM staff_accounts WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];
-    if(!staff?.enabled)throw forbidden();return {user,session,staff};
+    if(!staff?.enabled)throw forbidden();staff.scopes=this.scopes(user.id,staff.scopes);return {user,session,staff};
   }
   private async elevated(client:PoolClient,userId:string,sessionId:string,staffToken?:string){
     if(!staffToken||!/^[A-Za-z0-9_-]{43}$/.test(staffToken))return undefined;
-    return (await client.query(`SELECT id,expires_at FROM staff_sessions WHERE user_id=$1 AND account_session_id=$2 AND token_hash=$3 AND revoked_at IS NULL AND expires_at>$4 FOR UPDATE`,[userId,sessionId,tokenHash(staffToken),this.now()])).rows[0];
+    const row=(await client.query(`SELECT id,expires_at,authentication_method FROM staff_sessions WHERE user_id=$1 AND account_session_id=$2 AND token_hash=$3 AND revoked_at IS NULL AND expires_at>$4 FOR UPDATE`,[userId,sessionId,tokenHash(staffToken),this.now()])).rows[0];
+    if(row?.authentication_method==='TEST_PASSWORD'&&!this.testMfaUntil())return undefined;
+    if(row?.authentication_method==='MFA'&&!(await client.query('SELECT 1 FROM staff_accounts WHERE user_id=$1 AND encrypted_secret IS NOT NULL',[userId])).rowCount)return undefined;
+    return row;
   }
   private async reauthenticate(client:PoolClient,accountToken:string|undefined,password:string){
     const context=await this.context(client,accountToken);
@@ -56,17 +66,18 @@ export class StaffService {
     const account=await this.auth.account(accountToken);
     await this.auth.limits.consume('staff-mfa-user',account.id,10,15*60_000);
   }
-  private async issue(client:PoolClient,userId:string,sessionId:string,correlation:string){
-    const token=randomToken();const expires=new Date(this.now().getTime()+30*60_000);
+  private async issue(client:PoolClient,userId:string,sessionId:string,correlation:string,method:'MFA'|'TEST_PASSWORD'='MFA'){
+    const until=method==='TEST_PASSWORD'?this.testMfaUntil():undefined;if(method==='TEST_PASSWORD'&&!until)throw mfaRequired();
+    const token=randomToken();const expires=new Date(Math.min(this.now().getTime()+30*60_000,until?.getTime()??Infinity));
     await client.query('UPDATE staff_sessions SET revoked_at=$3 WHERE user_id=$1 AND account_session_id=$2 AND revoked_at IS NULL',[userId,sessionId,this.now()]);
-    await client.query('INSERT INTO staff_sessions(id,user_id,account_session_id,token_hash,expires_at,created_at) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),userId,sessionId,tokenHash(token),expires,this.now()]);
-    await audit(client,userId,'STAFF_SESSION_CREATED',correlation,{target:sessionId},this.now());return {token,expires};
+    await client.query('INSERT INTO staff_sessions(id,user_id,account_session_id,token_hash,expires_at,created_at,authentication_method) VALUES($1,$2,$3,$4,$5,$6,$7)',[randomUUID(),userId,sessionId,tokenHash(token),expires,this.now(),method]);
+    await audit(client,userId,'STAFF_SESSION_CREATED',correlation,{target:sessionId,authentication_method:method,testing_until:until?.toISOString()},this.now());return {token,expires};
   }
   async access(accountToken?:string,staffToken?:string){
     return this.database.transaction(async client=>{
       const {user,session,staff}=await this.context(client,accountToken);
-      const elevated=staff.encrypted_secret?await this.elevated(client,user.id,session.id,staffToken):undefined;
-      return {scopes:staff.scopes as StaffScope[],mfa_enrolled:!!staff.encrypted_secret,authenticated:!!elevated,expires_at:elevated?new Date(elevated.expires_at).toISOString():null};
+      const elevated=await this.elevated(client,user.id,session.id,staffToken),until=this.testMfaUntil();
+      return {role:this.role(user.id),scopes:staff.scopes as StaffScope[],mfa_enrolled:!!staff.encrypted_secret,mfa_required:!until,testing_mfa_bypass_until:until?.toISOString()??null,authenticated:!!elevated,expires_at:elevated?new Date(elevated.expires_at).toISOString():null};
     });
   }
   async enroll(accountToken:string|undefined,password:string,ip:string,correlation:string){
@@ -93,13 +104,14 @@ export class StaffService {
       return {...await this.issue(client,user.id,session.id,correlation),recovery_codes:recovery};
     });
   }
-  async signIn(accountToken:string|undefined,password:string,code:string,ip:string,correlation:string){
+  async signIn(accountToken:string|undefined,password:string,code:string|undefined,ip:string,correlation:string){
     await this.limit(accountToken,ip);
     return this.database.transaction(async client=>{
       const {user,session,staff}=await this.reauthenticate(client,accountToken,password);
+      if(this.testMfaUntil())return this.issue(client,user.id,session.id,correlation,'TEST_PASSWORD');
       if(!staff.encrypted_secret)throw mfaRequired();
       const {secret}=decrypt<{secret:string}>(staff.encrypted_secret,this.config.authSecret);
-      const counter=verifyTotp(secret,code,this.now(),Number(staff.last_counter));if(counter===null)throw invalid();
+      const counter=code?verifyTotp(secret,code,this.now(),Number(staff.last_counter)):null;if(counter===null)throw invalid();
       await client.query('UPDATE staff_accounts SET last_counter=$2 WHERE user_id=$1',[user.id,counter]);
       return this.issue(client,user.id,session.id,correlation);
     });
@@ -119,7 +131,7 @@ export class StaffService {
     return this.database.transaction(async client=>{
       const {user,session,staff}=await this.context(client,accountToken);
       if(!staff.scopes.includes(scope))throw forbidden();
-      if(!staff.encrypted_secret||!await this.elevated(client,user.id,session.id,staffToken))throw mfaRequired();
+      if(!await this.elevated(client,user.id,session.id,staffToken))throw mfaRequired();
       if(reason)await audit(client,user.id,'STAFF_WORKSPACE_ACCESSED',correlation!,{target:'workspace:'+scope,scope,reason},this.now());
       const rows=(await client.query("SELECT id,user_id,event_type,created_at,metadata FROM audit_events WHERE event_type='STAFF_WORKSPACE_ACCESSED' AND metadata->>'scope'=$1 ORDER BY created_at DESC,id DESC LIMIT 20",[scope])).rows;
       return {scope,events:rows.map(row=>({id:row.id,actor_id:row.user_id,event:row.event_type,created_at:new Date(row.created_at).toISOString(),target:row.metadata.target,reason:row.metadata.reason}))};
@@ -128,13 +140,59 @@ export class StaffService {
   async authorize(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined,scope:StaffScope,participants:string[]=[]){
     const context=await this.context(client,accountToken,participants);
     if(!context.staff.scopes.includes(scope))throw forbidden();
-    if(!context.staff.encrypted_secret||!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
+    if(!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
     return context.user;
   }
   async authorizeOverview(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined){
     const context=await this.context(client,accountToken);
-    if(!context.staff.encrypted_secret||!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
+    if(!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
+    this.requireOwner(context.user.id);
     return {user:context.user,scopes:context.staff.scopes as StaffScope[]};
+  }
+  async authorizeSuper(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined,scope:StaffScope,participants:string[]=[]){
+    const user=await this.authorize(client,accountToken,staffToken,scope,participants);this.requireOwner(user.id);return user;
+  }
+  private async teamOwner(client:PoolClient,accountToken:string|undefined,staffToken:string|undefined){
+    const context=await this.context(client,accountToken);
+    if(this.role(context.user.id)!=='SUPER_ADMIN')throw forbidden();
+    if(!await this.elevated(client,context.user.id,context.session.id,staffToken))throw mfaRequired();
+    return context.user;
+  }
+  async team(accountToken:string|undefined,staffToken:string|undefined,cursor?:string){
+    return this.database.transaction(async client=>{
+      const owner=await this.teamOwner(client,accountToken,staffToken);
+      const rows=(await client.query(`SELECT u.id,u.display_name,u.email,u.status,s.enabled,s.scopes,s.updated_at
+        FROM staff_accounts s JOIN users u ON u.id=s.user_id WHERE ($1::uuid IS NULL OR u.id>$1::uuid)
+        ORDER BY u.id LIMIT 51`,[cursor??null])).rows;
+      await audit(client,owner.id,'ADMIN_TEAM_VIEWED',randomUUID(),{target:'admin-team',reason:'Super Admin access administration'},this.now());
+      return {admins:rows.slice(0,50).map(r=>({...r,role:this.role(r.id),scopes:this.scopes(r.id,r.scopes),updated_at:new Date(r.updated_at).toISOString()})),next_cursor:rows.length>50?rows[49].id:null};
+    });
+  }
+  async grantAdmin(accountToken:string|undefined,staffToken:string|undefined,email:string,reason:string,correlation:string){
+    return this.database.transaction(async client=>{
+      const owner=await this.teamOwner(client,accountToken,staffToken);
+      const target=(await client.query('SELECT id,status,email_verified_at FROM users WHERE email=$1 FOR UPDATE',[email])).rows[0];
+      if(!target||target.status!=='ACTIVE'||!target.email_verified_at)throw new ApiProblem(400,'ADMIN_ACCOUNT_NOT_ELIGIBLE','Ask the person to create and verify an active website account first.');
+      if(target.id===owner.id)throw new ApiProblem(400,'SUPER_ADMIN_PROTECTED','The Super Admin cannot be changed through admin delegation.');
+      await client.query(`INSERT INTO staff_accounts(user_id,scopes) VALUES($1,ARRAY['SUPPORT','TRUST'])
+        ON CONFLICT(user_id) DO UPDATE SET scopes=ARRAY['SUPPORT','TRUST'],enabled=true,updated_at=$2,encrypted_pending_secret=NULL,pending_session_id=NULL,pending_expires_at=NULL`,[target.id,this.now()]);
+      await client.query('UPDATE staff_sessions SET revoked_at=$2 WHERE user_id=$1 AND revoked_at IS NULL',[target.id,this.now()]);
+      await audit(client,owner.id,'ADMIN_ACCESS_GRANTED',correlation,{target:target.id,reason,role:'ADMIN',scopes:['SUPPORT','TRUST']},this.now());
+      return {user_id:target.id,role:'ADMIN',enabled:true};
+    });
+  }
+  async revokeAdmin(accountToken:string|undefined,staffToken:string|undefined,id:string,reason:string,correlation:string){
+    return this.database.transaction(async client=>{
+      const owner=await this.teamOwner(client,accountToken,staffToken);
+      if(id===owner.id)throw new ApiProblem(400,'SUPER_ADMIN_PROTECTED','The Super Admin cannot revoke their own access.');
+      const target=(await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id])).rows[0];
+      if(!target)throw new ApiProblem(404,'ADMIN_NOT_FOUND','Admin account was not found.');
+      const changed=await client.query('UPDATE staff_accounts SET enabled=false,updated_at=$2,encrypted_pending_secret=NULL,pending_session_id=NULL,pending_expires_at=NULL WHERE user_id=$1',[id,this.now()]);
+      if(!changed.rowCount)throw new ApiProblem(404,'ADMIN_NOT_FOUND','Admin account was not found.');
+      await client.query('UPDATE staff_sessions SET revoked_at=$2 WHERE user_id=$1 AND revoked_at IS NULL',[id,this.now()]);
+      await audit(client,owner.id,'ADMIN_ACCESS_REVOKED',correlation,{target:id,reason,role:'ADMIN'},this.now());
+      return {user_id:id,enabled:false};
+    });
   }
   async signOut(accountToken:string|undefined,staffToken:string|undefined,correlation:string){
     await this.database.transaction(async client=>{
