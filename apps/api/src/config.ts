@@ -8,6 +8,7 @@ export interface Config {
   recoveryStore?: S3RecoveryStore;
   privacy?:PrivacyConfig;
   operations?:{ownerId:string};
+  staffPolicy?:{superAdminId:string;testMfaBypassUntil?:string};
   mode: "development" | "test" | "production";
   databaseUrl: string;
   authSecret: string;
@@ -93,12 +94,18 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const ownerId=env.OPERATIONS_OWNER_USER_ID?.trim();if(ownerId&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId))throw new Error('Operations owner must be an existing verified staff account UUID');
   const deploymentEnvironment=env.APP_ENVIRONMENT;
   if(deploymentEnvironment&&!/^[a-z][a-z0-9-]{2,39}$/.test(deploymentEnvironment))throw new Error('Invalid application environment identity');
+  const superAdminId=env.STAFF_SUPER_ADMIN_USER_ID?.trim().toLowerCase();
+  if(superAdminId&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(superAdminId))throw new Error('Super Admin must be an existing verified staff account UUID');
+  if(superAdminId&&ownerId&&superAdminId!==ownerId.toLowerCase())throw new Error('Super Admin and operations owner must be the same verified account');
+  const testMfaBypassUntil=env.STAFF_TEST_MFA_BYPASS_UNTIL;
+  if(testMfaBypassUntil&&(!superAdminId||!['staging','payment-sandbox','staging-payment-sandbox'].includes(deploymentEnvironment||'')||payments?.mode==='live'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(testMfaBypassUntil)||!Number.isFinite(Date.parse(testMfaBypassUntil))||Date.parse(testMfaBypassUntil)>Date.now()+72*60*60_000))throw new Error('Testing staff authentication requires an explicit staging owner, non-live payments and an absolute deadline within 72 hours');
+  const staffPolicy=superAdminId?{superAdminId,testMfaBypassUntil}:undefined;
   let recoveryStore:Config['recoveryStore'];
   if(env.RECOVERY_BUCKET){
     if(!deploymentEnvironment||!env.APP_REGION||!env.RECOVERY_REGION||env.APP_REGION===env.RECOVERY_REGION||env.RECOVERY_LOCATION_APPROVED!=='true')throw new Error('Independent recovery region, environment identity and actual location approval are required');
     recoveryStore=new S3RecoveryStore({bucket:env.RECOVERY_BUCKET,region:env.RECOVERY_REGION,environment:deploymentEnvironment});
   }
-  return { recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  return { staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

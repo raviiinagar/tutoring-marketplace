@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { AdminDashboard } from "@/components/admin-dashboard";
+import { AdminReviewWorkspace } from "@/components/admin-review-workspace";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import {
@@ -96,6 +97,13 @@ function StaffConsole() {
           setPassword("");
           await load();
         } else fail(result.error);
+      } else if (access?.mfa_required === false) {
+        const result = await api.staffSignIn(password);
+        if (result.ok) {
+          setPassword("");
+          setCode("");
+          await load();
+        } else fail(result.error);
       } else if (!access?.mfa_enrolled) {
         const result = await api.enrollMfa(password);
         if (result.ok) {
@@ -152,8 +160,18 @@ function StaffConsole() {
     });
   return (
     <AuthShell
-      title="Admin dashboard"
-      intro="Your marketplace at a glance. Review activity, act on pending work and manage your team?s daily operations."
+      title={
+        access?.role === "ADMIN"
+          ? "Review workspace"
+          : access?.role === "SUPER_ADMIN"
+            ? "Super Admin dashboard"
+            : "Admin dashboard"
+      }
+      intro={
+        access?.role === "ADMIN"
+          ? "Review Tutor submissions, keep the marketplace safe and help account holders."
+          : "Review marketplace activity, pending work and your administration team."
+      }
       footer={
         <Link to="/account" className="link">
           Back to your account
@@ -174,6 +192,15 @@ function StaffConsole() {
         <p role="status">Loading staff access…</p>
       ) : (
         <>
+          {access.mfa_required === false && (
+            <div className="mb-5">
+              <Notice tone="info">
+                Testing access: authenticator codes are temporarily skipped until{" "}
+                {new Date(access.testing_mfa_bypass_until!).toLocaleString()}. Your website password
+                is still required. MFA resumes automatically after this window.
+              </Notice>
+            </div>
+          )}
           {backups.length > 0 && (
             <section className="mb-6 space-y-3">
               <h2 className="font-semibold">Save your recovery codes</h2>
@@ -200,9 +227,11 @@ function StaffConsole() {
                   ? "Recover your authenticator"
                   : enrollment
                     ? "Confirm your authenticator"
-                    : access.mfa_enrolled
-                      ? "Verify staff access"
-                      : "Set up staff MFA"}
+                    : access.mfa_required === false
+                      ? "Enter your admin workspace"
+                      : access.mfa_enrolled
+                        ? "Verify staff access"
+                        : "Set up staff MFA"}
               </h2>
               {enrollment ? (
                 <>
@@ -229,7 +258,9 @@ function StaffConsole() {
                   onChange={(event) => setPassword(event.target.value)}
                 />
               )}
-              {(recovery || enrollment || access.mfa_enrolled) && (
+              {(recovery ||
+                enrollment ||
+                (access.mfa_required !== false && access.mfa_enrolled)) && (
                 <Field
                   label={recovery ? "Recovery code" : "Authenticator code"}
                   type={recovery ? "password" : "text"}
@@ -245,11 +276,13 @@ function StaffConsole() {
                   ? "Use recovery code"
                   : enrollment
                     ? "Confirm MFA"
-                    : access.mfa_enrolled
-                      ? "Enter staff console"
-                      : "Create authenticator setup"}
+                    : access.mfa_required === false
+                      ? "Enter admin workspace"
+                      : access.mfa_enrolled
+                        ? "Enter staff console"
+                        : "Create authenticator setup"}
               </SubmitButton>
-              {access.mfa_enrolled && (
+              {access.mfa_enrolled && access.mfa_required !== false && (
                 <Button
                   type="button"
                   variant="outline"
@@ -270,60 +303,62 @@ function StaffConsole() {
                 Staff access expires {new Date(access.expires_at!).toLocaleTimeString()}. Only your
                 assigned areas are available.
               </p>
-              <AdminDashboard />
-              <details className="mt-8 rounded-xl border p-4">
-                <summary className="cursor-pointer font-semibold">Staff access audit</summary>
-                <nav aria-label="Staff audit areas" className="mt-5 flex flex-wrap gap-3">
-                  {access.scopes.map((scope) => (
-                    <Button
-                      key={scope}
-                      variant="outline"
-                      disabled={loading}
-                      onClick={() => void open(scope)}
-                    >
-                      {labels[scope]} audit
-                    </Button>
-                  ))}
-                </nav>
-                {workspace && (
-                  <section className="mt-6 space-y-4">
-                    <h2 className="font-semibold">{labels[workspace.scope]} workspace</h2>
-                    <p className="text-sm text-muted-foreground">
-                      This is the staff access audit trail. Use the sidebar for cases, reviews and
-                      financial workflows.
-                    </p>
-                    <form onSubmit={record} noValidate className="space-y-3">
-                      <Field
-                        label="Reason for access"
-                        hint="10–240 characters. Describe the operational purpose; do not enter credentials or private evidence."
-                        value={reason}
-                        onChange={(event) => setReason(event.target.value)}
-                        maxLength={240}
-                      />
-                      <SubmitButton loading={loading} loadingText="Recording…">
-                        Record access reason
-                      </SubmitButton>
-                    </form>
-                    <h3 className="font-semibold">Recent access records</h3>
-                    {workspace.events.length ? (
-                      <ul className="space-y-3">
-                        {workspace.events.map((event) => (
-                          <li className="rounded-lg border p-3 text-sm" key={event.id}>
-                            <p>{event.reason}</p>
-                            <p className="break-all text-muted-foreground">
-                              Actor: {event.actor_id}
-                            </p>
-                            <p>Target: {event.target}</p>
-                            <p>{new Date(event.created_at).toLocaleString()}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm">No recorded access reasons for this area yet.</p>
-                    )}
-                  </section>
-                )}
-              </details>
+              {access.role === "ADMIN" ? <AdminReviewWorkspace /> : <AdminDashboard />}
+              {access.role !== "ADMIN" && (
+                <details className="mt-8 rounded-xl border p-4">
+                  <summary className="cursor-pointer font-semibold">Staff access audit</summary>
+                  <nav aria-label="Staff audit areas" className="mt-5 flex flex-wrap gap-3">
+                    {access.scopes.map((scope) => (
+                      <Button
+                        key={scope}
+                        variant="outline"
+                        disabled={loading}
+                        onClick={() => void open(scope)}
+                      >
+                        {labels[scope]} audit
+                      </Button>
+                    ))}
+                  </nav>
+                  {workspace && (
+                    <section className="mt-6 space-y-4">
+                      <h2 className="font-semibold">{labels[workspace.scope]} workspace</h2>
+                      <p className="text-sm text-muted-foreground">
+                        This is the staff access audit trail. Use the sidebar for cases, reviews and
+                        financial workflows.
+                      </p>
+                      <form onSubmit={record} noValidate className="space-y-3">
+                        <Field
+                          label="Reason for access"
+                          hint="10–240 characters. Describe the operational purpose; do not enter credentials or private evidence."
+                          value={reason}
+                          onChange={(event) => setReason(event.target.value)}
+                          maxLength={240}
+                        />
+                        <SubmitButton loading={loading} loadingText="Recording…">
+                          Record access reason
+                        </SubmitButton>
+                      </form>
+                      <h3 className="font-semibold">Recent access records</h3>
+                      {workspace.events.length ? (
+                        <ul className="space-y-3">
+                          {workspace.events.map((event) => (
+                            <li className="rounded-lg border p-3 text-sm" key={event.id}>
+                              <p>{event.reason}</p>
+                              <p className="break-all text-muted-foreground">
+                                Actor: {event.actor_id}
+                              </p>
+                              <p>Target: {event.target}</p>
+                              <p>{new Date(event.created_at).toLocaleString()}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm">No recorded access reasons for this area yet.</p>
+                      )}
+                    </section>
+                  )}
+                </details>
+              )}
               <Button
                 type="button"
                 variant="outline"

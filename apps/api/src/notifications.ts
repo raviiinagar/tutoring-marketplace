@@ -415,7 +415,7 @@ export class NotificationsService {
     reason: string,
   ) {
     return this.database.transaction(async (client) => {
-      const user = await this.staff.authorize(
+      const user = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -448,7 +448,7 @@ export class NotificationsService {
     reason: string,
   ) {
     return this.database.transaction(async (client) => {
-      const user = await this.staff.authorize(
+      const user = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
@@ -505,7 +505,7 @@ export class NotificationsService {
     reason: string,
   ) {
     const job = await this.database.transaction(async (client) => {
-      await this.staff.authorize(client, account, elevated, "SUPPORT");
+      await this.staff.authorizeSuper(client, account, elevated, "SUPPORT");
       const row = (
         await client.query(
           "SELECT * FROM notification_outbox WHERE id=$1 AND (NOT $2::boolean OR NOT test_only)",
@@ -545,7 +545,7 @@ export class NotificationsService {
         "The provider reference does not match.",
       );
     return this.database.transaction(async (client) => {
-      const user = await this.staff.authorize(
+      const user = await this.staff.authorizeSuper(
         client,
         account,
         elevated,
