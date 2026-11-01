@@ -4,6 +4,14 @@ A marketplace connecting learners with tutors. The platform's contact service an
 
 ## Language
 
+**Public Teaching Location**:
+A Tutor's self-declared city and optional area/region used to describe in-person teaching and support discovery. It is not an exact meeting address or proof of residence.
+_Avoid_: Verified address, home address, precise location.
+
+**Weekly Teaching Hours**:
+A Tutor's usual declared day/time windows for discussing classes. They do not reserve a slot or establish attendance.
+_Avoid_: Confirmed booking, real-time free/busy calendar.
+
 **Super Admin**:
 The single owner administrator responsible for all administration areas and for granting or revoking delegated Admin access.
 _Avoid_: Any staff member, public account role.

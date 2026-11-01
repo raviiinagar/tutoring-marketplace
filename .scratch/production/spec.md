@@ -16,6 +16,8 @@ Learners across India need to find suitable, responsive tutors across school, en
 
 ## Solution
 
+Owner amendment, 1 November 2026: [ADR 0013](../../docs/adr/0013-city-area-discovery-and-declared-teaching-hours.md) and the [location/availability spec](../location-search/spec.md) expand the online-first teaching mode to online plus in-person, with coarse public city/area and declared weekly hours. No exact addresses or automatic bookings are added.
+
 Build an online-first responsive web marketplace covering eight learning domains. Browsing is free; a ₹599 Access Pass covers 30 days from first eligible tutor acceptance with confirmed payment. A payer can contact multiple tutors under one pass, with at most five pending Contact Requests. Tuition Fees are settled directly with Tutors.
 
 Guardian-controlled access serves child Learners. Adult Tutors undergo staff review before publication. The product includes approved Listings, structured discovery, hosted payment, requests, authorised Connections, durable text chat, moderated Reviews, self-service support/privacy workflows and an owner-operated staff console.

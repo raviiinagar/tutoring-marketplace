@@ -421,6 +421,7 @@ export async function erasePrivacyData(
     "DELETE FROM tutor_download_grants WHERE evidence_id IN (SELECT id FROM tutor_evidence WHERE user_id=$1) OR actor_id=$1",
     [user.id],
   );
+  if((await client.query("SELECT to_regclass('tutor_presence') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_presence WHERE user_id=$1',[user.id]);
   if((await client.query("SELECT to_regclass('tutor_pro_grants') AS relation")).rows[0].relation){
     await client.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[user.id]);
     await client.query("UPDATE tutor_profiles SET public_email_consent_at=NULL,public_email_consent_version=NULL,subject_ids='{}',hourly_rate_paise=NULL,identity_country=NULL,identity_document=NULL WHERE user_id=$1",[user.id]);
@@ -472,7 +473,7 @@ export async function erasePrivacyData(
     ],
   );
   await client.query(
-    "UPDATE contact_requests SET offer_snapshot=jsonb_set(jsonb_set(offer_snapshot,'{title}','\"Deleted offer\"'),'{description}','\"[erased]\"') WHERE tutor_id=$1",
+    "UPDATE contact_requests SET offer_snapshot=jsonb_set(jsonb_set(offer_snapshot - 'class_location','{title}','\"Deleted offer\"'),'{description}','\"[erased]\"') WHERE tutor_id=$1",
     [user.id],
   );
   await client.query(

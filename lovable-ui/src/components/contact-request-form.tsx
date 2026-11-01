@@ -88,7 +88,7 @@ export function ContactRequestForm({
         listing_revision: listing.revision,
         learner_id: learner,
         subject_id: listing.offer.subject_id,
-        teaching_mode: "ONLINE",
+        teaching_mode: listing.offer.teaching_mode,
         learning_requirements: goals,
         preferred_times: times,
       });

@@ -1,4 +1,5 @@
 import {RefundsService} from '../src/refunds.js';
+import {personalExport} from '../src/privacy-inventory.js';
 import { PaymentEvents } from "../src/payment-events.js";
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
@@ -207,6 +208,10 @@ async function campaign(percent = 100, maxUses = 100, product="LEARNER_ACCESS") 
 const intro={display_name:'Fictional Tutor',biography:'I explain physics through practical examples and have experience helping adult learners.',subject_ids:['subject-physics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false};
 async function shortTutor(){const user=await fixture(null);const r=await post('/v1/me/tutor/introduction',intro,user.cookie).expect(200);const id=r.body.profile.public_id;const submitted=await post('/v1/me/tutor/identity',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(200);assert.equal(submitted.body.claims.length,1);assert.equal(submitted.body.profile.status,'SUBMITTED');const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);await post('/v1/staff/tutor-claims/'+submitted.body.claims[0].id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional adult identity document checked',reason:'Fictional adult identity review approved',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+365*86400000).toISOString()},mfa.cookie).expect(200);return {...user,publicId:id,reviewer:mfa};}
 const pro=(user:any,code?:string,key=randomUUID())=>post('/v1/me/tutor/pro/purchases',{request_key:key,policy_version:'tutor-pro-v1',...(code?{coupon_code:code}:{})},user.cookie);
+
+const place={city:'Presence Test City',area:'North Learning Area',country:'India'};
+const presence={expected_revision:0,location:place,teaching_modes:['ONLINE','IN_PERSON'],accepting_students:true,weekly_slots:[{day:'MON',start_minute:960,end_minute:1080}],timezone:'Asia/Kolkata'};
+async function offlineOffer(teacher:Awaited<ReturnType<typeof shortTutor>>){let row=(await post('/v1/me/listings',{...offer,teaching_mode:'IN_PERSON'},teacher.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},teacher.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Coarse city and exact in-person teaching terms reviewed'},teacher.reviewer.cookie).expect(200)).body.listing;}
 test('one private identity makes a free public profile; Pro, approved offer and consent independently control public email',async()=>{
  const teacher=await shortTutor();const getProfile=()=>get('/v1/tutor-profiles/'+teacher.publicId);
  const free=(await getProfile().expect(200)).body.profile;assert.equal(free.contact,null);assert.equal(free.offers.length,0);assert.match(free.expertise_label,/self-declared/);const raw=JSON.stringify(free);for(const forbidden of ['birth_date','evidence_id','identity_document',teacher.email,teacher.id])assert.ok(!raw.includes(forbidden),forbidden);
@@ -243,4 +248,53 @@ test('a valid submitted enquiry survives ordinary Tutor Pro expiry while new sup
  const req=(await post('/v1/me/contact-requests',{request_key:randomUUID(),listing_id:listing.id,listing_revision:listing.revision,learner_id:learner.id,subject_id:'subject-physics',teaching_mode:'ONLINE',learning_requirements:'Fictional Physics enquiry before Tutor Pro expiry',preferred_times:'Weekday evening, IST'},owner.cookie).expect(200)).body.request;
  const second=(await post('/v1/me/contact-requests',{request_key:randomUUID(),listing_id:otherListing.id,listing_revision:otherListing.revision,learner_id:learner.id,subject_id:'subject-physics',teaching_mode:'ONLINE',learning_requirements:'Second fictional Physics enquiry before Tutor Pro expiry',preferred_times:'Weekday evening, IST'},owner.cookie).expect(200)).body.request;
  clock=new Date(clock.getTime()+2*3600000);teacher.cookie=(await post('/v1/auth/sessions',{email:teacher.email,password}).expect(200)).headers['set-cookie'][0];await get('/v1/discovery/'+listing.id).expect(404);const accepted=await post('/v1/me/tutor-requests/'+req.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(200);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);await database.pool.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[teacher.id]);await post('/v1/me/tutor-requests/'+second.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(403);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);
+});
+
+test('location and hours validate ownership, stale writes and public Subject/city/day/time filters without re-reviewing identity',async()=>{
+ const teacher=await shortTutor();await post('/v1/me/tutor/presence',presence).expect(401);
+ await post('/v1/me/tutor/presence',{...presence,location:null},teacher.cookie).expect(400);
+ await post('/v1/me/tutor/presence',{...presence,location:{...place,address:'Private house'}},teacher.cookie).expect(400);
+ await post('/v1/me/tutor/presence',{...presence,weekly_slots:[...presence.weekly_slots,{day:'MON',start_minute:1000,end_minute:1100}]},teacher.cookie).expect(400);
+ await post('/v1/me/tutor/presence',{...presence,timezone:'Europe/London'},teacher.cookie).expect(400);
+ const replies=await Promise.all([post('/v1/me/tutor/presence',presence,teacher.cookie),post('/v1/me/tutor/presence',presence,teacher.cookie)]);assert.deepEqual(replies.map(r=>r.status).sort(),[200,409]);
+ const own=(await get('/v1/me/tutor',teacher.cookie).expect(200)).body.profile;assert.equal(own.status,'APPROVED');assert.equal(own.revision,1);
+ const pub=(await get('/v1/tutor-profiles/'+teacher.publicId).expect(200)).body.profile;assert.deepEqual(pub.presence.location,place);assert.equal(pub.presence.weekly_slots.length,1);assert.equal(pub.offers.length,0);
+ const prefix='/v1/tutor-profiles?subject_id=subject-physics&location='+encodeURIComponent(place.city)+'&teaching_mode=IN_PERSON';
+ const found=(await get(prefix+'&day=MON&at_time=1020').expect(200)).body.profiles;assert.ok(found.some((p:any)=>p.id===teacher.publicId));
+ for(const filter of ['&day=TUE','&day=MON&at_time=1080'])assert.ok(!(await get(prefix+filter).expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));
+ assert.ok(!(await get('/v1/tutor-profiles?location=NoSuchCity').expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));
+ await get('/v1/tutor-profiles?at_time=600').expect(400);await get('/v1/discovery?at_time=600').expect(400);
+ const locations=(await get('/v1/tutor-profiles/locations?q='+encodeURIComponent(place.city)).expect(200)).body.locations;assert.ok(locations.some((p:any)=>p.city===place.city));assert.ok(!JSON.stringify(locations).includes(teacher.id));
+ const exported=await database.transaction(async c=>personalExport(c,(await c.query('SELECT * FROM users WHERE id=$1',[teacher.id])).rows[0],config,clock));assert.equal(exported.tutor_presence[0].location.city,place.city);
+ const other=await fixture(null);assert.equal((await get('/v1/me/tutor/presence',other.cookie).expect(200)).body.presence.revision,0);
+});
+
+test('in-person offers and enquiries use real location/mode while closing new students preserves an existing enquiry',async()=>{
+ const teacher=await shortTutor(),c=await campaign(100,100,'TUTOR_PRO');await pro(teacher,c.input.code).expect(200);
+ await post('/v1/me/listings',{...offer,teaching_mode:'IN_PERSON'},teacher.cookie).expect(409);
+ await post('/v1/me/tutor/presence',presence,teacher.cookie).expect(200);const listing=await offlineOffer(teacher);
+ const detail=(await get('/v1/discovery/'+listing.id).expect(200)).body.listing;assert.equal(detail.offer.teaching_mode,'IN_PERSON');assert.equal(detail.offer.class_location.city,place.city);
+ const query='/v1/discovery?location='+encodeURIComponent(place.city)+'&day=MON&at_time=1020&teaching_mode=IN_PERSON';assert.ok((await get(query).expect(200)).body.offers.some((l:any)=>l.id===listing.id));assert.ok(!(await get('/v1/discovery?teaching_mode=ONLINE').expect(200)).body.offers.some((l:any)=>l.id===listing.id));
+ const owner=await fixture(null),learner=(await post('/v1/me/learners/adult',{alias:'Fictional adult learner',learning_requirements:'Learn school Physics with worked examples',adult_confirmed:true},owner.cookie).expect(201)).body.profile;
+ const coupon=await campaign();await post('/v1/me/purchases',{request_key:randomUUID(),listing_id:listing.id,listing_revision:listing.revision,learner_id:learner.id,policy_version:'access-v1',coupon_code:coupon.input.code},owner.cookie).expect(200);
+ const body={request_key:randomUUID(),listing_id:listing.id,listing_revision:listing.revision,learner_id:learner.id,subject_id:'subject-physics',teaching_mode:'IN_PERSON',learning_requirements:'Fictional in-person Physics teaching enquiry',preferred_times:'Monday 5 pm IST, coarse public area'};
+ await post('/v1/me/contact-requests',{...body,teaching_mode:'ONLINE'},owner.cookie).expect(400);
+ const req=(await post('/v1/me/contact-requests',body,owner.cookie).expect(200)).body.request;
+ assert.equal((await database.pool.query('SELECT offer_snapshot FROM contact_requests WHERE id=$1',[req.id])).rows[0].offer_snapshot.class_location.city,place.city);
+ const paused=await post('/v1/me/tutor/presence',{...presence,expected_revision:1,accepting_students:false},teacher.cookie).expect(200);assert.equal(paused.body.offers_need_review,0);
+ await get('/v1/discovery/'+listing.id).expect(404);assert.equal((await get('/v1/tutor-profiles/'+teacher.publicId).expect(200)).body.profile.presence.accepting_students,false);
+ assert.ok(!(await get('/v1/tutor-profiles?accepting_only=true').expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));
+ await post('/v1/me/contact-requests',{...body,request_key:randomUUID()},owner.cookie).expect(404);
+ await post('/v1/me/tutor-requests/'+req.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(200);
+});
+
+test('material location changes require offer resubmission, not new identity evidence',async()=>{
+ const teacher=await shortTutor(),coupon=await campaign(100,100,'TUTOR_PRO');await pro(teacher,coupon.input.code).expect(200);await post('/v1/me/tutor/presence',presence,teacher.cookie).expect(200);
+ const listing=await offlineOffer(teacher);
+ const changed=await post('/v1/me/tutor/presence',{...presence,expected_revision:1,location:{...place,city:'Another Teaching City'}},teacher.cookie).expect(200);assert.equal(changed.body.offers_need_review,1);
+ await get('/v1/discovery/'+listing.id).expect(404);const own=(await get('/v1/me/listings',teacher.cookie).expect(200)).body.listings.find((l:any)=>l.id===listing.id);assert.equal(own.status,'CHANGES_REQUESTED');assert.ok(own.revision>listing.revision);
+ assert.equal((await get('/v1/me/tutor',teacher.cookie)).body.profile.status,'APPROVED');
+ const submitted=(await post('/v1/me/listings/'+listing.id+'/actions/SUBMIT',{revision:own.revision},teacher.cookie).expect(200)).body.listing;
+ await post('/v1/staff/listings/'+listing.id+'/reviews',{revision:submitted.revision,outcome:'APPROVE',reason:'Updated city and unchanged in-person offer reviewed'},teacher.reviewer.cookie).expect(200);
+ assert.equal((await get('/v1/discovery/'+listing.id).expect(200)).body.listing.class_location.city,'Another Teaching City');
 });

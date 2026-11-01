@@ -76,6 +76,7 @@ function mount() {
   );
 }
 beforeEach(() => {
+  vi.spyOn(api,'tutorPresence').mockResolvedValue({ok:true,status:200,data:{presence:{revision:0,location:null,teaching_modes:['ONLINE'],accepting_students:null,weekly_slots:[],timezone:'Asia/Kolkata',updated_at:null}}});
   saved = { profile: { ...profile }, evidence: [...docs], claims: [] };
   vi.spyOn(api, "tutorPro").mockResolvedValue({
     ok: true,
