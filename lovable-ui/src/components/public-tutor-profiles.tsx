@@ -1,7 +1,14 @@
+import { TutorPresenceSummary } from "./tutor-presence-summary";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
-import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
+import {
+  api,
+  describeFailure,
+  type PublicTutor,
+  type Catalogue,
+  type DiscoveryFilters,
+} from "@/lib/api";
 import { TutorPortrait } from "./tutor-portrait";
 import { Button } from "./ui/button";
 import { Notice } from "./account/ui";
@@ -38,6 +45,9 @@ export function PublicTutorCard({
         <h3 className="teacher-cover-name">{profile.display_name}</h3>
       </Link>
       <div className="flex flex-1 flex-col px-1 py-4">
+        <div className="mb-3">
+          <TutorPresenceSummary presence={profile.presence} />
+        </div>
         <p className="mt-1 flex items-center gap-1 text-xs text-success">
           <ShieldCheck aria-hidden className="size-3.5" />
           Identity reviewed
@@ -72,7 +82,25 @@ export function PublicTutorCard({
     </article>
   );
 }
-export function PublicTutorDirectory() {
+export function PublicTutorDirectory({
+  filters = {},
+  showSubjectFilter = true,
+}: {
+  filters?: DiscoveryFilters;
+  showSubjectFilter?: boolean;
+}) {
+  const filterKey = JSON.stringify(filters),
+    latest = useRef(0);
+  const advanced = !!(
+    filters.domain_id ||
+    filters.level_id ||
+    filters.curriculum_id ||
+    filters.exam_id ||
+    filters.language_id ||
+    filters.rate_unit ||
+    filters.min_rate_paise !== undefined ||
+    filters.max_rate_paise !== undefined
+  );
   const [profiles, setProfiles] = useState<PublicTutor[]>(),
     [catalogue, setCatalogue] = useState<Catalogue>(),
     [subject, setSubject] = useState(""),
@@ -85,7 +113,14 @@ export function PublicTutorDirectory() {
   }, []);
   const load = async (next?: string) => {
     setError(undefined);
-    const r = await api.publicTutors(subject || undefined, next);
+    const attempt = ++latest.current;
+    if (advanced) {
+      setProfiles([]);
+      setCursor(null);
+      return;
+    }
+    const r = await api.publicTutors(filters.subject_id || subject || undefined, next, filters);
+    if (attempt !== latest.current) return;
     if (r.ok) {
       setProfiles((old) => (next ? [...(old || []), ...r.data.profiles] : r.data.profiles));
       setCursor(r.data.next_cursor);
@@ -94,7 +129,10 @@ export function PublicTutorDirectory() {
   useEffect(() => {
     setProfiles(undefined);
     void load();
-  }, [subject]);
+    return () => {
+      latest.current++;
+    };
+  }, [subject, filterKey]);
   return (
     <section aria-label="Tutor profiles" className="mb-12 space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -105,25 +143,31 @@ export function PublicTutorDirectory() {
             self-declared. Available teaching offers are shown separately below.
           </p>
         </div>
-        <label className="text-sm font-semibold">
-          Profile subject
-          <select
-            className="input mt-2"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-          >
-            <option value="">All subjects</option>
-            {catalogue?.terms
-              .filter((t) => t.kind === "SUBJECT" && t.active)
-              .map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-          </select>
-        </label>
+        {showSubjectFilter && (
+          <label className="text-sm font-semibold">
+            Profile subject
+            <select
+              className="input mt-2"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            >
+              <option value="">All subjects</option>
+              {catalogue?.terms
+                .filter((t) => t.kind === "SUBJECT" && t.active)
+                .map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+            </select>
+          </label>
+        )}
       </div>
-      {error ? (
+      {advanced ? (
+        <p className="text-sm text-muted-foreground">
+          See the teaching offers below for your exact learning goal and price filters.
+        </p>
+      ) : error ? (
         <>
           <Notice tone="error">{error}</Notice>
           <Button onClick={() => void load()}>Retry profiles</Button>
@@ -138,8 +182,8 @@ export function PublicTutorDirectory() {
         </div>
       ) : (
         <p className="rounded-2xl border bg-secondary p-6 text-sm">
-          No approved profiles for this Subject yet. Browse available teaching offers below or try
-          another Subject.
+          No Tutor profiles match these filters yet. Try another subject, city or time, or browse
+          available teaching offers below.
         </p>
       )}
       {cursor && (

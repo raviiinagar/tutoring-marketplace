@@ -1,0 +1,5 @@
+# Add city/area discovery and declared teaching hours
+
+On 1 November 2026 the owner explicitly expanded ADR-0003's online-first launch to support both online and in-person teaching. Tutors can declare a coarse public city/area, supported modes, accepting-new-students status and usual weekly hours. City/area matching uses saved eligible profile data, not precise address collection or unverified distance claims. Weekly hours are expressed in IST for the India marketplace and do not create reservations; the Tutor and Learner/Guardian confirm arrangements themselves.
+
+These preferences are saved separately from identity evidence so edits do not restart identity onboarding. Material changes to the location or supported mode of a published in-person offer require resubmission. Temporarily closing new enquiries preserves already covered pending requests and established safe Connections. Profile visibility, current paid offer eligibility and public-contact consent remain separate, as in ADR-0011.
