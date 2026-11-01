@@ -46,6 +46,7 @@ test('only the configured Super Admin can delegate verified accounts, revoke acc
  await post('/v1/staff/admins/grants',{email:reviewer.email,reason:'Assign daily review work',role:'SUPER_ADMIN'},root.staff).expect(400);
  await post('/v1/staff/admins/grants',{email:root.email,reason:'Try changing the owner'},root.staff).expect(400);
  await post('/v1/staff/admins/'+root.id+'/revocations',{reason:'Try revoking the owner'},root.staff).expect(400);
+ await post('/v1/staff/admins/'+root.id.toUpperCase()+'/revocations',{reason:'Try uppercase owner identifier'},root.staff).expect(400);
  await post('/v1/staff/admins/grants',{email:reviewer.email,reason:'Assign daily review work'},root.staff).expect(200);
  const signIn=await post('/v1/staff/sessions',{password},reviewer.cookie).expect(200),staff=combine(reviewer.cookie,signIn.headers['set-cookie'][0]);
  const access=await get('/v1/staff/access',staff).expect(200);assert.equal(access.body.role,'ADMIN');assert.equal(access.body.mfa_required,false);assert.deepEqual(access.body.scopes,['SUPPORT','TRUST']);
