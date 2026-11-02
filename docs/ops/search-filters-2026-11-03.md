@@ -16,6 +16,22 @@ The [REA research record](../research/superprof-search-filters-2026-11-03.md) li
 
 ## Hosting
 
-The feature is committed locally on `feature/search-filters-rea` (component/helper commit `531e782`, route/evidence commit `5e6da73`). An attempted push/promotion command was rejected before execution by automatic approval review. The review required explicit approval for external publication to the existing `github.com/raviiinagar/tutoring-marketplace` remote and deployment branches. Neither hosting branch was changed; no deployment or live-after-change acceptance is claimed.
+The owner explicitly approved pushing to `raviiinagar/tutoring-marketplace` and deploying both existing Netlify sites after the initial automatic publication review rejection. The approved publication subsequently succeeded.
 
-The owner must approve publishing this concrete feature to that repository and the existing main/payment-sandbox Netlify deployments. The existing live website remains on its prior compact-card release. Local work and verification are complete; hosted acceptance is pending publication approval.
+| Target | Hosted commit | Ready Netlify deploy |
+|---|---|---|
+| Main | `e1a2da977e7122045afd6e0d935757ae3f26ab32` | `6ae8ef847b5f424bcda91f2f` |
+| Payment sandbox | `6c8c8fdc14252058b9afcefe503795bb31c2076c` | `6ae8ef772dfb053e0c6cb41c` |
+
+The feature branch contains component/helper commit `531e782` and route/research commit `5e6da73`. Hosting branches received those two code commits while preserving their existing environment-specific routing and sandbox notice. This report and final acceptance evidence are maintained on the feature branch and synchronized into the owner's workspace.
+
+## Live acceptance
+
+Anonymous real-browser checks passed on both main and payment-sandbox sites, at desktop and 390px mobile widths, with no API mocks or real-account changes. Each run observed five successful search API responses and checked applicable rate-unit, maximum-price and free-trial constraints on returned offers. Apply/Cancel/Escape, focus return, complete filter request payloads, offer/profile separation, dependent chip removal, browser Back and clear-all passed with zero page errors or horizontal overflow. Compatible hero refinements are covered by local browser fixtures and helper tests; they were not independently exercised in the live anonymous run.
+
+- [Main result evidence](evidence/search-filters-main-2026-11-03.json)
+- [Sandbox result evidence](evidence/search-filters-sandbox-2026-11-03.json)
+- [Main desktop](evidence/search-filters-main-desktop-2026-11-03.png) and [main mobile](evidence/search-filters-main-mobile-2026-11-03.png)
+- [Sandbox desktop](evidence/search-filters-sandbox-desktop-2026-11-03.png) and [sandbox mobile](evidence/search-filters-sandbox-mobile-2026-11-03.png)
+
+These checks establish the tested anonymous discovery interactions; they do not establish every authenticated workflow or a capacity benchmark.

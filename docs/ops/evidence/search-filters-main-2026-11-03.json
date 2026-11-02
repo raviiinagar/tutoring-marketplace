@@ -1,0 +1,16 @@
+{
+  "origin": "https://tutoring-marketplace-ravii-preview.netlify.app",
+  "live": true,
+  "stagedApplyCancel": true,
+  "focusReturn": true,
+  "budgetUnit": true,
+  "requestPayload": true,
+  "profileScope": true,
+  "heroPreservesRefinements": "not_exercised",
+  "chipDependencies": true,
+  "backForward": true,
+  "mobile390": true,
+  "pageErrors": 0,
+  "liveApiResponses": 5,
+  "liveFilterConstraints": true
+}
