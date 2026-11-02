@@ -1,0 +1,289 @@
+{
+  "note": "Selected excerpts from retained REA Evidence, not a canonical full bundle. Raw same-session evidence exported under ignored .local. Competitor Tutor details and cookies excluded.",
+  "records": [
+    {
+      "evidence_id": "ev_88917ca87af0020b6ac2339c07580a76773da5834deddfd4ef2da9945855c8bf",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "4be829795ffbbb739ec43300046cde553e1520822de3a4135344e83e980e8e3b",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "activate",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "subject",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "subject-loaded",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "choose-subject",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "location",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "location-loaded",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"Find your perfect teacher\" [level=1]\n  - textbox \"Try “Maths”\": Maths\n  - textbox \"Class location\": Mumbai\n  - list:\n    - listitem: Mumbai, Maharashtra, India\n    - listitem: Mumbai Central, Mumbai, Maharashtra, India\n    - listitem: Mumbai T2 Airport, Navpada, Vile Parle East, Vile Parle, Mumbai, Maharashtra, India\n    - listitem: Mumbai Naka, Renuka Nagar, Nashik, Maharashtra, India\n    - listitem: Chhatrapati Shivaji Maharaj International Airport Mumbai (BOM), Mumbai, Maharashtra, India\n  - paragraph: Around me\n  - paragraph: Online\n  - button \"Search\"\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_9cba35173689794cce04f69f66f28a953ce145a3290be9081d1f9013e1c5f879",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "0ccca83188d5dcbf7982096c24a1302cac11aaccf64a2208929cd9f3fde2f122",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "mobile-fee",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - img\n    - text: Maths - Mumbai, Maharashtra\n    - img\n    - text: Superprof Login Sign Up\n    - list:\n      - listitem:\n        - img\n        - text: Search for a teacher\n      - listitem:\n        - link \"Give Private Classes\":\n          - /url: /tutor/\n          - img\n          - text: Give Private Classes\n      - listitem:\n        - link \"Help\":\n          - /url: https://www.superprof.co.in/help/students/2/\n          - img\n          - text: Help\n  - button \"AI Search\"\n  - text: Type of class Distance Fee\n  - heading \"Fee\" [level=2]\n  - paragraph: \"Your maximum budget : ₹2350+\"\n  - slider: ₹2350+\n  - text: 149 2350\n  - paragraph: First class for free\n  - checkbox\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Level Response time\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_a4e290feb6a321dcf27f9c5ac5d6765c27badc12436085bde6b523b394d6cfac",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "8ed845b804b454ad1d942b8b2ac879ca981b7d7ac647805990e1d5ae2a91d8b3",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"Find your perfect teacher\" [level=1]\n  - text: Maths Try \"Tennis\" \"Ukulele\" \"Yoga\" \"Public Speaking\" \"Drawing\" \"Surfing\" \"Baking\" \"Video editing\" \"Philosophy\" \"Mandarin\" \"Architecture\" \"Watercolor painting\" \"Chess\" \"Tennis\"\n  - button \"Search\"\n"
+        },
+        {
+          "step_id": "activate-search",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"Find your perfect teacher\" [level=1]\n  - textbox \"Try “Maths”\"\n  - textbox \"Class location\"\n  - paragraph: Around me\n  - paragraph: Online\n  - button \"Search\"\n"
+        },
+        {
+          "step_id": "type-maths",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"Find your perfect teacher\" [level=1]\n  - textbox \"Try “Maths”\": Maths\n  - option \"Search with AI\"\n  - text: Maths Hindi English Personal Trainer Yoga Biology Physics French Singing Guitar\n  - textbox \"Class location\"\n  - paragraph: Around me\n  - paragraph: Online\n  - button \"Search\"\n"
+        },
+        {
+          "step_id": "settle-options",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"Find your perfect teacher\" [level=1]\n  - textbox \"Try “Maths”\": Maths\n  - option \"Search with AI\"\n  - strong: Maths\n  - textbox \"Class location\"\n  - paragraph: Around me\n  - paragraph: Online\n  - button \"Search\"\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_ec97bda7819c49364565bdfb31aef59c92e760588ad5165d3e15743978145fb1",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "5443dd824a95ed43b8b39093d018ba383855e17d7c6cdea5e7054a9a58764f52",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Looking for Home Tuition near you?\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\""
+        },
+        {
+          "step_id": "fee-open",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance Fee\n  - paragraph: \"Average Fee : ₹783\"\n  - paragraph: \"Your maximum budget : ₹2350+\"\n  - slider: ₹2350+\n  - text: 149 2350\n  - paragraph: First class for free\n  - checkbox\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Level Response time\n"
+        },
+        {
+          "step_id": "level-open",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance Fee Level All levels\n  - radio \"All levels\" [checked]\n  - text: Classes 1 to 5\n  - radio \"Classes 1 to 5\"\n  - text: Classes 6 to 8\n  - radio \"Classes 6 to 8\"\n  - text: Class 10\n  - radio \"Class 10\"\n  - text: Classes 11 & 12\n  - radio \"Classes 11 & 12\"\n  - text: Class 12\n  - radio \"Class 12\"\n  - text: BTech\n  - radio \"BTech\"\n  - text: Class 11\n  - radio \"Class 11\"\n  - text: Adult Literacy\n  - radio \"Adult Literacy\"\n  - text: Undergraduate\n  - radio \"Undergraduate\"\n  - text: Masters\n  - radio \"Masters\"\n  - text: PG Diploma\n  - radio \"PG Diploma\"\n  - text: PhD\n  - radio \"PhD\"\n  - text: Other\n  - radio \"Other\"\n  - text: Graduate Diploma in Law\n  - radio \"Graduate Diploma in Law\"\n  - text: Qualified Lawyer Transfer Scheme\n  - radio \"Qualified Lawyer Transfer Scheme\"\n  - text: MBA\n  - radio \"MBA\"\n  - text: Kindergarten (LKG, UKG)\n  - radio \"Kindergarten (LKG, UKG)\"\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Response time\n"
+        },
+        {
+          "step_id": "response-open",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance Fee Level Response time\n  - paragraph: Only see teachers responding within one day\n  - checkbox\n"
+        },
+        {
+          "step_id": "mode-open",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Search around me\n  - radio \"Search around me\" [checked]\n  - text: Face-to-face\n  - radio \"Face-to-face\"\n  - text: Online\n  - radio \"Online\"\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Distance Fee Level Response time\n"
+        },
+        {
+          "step_id": "distance-open",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance\n  - paragraph: \"I'm willing to travel a maximum distance of : 50km +\"\n  - text: 1km\n  - slider: 50km+\n  - text: 50km+\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Fee Level Response time\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_f9227e4320c05d4808b6743cde33061e4833729fca88a5458f7562485c8cca78",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "aa97deddd5470245d80722eed6ffe16da20f46506ff822811694076be649ba99",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": ""
+        },
+        {
+          "step_id": "results",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance Fee Level Response time\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_fca2f7787ecdc7e3b4d02a9a3f6a1dabfb232b773c9a15f40092ef67feb04f37",
+      "operation": "capture_browser_scenario",
+      "authority": "controlled-replay",
+      "confidence": "observed",
+      "scenario_sha256": "94f42c2c98c2e99928564fe412c1a085ca92d53f80cf2cf074cd0f69d142f165",
+      "steps": [
+        {
+          "step_id": "scenario_start",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - heading [level=2]\n  - list:\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]\n    - listitem:\n      - heading [level=3]"
+        },
+        {
+          "step_id": "fee",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: Type of class Distance Fee\n  - paragraph: \"Average Fee : ₹783\"\n  - paragraph: \"Your maximum budget : ₹2350+\"\n  - slider: ₹2350+\n  - text: 149 2350\n  - paragraph: First class for free\n  - checkbox\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Level Response time\n"
+        },
+        {
+          "step_id": "budget-keyboard",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: \"Type of class Distance Maximum budget: ₹2349\"\n  - paragraph: \"Average Fee : ₹783\"\n  - paragraph: \"Your maximum budget : ₹2349\"\n  - slider: ₹2349\n  - text: 149 2350\n  - paragraph: First class for free\n  - checkbox\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Level Response time\n"
+        },
+        {
+          "step_id": "free-trial",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: \"Type of class Distance Maximum budget: ₹2349\"\n  - paragraph: \"Average Fee : ₹783\"\n  - paragraph: \"Your maximum budget : ₹2349\"\n  - slider: ₹2349\n  - text: 149 2350\n  - paragraph: First class for free\n  - checkbox [checked]\n  - button \"Cancel\"\n  - button \"Apply\"\n  - text: Level Response time\n"
+        },
+        {
+          "step_id": "apply-fee",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: \"Type of class Distance Maximum budget: ₹2349 Level Response time\"\n"
+        },
+        {
+          "step_id": "settle-results",
+          "status": "completed",
+          "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html?pmax=2349&f=1",
+          "accessibility_excerpt": "- document:\n  - banner:\n    - link \"Home Tuition With Superprof\":\n      - /url: /\n    - text: Maths - Mumbai, Maharashtra\n    - button \"search_submit\":\n      - img\n    - link:\n      - /url: https://www.superprof.co.in/help/students/2/\n      - img\n    - link \"Give Private Classes\":\n      - /url: /tutor/\n    - button \"Superprof Login\"\n  - heading \"maths tutors in Mumbai\" [level=1]\n  - button \"AI Search\"\n  - text: \"Type of class Distance Maximum budget: ₹2349 Level Response time\"\n"
+        }
+      ],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "Shared-context network capture excludes requests without a known root or descendant Page frame.",
+        "Some network requests had not completed when capture ended; later activity is unknown.",
+        "CDP attachment cannot recover pre-attach events or guarantee launch-time context options.",
+        "Browser host platform and architecture were not observed."
+      ]
+    }
+  ]
+}
