@@ -20,6 +20,7 @@ export async function personalExport(
   // Older recovery archives may be erased before additive migrations run.
   const couponTable=(await client.query("SELECT to_regclass('public.coupon_redemptions') AS present")).rows[0].present;
   const classTable=(await client.query("SELECT to_regclass('public.class_invitations') AS present")).rows[0].present;
+  const savedTable=(await client.query("SELECT to_regclass('public.saved_tutors') AS present")).rows[0].present;
   const presenceTable=(await client.query("SELECT to_regclass('public.tutor_presence') AS present")).rows[0].present;
   const proTable=(await client.query("SELECT to_regclass('public.tutor_pro_grants') AS present")).rows[0].present;
   const profile = (
@@ -183,6 +184,7 @@ export async function personalExport(
       return { ...m, ...read(encrypted_description) };
     }),
     support_cases: support,
+    saved_tutors:savedTable?await rows("SELECT profile_id,created_at FROM saved_tutors WHERE owner_id=$1 ORDER BY created_at DESC,profile_id"):[],
     tutor_presence:presenceTable?await rows("SELECT location,teaching_modes,accepting_students,weekly_slots,timezone,revision,updated_at FROM tutor_presence WHERE user_id=$1"):[],
     tutor_pro_grants:proTable?await rows("SELECT id,source,cycle_id,coupon_redemption_id,status,test_only,starts_at,ends_at,created_at FROM tutor_pro_grants WHERE payer_id=$1"):[],
     purchases: await rows(

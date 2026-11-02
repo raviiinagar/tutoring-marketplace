@@ -12,6 +12,7 @@ import {
 import { TutorPortrait } from "./tutor-portrait";
 import { Button } from "./ui/button";
 import { Notice } from "./account/ui";
+import { SaveTutorButton } from "./save-tutor-button";
 export function PublicTutorCard({
   profile,
   catalogue,
@@ -21,29 +22,34 @@ export function PublicTutorCard({
 }) {
   return (
     <article className="teacher-card flex h-full flex-col">
-      <Link
-        to="/profiles/$profileId"
-        params={{ profileId: profile.id }}
-        className="teacher-cover"
-        aria-label={`View Tutor ${profile.display_name}`}
-      >
-        <span aria-hidden className="teacher-initials">
-          {profile.display_name
-            .split(" ")
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase()}
-        </span>
-        <TutorPortrait
-          card
-          url={profile.photo_url ?? undefined}
-          name={profile.display_name}
-          className="teacher-portrait"
-        />
-        <span className="teacher-cover-note">Tutor profile</span>
-        <h3 className="teacher-cover-name">{profile.display_name}</h3>
-      </Link>
+      <div className="relative">
+        <Link
+          to="/profiles/$profileId"
+          params={{ profileId: profile.id }}
+          className="teacher-cover"
+          aria-label={`View Tutor ${profile.display_name}`}
+        >
+          <span aria-hidden className="teacher-initials">
+            {profile.display_name
+              .split(" ")
+              .map((s) => s[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()}
+          </span>
+          <TutorPortrait
+            card
+            url={profile.photo_url ?? undefined}
+            name={profile.display_name}
+            className="teacher-portrait"
+          />
+          <span className="teacher-cover-note">Tutor profile</span>
+          <h3 className="teacher-cover-name">{profile.display_name}</h3>
+        </Link>
+        <div className="absolute right-3 top-3 z-10">
+          <SaveTutorButton profileId={profile.id} displayName={profile.display_name} compact />
+        </div>
+      </div>
       <div className="flex flex-1 flex-col px-1 py-4">
         <div className="mb-3">
           <TutorPresenceSummary presence={profile.presence} />
@@ -92,6 +98,8 @@ export function PublicTutorDirectory({
   const filterKey = JSON.stringify(filters),
     latest = useRef(0);
   const advanced = !!(
+    filters.trial_kind ||
+    filters.sort ||
     filters.domain_id ||
     filters.level_id ||
     filters.curriculum_id ||

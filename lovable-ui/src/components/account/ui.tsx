@@ -106,6 +106,9 @@ export function SiteHeader() {
           <a href="/#tutors" className="hover:text-coral-strong">
             Become a tutor
           </a>
+          <Link to="/saved-tutors" className="hover:text-coral-strong">
+            Saved Tutors
+          </Link>
           {accountNavigation}
         </nav>
         <Button
@@ -132,6 +135,7 @@ export function SiteHeader() {
           <Link to="/tutors">Find Tutors</Link>
           <a href="/#subjects">Explore subjects</a>
           <a href="/#tutors">Become a tutor</a>
+          <Link to="/saved-tutors">Saved Tutors</Link>
           {accountNavigation}
         </nav>
       )}
@@ -188,6 +192,12 @@ export function AuthShell({
                 activeProps={{ "aria-current": "page", className: "workspace-active" }}
               >
                 Find Tutors
+              </Link>
+              <Link
+                to="/saved-tutors"
+                activeProps={{ "aria-current": "page", className: "workspace-active" }}
+              >
+                Saved Tutors
               </Link>
               <Link
                 to="/requests"

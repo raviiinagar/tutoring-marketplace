@@ -325,6 +325,8 @@ test("deletion revokes activity, clears personal assets, reports retention and r
     },
     owner.cookie,
   ).expect(201);
+  await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$2',[stranger.id,owner.id]);
+  await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$1',[owner.id]);
   const identity = await post(
     "/v1/me/privacy/verifications",
     { password, purpose: "DELETE" },
@@ -351,6 +353,7 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   assert.equal(state.authenticated, false);
   assert.equal(result.status, "COMPLETED");
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM tutor_presence WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM saved_tutors WHERE owner_id=$1 OR profile_id IN (SELECT public_id FROM tutor_profiles WHERE user_id=$1)',[owner.id])).rows[0].count,0);
   assert.ok(result.result.retained.some((r: any) => r.class === "EVIDENCE"));
   assert.ok(!JSON.stringify(state).includes(owner.email));
   assert.ok(

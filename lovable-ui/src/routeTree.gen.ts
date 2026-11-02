@@ -20,6 +20,7 @@ import { Route as RequestsRouteImport } from './routes/requests'
 import { Route as ReviewsRouteImport } from './routes/reviews'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as SavedTutorsRouteImport } from './routes/saved-tutors'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SupportRouteImport } from './routes/support'
@@ -112,6 +113,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SafetyRoute = SafetyRouteImport.update({
   id: '/safety',
   path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedTutorsRoute = SavedTutorsRouteImport.update({
+  id: '/saved-tutors',
+  path: '/saved-tutors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/reviews': typeof ReviewsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/saved-tutors': typeof SavedTutorsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/reviews': typeof ReviewsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/saved-tutors': typeof SavedTutorsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/reviews': typeof ReviewsRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/safety': typeof SafetyRoute
+  '/saved-tutors': typeof SavedTutorsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/support': typeof SupportRoute
@@ -473,6 +482,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/robots.txt'
     | '/safety'
+    | '/saved-tutors'
     | '/sitemap.xml'
     | '/staff'
     | '/support'
@@ -524,6 +534,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/robots.txt'
     | '/safety'
+    | '/saved-tutors'
     | '/sitemap.xml'
     | '/staff'
     | '/support'
@@ -575,6 +586,7 @@ export interface FileRouteTypes {
     | '/reviews'
     | '/robots.txt'
     | '/safety'
+    | '/saved-tutors'
     | '/sitemap.xml'
     | '/staff'
     | '/support'
@@ -627,6 +639,7 @@ export interface RootRouteChildren {
   ReviewsRoute: typeof ReviewsRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SafetyRoute: typeof SafetyRoute
+  SavedTutorsRoute: typeof SavedTutorsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
   SupportRoute: typeof SupportRoute
@@ -744,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/safety'
       fullPath: '/safety'
       preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved-tutors': {
+      id: '/saved-tutors'
+      path: '/saved-tutors'
+      fullPath: '/saved-tutors'
+      preLoaderRoute: typeof SavedTutorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1027,6 +1047,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsRoute: ReviewsRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SafetyRoute: SafetyRoute,
+  SavedTutorsRoute: SavedTutorsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
   SupportRoute: SupportRoute,

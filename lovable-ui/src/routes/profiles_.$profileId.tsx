@@ -5,6 +5,8 @@ import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/ap
 import { TutorPortrait } from "@/components/tutor-portrait";
 import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
+import { SaveTutorButton } from "@/components/save-tutor-button";
+import { ShareTutorButton } from "@/components/share-tutor-button";
 export const Route = createFileRoute("/profiles_/$profileId")({
   ssr: false,
   component: Profile,
@@ -67,6 +69,10 @@ function Profile() {
                 </p>
               </div>
             </header>
+            <div className="flex flex-wrap items-start gap-3">
+              <SaveTutorButton profileId={p.id} displayName={p.display_name} />
+              <ShareTutorButton profileId={p.id} displayName={p.display_name} />
+            </div>
             <section>
               <h2 className="mb-4 text-xl font-semibold">Location & availability</h2>
               <TutorPresenceSummary presence={p.presence} detail />
