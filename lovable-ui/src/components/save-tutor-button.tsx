@@ -73,7 +73,7 @@ export function SaveTutorButton({
         aria-controls={showSignIn || (showFeedback && issue) ? feedbackId : undefined}
         className={
           compact
-            ? "flex size-11 items-center justify-center rounded-full border border-white/70 bg-white/95 text-primary shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
+            ? "teacher-save-button flex size-11 items-center justify-center rounded-full transition hover:bg-black/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60"
             : "inline-flex min-h-11 items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm font-semibold text-primary disabled:opacity-60"
         }
       >
