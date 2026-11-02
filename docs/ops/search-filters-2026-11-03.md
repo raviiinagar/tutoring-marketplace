@@ -16,4 +16,6 @@ The [REA research record](../research/superprof-search-filters-2026-11-03.md) li
 
 ## Hosting
 
-Deployment acceptance will be appended after the checked frontend commits are promoted to the existing main and isolated payment-sandbox hosting branches.
+The feature is committed locally on `feature/search-filters-rea` (component/helper commit `531e782`, route/evidence commit `5e6da73`). An attempted push/promotion command was rejected before execution by automatic approval review. The review required explicit approval for external publication to the existing `github.com/raviiinagar/tutoring-marketplace` remote and deployment branches. Neither hosting branch was changed; no deployment or live-after-change acceptance is claimed.
+
+The owner must approve publishing this concrete feature to that repository and the existing main/payment-sandbox Netlify deployments. The existing live website remains on its prior compact-card release. Local work and verification are complete; hosted acceptance is pending publication approval.
