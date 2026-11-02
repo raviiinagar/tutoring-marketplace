@@ -4,6 +4,10 @@ A marketplace connecting learners with tutors. The platform's contact service an
 
 ## Language
 
+**Saved Tutor**:
+A Tutor's public introduction privately bookmarked by an account holder for later consideration. Saving does not contact the Tutor, reserve a class or grant access.
+_Avoid_: Connection, Contact Request, booking.
+
 **Public Teaching Location**:
 A Tutor's self-declared city and optional area/region used to describe in-person teaching and support discovery. It is not an exact meeting address or proof of residence.
 _Avoid_: Verified address, home address, precise location.

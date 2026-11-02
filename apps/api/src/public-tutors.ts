@@ -20,6 +20,11 @@ const filters=z.strictObject({...presenceFilters,subject_id:z.string().regex(/^[
 export class PublicTutors {
  constructor(private readonly database:Database,private readonly config:Config,private readonly now:()=>Date=()=>new Date()){}
  private valid(p:Record<string,any>){return noContact(p.display_name)&&noContact(p.biography)&&(p.onboarding_version===2||isAdult(decrypt<{birth_date:string}>(p.encrypted_birth_date,this.config.authSecret).birth_date,this.now()));}
+ async savedProfiles(client:PoolClient,ids:string[],ownerId:string){
+  const result=new Map<string,Awaited<ReturnType<PublicTutors['project']>>>();if(!ids.length)return result;
+  const rows=(await client.query(visible+` AND p.public_id=ANY($3::uuid[]) AND NOT EXISTS(SELECT 1 FROM account_blocks b WHERE (b.owner_id=$4 AND b.blocked_id=u.id) OR (b.blocked_id=$4 AND b.owner_id=u.id))`,[this.now(),this.config.mode==='production',ids,ownerId])).rows;
+  for(const row of rows)if(this.valid(row))result.set(row.public_id,await this.project(client,row));return result;
+ }
  private async project(client:PoolClient,p:Record<string,any>){
   const offers=(await client.query(availableSql+" AND l.user_id=$3 ORDER BY l.id LIMIT 20",[this.now(),this.config.mode==='production',p.user_id])).rows;
   const consent=p.public_email_consent_at&&p.public_email_consent_version==='public-tutor-email-v1';

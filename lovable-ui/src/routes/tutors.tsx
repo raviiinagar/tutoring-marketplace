@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { PublicOfferCard } from "@/components/public-offer";
 import { AvailabilitySignup } from "@/components/availability-signup";
 const filterNames = [
+  "sort",
+  "trial_kind",
   "location",
   "country",
   "teaching_mode",
@@ -216,6 +218,7 @@ function TutorSearch() {
                     setDraft((v) => ({
                       ...v,
                       rate_unit: (e.target.value as DiscoveryFilters["rate_unit"]) || undefined,
+                      ...!e.target.value?{sort:undefined}:{},
                       min_rate_paise: undefined,
                       max_rate_paise: undefined,
                     }))
@@ -226,6 +229,14 @@ function TutorSearch() {
                   <option value="LESSON">Per lesson</option>
                 </select>
               </label>
+              <label className="block text-sm font-medium">
+                Sort teaching offers
+                <select className="input mt-2" aria-label="Sort teaching offers" value={draft.sort ?? ""} onChange={e=>setDraft(current=>({...current,sort:e.target.value as DiscoveryFilters['sort'] || undefined,...e.target.value&&!current.rate_unit?{rate_unit:'HOUR' as const}:{}}))}>
+                  <option value="">Default order</option><option value="PRICE_ASC">Price: low to high</option><option value="PRICE_DESC">Price: high to low</option>
+                </select>
+              </label>
+              <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={draft.trial_kind==='FREE'} onChange={e=>change('trial_kind',e.target.checked?'FREE':undefined)}/>Free first class offered</label>
+              <p className="text-xs text-muted-foreground">Free classes are offered by individual Tutors. The platform Access Pass is separate.</p>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm font-medium">
                   Min price (INR)

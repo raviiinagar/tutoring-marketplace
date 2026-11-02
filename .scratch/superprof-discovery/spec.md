@@ -1,0 +1,9 @@
+# Superprof-informed discovery improvements
+
+Owner requested REA-based comparison and implementation of useful missing Superprof features on 2 November 2026. Preserve the established Lovable UI, larger portraits, yellow hero, identity/Pro rules, Guardian controls and staff boundaries.
+
+REA browser captures of the Superprof India homepage and Australian help page encountered DataDome CAPTCHA. This establishes a runtime inspection limit, not feature absence. Public primary-source indexed Superprof help documents favourites, and India listings show Tutor-offered free introductory classes. Our live REA capture and source inventory establish that account shortlists, sharing controls, trial filtering and price ordering are missing. Source-linked findings will distinguish observed, documented and adopted improvements.
+
+Implement this coherent batch: private authenticated Saved Tutors with heart buttons and a dedicated page, current eligibility checks on every read, no cached contact/identity snapshots, idempotent writes with a 50-profile limit, owned export and erasure; public-profile sharing with native share/clipboard/manual fallback; exact FREE trial filtering and explicit ascending/descending price ordering of eligible teaching offers. Price comparison requires one HOUR/LESSON unit and stable tie-broken keyset pagination. Preserve URL filters, default ordering and legacy online availability alerts. Show no fabricated ratings, response times, qualifications, free trials or nearby distances. Commercial model changes, social login credentials, embedded video and premium rank schemes are outside this implementation.
+
+Acceptance: PostgreSQL integration tests for ownership/auth/origin, duplicates/races, eligibility/safety, erasure/export, free-trial exact matching and sort pagination/tampered cursors; UI tests and desktop/mobile/keyboard browser checks; existing sandbox then main release with backups and preserved compute/MFA deadlines.

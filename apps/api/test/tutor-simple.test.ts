@@ -298,3 +298,37 @@ test('material location changes require offer resubmission, not new identity evi
  await post('/v1/staff/listings/'+listing.id+'/reviews',{revision:submitted.revision,outcome:'APPROVE',reason:'Updated city and unchanged in-person offer reviewed'},teacher.reviewer.cookie).expect(200);
  assert.equal((await get('/v1/discovery/'+listing.id).expect(200)).body.listing.class_location.city,'Another Teaching City');
 });
+
+test('Saved Tutors are private, authenticated, idempotent and recheck current eligibility and blocks',async()=>{
+ const teacher=await shortTutor(),owner=await fixture(null),other=await fixture(null),path='/v1/me/saved-tutors/'+teacher.publicId;
+ await get('/v1/me/saved-tutors').expect(401);await post(path,{}).expect(401);await post(path,{owner_id:other.id},owner.cookie).expect(400);
+ const saved=await Promise.all([post(path,{},owner.cookie),post(path,{},owner.cookie)]);assert.deepEqual(saved.map(r=>r.status),[200,200]);
+ let list=(await get('/v1/me/saved-tutors',owner.cookie).expect(200)).body;assert.equal(list.items.length,1);assert.equal(list.limit,50);assert.equal(list.items[0].profile.id,teacher.publicId);assert.equal(list.items[0].profile.contact,null);assert.equal(list.items[0].profile.evidence,undefined);
+ assert.equal((await get('/v1/me/saved-tutors',other.cookie).expect(200)).body.items.length,0);
+ await request(app.getHttpServer()).delete(path).set('Origin',origin).set('Cookie',other.cookie).send({}).expect(200);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items.length,1);
+ await request(app.getHttpServer()).post(path).set('Cookie',owner.cookie).send({}).expect(403);
+ const exported=await database.transaction(async c=>personalExport(c,(await c.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock));assert.equal(exported.saved_tutors[0].profile_id,teacher.publicId);assert.equal(exported.saved_tutors[0].profile,undefined);
+ await database.pool.query('INSERT INTO account_blocks(owner_id,blocked_id) VALUES($1,$2)',[teacher.id,owner.id]);list=(await get('/v1/me/saved-tutors',owner.cookie)).body;assert.equal(list.items[0].profile,null);await post(path,{},owner.cookie).expect(404);
+ await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1',[teacher.id]);await database.pool.query("UPDATE tutor_profiles SET status='REVOKED' WHERE user_id=$1",[teacher.id]);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items[0].profile,null);
+ await request(app.getHttpServer()).delete(path).set('Origin',origin).set('Cookie',owner.cookie).send({}).expect(200);await request(app.getHttpServer()).delete(path).set('Origin',origin).set('Cookie',owner.cookie).send({}).expect(200);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items.length,0);
+});
+
+test('Saved Tutors enforce the account limit across concurrent additions without losing existing saves',async()=>{
+ const teacher=await shortTutor(),otherTeacher=await shortTutor(),owner=await fixture(null);
+ // Fictional unavailable profiles represent old saves whose approval has since lapsed.
+ await database.transaction(async c=>{for(let n=0;n<49;n++){const id=randomUUID();await c.query("INSERT INTO users(id,email,display_name,password_hash) VALUES($1,$2,'Fictional expired Tutor','not-a-login-hash')",[id,id+'@example.invalid']);const p=(await c.query("INSERT INTO tutor_profiles(user_id,display_name,biography,encrypted_birth_date) VALUES($1,'Fictional expired Tutor','Fictional unavailable profile','{}') RETURNING public_id",[id])).rows[0];await c.query('INSERT INTO saved_tutors(owner_id,profile_id) VALUES($1,$2)',[owner.id,p.public_id]);}});
+ const replies=await Promise.all([post('/v1/me/saved-tutors/'+teacher.publicId,{},owner.cookie),post('/v1/me/saved-tutors/'+otherTeacher.publicId,{},owner.cookie)]);assert.deepEqual(replies.map(r=>r.status).sort(),[200,409]);const existing=[teacher,otherTeacher][replies[0].status===200?0:1];await post('/v1/me/saved-tutors/'+existing.publicId,{},owner.cookie).expect(200);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items.length,50);
+});
+
+test('free first-class filters and unit-safe price ordering paginate ties and survive cursor-offer removal',async()=>{
+ const teacher=await shortTutor(),coupon=await campaign(100,100,'TUTOR_PRO');await pro(teacher,coupon.input.code).expect(200);const ids:string[]=[];
+ for(const [rate,trial] of [[30000,'FREE'],[30000,'FREE'],[50000,'NONE'],[20000,'FREE']] as const){let row=(await post('/v1/me/listings',{...offer,rate_paise:rate,trial_kind:trial,...trial==='FREE'?{trial_minutes:30}:{}},teacher.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},teacher.cookie).expect(200)).body.listing;await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Fictional price and optional free trial terms checked'},teacher.reviewer.cookie).expect(200);ids.push(row.id);}
+ const uniqueCity='Sorted Trial City '+randomUUID().slice(0,8);await post('/v1/me/tutor/presence',{...presence,location:{city:uniqueCity,country:'India'},teaching_modes:['ONLINE']},teacher.cookie).expect(200);const prefix='/v1/discovery?location='+encodeURIComponent(uniqueCity)+'&rate_unit=HOUR';
+ await get('/v1/discovery?sort=PRICE_ASC').expect(400);await get(prefix+'&trial_kind=PAID').expect(400);await get(prefix+'&sort=PRICE_ASC&cursor='+randomUUID()).expect(400);
+ let page=(await get(prefix+'&sort=PRICE_ASC&limit=2').expect(200)).body;assert.deepEqual(page.offers.map((o:any)=>o.offer.rate_paise),[20000,30000]);assert.equal(page.order,'price_ascending');const cursor=page.next_cursor;assert.ok(cursor.startsWith('p1.'));
+ const rest=(await get(prefix+'&sort=PRICE_ASC&limit=2&cursor='+cursor).expect(200)).body;assert.deepEqual(rest.offers.map((o:any)=>o.offer.rate_paise),[30000,50000]);assert.equal(new Set([...page.offers,...rest.offers].map((o:any)=>o.id)).size,4);
+ await get(prefix+'&sort=PRICE_DESC&cursor='+cursor).expect(400);await get(prefix+'&sort=PRICE_ASC&cursor=p1.bad').expect(400);await get(prefix+'&sort=PRICE_ASC&rate_unit=LESSON&cursor='+cursor).expect(400);
+ await database.pool.query("UPDATE teaching_listings SET status='PAUSED' WHERE id=$1",[page.offers.at(-1).id]);const after=(await get(prefix+'&sort=PRICE_ASC&limit=2&cursor='+cursor).expect(200)).body;assert.deepEqual(after.offers.map((o:any)=>o.id),rest.offers.map((o:any)=>o.id));
+ const desc=(await get(prefix+'&sort=PRICE_DESC&trial_kind=FREE').expect(200)).body;assert.ok(desc.offers.every((o:any)=>o.offer.trial_kind==='FREE'));assert.deepEqual(desc.offers.map((o:any)=>o.offer.rate_paise),[30000,20000]);
+ const observed=await post('/v1/discovery/searches',{request_key:randomUUID(),filters:{location:uniqueCity,rate_unit:'HOUR',sort:'PRICE_DESC',trial_kind:'FREE'}}).expect(200);assert.equal(observed.body.order,'price_descending');
+});
