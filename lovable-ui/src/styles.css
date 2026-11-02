@@ -400,3 +400,64 @@ main { scroll-margin-top: 90px; }
 .teacher-save-button { color:#fff; outline-color:#fff; }
 .teacher-save-button svg { width:24px; height:24px; filter:drop-shadow(0 1px 2px #0009); }
 @media(max-width:640px) { .tutor-card-grid { row-gap:34px; } .teacher-cover-caption .teacher-cover-name { font-size:26px; } }
+
+/* Branded homepage and compact navigation, informed by REA public UI observations. */
+.site-header { background:#fff; border-color:#f2eff0; box-shadow:0 8px 25px -26px #34252b; }
+.site-header-inner { min-height:86px; }
+.header-brand-search { flex:1; }
+.header-search-trigger { background:#f7f6f6; color:var(--foreground); padding:6px 7px 6px 20px; max-width:340px; min-width:0; }
+.header-search-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:550; }
+.header-search-icon { display:inline-flex; flex-shrink:0; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; background:var(--primary); color:#fff; }
+.header-nav-pill,.header-help { background:#f7f6f6; transition:background 150ms,color 150ms; }
+.header-nav-pill:hover,.header-help:hover { background:#fff3c7; }
+.header-nav-pill { padding:13px 21px; border-radius:999px; }
+.header-search-trigger:focus-visible,.subject-scroll-button:focus-visible,.home-location-card:focus-visible { outline:3px solid var(--primary); outline-offset:4px; }
+.header-search-dialog { overflow:visible; }
+.header-search-dialog .teacher-search-shell { margin-top:6px; }
+.header-search-dialog .market-search.location-search-form { min-height:72px; border-color:#fff4c8; box-shadow:none; }
+.header-search-dialog .teacher-search-field { padding:10px; }
+.header-search-dialog .location-search-form .market-search-button { padding-inline:22px; }
+.header-mobile-menu { min-height:calc(100dvh - 78px); max-height:calc(100dvh - 78px); overflow-y:auto; background:#fff; padding:28px 24px 40px; }
+.header-mobile-auth { border-bottom:1px solid var(--border); padding-bottom:24px; margin-bottom:5px; }
+.header-mobile-signin { display:flex; align-items:center; justify-content:center; border-radius:16px; padding:14px; background:var(--primary); color:#fff; font-weight:650; }
+.market-hero { padding-top:62px; padding-bottom:48px; border-radius:0 0 40px 40px; }
+.market-title { margin:0; font-size:clamp(48px,7.1vw,94px); line-height:1.04; letter-spacing:-.05em; }
+.market-hero .teacher-search-shell { margin-top:38px; }
+.home-subject-strip { display:flex; align-items:center; gap:8px; max-width:1000px; margin:32px auto 0; padding:12px; border-radius:30px; background:#ffffffba; }
+.home-subject-track { display:flex; flex:1; gap:4px; min-width:0; overflow-x:auto; scrollbar-width:none; scroll-snap-type:x proximity; }
+.home-subject-track::-webkit-scrollbar { display:none; }
+.home-subject-track .subject-shortcut { flex:0 0 96px; min-height:76px; font-size:13px; scroll-snap-align:start; }
+.subject-scroll-button { display:flex; flex-shrink:0; align-items:center; justify-content:center; width:42px; height:42px; border-radius:50%; background:#fff; }
+.subject-scroll-button:disabled { opacity:.25; cursor:default; }
+.home-section-heading { max-width:680px; margin-bottom:32px; }
+.home-section-heading h2 { margin:8px 0 12px; font-size:clamp(28px,3.1vw,40px); line-height:1.15; letter-spacing:-.035em; font-weight:650; }
+.home-section-heading>p:last-child { font-size:15px; color:var(--muted-foreground); }
+.home-kicker { font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:650; color:var(--coral-strong); }
+.home-how-it-works { padding-top:76px; padding-bottom:36px; scroll-margin-top:110px; }
+.home-step-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.home-step { padding:26px; border-radius:24px; background:#fffaf0; }
+.home-step-icon { position:relative; display:flex; align-items:center; justify-content:center; width:52px; height:52px; margin-bottom:22px; border-radius:18px; background:#fff0b3; }
+.home-step-icon span { position:absolute; top:-6px; right:-7px; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; font-size:11px; font-weight:700; background:var(--primary); color:#fff; }
+.home-step h3 { margin-bottom:9px; font-size:19px; font-weight:650; }
+.home-step p { color:var(--muted-foreground); font-size:14px; line-height:1.7; }
+.home-pass-note { margin-top:24px; font-size:12px; color:var(--muted-foreground); }
+.home-text-link { display:inline-flex; align-items:center; gap:8px; margin-top:22px; font-weight:600; color:var(--coral-strong); }
+.home-locations { padding-top:22px; padding-bottom:70px; }
+.home-location-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.home-location-card { display:flex; align-items:center; gap:14px; min-width:0; padding:22px; border:1px solid var(--border); border-radius:20px; transition:background 150ms; }
+.home-location-card:hover { background:#fff9e4; }
+.home-location-card>svg { flex-shrink:0; }
+.home-location-card>span { flex:1; min-width:0; overflow-wrap:anywhere; font-size:17px; font-weight:600; }
+.home-location-card small { display:block; margin-top:3px; font-size:12px; font-weight:400; color:var(--muted-foreground); }
+#subjects,#tutors { scroll-margin-top:110px; }
+@media(max-width:1023px) { .site-header-inner { min-height:76px; }.header-search-mobile { padding:0; background:transparent; }.header-search-mobile .header-search-icon { width:36px; height:36px; }.header-brand-search { gap:0; } }
+@media(max-width:640px) { .site-header-inner { padding-inline:18px; gap:7px; }.market-hero { padding:36px 0 28px; border-radius:0 0 28px 28px; }.market-title { font-size:clamp(44px,11.8vw,68px); }.market-hero .teacher-search-shell { margin-top:26px; }.home-subject-strip { margin-top:22px; padding:7px; gap:4px; border-radius:24px; }.subject-scroll-button { width:30px; height:36px; }.subject-scroll-button svg { width:17px; }.home-subject-track .subject-shortcut { flex-basis:82px; min-height:72px; font-size:12px; }.home-how-it-works { padding-top:48px; }.home-step-grid,.home-location-grid { grid-template-columns:minmax(0,1fr); gap:14px; }.home-step { padding:24px; }.home-section-heading { margin-bottom:24px; }.home-locations { padding-bottom:48px; }.header-search-dialog { max-height:90dvh; overflow-y:auto; width:calc(100% - 24px); padding:22px; }.header-search-dialog .location-search-form .market-search-button { min-height:46px; } }
+@media(max-width:359px) { .site-header-inner { padding-inline:12px; }.site-header .brand-wordmark { font-size:19px; }.header-mobile-actions { gap:2px; } }
+
+.header-mobile-menu { align-content:start; gap:4px; }
+.header-mobile-menu>a { padding:14px 0; }
+.header-mobile-auth { border-top:0; padding-top:0; padding-bottom:22px; margin-bottom:12px; }
+
+/* Reserve space for the existing sandbox warning above the navigation. */
+.payment-sandbox-header .header-mobile-menu { min-height:calc(100dvh - 140px); max-height:calc(100dvh - 140px); }
+#how-it-works,#subjects,#tutors { scroll-margin-top:160px; }

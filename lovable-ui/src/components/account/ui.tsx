@@ -1,5 +1,5 @@
 import { AdminShell } from "@/components/admin-shell";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   createContext,
   useContext,
@@ -12,10 +12,24 @@ import {
   type ReactNode,
 } from "react";
 
-import { ArrowUpRight, Eye, EyeOff, Menu, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, CircleHelp, Eye, EyeOff, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, describeFailure, type Catalogue } from "@/lib/api";
+import { TeacherSearchBar } from "@/components/teacher-search-bar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { accountSessionKey } from "@/lib/session";
 const AccountReady = createContext(false);
 
@@ -31,22 +45,117 @@ export function BrandWordmark({ className = "" }: { className?: string }) {
   );
 }
 
-export function SiteHeader() {
-  const [open, setOpen] = useState(false);
-  const menuButton = useRef<HTMLButtonElement>(null);
+function HeaderSearchDialog({
+  onClose,
+  returnFocus,
+}: {
+  onClose: () => void;
+  returnFocus: () => void;
+}) {
+  const navigate = useNavigate();
+  const [catalogue, setCatalogue] = useState<Catalogue>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const latest = useRef(0);
+  const load = async () => {
+    const attempt = ++latest.current;
+    setLoading(true);
+    setError(undefined);
+    const result = await api.catalogue();
+    if (attempt !== latest.current) return;
+    if (result.ok) setCatalogue(result.data);
+    else setError(describeFailure(result.error));
+    setLoading(false);
+  };
+  useEffect(() => {
+    void load();
+    return () => {
+      latest.current++;
+    };
+  }, []);
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        className="header-search-dialog max-w-3xl rounded-2xl"
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          returnFocus();
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Find a teacher</DialogTitle>
+          <DialogDescription>
+            Choose your subject and class location, or learn online.
+          </DialogDescription>
+        </DialogHeader>
+        {loading ? (
+          <p role="status" className="py-6 text-sm text-muted-foreground">
+            Loading subjects...
+          </p>
+        ) : error ? (
+          <div role="alert" className="space-y-4">
+            <p>{error}</p>
+            <Button type="button" variant="outline" onClick={() => void load()}>
+              Retry search options
+            </Button>
+          </div>
+        ) : catalogue ? (
+          <TeacherSearchBar
+            catalogue={catalogue}
+            onSearch={(filters) => {
+              onClose();
+              void navigate({ to: "/tutors", search: filters });
+            }}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
+  const [open, setOpen] = useState(false),
+    [searchOpen, setSearchOpen] = useState(false),
+    [scrolled, setScrolled] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null),
+    searchButton = useRef<HTMLButtonElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const scroll = () => setScrolled(window.scrollY > 300);
+    scroll();
+    if (!homepage) return;
+    window.addEventListener("scroll", scroll, { passive: true });
+    return () => window.removeEventListener("scroll", scroll);
+  }, [homepage]);
   useEffect(() => {
     if (!open) return;
+    const close = () => setOpen(false);
+    const resize = () => {
+      if (window.innerWidth >= 1024) close();
+    };
     const escape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setOpen(false);
+        close();
         menuButton.current?.focus();
       }
     };
     document.addEventListener("keydown", escape);
-    return () => document.removeEventListener("keydown", escape);
+    window.addEventListener("popstate", close);
+    window.addEventListener("hashchange", close);
+    window.addEventListener("resize", resize);
+    return () => {
+      document.removeEventListener("keydown", escape);
+      window.removeEventListener("popstate", close);
+      window.removeEventListener("hashchange", close);
+      window.removeEventListener("resize", resize);
+    };
   }, [open]);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   const session = useQuery({
     queryKey: accountSessionKey,
     queryFn: api.me,
@@ -55,92 +164,182 @@ export function SiteHeader() {
     staleTime: 0,
   });
   const user = session.data?.ok ? session.data.data.user : null;
-  const accountNavigation = user ? (
+  const pending = !mounted || session.isPending;
+  const teacherPath = user
+    ? user.roles.includes("TUTOR")
+      ? "/tutor"
+      : "/account"
+    : "/auth/signup";
+  const showSearch = !homepage || scrolled;
+  const accountLinks = (
     <>
-      <Link to="/requests" className="hover:text-coral-strong">
-        My enquiries
-      </Link>
-      <Button
-        asChild
-        variant="outline"
-        className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"
-      >
-        <Link to="/account">
-          My account <ArrowUpRight />
-        </Link>
-      </Button>
+      <Link to="/account">My account</Link>
+      <Link to="/saved-tutors">Saved Tutors</Link>
+      <Link to="/requests">My enquiries</Link>
+      <Link to="/connections">Connections</Link>
     </>
-  ) : mounted && !session.isPending ? (
-    <>
-      <Link to="/auth/signin" className="hover:text-coral-strong">
-        Sign in
-      </Link>
-      <Button
-        asChild
-        variant="outline"
-        className="h-10 rounded-full border-foreground/15 px-5 font-semibold shadow-none"
-      >
-        <Link to="/auth/signup">
-          Join us <ArrowUpRight />
-        </Link>
-      </Button>
-    </>
-  ) : (
-    <span role="status" className="text-sm text-muted-foreground">
-      Checking account…
-    </span>
+  );
+  const openSearch = (button: HTMLButtonElement) => {
+    searchButton.current = button;
+    setOpen(false);
+    setSearchOpen(true);
+  };
+  const searchTrigger = (mobile: boolean) => (
+    <button
+      type="button"
+      aria-label="Search for a teacher"
+      className={
+        mobile
+          ? "header-search-trigger header-search-mobile inline-flex size-10 items-center justify-center rounded-full lg:hidden"
+          : "header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex"
+      }
+      disabled={!mounted}
+      onClick={(event) => openSearch(event.currentTarget)}
+    >
+      {!mobile && <span className="header-search-label">What would you like to learn?</span>}
+      <span className="header-search-icon">
+        <Search aria-hidden className="size-5" />
+      </span>
+    </button>
   );
   return (
-    <header className="site-header sticky top-0 z-20 border-b bg-background/90 backdrop-blur-xl">
-      <div role="status" className="border-b bg-coral-soft px-5 py-2 text-center text-sm font-semibold">Payment sandbox · Fictional accounts only · No real money</div>
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 py-4 lg:flex lg:justify-between lg:px-8">
-        <Link to="/" aria-label="Tutor Marketplace home" className="brand-link min-w-0 rounded-md">
-          <BrandWordmark />
-        </Link>
-        <nav
-          aria-label="Main navigation"
-          className="hidden items-center gap-6 text-sm font-medium lg:flex"
-        >
-          <Link to="/tutors" className="hover:text-coral-strong">
-            Find Tutors
-          </Link>
-          <a href="/#tutors" className="hover:text-coral-strong">
-            Become a tutor
-          </a>
-          <Link to="/saved-tutors" className="hover:text-coral-strong">
-            Saved Tutors
-          </Link>
-          {accountNavigation}
-        </nav>
-        <Button
-          ref={menuButton}
-          disabled={!mounted}
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          aria-controls={open ? "mobile-navigation" : undefined}
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <X /> : <Menu />}
-        </Button>
-      </div>
-      {open && (
-        <nav
-          id="mobile-navigation"
-          aria-label="Mobile navigation"
-          className="absolute inset-x-0 top-full grid gap-4 border-b bg-background px-5 py-6 shadow-sm lg:hidden"
-          onClick={() => setOpen(false)}
-        >
-          <Link to="/tutors">Find Tutors</Link>
-          <a href="/#subjects">Explore subjects</a>
-          <a href="/#tutors">Become a tutor</a>
-          <Link to="/saved-tutors">Saved Tutors</Link>
-          {accountNavigation}
-        </nav>
+    <>
+      <header className="site-header payment-sandbox-header sticky top-0 z-20 border-b bg-background/95 backdrop-blur-xl">
+        <div role="status" className="border-b bg-coral-soft px-5 py-2 text-center text-sm font-semibold">Payment sandbox · Fictional accounts only · No real money</div>
+        <div className="site-header-inner mx-auto flex max-w-[1500px] items-center justify-between gap-3 px-5 py-4 lg:px-8">
+          <div className="header-brand-search flex min-w-0 items-center gap-6">
+            <Link
+              to="/"
+              aria-label="Tutor Marketplace home"
+              className="brand-link min-w-0 rounded-md"
+            >
+              <BrandWordmark />
+            </Link>
+            {showSearch && searchTrigger(false)}
+          </div>
+          <nav
+            aria-label="Main navigation"
+            className="hidden shrink-0 items-center gap-4 text-sm font-semibold lg:flex"
+          >
+            <a
+              href="/#how-it-works"
+              className="header-help inline-flex size-11 items-center justify-center rounded-full"
+              aria-label="Help"
+            >
+              <CircleHelp aria-hidden className="size-5" />
+            </a>
+            <Link
+              to={teacherPath}
+              className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
+            >
+              Give private classes
+            </Link>
+            {pending ? (
+              <span role="status" className="text-sm text-muted-foreground">
+                Checking account...
+              </span>
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="header-nav-pill h-11 rounded-full border-0 px-5 shadow-none"
+                  >
+                    My account
+                    <ChevronDown aria-hidden className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2">
+                  <DropdownMenuItem asChild>
+                    <Link to="/account">My account</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/saved-tutors">Saved Tutors</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/requests">My enquiries</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/connections">Connections</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                to="/auth/signin"
+                className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
+              >
+                Sign in
+              </Link>
+            )}
+          </nav>
+          <div className="header-mobile-actions flex shrink-0 items-center gap-1 lg:hidden">
+            {showSearch && searchTrigger(true)}
+            <Button
+              ref={menuButton}
+              disabled={!mounted}
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              aria-controls={open ? "mobile-navigation" : undefined}
+              onClick={() => setOpen((value) => !value)}
+            >
+              {open ? <X /> : <Menu />}
+            </Button>
+          </div>
+        </div>
+        {open && (
+          <nav
+            id="mobile-navigation"
+            aria-label="Mobile navigation"
+            className="header-mobile-menu absolute inset-x-0 top-full grid max-h-[calc(100dvh-80px)] gap-4 overflow-y-auto border-b bg-background px-5 py-6 shadow-sm lg:hidden"
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest("a")) setOpen(false);
+            }}
+          >
+            {!pending && !user && (
+              <div className="header-mobile-auth grid gap-3 border-t pt-5">
+                <Link
+                  className="header-mobile-signin rounded-full bg-primary px-5 py-3 text-center font-semibold text-primary-foreground"
+                  to="/auth/signin"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  className="rounded-full border px-5 py-3 text-center font-semibold"
+                  to="/auth/signup"
+                >
+                  Create an account
+                </Link>
+              </div>
+            )}
+            <Link to="/tutors">Find Tutors</Link>
+            <a href="/#subjects">Explore subjects</a>
+            <a href="/#how-it-works">Help</a>
+            <Link to={teacherPath}>Give private classes</Link>
+            {pending ? (
+              <span role="status">Checking account...</span>
+            ) : user ? (
+              accountLinks
+            ) : (
+              <>
+                <Link to="/saved-tutors">Saved Tutors</Link>
+              </>
+            )}
+          </nav>
+        )}
+      </header>
+      {searchOpen && (
+        <HeaderSearchDialog
+          onClose={() => setSearchOpen(false)}
+          returnFocus={() => {
+            if (searchButton.current?.isConnected) searchButton.current.focus();
+          }}
+        />
       )}
-    </header>
+    </>
   );
 }
 

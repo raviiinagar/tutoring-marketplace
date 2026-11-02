@@ -1,0 +1,15 @@
+{
+  "origin": "http://127.0.0.1:3020",
+  "live": false,
+  "brandingRetained": true,
+  "yellowHero": true,
+  "realTutorCards": true,
+  "subjectCarousel": true,
+  "subjectNavigation": true,
+  "headerSearchNavigation": true,
+  "scrollSearch": true,
+  "helpAnchor": true,
+  "mobileMenuAndEscape": true,
+  "mobile320And390": true,
+  "pageErrors": 0
+}
