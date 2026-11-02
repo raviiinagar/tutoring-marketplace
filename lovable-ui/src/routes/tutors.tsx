@@ -1,13 +1,13 @@
 import { TeacherSearchBar } from "@/components/teacher-search-bar";
 import { PublicTutorDirectory } from "@/components/public-tutor-profiles";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { TutorSearchFilters } from "@/components/tutor-search-filters";
+import { hasOfferOnlyFilters, mergeTeacherSearch } from "@/lib/discovery-filter-state";
 import {
   api,
   describeFailure,
   type Catalogue,
-  type CatalogueKind,
   type DiscoveryFilters,
   type DiscoveryPage,
 } from "@/lib/api";
@@ -61,7 +61,6 @@ export const Route = createFileRoute("/tutors")({
 function TutorSearch() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const [draft, setDraft] = useState<DiscoveryFilters>(search);
   const [catalogue, setCatalogue] = useState<Catalogue>();
   const [page, setPage] = useState<DiscoveryPage>();
   const [error, setError] = useState<string>();
@@ -94,49 +93,20 @@ function TutorSearch() {
     setLoading(false);
   };
   useEffect(() => {
-    setDraft({ ...search, cursor: undefined });
     void load();
     return () => {
       latest.current++;
     };
   }, [key]);
-  const change = <K extends keyof DiscoveryFilters>(field: K, value: DiscoveryFilters[K]) =>
-    setDraft((current) => ({ ...current, [field]: value }));
-  const apply = (event: FormEvent) => {
-    event.preventDefault();
+  const applyFilters = (filters: DiscoveryFilters) => {
+    const next = { ...filters, cursor: undefined };
     if (
       !search.cursor &&
-      filterNames.every((field) => field === "cursor" || draft[field] === search[field])
+      filterNames.every((field) => field === "cursor" || next[field] === search[field])
     )
       void load();
-    else void navigate({ to: "/tutors", search: { ...draft, cursor: undefined } });
+    else void navigate({ to: "/tutors", search: next });
   };
-  const terms = (kind: CatalogueKind) =>
-    catalogue?.terms.filter(
-      (t) => t.kind === kind && (!draft.domain_id || t.domain_ids.includes(draft.domain_id)),
-    ) || [];
-  const select = (
-    label: string,
-    kind: CatalogueKind,
-    field: "subject_id" | "level_id" | "curriculum_id" | "exam_id" | "language_id",
-  ) => (
-    <label className="block text-sm font-medium">
-      {label}
-      <select
-        aria-label={label}
-        className="input mt-2"
-        value={draft[field] || ""}
-        onChange={(e) => change(field, e.target.value || undefined)}
-      >
-        <option value="">Any {label.toLowerCase()}</option>
-        {terms(kind).map((t) => (
-          <option value={t.id} key={t.id}>
-            {t.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -155,237 +125,30 @@ function TutorSearch() {
           catalogue={catalogue}
           initial={search}
           onSearch={(filters) => {
-            setDraft(filters);
-            void navigate({ to: "/tutors", search: filters });
+            applyFilters(mergeTeacherSearch(search, filters, catalogue));
           }}
         />
-        <div className="mt-10">
-          <PublicTutorDirectory filters={search} showSubjectFilter={false} />
+        {catalogueError && (
+          <div role="alert" className="mt-4">
+            <p>{catalogueError}</p>
+            <Button variant="outline" onClick={() => void loadCatalogue()}>
+              Retry filter options
+            </Button>
+          </div>
+        )}
+        <div className="my-7">
+          <TutorSearchFilters
+            catalogue={catalogue}
+            filters={search}
+            loading={loading}
+            onApply={applyFilters}
+          />
         </div>
+        {!hasOfferOnlyFilters(search) && (
+          <PublicTutorDirectory filters={search} showSubjectFilter={false} />
+        )}
         <h2 className="mb-5 text-2xl font-semibold">Available teaching offers</h2>
-        <div className="grid items-start gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border bg-card p-5 lg:sticky lg:top-28">
-            <h2 className="mb-5 flex items-center gap-2 font-semibold">
-              <SlidersHorizontal aria-hidden className="size-4" />
-              Search filters
-            </h2>
-            {catalogueError && (
-              <div role="alert">
-                <p>{catalogueError}</p>
-                <Button variant="outline" onClick={() => void loadCatalogue()}>
-                  Retry filter options
-                </Button>
-              </div>
-            )}
-            <form onSubmit={apply} className="space-y-4">
-              <label className="block text-sm font-medium">
-                Learning Domain
-                <select
-                  aria-label="Learning Domain"
-                  className="input mt-2"
-                  value={draft.domain_id || ""}
-                  onChange={(e) =>
-                    setDraft((v) => ({
-                      ...v,
-                      domain_id: e.target.value || undefined,
-                      subject_id: undefined,
-                      level_id: undefined,
-                      curriculum_id: undefined,
-                      exam_id: undefined,
-                    }))
-                  }
-                >
-                  <option value="">All learning domains</option>
-                  {catalogue?.domains.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {select("Subject", "SUBJECT", "subject_id")}
-              {select("Learner Level", "LEVEL", "level_id")}
-              {select("Curriculum", "CURRICULUM", "curriculum_id")}
-              {select("Exam Track", "EXAM", "exam_id")}
-              {select("Teaching Language", "LANGUAGE", "language_id")}
-              <label className="block text-sm font-medium">
-                Tuition unit
-                <select
-                  aria-label="Tuition unit"
-                  className="input mt-2"
-                  value={draft.rate_unit || ""}
-                  onChange={(e) =>
-                    setDraft((v) => ({
-                      ...v,
-                      rate_unit: (e.target.value as DiscoveryFilters["rate_unit"]) || undefined,
-                      ...!e.target.value?{sort:undefined}:{},
-                      min_rate_paise: undefined,
-                      max_rate_paise: undefined,
-                    }))
-                  }
-                >
-                  <option value="">All units</option>
-                  <option value="HOUR">Per hour</option>
-                  <option value="LESSON">Per lesson</option>
-                </select>
-              </label>
-              <label className="block text-sm font-medium">
-                Sort teaching offers
-                <select className="input mt-2" aria-label="Sort teaching offers" value={draft.sort ?? ""} onChange={e=>setDraft(current=>({...current,sort:e.target.value as DiscoveryFilters['sort'] || undefined,...e.target.value&&!current.rate_unit?{rate_unit:'HOUR' as const}:{}}))}>
-                  <option value="">Default order</option><option value="PRICE_ASC">Price: low to high</option><option value="PRICE_DESC">Price: high to low</option>
-                </select>
-              </label>
-              <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={draft.trial_kind==='FREE'} onChange={e=>change('trial_kind',e.target.checked?'FREE':undefined)}/>Free first class offered</label>
-              <p className="text-xs text-muted-foreground">Free classes are offered by individual Tutors. The platform Access Pass is separate.</p>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block text-sm font-medium">
-                  Min price (INR)
-                  <input
-                    aria-label="Min price (INR)"
-                    type="number"
-                    min={1}
-                    max={100000}
-                    step="0.01"
-                    className="input mt-2"
-                    disabled={!draft.rate_unit}
-                    value={draft.min_rate_paise === undefined ? "" : draft.min_rate_paise / 100}
-                    onChange={(e) =>
-                      change(
-                        "min_rate_paise",
-                        e.target.value ? Math.round(Number(e.target.value) * 100) : undefined,
-                      )
-                    }
-                  />
-                </label>
-                <label className="block text-sm font-medium">
-                  Max price (INR)
-                  <input
-                    aria-label="Max price (INR)"
-                    type="number"
-                    min={1}
-                    max={100000}
-                    step="0.01"
-                    className="input mt-2"
-                    disabled={!draft.rate_unit}
-                    value={draft.max_rate_paise === undefined ? "" : draft.max_rate_paise / 100}
-                    onChange={(e) =>
-                      change(
-                        "max_rate_paise",
-                        e.target.value ? Math.round(Number(e.target.value) * 100) : undefined,
-                      )
-                    }
-                  />
-                </label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Choose a unit to compare prices. A lesson rate includes its stated duration.
-              </p>
-              <fieldset className="space-y-3 rounded-xl bg-secondary p-3">
-                <legend className="text-sm font-semibold">Class location & hours</legend>
-                <label className="block text-sm">
-                  Class mode
-                  <select
-                    className="input mt-1"
-                    value={draft.teaching_mode || ""}
-                    onChange={(e) =>
-                      change(
-                        "teaching_mode",
-                        (e.target.value as DiscoveryFilters["teaching_mode"]) || undefined,
-                      )
-                    }
-                  >
-                    <option value="">Online + in person</option>
-                    <option value="ONLINE">Online</option>
-                    <option value="IN_PERSON">In person</option>
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  City or area
-                  <input
-                    className="input mt-1"
-                    value={draft.location || ""}
-                    maxLength={80}
-                    onChange={(e) => {
-                      change("location", e.target.value || undefined);
-                      change("country", undefined);
-                    }}
-                    placeholder="e.g. Rohini, New Delhi"
-                  />
-                </label>
-                <label className="block text-sm">
-                  Preferred day
-                  <select
-                    className="input mt-1"
-                    value={draft.day || ""}
-                    onChange={(e) => {
-                      change("day", (e.target.value as DiscoveryFilters["day"]) || undefined);
-                      if (!e.target.value) change("at_time", undefined);
-                    }}
-                  >
-                    <option value="">Any day</option>
-                    {(["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] as const).map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  Preferred time (IST)
-                  <input
-                    className="input mt-1"
-                    type="time"
-                    disabled={!draft.day}
-                    value={
-                      draft.at_time === undefined
-                        ? ""
-                        : String(Math.floor(draft.at_time / 60)).padStart(2, "0") +
-                          ":" +
-                          String(draft.at_time % 60).padStart(2, "0")
-                    }
-                    onChange={(e) =>
-                      change(
-                        "at_time",
-                        e.target.value
-                          ? Number(e.target.value.slice(0, 2)) * 60 +
-                              Number(e.target.value.slice(3))
-                          : undefined,
-                      )
-                    }
-                  />
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={!!draft.accepting_only}
-                    onChange={(e) =>
-                      change("accepting_only", e.target.checked ? "true" : undefined)
-                    }
-                  />
-                  Accepting new students only
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  Weekly hours are Tutor preferences, not confirmed class bookings.
-                </p>
-              </fieldset>
-              <Button className="w-full" type="submit" disabled={loading || !catalogue}>
-                <Search aria-hidden className="size-4" />
-                Apply filters
-              </Button>
-              <Button
-                className="w-full"
-                type="button"
-                variant="outline"
-                disabled={loading}
-                onClick={() => {
-                  setDraft({});
-                  void navigate({ to: "/tutors", search: {} });
-                }}
-              >
-                Clear filters
-              </Button>
-            </form>
-          </aside>
+        <div>
           <section aria-label="Available teaching offers" aria-busy={loading}>
             {loading ? (
               <p role="status" className="rounded-2xl border p-8">
@@ -416,7 +179,7 @@ function TutorSearch() {
                       <AvailabilitySignup key={key} filters={search} />
                     </div>
                   ) : (
-                    <div className="grid gap-5 sm:grid-cols-2">
+                    <div className="tutor-card-grid grid sm:grid-cols-2 lg:grid-cols-3">
                       {page.offers.map((listing) => (
                         <PublicOfferCard key={listing.id} listing={listing} catalogue={catalogue} />
                       ))}
