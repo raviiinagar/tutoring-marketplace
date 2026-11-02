@@ -18,4 +18,4 @@ Added a simplified desktop header, compact search on other pages and after homep
 
 ## Hosting
 
-Prepared on the isolated `feature/homepage-nav-rea` branch from `93f519a`. Hosting acceptance will be recorded after promotion to the existing approved repository and main/payment-sandbox deployments. No backend, database, credentials, MFA, payment or compute-window change is part of this feature.
+Prepared on the isolated `feature/homepage-nav-rea` branch from `93f519a`. The checked implementation is local commit `33b7129`. Automatic approval review rejected an attempted push/promotion command before execution, stating that the prior search-filter publication approval does not authorize this new homepage/navbar publication. No feature push, hosting branch change or new deployment occurred. Explicit owner approval is pending for publishing this concrete feature to the same existing GitHub repository and both Netlify environments. Local implementation/verification are complete; no live acceptance is claimed for this release. No backend, database, credentials, MFA, payment or compute-window change is part of this feature.
