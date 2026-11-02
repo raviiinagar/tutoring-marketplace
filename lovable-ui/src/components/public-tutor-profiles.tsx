@@ -1,7 +1,6 @@
-import { TutorPresenceSummary } from "./tutor-presence-summary";
+import {compactTutorLocation,compactTutorRate} from "./tutor-card-summary";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ShieldCheck, ArrowUpRight } from "lucide-react";
 import {
   api,
   describeFailure,
@@ -13,84 +12,27 @@ import { TutorPortrait } from "./tutor-portrait";
 import { Button } from "./ui/button";
 import { Notice } from "./account/ui";
 import { SaveTutorButton } from "./save-tutor-button";
-export function PublicTutorCard({
-  profile,
-  catalogue,
-}: {
-  profile: PublicTutor;
-  catalogue?: Catalogue | undefined;
-}) {
-  return (
-    <article className="teacher-card flex h-full flex-col">
-      <div className="relative">
-        <Link
-          to="/profiles/$profileId"
-          params={{ profileId: profile.id }}
-          className="teacher-cover"
-          aria-label={`View Tutor ${profile.display_name}`}
-        >
-          <span aria-hidden className="teacher-initials">
-            {profile.display_name
-              .split(" ")
-              .map((s) => s[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase()}
-          </span>
-          <TutorPortrait
-            card
-            url={profile.photo_url ?? undefined}
-            name={profile.display_name}
-            className="teacher-portrait"
-          />
-          <span className="teacher-cover-note">Tutor profile</span>
-          <h3 className="teacher-cover-name">{profile.display_name}</h3>
-        </Link>
-        <div className="absolute right-3 top-3 z-10">
-          <SaveTutorButton profileId={profile.id} displayName={profile.display_name} compact />
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col px-1 py-4">
-        <div className="mb-3">
-          <TutorPresenceSummary presence={profile.presence} />
-        </div>
-        <p className="mt-1 flex items-center gap-1 text-xs text-success">
-          <ShieldCheck aria-hidden className="size-3.5" />
-          Identity reviewed
-        </p>
-        <p className="mt-4 text-sm font-semibold">
-          {profile.subject_ids
-            .map(
-              (id) =>
-                catalogue?.terms.find((t) => t.id === id)?.label || id.replace("subject-", ""),
-            )
-            .join(" · ")}
-        </p>
-        <p className="mt-3 line-clamp-3 break-words text-sm text-muted-foreground">
-          {profile.biography}
-        </p>
-        <p className="mt-4 font-semibold">
-          ₹{profile.hourly_rate_paise / 100}
-          <span className="text-sm font-normal text-muted-foreground">
-            {" "}
-            / hour · indicative tuition
-          </span>
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">Self-declared skills & experience</p>
-        <div className="mt-auto pt-4">
-          <Button className="w-full" variant="outline" asChild>
-            <Link to="/profiles/$profileId" params={{ profileId: profile.id }}>
-              View profile <ArrowUpRight aria-hidden className="size-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </article>
-  );
+export function PublicTutorCard({profile,catalogue}:{profile:PublicTutor;catalogue?:Catalogue|undefined}) {
+  const subjects=profile.subject_ids.map(id=>catalogue?.terms.find(t=>t.id===id)?.label||id.replace('subject-','')).join(', ');
+  return <article className="teacher-card">
+    <div className="relative">
+      <Link to="/profiles/$profileId" params={{profileId:profile.id}} className="teacher-cover" aria-label={`View Tutor ${profile.display_name}`}>
+        <span aria-hidden className="teacher-initials">{profile.display_name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</span>
+        <TutorPortrait card url={profile.photo_url??undefined} name={profile.display_name} className="teacher-portrait"/>
+        <div className="teacher-cover-caption"><h3 className="teacher-cover-name">{profile.display_name}</h3><p className="teacher-cover-location">{compactTutorLocation(profile.presence)}</p></div>
+      </Link>
+      <div className="absolute right-2 top-2 z-10"><SaveTutorButton profileId={profile.id} displayName={profile.display_name} compact/></div>
+    </div>
+    <div className="teacher-card-details">
+      {profile.presence?.accepting_students===false&&<p className="mb-1 text-xs text-muted-foreground">Not accepting new students</p>}
+      <Link className="teacher-card-summary" to="/profiles/$profileId" params={{profileId:profile.id}}><span className="font-medium">{subjects}</span>{subjects?' · ':''}{profile.biography}</Link>
+      <p className="teacher-card-price" title="Tutor's stated hourly tuition. See the profile for current offer terms.">{compactTutorRate(profile.hourly_rate_paise)}<span>/hr</span></p>
+    </div>
+  </article>;
 }
 export function PublicTutorDirectory({
   filters = {},
-  showSubjectFilter = true,
+  showSubjectFilter = false,
 }: {
   filters?: DiscoveryFilters;
   showSubjectFilter?: boolean;
@@ -142,14 +84,10 @@ export function PublicTutorDirectory({
     };
   }, [subject, filterKey]);
   return (
-    <section aria-label="Tutor profiles" className="mb-12 space-y-5">
+    <section aria-label="Tutor profiles" className="mb-10 space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold">Meet our Tutors</h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Browse identity-reviewed introductions for free. Skills and experience are
-            self-declared. Available teaching offers are shown separately below.
-          </p>
+          <h2 className="text-xl font-semibold sm:text-2xl">Meet our Tutors</h2>
         </div>
         {showSubjectFilter && (
           <label className="text-sm font-semibold">
@@ -183,7 +121,7 @@ export function PublicTutorDirectory({
       ) : profiles === undefined ? (
         <p role="status">Loading Tutor profiles…</p>
       ) : profiles.length ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="tutor-card-grid grid sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((p) => (
             <PublicTutorCard key={p.id} profile={p} catalogue={catalogue} />
           ))}

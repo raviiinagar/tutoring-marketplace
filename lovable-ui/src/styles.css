@@ -327,7 +327,7 @@ main { scroll-margin-top: 90px; }
 
 /* Clean marketplace layout, guided by the owner's visual reference. */
 .teacher-portrait { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; }
-.teacher-cover:has(.teacher-portrait)::after { content:''; position:absolute; inset:35% 0 0; background:linear-gradient(transparent,#14121bb3); }
+.teacher-cover:has(.teacher-portrait)::after { content:''; position:absolute; inset:55% 0 0; background:linear-gradient(transparent,#14121bb3); }
 .teacher-cover .teacher-cover-name,.teacher-cover .teacher-cover-note { z-index:1; }
 :root { --background: #fff; --foreground: #222126; --primary: #d63c4c; --primary-foreground: #fff; --coral-strong: #b73545; --coral-soft: #fff1f2; --border: #ecebed; --input: #8b858f; --muted-foreground: #66636a; --secondary: #f8f7f8; --secondary-foreground: #403d43; --success-soft: #edf6f0; }
 .brand-wordmark { font-size: clamp(21px, 2vw, 26px); }
@@ -383,3 +383,20 @@ main { scroll-margin-top: 90px; }
 @media(max-width:640px) { .teacher-search-shell { margin-top:26px; } .market-search.location-search-form { grid-template-columns:minmax(0,1fr); border-radius:26px; padding:8px; gap:2px; border-width:5px; } .teacher-search-divider { display:none; } .teacher-search-field { padding:12px 10px; } .teacher-search-field:first-child { border-bottom:1px solid #eee8d5; } .location-search-form .market-search-button { width:100%; min-height:46px; margin-top:5px; } .teacher-search-suggestions { border-radius:20px; } }
 
 .teacher-search-option span { min-width:0; overflow-wrap:anywhere; }
+
+/* Compact Tutor cards: portrait, name/location, short introduction and tuition. */
+.tutor-card-grid { column-gap:24px; row-gap:52px; }
+.teacher-cover-caption { position:absolute; bottom:17px; left:17px; right:17px; z-index:1; color:#fff; text-shadow:0 1px 3px #0008; }
+.teacher-cover-caption .teacher-cover-name { position:static; width:auto; max-width:100%; padding:0; margin:0; background:none; border-radius:0; font-size:27px; font-weight:700; line-height:1.15; letter-spacing:-.025em; }
+.teacher-cover-location { margin-top:6px; font-size:14px; font-weight:550; line-height:1.3; overflow-wrap:anywhere; }
+.teacher-card-details { padding:12px 0 0; }
+.teacher-card-summary { min-height:42px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; font-size:15px; line-height:21px; color:var(--foreground); }
+.teacher-card-summary:hover { color:var(--coral-strong); }
+.teacher-card-price { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:0; margin-top:6px; font-size:15px; font-weight:650; line-height:22px; }
+.teacher-card-price>span { font-weight:500; }
+.teacher-card-price .teacher-card-trial { color:var(--coral-strong); margin-left:4px; font-size:14px; }
+.teacher-card-rating { display:flex; align-items:center; gap:4px; margin-bottom:7px; font-size:14px; line-height:20px; }
+.teacher-card-rating span { font-weight:400; }
+.teacher-save-button { color:#fff; outline-color:#fff; }
+.teacher-save-button svg { width:24px; height:24px; filter:drop-shadow(0 1px 2px #0009); }
+@media(max-width:640px) { .tutor-card-grid { row-gap:34px; } .teacher-cover-caption .teacher-cover-name { font-size:26px; } }
