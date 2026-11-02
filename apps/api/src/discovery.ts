@@ -1,3 +1,4 @@
+import {priceSort,readPriceCursor,writePriceCursor} from './discovery-order.js';
 import {presenceFilters,addPresenceFilters,publicPresence} from './tutor-presence.js';
 import {tutorProPredicate} from './tutor-pro-access.js';
 import {ReviewPublication} from './review-publication.js';
@@ -11,7 +12,9 @@ import {decrypt} from './security.js';
 import type {PoolClient} from 'pg';
 const slug=z.string().regex(/^[a-z][a-z0-9-]{1,79}$/);
 const integer=(min:number,max:number)=>z.string().regex(/^\d{1,8}$/).transform(Number).pipe(z.number().int().min(min).max(max));
-export const discoveryInput=z.strictObject({...presenceFilters,domain_id:slug.optional(),subject_id:slug.optional(),level_id:slug.optional(),curriculum_id:slug.optional(),exam_id:slug.optional(),language_id:slug.optional(),rate_unit:z.enum(['HOUR','LESSON']).optional(),min_rate_paise:integer(100,10000000).optional(),max_rate_paise:integer(100,10000000).optional(),cursor:z.uuid().optional(),limit:integer(1,24).optional()}).superRefine((v,c)=>{
+export const discoveryInput=z.strictObject({...presenceFilters,domain_id:slug.optional(),subject_id:slug.optional(),level_id:slug.optional(),curriculum_id:slug.optional(),exam_id:slug.optional(),language_id:slug.optional(),rate_unit:z.enum(['HOUR','LESSON']).optional(),min_rate_paise:integer(100,10000000).optional(),max_rate_paise:integer(100,10000000).optional(),sort:priceSort.optional(),trial_kind:z.literal('FREE').optional(),cursor:z.string().max(244).optional(),limit:integer(1,24).optional()}).superRefine((v,c)=>{
+  if(v.sort&&!v.rate_unit)c.addIssue({code:'custom',message:'Choose an hourly or per-lesson unit before sorting by price.'});
+  if(v.cursor){const cursor=v.sort?readPriceCursor(v.cursor):undefined;if(v.sort?(!cursor||cursor.sort!==v.sort||cursor.unit!==v.rate_unit):!z.uuid().safeParse(v.cursor).success)c.addIssue({code:'custom',message:'This page belongs to different sorting options. Start again from the first page.'});}
   if(v.at_time!==undefined&&!v.day)c.addIssue({code:'custom',message:'Choose a day for the preferred time.'});
   if((v.min_rate_paise!==undefined||v.max_rate_paise!==undefined)&&!v.rate_unit)c.addIssue({code:'custom',message:'Choose an hourly or per-lesson unit when filtering by price.'});
   if(v.min_rate_paise!==undefined&&v.max_rate_paise!==undefined&&v.min_rate_paise>v.max_rate_paise)c.addIssue({code:'custom',message:'Minimum price must not exceed maximum price.'});
@@ -84,15 +87,19 @@ export class DiscoveryService {
     for(const [kind,key] of fields){const id=input[key];if(!id)continue;const term=(await client.query('SELECT kind,active,domain_ids FROM catalogue_terms WHERE id=$1',[id])).rows[0];if(!term||!term.active||term.kind!==kind||input.domain_id&&!term.domain_ids.includes(input.domain_id))throw new ApiProblem(400,'INVALID_FILTER','Choose active filters of the correct type and Learning Domain.');}
     const at=this.now();const values:unknown[]=[at,this.config.mode==='production'];let sql=availableSql;
     const add=(fragment:(placeholder:string)=>string,value:unknown)=>{values.push(value);sql+=' AND '+fragment('$'+values.length);};
-    for(const key of ['domain_id','subject_id','level_id','curriculum_id','exam_id','rate_unit','teaching_mode'] as const)if(input[key])add(p=>`l.payload->>'${key}'=${p}`,input[key]);
+    for(const key of ['domain_id','subject_id','level_id','curriculum_id','exam_id','rate_unit','teaching_mode','trial_kind'] as const)if(input[key])add(p=>`l.payload->>'${key}'=${p}`,input[key]);
     addPresenceFilters(input,add);
     if(input.language_id)add(p=>`(l.payload->'language_ids') ? ${p}`,input.language_id);
     if(input.min_rate_paise!==undefined)add(p=>`(l.payload->>'rate_paise')::integer>=${p}`,input.min_rate_paise);
     if(input.max_rate_paise!==undefined)add(p=>`(l.payload->>'rate_paise')::integer<=${p}`,input.max_rate_paise);
-    if(input.cursor)add(p=>`l.id>${p}::uuid`,input.cursor);
-    const limit=input.limit||12;values.push(limit+1);sql+=` ORDER BY l.id LIMIT $${values.length}`;
+    if(input.cursor){
+      const cursor=input.sort?readPriceCursor(input.cursor):undefined;
+      if(cursor){values.push(cursor.rate,cursor.id);const rate='$'+(values.length-1),id='$'+values.length;sql+=` AND ((l.payload->>'rate_paise')::integer${input.sort==='PRICE_DESC'?'<':'>'}${rate} OR ((l.payload->>'rate_paise')::integer=${rate} AND l.id>${id}::uuid))`;}
+      else add(p=>`l.id>${p}::uuid`,input.cursor);
+    }
+    const limit=input.limit||12;values.push(limit+1);const ordering=input.sort?`(l.payload->>'rate_paise')::integer ${input.sort==='PRICE_DESC'?'DESC':'ASC'},l.id ASC`:'l.id';sql+=` ORDER BY ${ordering} LIMIT $${values.length}`;
     const rows=(await client.query(sql,values)).rows;await this.enrichReviews(client,rows);const page=rows.slice(0,limit);const offers=page.map(row=>this.project(row,at)).filter(row=>row!==undefined);
-    return {offers,next_cursor:rows.length>limit?page.at(-1).id:null,limit,order:'listing_id_ascending',price_currency:'INR'};
+    return {offers,next_cursor:rows.length>limit?(input.sort?writePriceCursor(input.sort,input.rate_unit!,page.at(-1)):page.at(-1).id):null,limit,order:input.sort==='PRICE_ASC'?'price_ascending':input.sort==='PRICE_DESC'?'price_descending':'listing_id_ascending',price_currency:'INR'};
   });}
   async firstAvailable(input:Filters){let cursor:string|undefined;do{const page=await this.search({...input,limit:24,cursor});if(page.offers.length)return page.offers[0];cursor=page.next_cursor||undefined;}while(cursor);return undefined;}
   async detail(id:string){return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const at=this.now();const row=(await client.query(availableSql+' AND l.id=$3',[at,this.config.mode==='production',id])).rows[0];if(row)await this.enrichReviews(client,[row]);const listing=row?this.project(row,at):undefined;if(!listing)throw new ApiProblem(404,'OFFER_UNAVAILABLE','This teaching offer is currently unavailable.');return {listing};});}
