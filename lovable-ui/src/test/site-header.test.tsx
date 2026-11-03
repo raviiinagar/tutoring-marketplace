@@ -101,7 +101,7 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   );
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");
-  for (const name of ["My account", "Saved Tutors", "My enquiries", "Connections"])
+  for (const name of ["Dashboard", "My account", "Saved Tutors", "My enquiries", "Messages"])
     expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
   expect(within(nav).queryByRole("link", { name: "Sign in" })).toBeNull();
   fireEvent.keyDown(menu, { key: "Escape" });
@@ -114,7 +114,7 @@ it("a signed-in Learner is sent to account role selection without changing roles
   await within(nav).findByRole("button", { name: "My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
-    "/account",
+    "/account/settings",
   );
 });
 it("mobile disclosure closes on links and Escape restores the opener", async () => {

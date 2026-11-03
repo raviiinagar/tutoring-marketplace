@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { accountSessionKey } from "@/lib/session";
+import { WorkspaceNavigation, workspaceLinks } from "@/components/workspace-navigation";
 const AccountReady = createContext(false);
 
 export function BrandWordmark({ className = "" }: { className?: string }) {
@@ -168,15 +169,16 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
   const teacherPath = user
     ? user.roles.includes("TUTOR")
       ? "/tutor"
-      : "/account"
+      : "/account/settings"
     : "/auth/signup";
   const showSearch = !homepage || scrolled;
   const accountLinks = (
     <>
-      <Link to="/account">My account</Link>
+      <Link to="/account">Dashboard</Link>
       <Link to="/saved-tutors">Saved Tutors</Link>
       <Link to="/requests">My enquiries</Link>
-      <Link to="/connections">Connections</Link>
+      <Link to="/connections">Messages</Link>
+      <Link to="/account/settings">My account</Link>
     </>
   );
   const openSearch = (button: HTMLButtonElement) => {
@@ -249,18 +251,11 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2">
-                  <DropdownMenuItem asChild>
-                    <Link to="/account">My account</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/saved-tutors">Saved Tutors</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/requests">My enquiries</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/connections">Connections</Link>
-                  </DropdownMenuItem>
+                  {workspaceLinks.map((item) => (
+                    <DropdownMenuItem key={item.to} asChild>
+                      <Link to={item.to}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -348,12 +343,14 @@ export function AuthShell({
   children,
   footer,
   wide = false,
+  dashboard = false,
 }: {
   title: string;
   intro?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   wide?: boolean;
+  dashboard?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
@@ -372,54 +369,17 @@ export function AuthShell({
         <main
           id="main-content"
           tabIndex={-1}
-          className={`account-workspace mx-auto w-full ${wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
+          className={`account-workspace mx-auto w-full ${dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
         >
-          {ready && !window.location.pathname.startsWith("/auth/") && (
-            <nav
-              aria-label="Workspace navigation"
-              className="workspace-nav mb-6 flex flex-wrap gap-2 text-sm"
-            >
-              <Link
-                to="/account"
-                activeOptions={{ exact: true }}
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                Overview
-              </Link>
-              <Link
-                to="/tutors"
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                Find Tutors
-              </Link>
-              <Link
-                to="/saved-tutors"
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                Saved Tutors
-              </Link>
-              <Link
-                to="/requests"
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                My enquiries
-              </Link>
-              <Link
-                to="/connections"
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                Connections
-              </Link>
-              <Link
-                to="/support"
-                activeProps={{ "aria-current": "page", className: "workspace-active" }}
-              >
-                Get help
-              </Link>
-            </nav>
-          )}
-          <div className="card-surface animate-rise account-content">
-            <h1 className="text-3xl font-semibold sm:text-4xl">{title}</h1>
+          {ready && !window.location.pathname.startsWith("/auth/") && <WorkspaceNavigation />}
+          <div
+            className={
+              dashboard
+                ? "animate-rise account-content"
+                : "card-surface animate-rise account-content"
+            }
+          >
+            <h1 className="break-words text-3xl font-semibold sm:text-4xl">{title}</h1>
             {intro && <div className="mt-3 text-muted-foreground">{intro}</div>}
             <div className="mt-8">{children}</div>
           </div>

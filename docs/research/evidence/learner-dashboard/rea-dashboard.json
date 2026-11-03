@@ -1,0 +1,28 @@
+{
+  "evidence_id": "ev_13463408aeaa499d00a2d51a20e0ea54b5fbdf7a9bdb29bf2535d039a0b6e22e",
+  "operation": "capture_web_screenshot",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "target": {
+    "target_id": "CD84B95ADD7AB38078305ECF5DBDC462",
+    "url": "https://www.superprof.co.in/dashboard.html",
+    "origin": "https://www.superprof.co.in"
+  },
+  "viewport": {
+    "width": 1920,
+    "height": 912
+  },
+  "artifact": {
+    "sha256": "99c6a943198c48ab1d1b5d0b594f87e438ff467409dcddfff8bd0242be27243b",
+    "bytes": 59012
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "The screenshot contains the visible viewport, including on-screen content.",
+    "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+    "Browser host platform and architecture were not observed."
+  ]
+}

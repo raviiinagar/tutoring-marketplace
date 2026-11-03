@@ -1,0 +1,5 @@
+# Learner dashboard and account navigation
+
+Adapt only the accessible Superprof dashboard/account navigation observed through REA and browser evidence. Build a data-driven `/account` learning dashboard and keep existing account/security controls discoverable under `/account/settings`. Keep English Tutor Marketplace branding and light yellow accents. Use existing authenticated APIs, exact cookie authority and account-scoped ephemeral data; no new identity store, schema, profile/phone editing API or financial rules.
+
+Provide consistent keyboard-accessible dashboard, enquiry, message, saved Tutor and account navigation; actual current Access Pass state, pending count, recent enquiries/connections and empty/error states. Avoid total/unread/booking claims unsupported by paginated APIs. Preserve Learner/Guardian controls, Tutor role paths, notifications, privacy, support, reviews, receipts, sessions, sign-out and authorized staff access. Keep account switching from exposing old private data. New reference actions are read-only and must not change account settings, send messages or pay. Explicitly report inaccessible paid/post-acceptance and uninspected states.

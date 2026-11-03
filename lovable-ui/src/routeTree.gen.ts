@@ -26,6 +26,7 @@ import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TutorRouteImport } from './routes/tutor'
 import { Route as TutorsRouteImport } from './routes/tutors'
+import { Route as AccountSettingsRouteImport } from './routes/account_.settings'
 import { Route as AuthCheckEmailRouteImport } from './routes/auth.check-email'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
@@ -143,6 +144,11 @@ const TutorRoute = TutorRouteImport.update({
 const TutorsRoute = TutorsRouteImport.update({
   id: '/tutors',
   path: '/tutors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSettingsRoute = AccountSettingsRouteImport.update({
+  id: '/account_/settings',
+  path: '/account/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCheckEmailRoute = AuthCheckEmailRouteImport.update({
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
+  '/account/settings': typeof AccountSettingsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -381,6 +388,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
+  '/account/settings': typeof AccountSettingsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -434,6 +442,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/tutor': typeof TutorRoute
   '/tutors': typeof TutorsRoute
+  '/account_/settings': typeof AccountSettingsRoute
   '/auth/check-email': typeof AuthCheckEmailRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -488,6 +497,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tutor'
     | '/tutors'
+    | '/account/settings'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tutor'
     | '/tutors'
+    | '/account/settings'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -592,6 +603,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tutor'
     | '/tutors'
+    | '/account_/settings'
     | '/auth/check-email'
     | '/auth/forgot-password'
     | '/auth/reset-password'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   TutorRoute: typeof TutorRoute
   TutorsRoute: typeof TutorsRoute
+  AccountSettingsRoute: typeof AccountSettingsRoute
   AuthCheckEmailRoute: typeof AuthCheckEmailRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
@@ -799,6 +812,13 @@ declare module '@tanstack/react-router' {
       path: '/tutors'
       fullPath: '/tutors'
       preLoaderRoute: typeof TutorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account_/settings': {
+      id: '/account_/settings'
+      path: '/account/settings'
+      fullPath: '/account/settings'
+      preLoaderRoute: typeof AccountSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/check-email': {
@@ -1053,6 +1073,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   TutorRoute: TutorRoute,
   TutorsRoute: TutorsRoute,
+  AccountSettingsRoute: AccountSettingsRoute,
   AuthCheckEmailRoute: AuthCheckEmailRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
