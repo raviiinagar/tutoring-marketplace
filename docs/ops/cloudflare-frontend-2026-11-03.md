@@ -24,7 +24,9 @@ The source `wrangler.jsonc` contains only public configuration. A clean build re
 
 ## Backend compatibility
 
-The existing main staging API's `ALLOWED_ORIGINS` now includes the exact Worker origin alongside the existing Netlify origin. `WEB_ORIGIN` still points to Netlify, so verification/reset emails continue linking there until a deliberate promotion. Backend env rollback copy: `/etc/tutoring/api.env.before-cloudflare-20261103`, root-only. Only `tutoring-api` was restarted; database and application release were unchanged.
+The existing main staging API's `ALLOWED_ORIGINS` includes the exact Worker origin alongside the existing Netlify origin. After the owner confirmed login and requested new email links, `WEB_ORIGIN` was promoted to the Cloudflare URL on 3 November. Newly generated verification/reset emails now target Cloudflare. Already generated email payloads retain their original URL; request a fresh email rather than editing token links manually. API and worker were restarted successfully; database and application release were unchanged.
+
+Protected rollback copies: `/etc/tutoring/api.env.before-cloudflare-20261103` before adding the allowed origin, and `/etc/tutoring/api.env.before-cloudflare-email-20261103` before promoting the email origin. Both are root-only. Restore only the intended keys when later configuration changes exist.
 
 The EC2 administrative SSH /32 was refreshed through a reviewed CloudFormation change set, modifying only the security group without resource replacement. SSH used the original pinned host key across the known IP change. No broad SSH access was introduced. Existing automatic compute stop remains 10 November 2026, 10:25:48 UTC / 3:55:48 PM IST.
 
