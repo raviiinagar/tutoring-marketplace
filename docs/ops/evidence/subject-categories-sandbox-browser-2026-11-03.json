@@ -1,0 +1,18 @@
+{
+  "origin": "https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app",
+  "live": true,
+  "actualPublicCatalogue": true,
+  "allSubjectsVisible": true,
+  "eightDomains": true,
+  "aliasSearch": true,
+  "categoryFilterAndReset": true,
+  "typedSubjectAndExamNavigation": true,
+  "typedLearningOptions": true,
+  "escapeFocusReturn": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0
+}
