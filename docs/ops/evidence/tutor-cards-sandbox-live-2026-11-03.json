@@ -1,0 +1,20 @@
+{
+  "origin": "https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app",
+  "live": true,
+  "noApiMocks": true,
+  "publicCards": true,
+  "cardHeartSeparate": true,
+  "touchTarget44px": true,
+  "anonymousTutorSpecificModal": true,
+  "escapeFocusReturn": true,
+  "profilePageSaveControl": true,
+  "savedPageAuthGate": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0,
+  "savedTutorWrites": 0,
+  "authenticatedSavedLifecycle": "covered by isolated local fixtures and unit tests, not exercised live"
+}

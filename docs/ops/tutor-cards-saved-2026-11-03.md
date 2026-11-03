@@ -24,4 +24,19 @@ Preliminary checks caught a test-only unchecked array element and a timing-sensi
 
 ## Release
 
-Prepared in isolated branch `feature/tutor-cards-saved-rea` from `07b0c59`. Deployment acceptance will be appended after hosting promotion. No live deployment is claimed by the local checks above.
+Prepared in isolated branch `feature/tutor-cards-saved-rea` from `07b0c59`. Implementation/evidence commit `242f5d6` was pushed and promoted to both existing hosting branches. Local checks are separate from the live acceptance below.
+
+
+## Hosting and live acceptance
+
+| Environment | Hosting commit | Ready Netlify deploy |
+| --- | --- | --- |
+| [Main](https://tutoring-marketplace-ravii-preview.netlify.app/) | `e6cf7da9bedf7b33ff85465f03432f8ace48118e` | `6ae95aed2d97e7a570f873a9` |
+| [Payment sandbox](https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app/) | `3f430729a1c51b1ec1f64789c2e24cee295120af` | `6ae95af6177e2cb4faa85eee` |
+
+Both live sites passed desktop/390px/320px checks using actual API responses without mocks: public cards, separate 44px heart controls, Tutor-specific auth modal, Escape/focus return, save control on the profile page, signed-out Saved Tutors gate and no page errors or horizontal overflow. The sandbox fictional-account/no-real-money notice remained visible. Zero live saved-Tutor writes were observed; authenticated save/remove/filter/refresh flows remain covered by the local isolated fixtures and unit tests rather than a live-account mutation claim.
+
+- Main: [JSON](evidence/tutor-cards-main-live-2026-11-03.json), [cards](evidence/tutor-cards-main-desktop-2026-11-03.png), [save modal](evidence/tutor-cards-main-signin-2026-11-03.png), [signed-out shortlist](evidence/tutor-cards-main-saved-signedout-2026-11-03.png), [mobile](evidence/tutor-cards-main-mobile-signin-2026-11-03.png).
+- Sandbox: [JSON](evidence/tutor-cards-sandbox-live-2026-11-03.json), [cards](evidence/tutor-cards-sandbox-desktop-2026-11-03.png), [save modal](evidence/tutor-cards-sandbox-signin-2026-11-03.png), [signed-out shortlist](evidence/tutor-cards-sandbox-saved-signedout-2026-11-03.png), [mobile](evidence/tutor-cards-sandbox-mobile-signin-2026-11-03.png).
+
+Feature source/evidence synchronized to the main workspace with unrelated changes preserved. The task's local Vite preview on port 3021 was stopped after hosted acceptance. Backend, database, payments, staff authentication and compute-window settings were not changed.
