@@ -1,0 +1,14 @@
+{
+  "origin": "http://127.0.0.1:3022",
+  "live": false,
+  "stagedApplyCancel": true,
+  "focusReturn": true,
+  "budgetUnit": true,
+  "requestPayload": true,
+  "profileScope": true,
+  "heroPreservesRefinements": true,
+  "chipDependencies": true,
+  "backForward": true,
+  "mobile390": true,
+  "pageErrors": 0
+}

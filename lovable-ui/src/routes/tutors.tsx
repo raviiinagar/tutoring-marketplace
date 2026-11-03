@@ -3,7 +3,12 @@ import { PublicTutorDirectory } from "@/components/public-tutor-profiles";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { TutorSearchFilters } from "@/components/tutor-search-filters";
-import { hasOfferOnlyFilters, mergeTeacherSearch } from "@/lib/discovery-filter-state";
+import {
+  hasOfferOnlyFilters,
+  mergeTeacherSearch,
+  profileDiscoveryFilters,
+  discoverySearchTitle,
+} from "@/lib/discovery-filter-state";
 import {
   api,
   describeFailure,
@@ -115,7 +120,9 @@ function TutorSearch() {
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
             Find your next learning chapter
           </p>
-          <h1 className="text-3xl font-semibold sm:text-4xl">Find your next Tutor</h1>
+          <h1 className="text-3xl font-semibold sm:text-4xl">
+            {discoverySearchTitle(search, catalogue)}
+          </h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Choose the exact subject and learning goal you need. Browsing is free; tuition is paid
             directly to your Tutor.
@@ -176,6 +183,37 @@ function TutorSearch() {
                         Tutors publish and pause their offers.
                       </p>
                       <p className="mt-3 text-sm">There is no charge for this search.</p>
+                      <div className="my-5 flex flex-wrap gap-3">
+                        {(search.location || search.country) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              applyFilters({ ...search, location: undefined, country: undefined })
+                            }
+                          >
+                            Search without a location
+                          </Button>
+                        )}
+                        {hasOfferOnlyFilters(search) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => applyFilters(profileDiscoveryFilters(search))}
+                          >
+                            Browse free Tutor introductions
+                          </Button>
+                        )}
+                        <Button type="button" variant="outline" onClick={() => applyFilters({})}>
+                          Reset search filters
+                        </Button>
+                      </div>
+                      {hasOfferOnlyFilters(search) && (
+                        <p className="mb-4 text-xs text-muted-foreground">
+                          Public introductions show self-declared subjects and indicative hourly
+                          tuition. Exact offer filters and price ordering apply to teaching offers.
+                        </p>
+                      )}
                       <AvailabilitySignup key={key} filters={search} />
                     </div>
                   ) : (

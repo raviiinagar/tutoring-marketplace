@@ -264,6 +264,13 @@ export function TutorSearchFilters({
           </select>
         </label>
       </div>
+      {filters.sort && filters.rate_unit && (
+        <p role="status" className="text-xs text-muted-foreground">
+          {filters.rate_unit === "HOUR" ? "Hourly" : "Per-lesson"} teaching offers, price{" "}
+          {filters.sort === "PRICE_ASC" ? "low to high" : "high to low"}. Public introduction rates
+          are shown separately when offer-only filters are cleared.
+        </p>
+      )}
       {chips.length > 0 && (
         <div className="flex flex-wrap items-center gap-2" aria-label="Applied filters">
           {chips.map((chip) => (

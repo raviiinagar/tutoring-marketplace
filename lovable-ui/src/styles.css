@@ -539,3 +539,7 @@ main { scroll-margin-top: 90px; }
 .save-tutor-dialog { max-height:calc(100dvh - 28px); overflow-y:auto; }
 .save-tutor-dialog h2 { overflow-wrap:anywhere; }
 @media(min-width:640px) { .saved-tutor-list .tutor-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+.teacher-search-clear { display:grid; flex-shrink:0; place-items:center; width:32px; min-height:40px; border-radius:99px; color:var(--muted-foreground); }
+.teacher-search-clear:hover { background:#fff3cf; color:var(--foreground); }
+.teacher-search-clear:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }

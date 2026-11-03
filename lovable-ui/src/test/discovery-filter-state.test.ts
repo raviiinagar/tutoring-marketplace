@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import type { Catalogue } from "@/lib/api";
 import {
   discoveryFilterChips,
+  profileDiscoveryFilters,
+  discoverySearchTitle,
   hasOfferOnlyFilters,
   mergeTeacherSearch,
   removeDiscoveryFilter,
@@ -148,4 +150,40 @@ it("all applied fields have truthful readable chips, with no cursor chip", () =>
     "MON",
     "17:00 IST",
   ]);
+});
+
+it("public-introduction recovery keeps supported preferences and strips exact-offer constraints", () => {
+  expect(
+    profileDiscoveryFilters({
+      subject_id: "physics",
+      location: "Kota",
+      country: "India",
+      teaching_mode: "IN_PERSON",
+      domain_id: "school",
+      exam_id: "jee",
+      level_id: "class10",
+      sort: "PRICE_ASC",
+      rate_unit: "HOUR",
+      max_rate_paise: 50000,
+      trial_kind: "FREE",
+      cursor: "old",
+    }),
+  ).toEqual({
+    subject_id: "physics",
+    location: "Kota",
+    country: "India",
+    teaching_mode: "IN_PERSON",
+  });
+});
+it("search headings describe the applied goal and mode without ranking or availability claims", () => {
+  expect(discoverySearchTitle({ subject_id: "physics", location: "Kota" }, catalogue)).toBe(
+    "Physics Tutors in Kota",
+  );
+  expect(
+    discoverySearchTitle(
+      { subject_id: "physics", teaching_mode: "ONLINE", location: "Kota" },
+      catalogue,
+    ),
+  ).toBe("Physics Tutors online");
+  expect(discoverySearchTitle({}, catalogue)).toBe("Find your next Tutor");
 });

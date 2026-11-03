@@ -132,3 +132,31 @@ export function discoveryFilterChips(
   add("accepting_only", "Accepting new students");
   return chips;
 }
+
+/** Public introductions cannot establish exact offer combinations, trials or prices. */
+export function profileDiscoveryFilters(filters: DiscoveryFilters): DiscoveryFilters {
+  const allowed = [
+    "subject_id",
+    "teaching_mode",
+    "location",
+    "country",
+    "day",
+    "at_time",
+    "accepting_only",
+  ] as const;
+  return Object.fromEntries(
+    allowed
+      .filter((key) => filters[key] !== undefined && filters[key] !== "")
+      .map((key) => [key, filters[key]]),
+  );
+}
+export function discoverySearchTitle(filters: DiscoveryFilters, catalogue?: Catalogue): string {
+  const term = catalogue?.terms.find(
+    (item) => item.active && item.id === (filters.subject_id || filters.exam_id),
+  );
+  const goal = term ? `${term.label} Tutors` : "Find your next Tutor";
+  if (filters.teaching_mode === "ONLINE") return `${goal} online`;
+  const location = typeof filters.location === "string" ? filters.location.trim() : "";
+  if (location) return `${goal} in ${location}`;
+  return filters.teaching_mode === "IN_PERSON" ? `${goal} for in-person classes` : goal;
+}
