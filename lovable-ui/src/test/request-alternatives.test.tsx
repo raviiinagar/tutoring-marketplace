@@ -108,8 +108,10 @@ it("requires an explicit Tutor choice and enquiry submission while keeping the o
     "Tuesday evening",
   );
   expect(writes).toHaveLength(0);
+  fireEvent.click(screen.getByRole("button", { name: "Review enquiry" }));
+  expect(writes).toHaveLength(0);
   fireEvent.click(screen.getByRole("button", { name: "Send enquiry" }));
-  expect(await screen.findByText(/Your Contact Request is pending/)).toBeTruthy();
+  expect(await screen.findByText(/Enquiry submitted to Suggested Tutor/)).toBeTruthy();
   expect(writes).toHaveLength(1);
   expect(writes[0]).toMatchObject({
     listing_id: "alternative",
