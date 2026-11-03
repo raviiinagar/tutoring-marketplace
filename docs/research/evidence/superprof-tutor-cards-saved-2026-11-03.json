@@ -1,0 +1,919 @@
+{
+  "note": "REA MCP passive observations/screenshots. Ordinary Playwright exercised the heart action after the REA scenario failed; a delayed auth modal was then observed. No account was submitted. Authenticated persistence is unknown. Canonical bundle: ignored .local/rea-tutor-cards-saved-2026-11-03.json. Storage, headers, script bodies, bookmark attributes and bulk Tutor descriptions excluded.",
+  "records": [
+    {
+      "evidence_id": "ev_750f5dd4bb23718098939f6d97aa829ad03b3d66b19724aba2a6a00a7743251e",
+      "operation": "capture_web_screenshot",
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "viewport": {
+        "height": 879,
+        "width": 1295
+      },
+      "sha256": "205fa7c0c8dcaa8152bd99ef3ca7a369e46c2364f24052048cecba5a912128aa",
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_e2782564624c99966c496bb6302ce2452f871a84b979d3c47f8b51422018d673",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "title": "Superprof - Find private teachers to help you reach your goals",
+        "type": "page",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "selected_accessibility_nodes": [
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "(42 reviews)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Khushi"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        }
+      ],
+      "confidence": "observed",
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 12,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 47,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 34,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 0,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 50,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 45,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 2,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_ea4f573fa898eda5d61adf49126e712c94e541155a5c714d18d21573b2614a77",
+      "operation": "capture_web_screenshot",
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "viewport": {
+        "height": 879,
+        "width": 1295
+      },
+      "sha256": "17575d6310156beced1ebee6e7da01164f3fa610bdd2bd529bc195e4b4a3bdd2",
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_f233f5fdaba8e2480a1b3e5848ab525eb893100eba5bd544bb3eafe9e4dadb62",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "title": "Superprof - Find private teachers to help you reach your goals",
+        "type": "page",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "selected_accessibility_nodes": [
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "(42 reviews)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Khushi"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        }
+      ],
+      "confidence": "observed",
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 8,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 47,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 33,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 0,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 50,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 21,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 2,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_f8ba15cd76c9284dd7488d0aa2fce7f40b25d87d5a611c449f583c3d969c1aec",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "title": "Superprof - Find private teachers to help you reach your goals",
+        "type": "page",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "selected_accessibility_nodes": [
+        {
+          "role": "StaticText",
+          "name": "Add Khushi to your Favourites"
+        },
+        {
+          "role": "StaticText",
+          "name": "You've found a real gem!"
+        },
+        {
+          "role": "button",
+          "name": "Registration by email"
+        },
+        {
+          "role": "StaticText",
+          "name": "You already have an account?"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "(42 reviews)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Ambassador"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "5"
+        },
+        {
+          "role": "StaticText",
+          "name": "Email address"
+        },
+        {
+          "role": "StaticText",
+          "name": "Registration by email"
+        },
+        {
+          "role": "StaticText",
+          "name": "Sign up with Google"
+        },
+        {
+          "role": "StaticText",
+          "name": "Sign up with Apple"
+        },
+        {
+          "role": "StaticText",
+          "name": "Log in"
+        },
+        {
+          "role": "StaticText",
+          "name": "Khushi"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "StaticText",
+          "name": "Mumbai (online)"
+        },
+        {
+          "role": "textbox",
+          "name": "Email address"
+        }
+      ],
+      "confidence": "observed",
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 19,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 47,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 34,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 0,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 50,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 43,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 2,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    }
+  ]
+}

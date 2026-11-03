@@ -1,0 +1,23 @@
+{
+  "origin": "http://127.0.0.1:3021",
+  "publicTutorRecords": 5,
+  "existingData": true,
+  "authenticationAndSavedWrites": "isolated browser fixtures; no live account/save mutations",
+  "anonymousModal": true,
+  "modalEscapeFocus": true,
+  "saveHeartAndFeedback": true,
+  "sharedApiStateAcrossRoutesAndReload": true,
+  "shortlistSearchAndSubjectFilter": true,
+  "failedRemovalKeepsSaved": true,
+  "successfulRemovalFocus": true,
+  "unavailablePlaceholderRemoval": true,
+  "emptyState": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0,
+  "fixtureSaveRequests": 2,
+  "fixtureRemoveRequests": 4
+}
