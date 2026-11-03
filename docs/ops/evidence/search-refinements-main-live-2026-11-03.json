@@ -1,0 +1,99 @@
+{
+  "origin": "https://tutoring-marketplace-ravii-preview.netlify.app",
+  "live": true,
+  "noApiMocks": true,
+  "goalLocationTitle": true,
+  "stagedCancel": true,
+  "priceAscDescRequests": true,
+  "unitScoped": true,
+  "emptyRecovery": true,
+  "onlineClearsLocality": true,
+  "clearAndAnywhere": true,
+  "historyRestore": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0,
+  "broadSortResultCounts": {
+    "ascending": 0,
+    "descending": 0
+  },
+  "responses": [
+    {
+      "status": 200,
+      "sort": null,
+      "unit": null,
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": "PRICE_ASC",
+      "unit": "HOUR",
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": "PRICE_DESC",
+      "unit": "HOUR",
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": "PRICE_DESC",
+      "unit": "HOUR",
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": null,
+      "unit": null,
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": null,
+      "unit": null,
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": null,
+      "unit": null,
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": "PRICE_ASC",
+      "unit": "HOUR",
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    },
+    {
+      "status": 200,
+      "sort": "PRICE_DESC",
+      "unit": "HOUR",
+      "count": 0,
+      "unitValid": true,
+      "orderValid": true
+    }
+  ],
+  "nonemptySortedResponses": 0,
+  "orderingCoverageNote": "Nonempty ordering rendering also covered by isolated local fixtures; empty live responses do not establish row ordering."
+}

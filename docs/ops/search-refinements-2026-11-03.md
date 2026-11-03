@@ -24,4 +24,21 @@ The new local journey consumes the actual public catalogue and isolated syntheti
 
 ## Release
 
-Prepared on isolated branch `feature/search-refinements-rea` from `9833a16`. Hosting commits/deploy IDs and actual-API acceptance will be recorded after promotion.
+Prepared on isolated branch `feature/search-refinements-rea` from `9833a16`. Implementation/evidence commit `f80f4c1` was pushed and promoted to both existing hosting environments.
+
+
+## Hosting and actual-API acceptance
+
+| Environment | Hosting commit | Ready Netlify deploy |
+| --- | --- | --- |
+| [Main search](https://tutoring-marketplace-ravii-preview.netlify.app/tutors) | `ad60d3df6a410dbf410d766ff3ad5db7f23d6bcd` | `6ae960ae2c6cbefc2ecd0d82` |
+| [Payment sandbox](https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app/tutors) | `98139df2eb9163a419177b66254ba257b3321377` | `6ae960b8d67d079abd6a223f` |
+
+Both sites passed actual-API desktop/390px/320px browser checks without mocks: applied goal/location title, staged mode Cancel, both price-sort requests with hourly unit, locality-only and introduction-scope recovery, Online clearing locality/country, clear/Anywhere and browser Back, with zero page errors/overflow. All inspected search responses returned 200. Sandbox's fictional-account/no-real-money notice remained visible.
+
+The sandbox's broad hourly query returned four existing test offers in each of the ascending and descending runs; server response ordering and unit consistency were checked on these nonempty results. Main's selected/broad hourly offer queries were empty, so its live checks establish payloads, handling and recovery rather than nonempty row ordering. Local isolated response fixtures independently establish ordered rendering. No Tutors/offers were fabricated or added to either hosted environment.
+
+- Main: [JSON](evidence/search-refinements-main-live-2026-11-03.json), [desktop](evidence/search-refinements-main-desktop-2026-11-03.png), [mobile](evidence/search-refinements-main-mobile-2026-11-03.png).
+- Sandbox: [JSON](evidence/search-refinements-sandbox-live-2026-11-03.json), [desktop](evidence/search-refinements-sandbox-desktop-2026-11-03.png), [mobile](evidence/search-refinements-sandbox-mobile-2026-11-03.png).
+
+The task's verified local Vite preview on port 3022 was stopped after checks. Feature source and evidence were synchronized into the main workspace while preserving unrelated work. Backend, database, authentication/payment settings and compute-window dates were unchanged.
