@@ -1,0 +1,18 @@
+{
+  "origin": "http://127.0.0.1:3020",
+  "actualPublicCatalogue": true,
+  "clientCatalogueRequestsFromExistingComponents": 6,
+  "allSubjectsVisible": true,
+  "eightDomains": true,
+  "aliasSearch": true,
+  "categoryFilterAndReset": true,
+  "typedSubjectAndExamNavigation": true,
+  "typedLearningOptions": true,
+  "escapeFocusReturn": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0
+}

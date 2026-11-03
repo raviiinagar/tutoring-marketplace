@@ -4,11 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
-  Calculator,
-  Languages,
-  Atom,
-  Music2,
-  Code2,
   MapPin,
   Monitor,
   Search,
@@ -17,21 +12,12 @@ import {
 } from "lucide-react";
 import { api, type Catalogue, type LocationSuggestion } from "@/lib/api";
 import { Button } from "./ui/button";
-const popular = [
-  { id: "subject-mathematics", label: "Maths", icon: Calculator },
-  { id: "subject-hindi", label: "Hindi", icon: Languages },
-  { id: "subject-english", label: "English", icon: Languages },
-  { id: "subject-biology", label: "Biology", icon: BookOpen },
-  { id: "subject-physics", label: "Physics", icon: Atom },
-  { id: "subject-french", label: "French", icon: Languages },
-  { id: "subject-music", label: "Music", icon: Music2 },
-  { id: "subject-programming", label: "Coding", icon: Code2 },
-];
+import { subjectShortcuts } from "./subject-shortcuts";
 export function PopularSubjects({ catalogue }: { catalogue: Catalogue }) {
   const track = useRef<HTMLDivElement>(null),
     [edges, setEdges] = useState({ start: true, end: true });
-  const choices = popular.filter((item) =>
-    catalogue.terms.some((t) => t.id === item.id && t.active),
+  const choices = subjectShortcuts.filter((item) =>
+    catalogue.terms.some((t) => t.id === item.id && t.active && t.kind === "SUBJECT"),
   );
   const remaining = catalogue.terms
     .filter((t) => t.active && t.kind === "SUBJECT" && !choices.some((c) => c.id === t.id))
@@ -90,10 +76,6 @@ export function PopularSubjects({ catalogue }: { catalogue: Catalogue }) {
             <span>{item.label}</span>
           </Link>
         ))}
-        <a href="#subjects" className="subject-shortcut">
-          <BookOpen aria-hidden className="size-6" />
-          <span>All subjects</span>
-        </a>
       </div>
       <button
         type="button"
@@ -104,6 +86,10 @@ export function PopularSubjects({ catalogue }: { catalogue: Catalogue }) {
       >
         <ArrowRight aria-hidden />
       </button>
+      <a href="#subjects" className="subject-browse-all">
+        <BookOpen aria-hidden className="size-4" />
+        All subjects
+      </a>
     </nav>
   );
 }

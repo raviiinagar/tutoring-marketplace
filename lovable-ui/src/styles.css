@@ -461,3 +461,39 @@ main { scroll-margin-top: 90px; }
 /* Reserve space for the existing sandbox warning above the navigation. */
 .payment-sandbox-header .header-mobile-menu { min-height:calc(100dvh - 140px); max-height:calc(100dvh - 140px); }
 #how-it-works,#subjects,#tutors { scroll-margin-top:160px; }
+/* Subject discovery uses the authoritative catalogue, grouped by Learning Domain. */
+.home-subject-strip { flex-wrap:wrap; }
+.subject-browse-all { display:flex; align-items:center; justify-content:center; gap:7px; padding:12px 16px; border-radius:99px; background:#fff; font-size:13px; font-weight:650; white-space:nowrap; }
+.subject-categories { padding-top:56px; padding-bottom:64px; }
+.category-search { display:flex; align-items:center; gap:12px; max-width:640px; padding:8px 18px; min-height:60px; border:1px solid var(--border); border-radius:20px; background:#fff; }
+.category-search:focus-within { outline:2px solid var(--primary); outline-offset:3px; }
+.category-search input { min-width:0; flex:1; padding:8px 0; background:transparent; font-size:15px; outline:none; }
+.category-search button { flex-shrink:0; padding:8px 2px; color:var(--coral-strong); font-size:12px; font-weight:650; }
+.category-pills { display:flex; flex-wrap:wrap; gap:9px; margin:24px 0 18px; }
+.category-pills button { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 16px; border:1px solid var(--border); border-radius:99px; background:#fff; font-size:13px; font-weight:550; }
+.category-pills button[aria-pressed=true] { background:#fff0ad; border-color:#e5c662; color:#352a09; }
+.category-result-count,.category-availability-note { font-size:12px; color:var(--muted-foreground); margin-block:18px; }
+.category-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+.category-card { display:flex; flex-direction:column; min-width:0; padding:24px; border:1px solid var(--border); border-radius:24px; background:#fff; }
+.category-card-heading { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.category-icon { display:grid; flex-shrink:0; place-items:center; width:44px; height:44px; border-radius:15px; background:#fff7d6; }
+.category-icon svg { width:22px; height:22px; }
+.category-card h3 { font-size:18px; line-height:1.4; font-weight:650; overflow-wrap:anywhere; }
+.category-card-body { flex:1; }
+.category-card h4 { margin-bottom:5px; color:var(--muted-foreground); font-size:11px; font-weight:650; text-transform:uppercase; letter-spacing:.09em; }
+.category-card-body>div+div { margin-top:18px; }
+.category-term-link { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:9px 10px; border-radius:10px; font-size:14px; line-height:1.5; }
+.category-term-link span { min-width:0; overflow-wrap:anywhere; }
+.category-term-link:hover { background:#fff8df; color:var(--coral-strong); }
+.category-card-footer { display:grid; gap:8px; margin-top:20px; border-top:1px solid var(--border); padding-top:14px; }
+.category-card-footer>a,.category-card-footer>button { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:44px; font-size:12px; font-weight:650; text-align:left; }
+.category-card-footer>a { color:var(--coral-strong); }
+.category-card-footer>button svg { flex-shrink:0; }
+.category-dialog-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px 14px; }
+.category-dialog-options .category-term-link { background:#faf9f6; }
+.category-empty { padding:36px 22px; border:1px dashed var(--border); border-radius:22px; text-align:center; background:#fff; }
+.category-empty h3 { font-size:20px; font-weight:650; }
+.category-empty p { margin:12px 0 20px; font-size:14px; color:var(--muted-foreground); }
+.category-term-link:focus-visible,.category-pills button:focus-visible,.subject-browse-all:focus-visible,.category-card-footer button:focus-visible,.category-card-footer a:focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
+@media(max-width:1023px) { .category-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .subject-browse-all { flex-basis:100%; } }
+@media(max-width:639px) { .category-grid { grid-template-columns:minmax(0,1fr); } .category-card { padding:22px; } .category-pills { gap:8px; } .category-pills button { font-size:12px; padding:9px 12px; } .category-search { padding-inline:12px; gap:8px; } .category-search input { font-size:13px; } .category-dialog-options { grid-template-columns:minmax(0,1fr); } }
