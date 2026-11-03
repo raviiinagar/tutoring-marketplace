@@ -1,0 +1,3 @@
+# Tutor profile UI
+
+Use REA MCP evidence from the requested Superprof profile to adapt subject tags, a clear heading, portrait/rate/contact summary and readable content sections. Keep Tutor Marketplace branding, light yellow accents and English copy. Use existing public profile, offer, location and review APIs only. Identity-reviewed introductions remain visible without Tutor Pro; offer enquiries and consented contact retain existing eligibility rules. No invented ratings, free trials, verified expertise, student counts or response times. No private identity data is rendered. Support narrow screens, keyboard navigation, missing images and unavailable offers. Deploy to the existing Cloudflare test frontend only.

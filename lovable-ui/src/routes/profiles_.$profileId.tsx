@@ -1,12 +1,12 @@
-import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
+﻿import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
-import { TutorPortrait } from "@/components/tutor-portrait";
 import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { SaveTutorButton } from "@/components/save-tutor-button";
 import { ShareTutorButton } from "@/components/share-tutor-button";
+import { TutorProfileLayout, IdentityReviewNote } from "@/components/tutor-profile-layout";
 export const Route = createFileRoute("/profiles_/$profileId")({
   ssr: false,
   component: Profile,
@@ -21,6 +21,9 @@ function Profile() {
     [error, setError] = useState<string>();
   useEffect(() => {
     let live = true;
+    setProfile(undefined);
+    setError(undefined);
+    setCatalogue(undefined);
     void Promise.all([api.publicTutor(profileId), api.catalogue()]).then(([a, b]) => {
       if (!live) return;
       if (a.ok) setProfile(a.data.profile);
@@ -31,114 +34,129 @@ function Profile() {
       live = false;
     };
   }, [profileId]);
+  if (!p)
+    return (
+      <>
+        <SiteHeader />
+        <main id="main-content" className="mx-auto max-w-6xl px-5 py-10">
+          <Link to="/tutors" className="link">
+            Back to Tutor search
+          </Link>
+          <div className="mt-6">
+            {error ? <Notice tone="error">{error}</Notice> : <p role="status">Loading profile…</p>}
+          </div>
+        </main>
+      </>
+    );
+  const subjects = p.subject_ids.map(
+    (id) => catalogue?.terms.find((t) => t.id === id)?.label || id.replace("subject-", ""),
+  );
   return (
-    <>
-      <SiteHeader />
-      <main id="main-content" className="mx-auto max-w-4xl px-5 py-10">
-        <Link to="/tutors" className="text-sm text-coral-strong">
-          ← Find Tutors
-        </Link>
-        {error ? (
-          <Notice tone="error">{error}</Notice>
-        ) : !p ? (
-          <p role="status" className="mt-6">
-            Loading profile…
+    <TutorProfileLayout
+      name={p.display_name}
+      photoUrl={p.photo_url}
+      title={`Learn ${subjects.join(", ")} with ${p.display_name}`}
+      subjects={subjects}
+      navigation={[
+        { id: "about", label: "About" },
+        { id: "availability", label: "Location & availability" },
+        { id: "teaching-offers", label: "Teaching offers" },
+      ]}
+      actions={
+        <>
+          <SaveTutorButton
+            profileId={p.id}
+            displayName={p.display_name}
+            photoUrl={p.photo_url ?? undefined}
+          />
+          <ShareTutorButton profileId={p.id} displayName={p.display_name} />
+        </>
+      }
+      summary={
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-sm text-muted-foreground">Hourly rate</span>
+            <p className="text-2xl font-semibold">
+              ₹{(p.hourly_rate_paise / 100).toLocaleString("en-IN")}
+              <span className="text-sm font-normal"> / hour</span>
+            </p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Indicative tuition, arranged directly with the Tutor.
           </p>
-        ) : (
-          <article className="mt-6 space-y-8 rounded-3xl border bg-card p-6 sm:p-10">
-            <header className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-8">
-              {p.photo_url && (
-                <TutorPortrait
-                  className="aspect-[4/5] w-full max-w-72 shrink-0 rounded-3xl object-cover object-top sm:w-56"
-                  url={p.photo_url}
-                  name={p.display_name}
-                  priority
-                />
-              )}
-              <div className="min-w-0">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
-                  Meet your next Tutor
-                </p>
-                <h1 className="break-words text-3xl font-semibold">{p.display_name}</h1>
-                <p className="mt-3 text-sm text-success">{p.identity_label}</p>
-                <p className="mt-2 text-lg font-semibold">
-                  ₹{p.hourly_rate_paise / 100} / hour{" "}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    indicative tuition
-                  </span>
-                </p>
-              </div>
-            </header>
-            <div className="flex flex-wrap items-start gap-3">
-              <SaveTutorButton profileId={p.id} displayName={p.display_name} photoUrl={p.photo_url ?? undefined} />
-              <ShareTutorButton profileId={p.id} displayName={p.display_name} />
-            </div>
-            <section>
-              <h2 className="mb-4 text-xl font-semibold">Location & availability</h2>
-              <TutorPresenceSummary presence={p.presence} detail />
-            </section>
-            <section>
-              <h2 className="text-xl font-semibold">Subjects & expertise</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {p.subject_ids.map((id) => (
-                  <span key={id} className="rounded-full bg-secondary px-4 py-2 text-sm">
-                    {catalogue?.terms.find((t) => t.id === id)?.label || id.replace("subject-", "")}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                {p.expertise_label}. Identity review does not verify teaching qualifications or
-                guarantee outcomes.
-              </p>
-            </section>
-            <section>
-              <h2 className="text-xl font-semibold">About {p.display_name}</h2>
-              <p className="mt-3 whitespace-pre-wrap break-words text-muted-foreground">
-                {p.biography}
-              </p>
-            </section>
-            <section className="space-y-3 rounded-2xl bg-secondary p-5">
-              <h2 className="text-xl font-semibold">Contact & teaching offers</h2>
-              {p.contact ? (
-                <p className="break-all text-sm">
-                  Public email, shared with the Tutor’s consent:{" "}
-                  <a className="font-semibold underline" href={"mailto:" + p.contact.email}>
-                    {p.contact.email}
-                  </a>
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Public contact details are not available. This Tutor can publish offers after
-                  activating Tutor Pro.
-                </p>
-              )}
-              {p.offers.length ? (
-                p.offers.map((offer) => (
-                  <div key={offer.id} className="rounded-xl border bg-card p-4">
-                    <h3 className="font-semibold">{offer.title}</h3>
-                    <p className="mt-1 text-sm">
-                      ₹{offer.rate_paise / 100} / {offer.rate_unit.toLowerCase()}
-                    </p>
-                    <Button className="mt-3" variant="outline" asChild>
-                      <Link to="/tutors/$listingId" params={{ listingId: offer.id }}>
-                        View offer & send an enquiry
-                      </Link>
-                    </Button>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm">
-                  No available teaching offer yet. This page is the Tutor’s introduction.
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                In-app enquiries use the Learner Access Pass. Tuition is arranged and paid directly
-                with the Tutor.
-              </p>
-            </section>
-          </article>
+          <a
+            href="#teaching-offers"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          >
+            {p.offers.length ? "View teaching offers" : "Contact & teaching offers"}
+          </a>
+          {p.contact && (
+            <a
+              className="block break-all text-center text-sm font-medium underline"
+              href={"mailto:" + p.contact.email}
+            >
+              Email {p.display_name}
+            </a>
+          )}
+        </>
+      }
+    >
+      <IdentityReviewNote label={p.identity_label}>
+        {p.expertise_label}. Identity review does not verify teaching qualifications or guarantee
+        outcomes.
+      </IdentityReviewNote>
+      <section id="about" className="scroll-mt-28">
+        <h2 className="text-2xl font-semibold">About {p.display_name}</h2>
+        <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">
+          {p.biography}
+        </p>
+      </section>
+      <section id="availability" className="scroll-mt-28 border-t pt-7">
+        <h2 className="mb-4 text-2xl font-semibold">Location & availability</h2>
+        <TutorPresenceSummary presence={p.presence} detail />
+      </section>
+      <section id="teaching-offers" className="scroll-mt-28 border-t pt-7">
+        <h2 className="text-2xl font-semibold">Contact & teaching offers</h2>
+        {p.contact && (
+          <p className="mt-4 break-words text-sm">
+            Public email, shared with the Tutor's consent:{" "}
+            <a className="break-all font-medium underline" href={"mailto:" + p.contact.email}>
+              {p.contact.email}
+            </a>
+          </p>
         )}
-      </main>
-    </>
+        {p.offers.length ? (
+          <div className="mt-5 space-y-4">
+            {p.offers.map((offer) => (
+              <article key={offer.id} className="rounded-2xl border p-5">
+                <h3 className="break-words text-lg font-semibold">{offer.title}</h3>
+                <p className="mt-2">
+                  ₹{(offer.rate_paise / 100).toLocaleString("en-IN")} /{" "}
+                  {offer.rate_unit.toLowerCase()}
+                </p>
+                <Button className="mt-4 rounded-full" variant="outline" asChild>
+                  <Link to="/tutors/$listingId" params={{ listingId: offer.id }}>
+                    View offer & send an enquiry
+                  </Link>
+                </Button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 rounded-2xl bg-secondary p-5 text-sm leading-relaxed">
+            No available teaching offers yet. Check back later to enquire about classes.
+          </p>
+        )}
+        {!p.contact && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Public contact details are not available.
+          </p>
+        )}
+        <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+          In-app enquiries use the Learner Access Pass. Tuition is arranged and paid directly with
+          the Tutor.
+        </p>
+      </section>
+    </TutorProfileLayout>
   );
 }

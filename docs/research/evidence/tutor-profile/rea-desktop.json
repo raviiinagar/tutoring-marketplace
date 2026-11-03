@@ -1,0 +1,28 @@
+{
+  "evidence_id": "ev_4c3ba21ab26e65f0cb220c95117240814fa8a4736dc7970f6f145d9bdced33f4",
+  "operation": "capture_web_screenshot",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "target": {
+    "target_id": "D2678707270EBBD7AA1C598080CD9309",
+    "url": "https://www.superprof.co.in/math-coach-for-igcse-gcse-core-cambridge-ncea-australia-curriculum-taught-for-students-across-countries-for.html",
+    "origin": "https://www.superprof.co.in"
+  },
+  "viewport": {
+    "width": 1295,
+    "height": 879
+  },
+  "artifact": {
+    "sha256": "8968d778005f35df6a07d1e317107904b6f7bfda187829f002ba26c0dea04ff9",
+    "bytes": 159268
+  },
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "The screenshot contains the visible viewport, including on-screen content.",
+    "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+    "Browser host platform and architecture were not observed."
+  ]
+}
