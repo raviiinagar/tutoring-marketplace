@@ -35,7 +35,7 @@ function CheckEmail() {
       setError(err);
       if (err) return;
       const res = await api.resendVerification(email.trim());
-      if (res.ok) setNotice({ tone: "success", text: "If this email can be registered, a new verification link will arrive shortly." });
+      if (res.ok) setNotice({ tone: "success", text: "If this email can be registered, a new verification link will arrive shortly. If it isn't in your inbox, check your Spam or Junk folder." });
       else {
         if (res.error.kind === "http" && res.error.field_errors) setError(mergeServerFieldErrors(res.error.field_errors).email);
         setNotice({ tone: "error", text: describeFailure(res.error) });
@@ -49,7 +49,8 @@ function CheckEmail() {
       intro={
         <>
           <p>If this email can be registered, a verification link will arrive shortly.</p>
-          <p className="mt-2">The link expires after 15 minutes. Didn't get it? Request a new one below.</p>
+          <p className="mt-2">Can't find the email in your inbox? Check your Spam or Junk folder.</p>
+          <p className="mt-2">The link expires after 15 minutes. Still didn't get it? Request a new one below.</p>
         </>
       }
       footer={<>Already verified? <Link to="/auth/signin" className="link">Sign in</Link></>}
