@@ -1,0 +1,2324 @@
+{
+  "note": "Selected REA MCP excerpts; canonical session bundle in ignored .local/rea-subject-categories-2026-11-03.json. Browser navigation and clicks used ordinary Playwright after REA scenario execution failed; captures below are passive REA observations. No credentials, cookies, script sources or bulk Tutor descriptions included.",
+  "records": [
+    {
+      "evidence_id": "ev_14d3b9312d30d4ceea1bb6211c9363b6bebdadb669f0753c144e4bd0983ae761",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "B6E4C4C360A4AC9E6D8970C906D75A51",
+        "title": "SUPERPROF, Computer Sciences : Browse available classes",
+        "type": "page",
+        "url": "https://www.superprof.co.in/type-of-lessons/8/computer-sciences.html"
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "selected_accessibility_nodes": [
+        {
+          "role": "heading",
+          "name": "Find your perfect teacher"
+        },
+        {
+          "role": "heading",
+          "name": "Top disciplines"
+        },
+        {
+          "role": "heading",
+          "name": "Discover all disciplines"
+        },
+        {
+          "role": "heading",
+          "name": "Apple"
+        },
+        {
+          "role": "heading",
+          "name": "CAD"
+        },
+        {
+          "role": "heading",
+          "name": "Computer systems"
+        },
+        {
+          "role": "heading",
+          "name": "Database"
+        },
+        {
+          "role": "heading",
+          "name": "Graphics"
+        },
+        {
+          "role": "heading",
+          "name": "Internet"
+        },
+        {
+          "role": "heading",
+          "name": "Operating systems"
+        },
+        {
+          "role": "heading",
+          "name": "Other computer systems"
+        },
+        {
+          "role": "heading",
+          "name": "Programming languages"
+        },
+        {
+          "role": "heading",
+          "name": "SEO - Natural referencing"
+        },
+        {
+          "role": "heading",
+          "name": "Software"
+        },
+        {
+          "role": "heading",
+          "name": "Video montage"
+        },
+        {
+          "role": "heading",
+          "name": "Web and Mobile Development"
+        },
+        {
+          "role": "heading",
+          "name": "Other"
+        },
+        {
+          "role": "link",
+          "name": "Home Tuition With Superprof"
+        },
+        {
+          "role": "link",
+          "name": "Give Private Classes"
+        },
+        {
+          "role": "button",
+          "name": "Superprof Login"
+        },
+        {
+          "role": "link",
+          "name": "Home Tuition With Superprof"
+        },
+        {
+          "role": "link",
+          "name": "Give Private Classes"
+        },
+        {
+          "role": "button",
+          "name": "Superprof Login"
+        },
+        {
+          "role": "button",
+          "name": "Who are we?"
+        },
+        {
+          "role": "link",
+          "name": "Terms & Conditions"
+        },
+        {
+          "role": "button",
+          "name": "Privacy Policy"
+        },
+        {
+          "role": "link",
+          "name": "Superprof around the world"
+        },
+        {
+          "role": "link",
+          "name": "Online Classes"
+        },
+        {
+          "role": "link",
+          "name": "States"
+        },
+        {
+          "role": "button",
+          "name": "Superprof recruits"
+        },
+        {
+          "role": "link",
+          "name": "Personal Trainer"
+        },
+        {
+          "role": "link",
+          "name": "Maths"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Piano"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Driving"
+        },
+        {
+          "role": "link",
+          "name": "Tamil"
+        },
+        {
+          "role": "link",
+          "name": "French"
+        },
+        {
+          "role": "link",
+          "name": "Violin"
+        },
+        {
+          "role": "link",
+          "name": "Chess"
+        },
+        {
+          "role": "link",
+          "name": "Geography"
+        },
+        {
+          "role": "link",
+          "name": "Dance"
+        },
+        {
+          "role": "link",
+          "name": "German"
+        },
+        {
+          "role": "link",
+          "name": "All subjects"
+        },
+        {
+          "role": "link",
+          "name": "Mumbai"
+        },
+        {
+          "role": "link",
+          "name": "Bengaluru"
+        },
+        {
+          "role": "link",
+          "name": "Kolkata"
+        },
+        {
+          "role": "link",
+          "name": "Chennai"
+        },
+        {
+          "role": "link",
+          "name": "Ahmedabad"
+        },
+        {
+          "role": "link",
+          "name": "Hyderabad"
+        },
+        {
+          "role": "link",
+          "name": "Pune"
+        },
+        {
+          "role": "link",
+          "name": "Surat"
+        },
+        {
+          "role": "link",
+          "name": "Kanpur"
+        },
+        {
+          "role": "link",
+          "name": "Jaipur"
+        },
+        {
+          "role": "link",
+          "name": "Lucknow"
+        },
+        {
+          "role": "link",
+          "name": "Nagpur"
+        },
+        {
+          "role": "link",
+          "name": "Indore"
+        },
+        {
+          "role": "link",
+          "name": "Patna"
+        },
+        {
+          "role": "link",
+          "name": "Bhopal"
+        },
+        {
+          "role": "link",
+          "name": "All cities"
+        },
+        {
+          "role": "link",
+          "name": "The Superprof Blog"
+        },
+        {
+          "role": "button",
+          "name": "Need help?"
+        },
+        {
+          "role": "link",
+          "name": "Contact"
+        },
+        {
+          "role": "button",
+          "name": "Facebook"
+        },
+        {
+          "role": "button",
+          "name": "Twitter"
+        },
+        {
+          "role": "button",
+          "name": "Instagram"
+        },
+        {
+          "role": "link",
+          "name": "Computer programming"
+        },
+        {
+          "role": "link",
+          "name": "Basic computer"
+        },
+        {
+          "role": "link",
+          "name": "Python"
+        },
+        {
+          "role": "link",
+          "name": "HTML"
+        },
+        {
+          "role": "link",
+          "name": "C"
+        },
+        {
+          "role": "link",
+          "name": "Programming languages"
+        },
+        {
+          "role": "link",
+          "name": "C++"
+        },
+        {
+          "role": "link",
+          "name": "Java"
+        },
+        {
+          "role": "link",
+          "name": "JavaScript"
+        },
+        {
+          "role": "link",
+          "name": "Apple"
+        },
+        {
+          "role": "link",
+          "name": "Apple Store"
+        },
+        {
+          "role": "link",
+          "name": "iPad"
+        },
+        {
+          "role": "link",
+          "name": "iPhone"
+        },
+        {
+          "role": "link",
+          "name": "iPod"
+        },
+        {
+          "role": "link",
+          "name": "iTunes"
+        },
+        {
+          "role": "link",
+          "name": "Mac"
+        },
+        {
+          "role": "link",
+          "name": "Safari"
+        },
+        {
+          "role": "link",
+          "name": "ArchiCAD"
+        },
+        {
+          "role": "link",
+          "name": "AutoCAD"
+        },
+        {
+          "role": "link",
+          "name": "Autodesk - 3ds Max"
+        },
+        {
+          "role": "link",
+          "name": "CATIA"
+        },
+        {
+          "role": "link",
+          "name": "Revit"
+        },
+        {
+          "role": "link",
+          "name": "Rhino"
+        },
+        {
+          "role": "link",
+          "name": "SketchUp"
+        },
+        {
+          "role": "link",
+          "name": "PC"
+        },
+        {
+          "role": "link",
+          "name": "PC building"
+        },
+        {
+          "role": "link",
+          "name": "Smartphone"
+        },
+        {
+          "role": "link",
+          "name": "Tablette"
+        },
+        {
+          "role": "link",
+          "name": "Data Analysis"
+        },
+        {
+          "role": "link",
+          "name": "Databases"
+        },
+        {
+          "role": "link",
+          "name": "DB2"
+        },
+        {
+          "role": "link",
+          "name": "Firebird"
+        },
+        {
+          "role": "link",
+          "name": "Informix"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Access"
+        },
+        {
+          "role": "link",
+          "name": "MySQL"
+        },
+        {
+          "role": "link",
+          "name": "Oracle"
+        },
+        {
+          "role": "link",
+          "name": "Sybase"
+        },
+        {
+          "role": "link",
+          "name": "3D Printing"
+        },
+        {
+          "role": "link",
+          "name": "Cin\u00e9ma 4D"
+        },
+        {
+          "role": "link",
+          "name": "Flash"
+        },
+        {
+          "role": "link",
+          "name": "Graphic design"
+        },
+        {
+          "role": "link",
+          "name": "Illustrator"
+        },
+        {
+          "role": "link",
+          "name": "InDesign"
+        },
+        {
+          "role": "link",
+          "name": "Lightroom"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Publisher"
+        },
+        {
+          "role": "link",
+          "name": "Photoshop"
+        },
+        {
+          "role": "link",
+          "name": "Typography"
+        },
+        {
+          "role": "link",
+          "name": "UI design"
+        },
+        {
+          "role": "link",
+          "name": "User Experience Designing"
+        },
+        {
+          "role": "link",
+          "name": "Visual communication"
+        },
+        {
+          "role": "link",
+          "name": "Web Design"
+        },
+        {
+          "role": "link",
+          "name": "Blog Writing"
+        },
+        {
+          "role": "link",
+          "name": "ChatGPT"
+        },
+        {
+          "role": "link",
+          "name": "Facebook"
+        },
+        {
+          "role": "link",
+          "name": "Facebook Ads"
+        },
+        {
+          "role": "link",
+          "name": "Google Chrome"
+        },
+        {
+          "role": "link",
+          "name": "Google Hangouts"
+        },
+        {
+          "role": "link",
+          "name": "Instagram"
+        },
+        {
+          "role": "link",
+          "name": "Internet Explorer"
+        },
+        {
+          "role": "link",
+          "name": "Internet Initiation"
+        },
+        {
+          "role": "link",
+          "name": "LinkedIn"
+        },
+        {
+          "role": "link",
+          "name": "Mozilla Firefox"
+        },
+        {
+          "role": "link",
+          "name": "Pinterest"
+        },
+        {
+          "role": "link",
+          "name": "Skype"
+        },
+        {
+          "role": "link",
+          "name": "Snapchat"
+        },
+        {
+          "role": "link",
+          "name": "Twitter"
+        },
+        {
+          "role": "link",
+          "name": "Video conference"
+        },
+        {
+          "role": "link",
+          "name": "Web Navigation"
+        },
+        {
+          "role": "link",
+          "name": "WhatsApp"
+        },
+        {
+          "role": "link",
+          "name": "Android"
+        },
+        {
+          "role": "link",
+          "name": "iOS"
+        },
+        {
+          "role": "link",
+          "name": "Linux"
+        },
+        {
+          "role": "link",
+          "name": "Windows"
+        },
+        {
+          "role": "link",
+          "name": "Windows Phone"
+        },
+        {
+          "role": "link",
+          "name": "Animation"
+        },
+        {
+          "role": "link",
+          "name": "Basic computer"
+        },
+        {
+          "role": "link",
+          "name": "Computer networks"
+        },
+        {
+          "role": "link",
+          "name": "Computer Repair"
+        },
+        {
+          "role": "link",
+          "name": "Information Technology"
+        },
+        {
+          "role": "link",
+          "name": "IT security"
+        },
+        {
+          "role": "link",
+          "name": "Machine Learning"
+        },
+        {
+          "role": "link",
+          "name": "Network"
+        },
+        {
+          "role": "link",
+          "name": "Telecommunications"
+        },
+        {
+          "role": "link",
+          "name": "Arduino"
+        },
+        {
+          "role": "link",
+          "name": "Artificial Intelligence"
+        },
+        {
+          "role": "link",
+          "name": "C++"
+        },
+        {
+          "role": "link",
+          "name": "C#"
+        },
+        {
+          "role": "link",
+          "name": "C"
+        },
+        {
+          "role": "link",
+          "name": "C#.NET"
+        },
+        {
+          "role": "link",
+          "name": "Computer programming"
+        },
+        {
+          "role": "link",
+          "name": "CSS"
+        },
+        {
+          "role": "link",
+          "name": "DOS"
+        },
+        {
+          "role": "link",
+          "name": "HTML"
+        },
+        {
+          "role": "link",
+          "name": "Java"
+        },
+        {
+          "role": "link",
+          "name": "JavaScript"
+        },
+        {
+          "role": "link",
+          "name": "MATLAB"
+        },
+        {
+          "role": "link",
+          "name": "Perl"
+        },
+        {
+          "role": "link",
+          "name": "PHP"
+        },
+        {
+          "role": "link",
+          "name": "PostgreSQL"
+        },
+        {
+          "role": "link",
+          "name": "Programming languages"
+        },
+        {
+          "role": "link",
+          "name": "Python"
+        },
+        {
+          "role": "link",
+          "name": "R Programming Language"
+        },
+        {
+          "role": "link",
+          "name": "Ruby"
+        },
+        {
+          "role": "link",
+          "name": "Ruby on Rails"
+        },
+        {
+          "role": "link",
+          "name": "SGML"
+        },
+        {
+          "role": "link",
+          "name": "SQL"
+        },
+        {
+          "role": "link",
+          "name": "Visual basic"
+        },
+        {
+          "role": "link",
+          "name": "XML"
+        },
+        {
+          "role": "link",
+          "name": "Google Adwords"
+        },
+        {
+          "role": "link",
+          "name": "Google Analytics"
+        },
+        {
+          "role": "link",
+          "name": "Google Search Console"
+        },
+        {
+          "role": "link",
+          "name": "Growth hacking"
+        },
+        {
+          "role": "link",
+          "name": "Netlinking"
+        },
+        {
+          "role": "link",
+          "name": "SEMrush"
+        },
+        {
+          "role": "link",
+          "name": "SEO"
+        },
+        {
+          "role": "link",
+          "name": "Gmail"
+        },
+        {
+          "role": "link",
+          "name": "Keynote"
+        },
+        {
+          "role": "link",
+          "name": "LaTeX"
+        },
+        {
+          "role": "link",
+          "name": "Mail"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Excel"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Outlook"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft PowerPoint"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Word"
+        },
+        {
+          "role": "link",
+          "name": "Numbers"
+        },
+        {
+          "role": "link",
+          "name": "Office automation"
+        },
+        {
+          "role": "link",
+          "name": "OpenOffice Calc"
+        },
+        {
+          "role": "link",
+          "name": "OpenOffice Writer"
+        },
+        {
+          "role": "link",
+          "name": "Pages"
+        },
+        {
+          "role": "link",
+          "name": "Prezi"
+        },
+        {
+          "role": "link",
+          "name": "Shorthand"
+        },
+        {
+          "role": "link",
+          "name": "Thunderbird"
+        },
+        {
+          "role": "link",
+          "name": "Typing"
+        },
+        {
+          "role": "link",
+          "name": "After effects"
+        },
+        {
+          "role": "link",
+          "name": "Final Cut Pro"
+        },
+        {
+          "role": "link",
+          "name": "iMovie"
+        },
+        {
+          "role": "link",
+          "name": "Lightworks"
+        },
+        {
+          "role": "link",
+          "name": "Video editing"
+        },
+        {
+          "role": "link",
+          "name": "Windows Movie Maker"
+        },
+        {
+          "role": "link",
+          "name": "ASP.NET"
+        },
+        {
+          "role": "link",
+          "name": "Dreamweaver"
+        },
+        {
+          "role": "link",
+          "name": "Mobile application development"
+        },
+        {
+          "role": "link",
+          "name": "Web development"
+        },
+        {
+          "role": "link",
+          "name": "Website creation"
+        },
+        {
+          "role": "link",
+          "name": "Wix"
+        },
+        {
+          "role": "link",
+          "name": "WordPress"
+        },
+        {
+          "role": "link",
+          "name": "Microsoft Power BI"
+        },
+        {
+          "role": "link",
+          "name": "Tableau BI application"
+        },
+        {
+          "role": "button",
+          "name": "search_submit"
+        },
+        {
+          "role": "button",
+          "name": "Search"
+        }
+      ],
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 9,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 30,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 4,
+            "reason": "disallowed_origin",
+            "section": "network_requests"
+          },
+          {
+            "count": 113,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 6,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 53,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 73,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 3,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "network_requests",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_889af8b2e34cce4c5f2db5c6f33f1a6b745b969138cc0799330066154fcf059b",
+      "operation": "capture_web_screenshot",
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "target_id": "B6E4C4C360A4AC9E6D8970C906D75A51",
+        "url": "https://www.superprof.co.in/type-of-lessons/8/computer-sciences.html"
+      },
+      "sha256": "756781abc1819fd102055d33f495afaae7d70b512ed1bfe11c89da72fe869cf9",
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_a22f9633c66efc5059890997351ddca1d601cf4c5dd6307ed09793e5faefc878",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "B6E4C4C360A4AC9E6D8970C906D75A51",
+        "title": "Python Tutor near me On Superprof - Fees From \u20b9499/hr",
+        "type": "page",
+        "url": "https://www.superprof.co.in/lessons/python/india/"
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "selected_accessibility_nodes": [
+        {
+          "role": "heading",
+          "name": "Best Python Classes near me - 32,401 Teachers For Python"
+        },
+        {
+          "role": "heading",
+          "name": "Follow these steps to find a Python Classes near me in India"
+        }
+      ],
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 7,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 136,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 92,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 9,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 53,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 69,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 3,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "evidence_id": "ev_aa66b8f44d57b902a7434a60d649e7fc4e0003c4e85017584b05b931e83af6f9",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "B6E4C4C360A4AC9E6D8970C906D75A51",
+        "title": "Home Tuition Near Me - Become A Superprof Teacher",
+        "type": "page",
+        "url": "https://www.superprof.co.in/"
+      },
+      "confidence": "observed",
+      "authority": "external-service",
+      "selected_accessibility_nodes": [
+        {
+          "role": "heading",
+          "name": "Find your perfect teacher"
+        },
+        {
+          "role": "link",
+          "name": "Home Tuition With Superprof"
+        },
+        {
+          "role": "link",
+          "name": "Give Private Classes"
+        },
+        {
+          "role": "button",
+          "name": "Superprof Login"
+        },
+        {
+          "role": "link",
+          "name": "Home Tuition With Superprof"
+        },
+        {
+          "role": "link",
+          "name": "Give Private Classes"
+        },
+        {
+          "role": "button",
+          "name": "Superprof Login"
+        },
+        {
+          "role": "heading",
+          "name": "Choose from 45 million Home Teachers Nearby"
+        },
+        {
+          "role": "heading",
+          "name": "The Perfect Match"
+        },
+        {
+          "role": "heading",
+          "name": "More than a million students gave 5 stars to their teacher."
+        },
+        {
+          "role": "heading",
+          "name": "Learn, Explore your city"
+        },
+        {
+          "role": "button",
+          "name": "Who are we?"
+        },
+        {
+          "role": "link",
+          "name": "Terms & Conditions"
+        },
+        {
+          "role": "button",
+          "name": "Privacy Policy"
+        },
+        {
+          "role": "link",
+          "name": "Superprof around the world"
+        },
+        {
+          "role": "link",
+          "name": "Online Classes"
+        },
+        {
+          "role": "link",
+          "name": "States"
+        },
+        {
+          "role": "button",
+          "name": "Superprof recruits"
+        },
+        {
+          "role": "link",
+          "name": "Arts & hobbies"
+        },
+        {
+          "role": "link",
+          "name": "Academic support"
+        },
+        {
+          "role": "link",
+          "name": "Computer Sciences"
+        },
+        {
+          "role": "link",
+          "name": "Languages"
+        },
+        {
+          "role": "link",
+          "name": "Music"
+        },
+        {
+          "role": "link",
+          "name": "Health & well-being"
+        },
+        {
+          "role": "link",
+          "name": "Professional Development"
+        },
+        {
+          "role": "link",
+          "name": "Sports"
+        },
+        {
+          "role": "link",
+          "name": "The Superprof Blog"
+        },
+        {
+          "role": "button",
+          "name": "Need help?"
+        },
+        {
+          "role": "link",
+          "name": "Contact"
+        },
+        {
+          "role": "button",
+          "name": "Facebook"
+        },
+        {
+          "role": "button",
+          "name": "Twitter"
+        },
+        {
+          "role": "button",
+          "name": "Instagram"
+        },
+        {
+          "role": "heading",
+          "name": "You too can, become a super teacher"
+        },
+        {
+          "role": "button",
+          "name": "search_submit"
+        },
+        {
+          "role": "button",
+          "name": "Search"
+        },
+        {
+          "role": "link",
+          "name": "Mumbai"
+        },
+        {
+          "role": "link",
+          "name": "New Delhi"
+        },
+        {
+          "role": "link",
+          "name": "Bengaluru"
+        },
+        {
+          "role": "link",
+          "name": "Kolkata"
+        },
+        {
+          "role": "link",
+          "name": "Chennai"
+        },
+        {
+          "role": "link",
+          "name": "Ahmedabad"
+        },
+        {
+          "role": "link",
+          "name": "Hyderabad"
+        },
+        {
+          "role": "link",
+          "name": "Pune"
+        },
+        {
+          "role": "link",
+          "name": "Surat"
+        },
+        {
+          "role": "link",
+          "name": "Kanpur"
+        },
+        {
+          "role": "link",
+          "name": "Jaipur"
+        },
+        {
+          "role": "link",
+          "name": "Navi Mumbai"
+        },
+        {
+          "role": "link",
+          "name": "Lucknow"
+        },
+        {
+          "role": "link",
+          "name": "Nagpur"
+        },
+        {
+          "role": "link",
+          "name": "Online"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Maths"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Hindi"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Personal Trainer"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Yoga"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Biology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Physics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon French"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Singing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Guitar"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chemistry"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chess"
+        },
+        {
+          "role": "link",
+          "name": "subject icon German"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Dance"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Piano"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Psychology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Computer programming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Accounting"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Malayalam"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Driving"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Stock Market Analysis"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Sanskrit"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Life coaching"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Economics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Python"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Drawing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Violin"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Tamil"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Artificial Intelligence"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Social Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English speaking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon ESOL"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Swimming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon History"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Musical keyboard"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Microsoft Excel"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Political Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Other sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Japanese"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Cooking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Spanish"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Arabic"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Academic tutoring"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Commerce"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Badminton"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Music"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Vocal coach"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Flute"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Meditation"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Punjabi"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Maths"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Hindi"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Personal Trainer"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Yoga"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Biology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Physics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon French"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Singing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Guitar"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chemistry"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chess"
+        },
+        {
+          "role": "link",
+          "name": "subject icon German"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Dance"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Piano"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Psychology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Computer programming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Accounting"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Malayalam"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Driving"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Stock Market Analysis"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Sanskrit"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Life coaching"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Economics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Python"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Drawing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Violin"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Tamil"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Artificial Intelligence"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Social Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English speaking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon ESOL"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Swimming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon History"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Musical keyboard"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Microsoft Excel"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Political Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Other sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Japanese"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Cooking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Spanish"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Arabic"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Academic tutoring"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Commerce"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Badminton"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Music"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Vocal coach"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Flute"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Meditation"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Punjabi"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Maths"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Hindi"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Personal Trainer"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Yoga"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Biology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Physics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon French"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Singing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Guitar"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chemistry"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Chess"
+        },
+        {
+          "role": "link",
+          "name": "subject icon German"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Dance"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Piano"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Psychology"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Computer programming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Accounting"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Malayalam"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Driving"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Stock Market Analysis"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Sanskrit"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Life coaching"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Economics"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Python"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Drawing"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Violin"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Tamil"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Artificial Intelligence"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Social Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon English speaking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon ESOL"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Swimming"
+        },
+        {
+          "role": "link",
+          "name": "subject icon History"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Musical keyboard"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Microsoft Excel"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Political Sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Other sciences"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Japanese"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Cooking"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Spanish"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Arabic"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Academic tutoring"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Commerce"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Badminton"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Music"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Vocal coach"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Flute"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Meditation"
+        },
+        {
+          "role": "link",
+          "name": "subject icon Punjabi"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Driving"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "French"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Dance"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Maths"
+        },
+        {
+          "role": "link",
+          "name": "Maths"
+        },
+        {
+          "role": "link",
+          "name": "Hindi"
+        },
+        {
+          "role": "link",
+          "name": "Piano"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "French"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "Piano"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Maths"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "Sanskrit"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Maths"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "English"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Yoga"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Guitar"
+        },
+        {
+          "role": "link",
+          "name": "Dance"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        },
+        {
+          "role": "link",
+          "name": "Physics"
+        },
+        {
+          "role": "link",
+          "name": "French"
+        },
+        {
+          "role": "link",
+          "name": "Piano"
+        },
+        {
+          "role": "link",
+          "name": "Hindi"
+        },
+        {
+          "role": "link",
+          "name": "Singing"
+        }
+      ],
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 9,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 281,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 134,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 7,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 54,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 73,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 3,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ]
+    }
+  ]
+}
