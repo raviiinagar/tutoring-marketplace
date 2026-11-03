@@ -1,0 +1,395 @@
+{
+  "note": "Selected passive REA MCP observations/screenshots of public search UI. Ordinary Playwright opened the class-mode panel. Earlier successful subject/city/Fee scenarios are linked in the report. Authenticated account controls, cookies, scripts and bulk Tutor text omitted.",
+  "records": [
+    {
+      "evidence_id": "ev_4f55187f9b71ec8d809cc24047b3d66ef5a839acbe432bda518bd85b84a9b66b",
+      "operation": "capture_web_screenshot",
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "sha256": "3115ba85303edbdc9876c78f11b684e0e87e2793ff4532d9a59e1818e8045791",
+      "viewport": {
+        "height": 879,
+        "width": 1295
+      }
+    },
+    {
+      "evidence_id": "ev_5c3a13e41598e2c0ecf9931faa460c1b7691edceb3670d0bf4961a650e4f9433",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "title": "Superprof - Find private teachers to help you reach your goals",
+        "type": "page",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "selected_accessibility_nodes": [
+        {
+          "role": "StaticText",
+          "name": "Type of class"
+        },
+        {
+          "role": "button",
+          "name": "Cancel"
+        },
+        {
+          "role": "button",
+          "name": "Apply"
+        },
+        {
+          "role": "StaticText",
+          "name": "Distance"
+        },
+        {
+          "role": "StaticText",
+          "name": "Fee"
+        },
+        {
+          "role": "StaticText",
+          "name": "Level"
+        },
+        {
+          "role": "StaticText",
+          "name": "Response time"
+        },
+        {
+          "role": "StaticText",
+          "name": "Search around me"
+        },
+        {
+          "role": "radio",
+          "name": "Search around me"
+        },
+        {
+          "role": "StaticText",
+          "name": "Face-to-face"
+        },
+        {
+          "role": "radio",
+          "name": "Face-to-face"
+        },
+        {
+          "role": "StaticText",
+          "name": "Online"
+        },
+        {
+          "role": "radio",
+          "name": "Online"
+        },
+        {
+          "role": "StaticText",
+          "name": "Cancel"
+        },
+        {
+          "role": "StaticText",
+          "name": "Apply"
+        }
+      ],
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 8,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 46,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 69,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 0,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 42,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 29,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 1,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      }
+    },
+    {
+      "evidence_id": "ev_e6220157fdb7dde02f0802f3ed94842066f5fcc8dd0611b3c9d57323acd5923b",
+      "operation": "inspect_web_page",
+      "target": {
+        "attached": null,
+        "origin": "https://www.superprof.co.in",
+        "target_id": "A19D1AD6FB4D25B703C8045284BC14B5",
+        "title": "Superprof - Find private teachers to help you reach your goals",
+        "type": "page",
+        "url": "https://www.superprof.co.in/s/mathematics,Mumbai--Maharashtra,18.9582347,72.8319514,1,1013531.html"
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Observation starts when REA attaches; prior network and console activity is unavailable.",
+        "Raw network headers, bodies, cookies, storage values, console objects, and WebSocket payloads are never retained; explicitly requested primitive console text is retained verbatim, while payload captures retain value-free shapes.",
+        "Source maps are reported only as declarative URLs and are not fetched.",
+        "URL-less scripts and console events without an allowed source URL are excluded because their origin cannot be proven.",
+        "CDP discovery omitted the target attachment state; attached is reported as unknown.",
+        "Browser host platform and architecture were not observed."
+      ],
+      "selected_accessibility_nodes": [
+        {
+          "role": "StaticText",
+          "name": "Type of class"
+        },
+        {
+          "role": "StaticText",
+          "name": "Distance"
+        },
+        {
+          "role": "StaticText",
+          "name": "Fee"
+        },
+        {
+          "role": "StaticText",
+          "name": "Level"
+        },
+        {
+          "role": "StaticText",
+          "name": "Response time"
+        }
+      ],
+      "completeness": {
+        "attach_limited_sections": [
+          "console_events",
+          "metadata",
+          "network_requests",
+          "websocket_connections",
+          "websocket_frames"
+        ],
+        "conditions": [
+          "attach_limited",
+          "policy_filtered"
+        ],
+        "dropped_events": {
+          "console_events": 0,
+          "network_requests": 0,
+          "scripts": 0,
+          "timeline_events": 0,
+          "total": 0,
+          "webmcp_tools": 0,
+          "websocket_connections": 0,
+          "websocket_frames": 0
+        },
+        "excluded": [
+          {
+            "count": 8,
+            "reason": "disallowed_origin",
+            "section": "console_events"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "console_text"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "dom"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "dom"
+          },
+          {
+            "count": 1,
+            "reason": "disallowed_origin",
+            "section": "frames"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "frames"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "json_body_shapes"
+          },
+          {
+            "count": 46,
+            "reason": "disallowed_origin",
+            "section": "metadata"
+          },
+          {
+            "count": 2,
+            "reason": "unsupported_url",
+            "section": "metadata"
+          },
+          {
+            "count": 68,
+            "reason": "disallowed_origin",
+            "section": "resources"
+          },
+          {
+            "count": 0,
+            "reason": "not_approved",
+            "section": "script_sources"
+          },
+          {
+            "count": 42,
+            "reason": "disallowed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": 11,
+            "reason": "unattributed_origin",
+            "section": "scripts"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "storage_keys"
+          },
+          {
+            "count": null,
+            "reason": "not_approved",
+            "section": "websocket_shapes"
+          },
+          {
+            "count": 1,
+            "reason": "out_of_target_scope",
+            "section": "workers"
+          }
+        ],
+        "policy_filtered_sections": [
+          "console_events",
+          "console_text",
+          "dom",
+          "frames",
+          "json_body_shapes",
+          "metadata",
+          "resources",
+          "script_sources",
+          "scripts",
+          "storage_keys",
+          "websocket_shapes",
+          "workers"
+        ],
+        "status": "policy_filtered",
+        "truncated_sections": [],
+        "unavailable_sections": []
+      }
+    }
+  ]
+}

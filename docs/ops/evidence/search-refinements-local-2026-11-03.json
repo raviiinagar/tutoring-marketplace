@@ -1,0 +1,21 @@
+{
+  "origin": "http://127.0.0.1:3022",
+  "actualCatalogue": true,
+  "offerResponses": "synthetic isolated ordering fixtures, not production supply",
+  "locationFailureRetry": true,
+  "typedSubjectCity": true,
+  "priceAscDescWireAndRendering": true,
+  "unitScopedOrdering": true,
+  "locationRecovery": true,
+  "introductionRecovery": true,
+  "clearAndAnywhere": true,
+  "onlineClearsCountry": true,
+  "browserBack": true,
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "pageErrors": 0,
+  "searchRequests": 11
+}
