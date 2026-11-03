@@ -1,0 +1,16 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync,writeFileSync,copyFileSync,existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+const root=fileURLToPath(new URL("../",import.meta.url)),ui=resolve(root,"lovable-ui");
+const build=spawnSync(process.execPath,[resolve(ui,"node_modules/vite/bin/vite.js"),"build"],{cwd:ui,env:{...process.env,NITRO_PRESET:"cloudflare_module"},stdio:"inherit"});
+if(build.status!==0)process.exit(build.status??1);
+const output=resolve(ui,".output/server"),configPath=resolve(output,"wrangler.json");
+if(!existsSync(configPath))throw new Error("Cloudflare configuration was not generated.");
+const config=JSON.parse(readFileSync(configPath,"utf8"));
+if(config.main!=="index.mjs" || !config.assets?.binding)throw new Error("Unexpected Cloudflare output layout.");
+copyFileSync(resolve(root,"deployment/cloudflare/worker.mjs"),resolve(output,"frontend.mjs"));
+copyFileSync(resolve(root,"deployment/cloudflare/api-proxy.mjs"),resolve(output,"api-proxy.mjs"));
+config.main="frontend.mjs";
+writeFileSync(configPath,JSON.stringify(config,null,2)+"\n");
+console.log("Cloudflare frontend prepared: .output/server/wrangler.json");

@@ -1,5 +1,5 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "tutoring-marketplace-ravii-preview",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -13,7 +13,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "start": "node .output/server/index.mjs",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:cloudflare": "node ../scripts/build-cloudflare.mjs",
+    "preview:cloudflare": "npx --yes wrangler@4.156.2 dev --config .output/server/wrangler.json --local",
+    "deploy:cloudflare": "npx --yes wrangler@4.156.2 deploy --config .output/server/wrangler.json"
   },
   "overrides": {
     "rolldown": "1.2.1"

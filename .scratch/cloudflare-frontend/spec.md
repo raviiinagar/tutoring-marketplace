@@ -1,0 +1,7 @@
+# Cloudflare frontend migration
+
+Move the existing branded TanStack Start/Nitro frontend from deployment-credit-exhausted Netlify to a Cloudflare Workers free test URL. Preserve the existing AWS API/database, exact Origin/JSON/session controls, host-only cookies, private no-store data, uploads, photos and SSE chat. No paid-plan upgrade, new database, public DNS cutover or Netlify deletion is authorized or needed for the test URL.
+
+Build the installed Nitro cloudflare_module adapter with static assets and Node compatibility. Add a fixed-upstream same-origin /v1 proxy that preserves method/body/Origin/cookies, rejects cross-origin unsafe requests, follows no upstream redirects and streams responses. Keep server-only API origin configuration out of browser credential handling. Validate unit/proxy tests, existing UI tests/typecheck, local workerd build/bundle, free-plan constraints and actual deployed anonymous/auth-cookie/SSE-relevant flows. Add only the exact deployed Worker origin to the existing backend allowlist after the URL is known; retain other clients and commercial restrictions. Email links may remain on existing WEB_ORIGIN until the new frontend is validated and deliberately promoted.
+
+Cloudflare login uses the official pinned Wrangler CLI with Windows OS-keychain OAuth storage. No credentials or session/token values may enter reports or chat. Capture sanitized acceptance and unresolved external dependencies accurately.

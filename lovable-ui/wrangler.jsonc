@@ -1,0 +1,15 @@
+{
+  "name": "tutor-marketplace-ravii-preview",
+  "compatibility_date": "2026-11-03",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "API_INTERNAL_URL": "https://ravii-tutoring-test.duckdns.org"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

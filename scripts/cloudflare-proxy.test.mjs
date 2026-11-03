@@ -1,0 +1,22 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { proxyApi } from "../deployment/cloudflare/api-proxy.mjs";
+const site="https://frontend.example.test",upstream="https://backend.example.test";
+test("fixed upstream preserves a public query and strips forged forwarding headers",async()=>{
+ let called=false;const result=await proxyApi(new Request(site+"/v1/catalogue?q=math%20test",{headers:{"X-Forwarded-For":"fake","Forwarded":"for=evil","X-Forwarded-Host":"evil"}}),upstream,async(request,options)=>{called=true;assert.equal(request.url,upstream+"/v1/catalogue?q=math%20test");assert.equal(request.headers.get("x-forwarded-for"),null);assert.equal(request.headers.get("forwarded"),null);assert.equal(request.headers.get("x-forwarded-host"),null);assert.equal(options.redirect,"manual");return Response.json({ok:true});});assert.equal(called,true);assert.deepEqual(await result.json(),{ok:true});assert.equal(result.headers.get("cache-control"),"no-store");
+});
+test("unsafe requests require the real frontend origin before any upstream call",async()=>{
+ for(const origin of [undefined,"https://evil.example.test","null"]){const result=await proxyApi(new Request(site+"/v1/auth/sessions",{method:"POST",headers:{"Content-Type":"application/json",...(origin?{Origin:origin}:{})},body:"{}"}),upstream,()=>{throw Error("Must not forward");});assert.equal(result.status,403);assert.equal((await result.json()).code,"ORIGIN_NOT_ALLOWED");}
+});
+test("same-origin JSON request body, cookie and Origin survive without re-authorizing the caller",async()=>{
+ const result=await proxyApi(new Request(site+"/v1/auth/sessions",{method:"POST",headers:{Origin:site,"Content-Type":"application/json",Cookie:"fixture=browser"},body:'{"fixture":true}'}),upstream,async(request)=>{assert.equal(request.method,"POST");assert.equal(request.headers.get("Origin"),site);assert.equal(request.headers.get("Cookie"),"fixture=browser");assert.equal(request.headers.get("Content-Type"),"application/json");assert.deepEqual(await request.json(),{fixture:true});const headers=new Headers();headers.append("Set-Cookie","__Host-session=fixture; Path=/; Secure; HttpOnly; SameSite=Lax");headers.append("Set-Cookie","other=fixture; Path=/; Secure; HttpOnly; SameSite=Lax");return new Response("{}",{headers});});assert.equal(result.headers.getSetCookie().length,2);assert.match(result.headers.getSetCookie()[0],/Secure; HttpOnly; SameSite=Lax/);assert.doesNotMatch(result.headers.getSetCookie().join(),/Domain=/);
+});
+test("binary evidence bodies and portrait responses remain byte-identical",async()=>{
+ const bytes=new Uint8Array([0,1,2,254,255]);const result=await proxyApi(new Request(site+"/v1/me/tutor/evidence",{method:"POST",headers:{Origin:site,"Content-Type":"application/json"},body:bytes}),upstream,async request=>{assert.deepEqual(new Uint8Array(await request.arrayBuffer()),bytes);return new Response(bytes,{headers:{"Content-Type":"image/jpeg"}});});assert.deepEqual(new Uint8Array(await result.arrayBuffer()),bytes);assert.equal(result.headers.get("Content-Type"),"image/jpeg");
+});
+test("event-stream responses are returned before the stream ends",async()=>{
+ let controller;const body=new ReadableStream({start(value){controller=value;value.enqueue(new TextEncoder().encode("data: fixture\n\n"));}});const result=await proxyApi(new Request(site+"/v1/me/connections/fixture/events"),upstream,async()=>new Response(body,{headers:{"Content-Type":"text/event-stream"}}));assert.equal(result.headers.get("Content-Type"),"text/event-stream");const reader=result.body.getReader();assert.equal(new TextDecoder().decode((await reader.read()).value),"data: fixture\n\n");controller.close();assert.equal((await reader.read()).done,true);
+});
+test("upstream redirects stay redirects and invalid origins/paths fail closed",async()=>{
+ const response=await proxyApi(new Request(site+"/v1/health"),upstream,async()=>new Response(null,{status:302,headers:{Location:"https://other.example.test/"}}));assert.equal(response.status,302);assert.equal(response.headers.get("Location"),"https://other.example.test/");for(const target of [undefined,"http://backend.example.test","https://user:password@backend.example.test","https://backend.example.test/private"]){assert.equal((await proxyApi(new Request(site+"/v1/health"),target)).status,503);}assert.equal((await proxyApi(new Request(site+"/dev/mail"),upstream)).status,404);assert.equal((await proxyApi(new Request(site+"/v1/%2F..%2Fprivate"),upstream)).status,400);
+});
