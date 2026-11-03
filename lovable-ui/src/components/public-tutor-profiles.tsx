@@ -1,4 +1,4 @@
-import {compactTutorLocation,compactTutorRate} from "./tutor-card-summary";
+import { compactTutorLocation, compactTutorRate } from "./tutor-card-summary";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -12,24 +12,89 @@ import { TutorPortrait } from "./tutor-portrait";
 import { Button } from "./ui/button";
 import { Notice } from "./account/ui";
 import { SaveTutorButton } from "./save-tutor-button";
-export function PublicTutorCard({profile,catalogue}:{profile:PublicTutor;catalogue?:Catalogue|undefined}) {
-  const subjects=profile.subject_ids.map(id=>catalogue?.terms.find(t=>t.id===id)?.label||id.replace('subject-','')).join(', ');
-  return <article className="teacher-card">
-    <div className="relative">
-      <Link to="/profiles/$profileId" params={{profileId:profile.id}} className="teacher-cover" aria-label={`View Tutor ${profile.display_name}`}>
-        <span aria-hidden className="teacher-initials">{profile.display_name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</span>
-        <TutorPortrait card url={profile.photo_url??undefined} name={profile.display_name} className="teacher-portrait"/>
-        <div className="teacher-cover-caption"><h3 className="teacher-cover-name">{profile.display_name}</h3><p className="teacher-cover-location">{compactTutorLocation(profile.presence)}</p></div>
-      </Link>
-      <div className="absolute right-2 top-2 z-10"><SaveTutorButton profileId={profile.id} displayName={profile.display_name} compact/></div>
-    </div>
-    <div className="teacher-card-details">
-      {profile.presence?.accepting_students===false&&<p className="mb-1 text-xs text-muted-foreground">Not accepting new students</p>}
-      <Link className="teacher-card-summary" to="/profiles/$profileId" params={{profileId:profile.id}}><span className="font-medium">{subjects}</span>{subjects?' · ':''}{profile.biography}</Link>
-      <p className="teacher-card-price" title="Tutor's stated hourly tuition. See the profile for current offer terms.">{compactTutorRate(profile.hourly_rate_paise)}<span>/hr</span></p>
-    </div>
-  </article>;
+export function PublicTutorCard({
+  profile,
+  catalogue,
+  priority = false,
+  onSavedChange,
+}: {
+  profile: PublicTutor;
+  catalogue?: Catalogue | undefined;
+  priority?: boolean;
+  onSavedChange?: ((saved: boolean) => void) | undefined;
+}) {
+  const subjects = profile.subject_ids
+    .map(
+      (id) =>
+        catalogue?.terms.find((t) => t.id === id)?.label ||
+        id.replace(/^subject-/, "").replaceAll("-", " "),
+    )
+    .join(", ");
+  return (
+    <article className="teacher-card" aria-label={`Tutor ${profile.display_name}`}>
+      <div className="relative">
+        <Link
+          to="/profiles/$profileId"
+          params={{ profileId: profile.id }}
+          className="teacher-cover"
+          aria-label={`View Tutor ${profile.display_name}`}
+        >
+          <span aria-hidden className="teacher-initials">
+            {profile.display_name
+              .trim()
+              .split(/\s+/)
+              .slice(0, 2)
+              .map((s) => s[0])
+              .join("")
+              .toUpperCase()}
+          </span>
+          <TutorPortrait
+            card
+            priority={priority}
+            url={profile.photo_url ?? undefined}
+            name={profile.display_name}
+            className="teacher-portrait"
+          />
+          <div className="teacher-cover-caption">
+            <h3 className="teacher-cover-name">{profile.display_name}</h3>
+            <p className="teacher-cover-location">{compactTutorLocation(profile.presence)}</p>
+          </div>
+        </Link>
+        <div className="absolute right-3 top-3 z-10">
+          <SaveTutorButton
+            profileId={profile.id}
+            displayName={profile.display_name}
+            photoUrl={profile.photo_url ?? undefined}
+            compact
+            onSavedChange={onSavedChange}
+          />
+        </div>
+      </div>
+      <div className="teacher-card-details">
+        {profile.presence?.accepting_students === false && (
+          <p className="teacher-card-paused">Not accepting new students</p>
+        )}
+        <Link
+          className="teacher-card-summary"
+          to="/profiles/$profileId"
+          params={{ profileId: profile.id }}
+        >
+          <span className="font-medium">{subjects}</span>
+          {subjects ? " " + String.fromCharCode(0xb7) + " " : ""}
+          {profile.biography}
+        </Link>
+        <p
+          className="teacher-card-price"
+          title="Tutor's stated hourly tuition. See the profile for current offer terms."
+        >
+          {compactTutorRate(profile.hourly_rate_paise)}
+          <span>/hr</span>
+        </p>
+      </div>
+    </article>
+  );
 }
+
 export function PublicTutorDirectory({
   filters = {},
   showSubjectFilter = false,
@@ -122,8 +187,8 @@ export function PublicTutorDirectory({
         <p role="status">Loading Tutor profiles…</p>
       ) : profiles.length ? (
         <div className="tutor-card-grid grid sm:grid-cols-2 lg:grid-cols-3">
-          {profiles.map((p) => (
-            <PublicTutorCard key={p.id} profile={p} catalogue={catalogue} />
+          {profiles.map((p, index) => (
+            <PublicTutorCard key={p.id} profile={p} catalogue={catalogue} priority={index === 0} />
           ))}
         </div>
       ) : (

@@ -70,7 +70,7 @@ function Profile() {
               </div>
             </header>
             <div className="flex flex-wrap items-start gap-3">
-              <SaveTutorButton profileId={p.id} displayName={p.display_name} />
+              <SaveTutorButton profileId={p.id} displayName={p.display_name} photoUrl={p.photo_url ?? undefined} />
               <ShareTutorButton profileId={p.id} displayName={p.display_name} />
             </div>
             <section>
