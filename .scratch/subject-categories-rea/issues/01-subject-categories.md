@@ -1,6 +1,7 @@
 # Build searchable subject categories and direct shortcuts
 
 Status: ready-for-agent
+Resolution: completed locally (3 November 2026)
 Type: task
 
 ## Acceptance

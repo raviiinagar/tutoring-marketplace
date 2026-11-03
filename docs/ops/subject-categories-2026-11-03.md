@@ -24,4 +24,4 @@ Preliminary checks caught a removed empty-offer icon import and test-only ByRole
 
 ## Release
 
-Prepared on isolated branch `feature/subject-categories-rea` from `b1c06fd`. No backend, database, authentication, payments or server-window changes are part of this feature. Hosting acceptance will be recorded separately if this release is published; the current evidence proves local implementation, not a live deployment.
+Prepared on isolated branch `feature/subject-categories-rea` from `b1c06fd`, with implementation commit `45cb5e4` and catalogue-browser selector compatibility commit `ad04f2d`. The feature source and evidence were synchronized to the main workspace with unrelated edits preserved, including the existing browser fixture environment override. No backend, database, authentication, payments or server-window changes are part of this feature. Hosting acceptance will be recorded separately if this release is published; the current evidence proves local implementation, not a live deployment.
