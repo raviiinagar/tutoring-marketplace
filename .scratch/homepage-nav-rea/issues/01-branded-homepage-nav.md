@@ -12,3 +12,5 @@ Implementation began on 3 November 2026 in an isolated worktree from 93f519a. RE
 Local acceptance: 108 UI tests, TypeScript and production build pass. Desktop/390px/320px browser checks pass with zero page errors; exact evidence linked in docs/ops/homepage-nav-2026-11-03.md.
 
 Automatic approval review rejected external publication of this new UI release before any push or deployment. All authorized local work is complete; publishing to the existing repository and both Netlify deployments awaits explicit owner approval.
+
+Owner subsequently explicitly approved this release for push and both deployments. Main and payment sandbox are deployed and passed live desktop/390px/320px checks against actual public APIs with zero page errors. Sandbox testing notices remain intact. Deployment IDs, commits, JSON results and screenshots are recorded in docs/ops/homepage-nav-2026-11-03.md. Implementation and acceptance are complete.

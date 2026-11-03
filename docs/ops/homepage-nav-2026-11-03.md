@@ -16,6 +16,18 @@ Added a simplified desktop header, compact search on other pages and after homep
 - Harness corrections: native select/visible menu labels, waiting for hydration before programmatic scrolling, realistic public-API wait bounds and reduced-motion settled screenshots. Failed preliminary checks are not counted as successful acceptance.
 - [Local browser result](evidence/homepage-nav-local-2026-11-03.json), [desktop preview](evidence/homepage-nav-desktop-2026-11-03.png), [mobile preview](evidence/homepage-nav-mobile-2026-11-03.png), [mobile menu](evidence/homepage-nav-mobile-menu-2026-11-03.png).
 
-## Hosting
+## Hosting and live acceptance
 
-Prepared on the isolated `feature/homepage-nav-rea` branch from `93f519a`. The checked implementation is local commit `33b7129`. Automatic approval review rejected an attempted push/promotion command before execution, stating that the prior search-filter publication approval does not authorize this new homepage/navbar publication. No feature push, hosting branch change or new deployment occurred. Explicit owner approval is pending for publishing this concrete feature to the same existing GitHub repository and both Netlify environments. Local implementation/verification are complete; no live acceptance is claimed for this release. No backend, database, credentials, MFA, payment or compute-window change is part of this feature.
+The owner explicitly approved pushing this release to the existing repository and deploying both environments after the initial automatic publication review. The checked implementation is commit `33b7129`; feature branch `feature/homepage-nav-rea` was pushed through `0ff3058` before promotion.
+
+| Environment | Hosting commit | Ready Netlify deploy |
+| --- | --- | --- |
+| [Main](https://tutoring-marketplace-ravii-preview.netlify.app/) | `47b022d5bf53efc37b44e5c76395535a563f1ea0` | `6ae8f67120b42226156a9587` |
+| [Payment sandbox](https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app/) | `fadbff61d989a8e8266ed81432f43fb058c2aafc` | `6ae8f6d62610167ada010ca9` |
+
+Both live environments passed desktop, 390px and 320px browser checks using actual public APIs without mocked responses: branding, yellow hero, Tutor cards, carousel, subject navigation, header search, scroll-triggered search, Help navigation, mobile menu, Escape/focus return and no page errors or horizontal overflow. Authenticated role destinations remain component-tested; this check did not create accounts or perform payments.
+
+- Main: [result](evidence/homepage-nav-main-2026-11-03.json), [desktop](evidence/homepage-nav-main-desktop-2026-11-03.png), [mobile](evidence/homepage-nav-main-mobile-2026-11-03.png), [menu](evidence/homepage-nav-main-mobile-menu-2026-11-03.png).
+- Sandbox: [result](evidence/homepage-nav-sandbox-2026-11-03.json), [desktop](evidence/homepage-nav-sandbox-desktop-2026-11-03.png), [mobile](evidence/homepage-nav-sandbox-mobile-2026-11-03.png), [menu](evidence/homepage-nav-sandbox-mobile-menu-2026-11-03.png).
+
+Sandbox promotion preserved its fictional-account/no-real-money notice and existing AdminShell notice, with menu height and anchor offsets adjusted for the additional banner. Sandbox TypeScript validation passed after conflict resolution. Backend, database, credentials, MFA, payment configuration and compute-window settings were unchanged.

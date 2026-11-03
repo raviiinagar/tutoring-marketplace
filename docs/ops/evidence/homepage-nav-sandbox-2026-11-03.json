@@ -1,0 +1,15 @@
+{
+  "origin": "https://payment-sandbox--tutoring-marketplace-ravii-preview.netlify.app",
+  "live": true,
+  "brandingRetained": true,
+  "yellowHero": true,
+  "actualApiTutorCards": true,
+  "subjectCarousel": true,
+  "subjectNavigation": true,
+  "headerSearchNavigation": true,
+  "scrollSearch": true,
+  "helpAnchor": true,
+  "mobileMenuAndEscape": true,
+  "mobile320And390": true,
+  "pageErrors": 0
+}
