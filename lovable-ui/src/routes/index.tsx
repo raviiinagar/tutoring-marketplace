@@ -4,7 +4,7 @@ import { PublicTutorDirectory } from "@/components/public-tutor-profiles";
 import { publicHead, requirePublic } from "@/lib/public-pages";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search, ArrowRight, ArrowUpRight, GraduationCap } from "lucide-react";
+import { ArrowUpRight, GraduationCap } from "lucide-react";
 import { SiteHeader, BrandWordmark } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { CatalogueBrowser } from "@/components/catalogue-browser";
@@ -21,13 +21,10 @@ export const Route = createFileRoute("/")({
 function Index() {
   const initial = Route.useLoaderData();
   const navigate = useNavigate();
-  const [ready, setReady] = useState(false);
   const [catalogue, setCatalogue] = useState<Catalogue>(initial.catalogue);
   const [offers, setOffers] = useState<PublicOffer[]>(initial.offers);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
-  const [query, setQuery] = useState("");
-  const [domainDraft, setDomainDraft] = useState("");
   const load = async () => {
     setLoading(true);
     setError(undefined);
@@ -39,9 +36,6 @@ function Index() {
     else setError(describeFailure(found.error));
     setLoading(false);
   };
-  useEffect(() => {
-    setReady(true);
-  }, []);
   useEffect(() => {
     setCatalogue(initial.catalogue);
     setOffers(initial.offers);
@@ -177,37 +171,7 @@ function Index() {
         </section>
         <TutorLocations />
         <div className="market-catalogue">
-          <div className="market-content pt-10">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setQuery(domainDraft);
-              }}
-              className="flex flex-wrap items-center gap-3"
-            >
-              <label htmlFor="domain-search" className="text-sm font-semibold">
-                Search learning domains
-              </label>
-              <input
-                id="domain-search"
-                className="input min-w-0 flex-1 sm:max-w-sm"
-                placeholder="Subject, exam or learning goal"
-                value={domainDraft}
-                disabled={!ready}
-                onChange={(e) => setDomainDraft(e.target.value)}
-              />
-              <Button type="submit" variant="outline" className="rounded-full">
-                Explore
-              </Button>
-            </form>
-          </div>
-          <CatalogueBrowser
-            query={query}
-            clearSearch={() => {
-              setQuery("");
-              setDomainDraft("");
-            }}
-          />
+          <CatalogueBrowser initialCatalogue={catalogue} />
         </div>
       </main>
       <footer className="border-t">
