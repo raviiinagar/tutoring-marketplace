@@ -97,7 +97,7 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   const account = await within(nav).findByRole("button", { name: "My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
-    "/tutor",
+    "/tutor/dashboard",
   );
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");

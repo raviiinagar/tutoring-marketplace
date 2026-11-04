@@ -314,6 +314,10 @@ export function LearnerDashboard() {
             <section className={panel}>
               <h2 className="text-xl font-semibold">Your teaching tools</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <Link to="/tutor/dashboard" className="task-link">
+                  <strong>Tutor dashboard</strong>
+                  <span>Your profile, offers and incoming enquiries at a glance.</span>
+                </Link>
                 <Link to="/tutor" className="task-link">
                   <strong>Tutor profile</strong>
                   <span>Profile, evidence and review progress.</span>

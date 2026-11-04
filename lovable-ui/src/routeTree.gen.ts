@@ -55,6 +55,7 @@ import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffSupportRouteImport } from './routes/staff_.support'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TeachersSlugRouteImport } from './routes/teachers.$slug'
+import { Route as TutorDashboardRouteImport } from './routes/tutor_.dashboard'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
 import { Route as TutorsListingIdRouteImport } from './routes/tutors_.$listingId'
@@ -291,6 +292,11 @@ const TeachersSlugRoute = TeachersSlugRouteImport.update({
   path: '/teachers/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorDashboardRoute = TutorDashboardRouteImport.update({
+  id: '/tutor_/dashboard',
+  path: '/tutor/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TutorListingsRoute = TutorListingsRouteImport.update({
   id: '/tutor_/listings',
   path: '/tutor/listings',
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
+  '/tutor/dashboard': typeof TutorDashboardRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
@@ -417,6 +424,7 @@ export interface FileRoutesByTo {
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
+  '/tutor/dashboard': typeof TutorDashboardRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
@@ -471,6 +479,7 @@ export interface FileRoutesById {
   '/staff_/support': typeof StaffSupportRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
+  '/tutor_/dashboard': typeof TutorDashboardRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
   '/tutors_/$listingId': typeof TutorsListingIdRoute
@@ -526,6 +535,7 @@ export interface FileRouteTypes {
     | '/staff/support'
     | '/staff/tutors'
     | '/teachers/$slug'
+    | '/tutor/dashboard'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
@@ -579,6 +589,7 @@ export interface FileRouteTypes {
     | '/staff/support'
     | '/staff/tutors'
     | '/teachers/$slug'
+    | '/tutor/dashboard'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
@@ -632,6 +643,7 @@ export interface FileRouteTypes {
     | '/staff_/support'
     | '/staff_/tutors'
     | '/teachers/$slug'
+    | '/tutor_/dashboard'
     | '/tutor_/listings'
     | '/tutor_/requests'
     | '/tutors_/$listingId'
@@ -686,6 +698,7 @@ export interface RootRouteChildren {
   StaffSupportRoute: typeof StaffSupportRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TeachersSlugRoute: typeof TeachersSlugRoute
+  TutorDashboardRoute: typeof TutorDashboardRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
   TutorsListingIdRoute: typeof TutorsListingIdRoute
@@ -1017,6 +1030,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachersSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tutor_/dashboard': {
+      id: '/tutor_/dashboard'
+      path: '/tutor/dashboard'
+      fullPath: '/tutor/dashboard'
+      preLoaderRoute: typeof TutorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tutor_/listings': {
       id: '/tutor_/listings'
       path: '/tutor/listings'
@@ -1102,6 +1122,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffSupportRoute: StaffSupportRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TeachersSlugRoute: TeachersSlugRoute,
+  TutorDashboardRoute: TutorDashboardRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,
   TutorsListingIdRoute: TutorsListingIdRoute,

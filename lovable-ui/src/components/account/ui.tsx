@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { accountSessionKey } from "@/lib/session";
 import { WorkspaceNavigation, workspaceLinks } from "@/components/workspace-navigation";
+import { TutorWorkspaceNavigation } from "@/components/tutor-workspace-navigation";
 const AccountReady = createContext(false);
 
 export function BrandWordmark({ className = "" }: { className?: string }) {
@@ -168,7 +169,7 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
   const pending = !mounted || session.isPending;
   const teacherPath = user
     ? user.roles.includes("TUTOR")
-      ? "/tutor"
+      ? "/tutor/dashboard"
       : "/account/settings"
     : "/auth/signup";
   const showSearch = !homepage || scrolled;
@@ -371,7 +372,14 @@ export function AuthShell({
           tabIndex={-1}
           className={`account-workspace mx-auto w-full ${dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
         >
-          {ready && !window.location.pathname.startsWith("/auth/") && <WorkspaceNavigation />}
+          {ready &&
+            !window.location.pathname.startsWith("/auth/") &&
+            (window.location.pathname === "/tutor" ||
+            window.location.pathname.startsWith("/tutor/") ? (
+              <TutorWorkspaceNavigation />
+            ) : (
+              <WorkspaceNavigation />
+            ))}
           <div
             className={
               dashboard
