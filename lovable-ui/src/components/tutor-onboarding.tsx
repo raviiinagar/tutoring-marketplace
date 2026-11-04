@@ -1,4 +1,5 @@
-import {TutorPresenceEditor} from './tutor-presence-editor';
+import { TutorIntroductionWizard } from "./tutor-introduction-wizard";
+import { TutorPresenceEditor } from "./tutor-presence-editor";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CheckCircle2, FileCheck, ShieldCheck } from "lucide-react";
@@ -195,6 +196,17 @@ export function TutorOnboarding() {
                   </Button>
                 )}
               </>
+            ) : !p && catalogue ? (
+              <TutorIntroductionWizard
+                catalogue={catalogue}
+                onCompleted={(next, cleanupNotice) => {
+                  apply(next);
+                  setNotice(
+                    cleanupNotice ||
+                      "Profile saved privately. Next: upload one identity document for review.",
+                  );
+                }}
+              />
             ) : (
               <form onSubmit={save} className="space-y-5">
                 <Field
@@ -478,7 +490,7 @@ export function TutorOnboarding() {
                 </p>
                 <TutorPhotoEditor />
               </details>
-              <TutorPresenceEditor/>
+              <TutorPresenceEditor />
               <TutorPro identityApproved={approved} />
             </>
           )}

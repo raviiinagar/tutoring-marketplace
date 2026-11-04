@@ -1,0 +1,82 @@
+{
+  "date": "2026-11-04",
+  "environment": "isolated loopback services",
+  "backend": "real Nest HTTP and PostgreSQL",
+  "scanner": "explicit fictional test scanner",
+  "hosted_mutations": false,
+  "tests": [
+    {
+      "journey": "onboarding",
+      "results": [
+        {
+          "label": "desktop",
+          "width": 1440,
+          "signin": true,
+          "serverDraftResume": true,
+          "noProfileBeforeFinalSave": true,
+          "identityReview": true,
+          "privateUntilApproved": true,
+          "proCoupon": true,
+          "offerDraftAndSeparateReview": true,
+          "errors": []
+        },
+        {
+          "label": "mobile",
+          "width": 390,
+          "signin": true,
+          "serverDraftResume": true,
+          "noProfileBeforeFinalSave": true,
+          "identityReview": true,
+          "privateUntilApproved": true,
+          "proCoupon": true,
+          "offerDraftAndSeparateReview": true,
+          "errors": []
+        },
+        {
+          "status": "PASSED",
+          "realBackend": true,
+          "realPostgres": true,
+          "noNetworkFixtures": true,
+          "desktopAndMobile": true
+        }
+      ]
+    },
+    {
+      "journey": "publication-and-reputation",
+      "results": [
+        {
+          "label": "desktop",
+          "width": 1440,
+          "publishedOffer": true,
+          "pauseResume": true,
+          "pendingDoesNotEarn": true,
+          "staffModerationUI": true,
+          "experiencedAfterTwoPublished": true,
+          "higherLevelsLocked": true,
+          "publicEvidence": true,
+          "withdrawalDemotes": true,
+          "errors": []
+        },
+        {
+          "label": "mobile",
+          "width": 390,
+          "publishedOffer": true,
+          "pauseResume": true,
+          "pendingDoesNotEarn": true,
+          "staffModerationUI": true,
+          "experiencedAfterTwoPublished": true,
+          "higherLevelsLocked": true,
+          "publicEvidence": true,
+          "withdrawalDemotes": true,
+          "errors": []
+        },
+        {
+          "status": "PASSED",
+          "realBackend": true,
+          "realPostgres": true,
+          "desktopAndMobile": true
+        }
+      ]
+    }
+  ]
+}

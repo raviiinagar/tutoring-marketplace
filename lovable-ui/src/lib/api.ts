@@ -118,7 +118,7 @@ export function apiBaseUrl(): string {
   return typeof v === "string" ? v.replace(/\/+$/, "") : "";
 }
 
-async function request<T>(
+export async function request<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
   body?: unknown,
@@ -313,6 +313,9 @@ export const api = {
   saveTutorPresence:(input:PresenceWrite)=>request<{presence:TutorPresence;offers_need_review:number}>('POST','/v1/me/tutor/presence',input),
   publicTutor:(id:string)=>request<{profile:PublicTutor}>('GET','/v1/tutor-profiles/'+encodeURIComponent(id)),
   saveTutorIntroduction:(input:TutorIntroduction)=>request<TutorState>('POST','/v1/me/tutor/introduction',input),
+  tutorOnboardingDraft:()=>request<{draft:TutorOnboardingDraft|null}>('GET','/v1/me/tutor/onboarding-draft'),
+  saveTutorOnboardingDraft:(input:{revision:number;step:number;data:TutorOnboardingDraftData})=>request<{draft:TutorOnboardingDraft}>('POST','/v1/me/tutor/onboarding-draft',input),
+  clearTutorOnboardingDraft:(revision:number)=>request<void>('DELETE','/v1/me/tutor/onboarding-draft',{revision}),
   submitTutorIdentity:(media_type:string,data:string)=>request<TutorState & {upload?:TutorEvidence}>('POST','/v1/me/tutor/identity',{media_type,data}),
   tutorPro:()=>request<TutorProState>('GET','/v1/me/tutor/pro'),
   buyTutorPro:(request_key:string,coupon_code?:string)=>request<{purchase:Purchase|null;promotion?:CouponRedemption}>('POST','/v1/me/tutor/pro/purchases',{request_key,policy_version:'tutor-pro-v1',...(coupon_code?{coupon_code}:{})}),
@@ -448,5 +451,7 @@ export function describeFailure(error: ApiFailure): string {
 }
 
 export type TutorIntroduction={display_name:string;biography:string;subject_ids:string[];hourly_rate_paise:number;identity_country:'IN'|'OTHER';identity_document:'AADHAAR'|'GOVERNMENT_ID'|'PASSPORT';adult_confirmed:boolean;public_email_consent:boolean;replace_identity:boolean;expected_public_revision?:number|undefined};
+export type TutorOnboardingDraftData=Partial<Omit<TutorIntroduction,'replace_identity'|'expected_public_revision'>>;
+export type TutorOnboardingDraft={revision:number;step:number;data:TutorOnboardingDraftData;updated_at:string};
 export type TutorProState={policy:{version:string;amount_paise:number;currency:string;access_days:number};checkout_available:boolean;active:{starts_at:string;ends_at:string}|null;purchase:Purchase|null};
 export type PublicTutor={presence?:TutorPresence;id:string;display_name:string;biography:string;subject_ids:string[];hourly_rate_paise:number;currency:string;identity_label:string;expertise_label:string;photo_url:string|null;contact:{email:string;email_verified:boolean}|null;contact_status:string;offers:{id:string;title:string;rate_paise:number;rate_unit:string}[]};

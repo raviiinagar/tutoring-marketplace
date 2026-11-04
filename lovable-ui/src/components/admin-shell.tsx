@@ -80,6 +80,13 @@ const items = [
     icon: ClipboardCheck,
     scope: "TRUST",
   },
+  {
+    group: "Trust & safety",
+    label: "Recommendations",
+    to: "/staff/recommendations",
+    icon: ClipboardCheck,
+    scope: "TRUST",
+  },
   { group: "Service", label: "Support & appeals", to: "/staff/support", icon: MessagesSquare },
   { group: "Service", label: "Privacy requests", to: "/staff/privacy", icon: LockKeyhole },
   {

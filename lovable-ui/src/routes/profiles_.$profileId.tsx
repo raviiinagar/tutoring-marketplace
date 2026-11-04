@@ -1,5 +1,6 @@
 ﻿import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PublicTutorReputation } from "@/components/public-tutor-reputation";
 import { useEffect, useState } from "react";
 import { api, describeFailure, type PublicTutor, type Catalogue } from "@/lib/api";
 import { SiteHeader, Notice } from "@/components/account/ui";
@@ -61,6 +62,7 @@ function Profile() {
         { id: "about", label: "About" },
         { id: "availability", label: "Location & availability" },
         { id: "teaching-offers", label: "Teaching offers" },
+        { id: "recommendations", label: "Recommendations" },
       ]}
       actions={
         <>
@@ -157,6 +159,7 @@ function Profile() {
           the Tutor.
         </p>
       </section>
+      <PublicTutorReputation profileId={p.id} />
     </TutorProfileLayout>
   );
 }

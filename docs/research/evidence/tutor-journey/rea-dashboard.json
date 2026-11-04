@@ -1,0 +1,32 @@
+{
+  "evidence_id": "ev_c04c4c129ddfa0562ce2fcfa4e6e3c7d8f825a009738342d92130da45c026c1f",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "operation": "capture_web_screenshot",
+  "artifact": {
+    "sha256": "3511a29e1b828e447997c43487ad9d7986ba0f90e8b490fb8395358ee5131b91",
+    "bytes": 166927
+  },
+  "observed_sections": [
+    "Dashboard",
+    "My messages",
+    "My Ads",
+    "Evaluations",
+    "My Account",
+    "Verified profile: Email / Mobile Phone",
+    "Pro promotion",
+    "New / Recommended / Super Teacher / Ambassador",
+    "Class Request",
+    "My Ads: Modify"
+  ],
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "The screenshot contains the visible viewport, including on-screen content.",
+    "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+    "Browser host platform and architecture were not observed."
+  ],
+  "privacy": "Account contact data, ad IDs and image payload omitted from this tracked summary. Evidence is a sampled signed-in account, not an independent audit of verification."
+}

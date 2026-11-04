@@ -1,0 +1,13 @@
+{
+  "status": "PASSED",
+  "realHostedAnonymousRedirects": true,
+  "health": 200,
+  "hostedAssets": true,
+  "authenticatedReads": "redirected exclusively to isolated real local API with fictional session",
+  "widths": [
+    1440,
+    390,
+    320
+  ],
+  "errors": []
+}

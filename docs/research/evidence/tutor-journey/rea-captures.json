@@ -1,0 +1,106 @@
+{
+  "inspection_date": "2026-11-04",
+  "capture_scope": "REA passive screenshots. Playwright performed navigation/form actions. Public metadata excludes account/ad IDs and image payloads.",
+  "captures": [
+    {
+      "name": "superprof-onboarding-entry",
+      "evidence_id": "ev_232ef51c79d3f1342edafaf87b79ef585debf3d73a181c92a6a18a9d60dfda8e",
+      "operation": "capture_web_screenshot",
+      "provider": {
+        "id": "rea-cdp-browser",
+        "name": "REA Chrome DevTools Protocol observation provider",
+        "version": "2"
+      },
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "path": "/dashboard.html/my-listings/creation",
+        "query_values_excluded": true
+      },
+      "artifact": {
+        "sha256": "86f16cc627e93ccd734acf336d50ae380b66fd0868138bce73a3c6c320ae684d",
+        "bytes": 67416
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "superprof-onboarding-title",
+      "evidence_id": "ev_439142df6d88500ca6c3ff6aafa92f122d6c9d11965063b7c79a6c2811edd649",
+      "operation": "capture_web_screenshot",
+      "provider": {
+        "id": "rea-cdp-browser",
+        "name": "REA Chrome DevTools Protocol observation provider",
+        "version": "2"
+      },
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "path": "/dashboard.html/my-listings/creation",
+        "query_values_excluded": true
+      },
+      "artifact": {
+        "sha256": "f96dec1f2d7629c0880e5ec1eee2b5b6722cb26e3ffeccf5d68eee28056fdab2",
+        "bytes": 95053
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "superprof-onboarding-rate",
+      "evidence_id": "ev_788432f7ecc4b9b8656e67c15945f0181abd7dd94a9e61c9fc78564bbf91d9aa",
+      "operation": "capture_web_screenshot",
+      "provider": {
+        "id": "rea-cdp-browser",
+        "name": "REA Chrome DevTools Protocol observation provider",
+        "version": "2"
+      },
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "path": "/dashboard.html/my-listings/creation",
+        "query_values_excluded": true
+      },
+      "artifact": {
+        "sha256": "b26de316f32a25bbfe3e389cf6b1ad173d8995a6f37033ed02e9159689451d68",
+        "bytes": 62847
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "superprof-tutor-manager",
+      "evidence_id": "ev_b9aa9e7453e703d2e420d2518ea40acf904659f86e1955ef27c8dd0dbbba312a",
+      "operation": "capture_web_screenshot",
+      "provider": {
+        "id": "rea-cdp-browser",
+        "name": "REA Chrome DevTools Protocol observation provider",
+        "version": "2"
+      },
+      "target": {
+        "origin": "https://www.superprof.co.in",
+        "path": "/dashboard.html/my-listings/listing/:adId",
+        "query_values_excluded": true
+      },
+      "artifact": {
+        "sha256": "a8d6c35c068c463328d84336da003e2d5a1ce6c3a459ce860b253bab00fd70e6",
+        "bytes": 160234
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "The screenshot contains the visible viewport, including on-screen content.",
+        "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+        "Browser host platform and architecture were not observed."
+      ]
+    }
+  ]
+}

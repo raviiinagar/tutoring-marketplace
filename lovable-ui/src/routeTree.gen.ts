@@ -39,6 +39,7 @@ import { Route as ConnectionsConnectionIdRouteImport } from './routes/connection
 import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
 import { Route as ProfilesProfileIdRouteImport } from './routes/profiles_.$profileId'
+import { Route as RecommendationsProfileIdRouteImport } from './routes/recommendations_.$profileId'
 import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
 import { Route as StaffAdminsRouteImport } from './routes/staff_.admins'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
@@ -50,12 +51,14 @@ import { Route as StaffNotificationsRouteImport } from './routes/staff_.notifica
 import { Route as StaffOperationsRouteImport } from './routes/staff_.operations'
 import { Route as StaffPhotosRouteImport } from './routes/staff_.photos'
 import { Route as StaffPrivacyRouteImport } from './routes/staff_.privacy'
+import { Route as StaffRecommendationsRouteImport } from './routes/staff_.recommendations'
 import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffSupportRouteImport } from './routes/staff_.support'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TeachersSlugRouteImport } from './routes/teachers.$slug'
 import { Route as TutorDashboardRouteImport } from './routes/tutor_.dashboard'
+import { Route as TutorEvaluationsRouteImport } from './routes/tutor_.evaluations'
 import { Route as TutorListingsRouteImport } from './routes/tutor_.listings'
 import { Route as TutorRequestsRouteImport } from './routes/tutor_.requests'
 import { Route as TutorsListingIdRouteImport } from './routes/tutors_.$listingId'
@@ -212,6 +215,12 @@ const ProfilesProfileIdRoute = ProfilesProfileIdRouteImport.update({
   path: '/profiles/$profileId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecommendationsProfileIdRoute =
+  RecommendationsProfileIdRouteImport.update({
+    id: '/recommendations_/$profileId',
+    path: '/recommendations/$profileId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ReviewsConnectionIdRoute = ReviewsConnectionIdRouteImport.update({
   id: '/reviews_/$connectionId',
   path: '/reviews/$connectionId',
@@ -267,6 +276,11 @@ const StaffPrivacyRoute = StaffPrivacyRouteImport.update({
   path: '/staff/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffRecommendationsRoute = StaffRecommendationsRouteImport.update({
+  id: '/staff_/recommendations',
+  path: '/staff/recommendations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffReviewsRoute = StaffReviewsRouteImport.update({
   id: '/staff_/reviews',
   path: '/staff/reviews',
@@ -295,6 +309,11 @@ const TeachersSlugRoute = TeachersSlugRouteImport.update({
 const TutorDashboardRoute = TutorDashboardRouteImport.update({
   id: '/tutor_/dashboard',
   path: '/tutor/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorEvaluationsRoute = TutorEvaluationsRouteImport.update({
+  id: '/tutor_/evaluations',
+  path: '/tutor/evaluations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorListingsRoute = TutorListingsRouteImport.update({
@@ -354,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
+  '/recommendations/$profileId': typeof RecommendationsProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -365,12 +385,14 @@ export interface FileRoutesByFullPath {
   '/staff/operations': typeof StaffOperationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
+  '/staff/recommendations': typeof StaffRecommendationsRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/dashboard': typeof TutorDashboardRoute
+  '/tutor/evaluations': typeof TutorEvaluationsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
@@ -408,6 +430,7 @@ export interface FileRoutesByTo {
   '/dev/inbox': typeof DevInboxRoute
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
+  '/recommendations/$profileId': typeof RecommendationsProfileIdRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -419,12 +442,14 @@ export interface FileRoutesByTo {
   '/staff/operations': typeof StaffOperationsRoute
   '/staff/photos': typeof StaffPhotosRoute
   '/staff/privacy': typeof StaffPrivacyRoute
+  '/staff/recommendations': typeof StaffRecommendationsRoute
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/dashboard': typeof TutorDashboardRoute
+  '/tutor/evaluations': typeof TutorEvaluationsRoute
   '/tutor/listings': typeof TutorListingsRoute
   '/tutor/requests': typeof TutorRequestsRoute
   '/tutors/$listingId': typeof TutorsListingIdRoute
@@ -463,6 +488,7 @@ export interface FileRoutesById {
   '/dev/inbox': typeof DevInboxRoute
   '/payments_/history': typeof PaymentsHistoryRoute
   '/profiles_/$profileId': typeof ProfilesProfileIdRoute
+  '/recommendations_/$profileId': typeof RecommendationsProfileIdRoute
   '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff_/admins': typeof StaffAdminsRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
@@ -474,12 +500,14 @@ export interface FileRoutesById {
   '/staff_/operations': typeof StaffOperationsRoute
   '/staff_/photos': typeof StaffPhotosRoute
   '/staff_/privacy': typeof StaffPrivacyRoute
+  '/staff_/recommendations': typeof StaffRecommendationsRoute
   '/staff_/reviews': typeof StaffReviewsRoute
   '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/support': typeof StaffSupportRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor_/dashboard': typeof TutorDashboardRoute
+  '/tutor_/evaluations': typeof TutorEvaluationsRoute
   '/tutor_/listings': typeof TutorListingsRoute
   '/tutor_/requests': typeof TutorRequestsRoute
   '/tutors_/$listingId': typeof TutorsListingIdRoute
@@ -519,6 +547,7 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/payments/history'
     | '/profiles/$profileId'
+    | '/recommendations/$profileId'
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
@@ -530,12 +559,14 @@ export interface FileRouteTypes {
     | '/staff/operations'
     | '/staff/photos'
     | '/staff/privacy'
+    | '/staff/recommendations'
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
     | '/staff/tutors'
     | '/teachers/$slug'
     | '/tutor/dashboard'
+    | '/tutor/evaluations'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
@@ -573,6 +604,7 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/payments/history'
     | '/profiles/$profileId'
+    | '/recommendations/$profileId'
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
@@ -584,12 +616,14 @@ export interface FileRouteTypes {
     | '/staff/operations'
     | '/staff/photos'
     | '/staff/privacy'
+    | '/staff/recommendations'
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
     | '/staff/tutors'
     | '/teachers/$slug'
     | '/tutor/dashboard'
+    | '/tutor/evaluations'
     | '/tutor/listings'
     | '/tutor/requests'
     | '/tutors/$listingId'
@@ -627,6 +661,7 @@ export interface FileRouteTypes {
     | '/dev/inbox'
     | '/payments_/history'
     | '/profiles_/$profileId'
+    | '/recommendations_/$profileId'
     | '/reviews_/$connectionId'
     | '/staff_/admins'
     | '/staff_/catalogue'
@@ -638,12 +673,14 @@ export interface FileRouteTypes {
     | '/staff_/operations'
     | '/staff_/photos'
     | '/staff_/privacy'
+    | '/staff_/recommendations'
     | '/staff_/reviews'
     | '/staff_/safety'
     | '/staff_/support'
     | '/staff_/tutors'
     | '/teachers/$slug'
     | '/tutor_/dashboard'
+    | '/tutor_/evaluations'
     | '/tutor_/listings'
     | '/tutor_/requests'
     | '/tutors_/$listingId'
@@ -682,6 +719,7 @@ export interface RootRouteChildren {
   DevInboxRoute: typeof DevInboxRoute
   PaymentsHistoryRoute: typeof PaymentsHistoryRoute
   ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
+  RecommendationsProfileIdRoute: typeof RecommendationsProfileIdRoute
   ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
   StaffAdminsRoute: typeof StaffAdminsRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
@@ -693,12 +731,14 @@ export interface RootRouteChildren {
   StaffOperationsRoute: typeof StaffOperationsRoute
   StaffPhotosRoute: typeof StaffPhotosRoute
   StaffPrivacyRoute: typeof StaffPrivacyRoute
+  StaffRecommendationsRoute: typeof StaffRecommendationsRoute
   StaffReviewsRoute: typeof StaffReviewsRoute
   StaffSafetyRoute: typeof StaffSafetyRoute
   StaffSupportRoute: typeof StaffSupportRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TeachersSlugRoute: typeof TeachersSlugRoute
   TutorDashboardRoute: typeof TutorDashboardRoute
+  TutorEvaluationsRoute: typeof TutorEvaluationsRoute
   TutorListingsRoute: typeof TutorListingsRoute
   TutorRequestsRoute: typeof TutorRequestsRoute
   TutorsListingIdRoute: typeof TutorsListingIdRoute
@@ -918,6 +958,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfilesProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recommendations_/$profileId': {
+      id: '/recommendations_/$profileId'
+      path: '/recommendations/$profileId'
+      fullPath: '/recommendations/$profileId'
+      preLoaderRoute: typeof RecommendationsProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reviews_/$connectionId': {
       id: '/reviews_/$connectionId'
       path: '/reviews/$connectionId'
@@ -995,6 +1042,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/recommendations': {
+      id: '/staff_/recommendations'
+      path: '/staff/recommendations'
+      fullPath: '/staff/recommendations'
+      preLoaderRoute: typeof StaffRecommendationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/reviews': {
       id: '/staff_/reviews'
       path: '/staff/reviews'
@@ -1035,6 +1089,13 @@ declare module '@tanstack/react-router' {
       path: '/tutor/dashboard'
       fullPath: '/tutor/dashboard'
       preLoaderRoute: typeof TutorDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutor_/evaluations': {
+      id: '/tutor_/evaluations'
+      path: '/tutor/evaluations'
+      fullPath: '/tutor/evaluations'
+      preLoaderRoute: typeof TutorEvaluationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutor_/listings': {
@@ -1106,6 +1167,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevInboxRoute: DevInboxRoute,
   PaymentsHistoryRoute: PaymentsHistoryRoute,
   ProfilesProfileIdRoute: ProfilesProfileIdRoute,
+  RecommendationsProfileIdRoute: RecommendationsProfileIdRoute,
   ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
   StaffAdminsRoute: StaffAdminsRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
@@ -1117,12 +1179,14 @@ const rootRouteChildren: RootRouteChildren = {
   StaffOperationsRoute: StaffOperationsRoute,
   StaffPhotosRoute: StaffPhotosRoute,
   StaffPrivacyRoute: StaffPrivacyRoute,
+  StaffRecommendationsRoute: StaffRecommendationsRoute,
   StaffReviewsRoute: StaffReviewsRoute,
   StaffSafetyRoute: StaffSafetyRoute,
   StaffSupportRoute: StaffSupportRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TeachersSlugRoute: TeachersSlugRoute,
   TutorDashboardRoute: TutorDashboardRoute,
+  TutorEvaluationsRoute: TutorEvaluationsRoute,
   TutorListingsRoute: TutorListingsRoute,
   TutorRequestsRoute: TutorRequestsRoute,
   TutorsListingIdRoute: TutorsListingIdRoute,

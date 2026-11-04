@@ -4,6 +4,7 @@ const links = [
   { to: "/tutor", label: "Profile & identity" },
   { to: "/tutor/listings", label: "Teaching offers" },
   { to: "/tutor/requests", label: "Incoming enquiries" },
+  { to: "/tutor/evaluations", label: "Evaluations & level" },
   { to: "/account", label: "Learning dashboard" },
   { to: "/account/settings", label: "My account" },
 ] as const;

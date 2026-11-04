@@ -10,6 +10,7 @@ import {
   offerAvailability,
 } from "@/lib/tutor-workspace";
 import { accountSessionKey } from "@/lib/session";
+import { reputationApi } from "@/lib/tutor-reputation-api";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigate,
@@ -76,6 +77,15 @@ function mount() {
   return client;
 }
 beforeEach(() => {
+  vi.spyOn(reputationApi, "progression").mockResolvedValue({
+    ok: false,
+    error: {
+      kind: "http",
+      status: 503,
+      code: "UNAVAILABLE",
+      message: "Progression is unavailable.",
+    },
+  });
   vi.spyOn(api, "me").mockResolvedValue({ ok: true, status: 200, data: { user } });
   vi.spyOn(api, "tutor").mockResolvedValue({
     ok: true,
