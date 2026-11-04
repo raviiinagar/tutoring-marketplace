@@ -23,6 +23,9 @@ export async function personalExport(
   const savedTable=(await client.query("SELECT to_regclass('public.saved_tutors') AS present")).rows[0].present;
   const presenceTable=(await client.query("SELECT to_regclass('public.tutor_presence') AS present")).rows[0].present;
   const proTable=(await client.query("SELECT to_regclass('public.tutor_pro_grants') AS present")).rows[0].present;
+  const draftTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_drafts') AS present")).rows[0].present;
+  const recommendationsTable=(await client.query("SELECT to_regclass('public.tutor_recommendations') AS present")).rows[0].present;
+  const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
   const profile = (
     await rows(
       "SELECT * FROM tutor_profiles WHERE user_id=$1",
@@ -105,6 +108,9 @@ export async function personalExport(
     tutor_claims: await rows(
       "SELECT id,profile_revision,kind,subject_id,description,evidence_id,status,review_reason,reviewed_check,expires_at,created_at FROM tutor_claims WHERE user_id=$1",
     ),
+    tutor_onboarding_draft: draftTable ? (await rows("SELECT revision,step,encrypted_payload,updated_at FROM tutor_onboarding_drafts WHERE user_id=$1")).map(row => ({revision:row.revision,step:row.step,data:read(row.encrypted_payload),updated_at:row.updated_at}))[0] ?? null : null,
+    tutor_recommendations: recommendationsTable ? (await rows("SELECT id,tutor_id,relationship,encrypted_text,status,revision,created_at,updated_at FROM tutor_recommendations WHERE author_id=$1")).map(row => {const {encrypted_text,...metadata}=row;return {...metadata,text:read(encrypted_text)?.text};}) : [],
+    tutor_reputation_documents: reputationDocumentsTable ? await rows("SELECT evidence_id,profile_revision,kind,created_at FROM tutor_reputation_documents WHERE user_id=$1") : [],
     evidence: (
       await rows(
         "SELECT id,media_type,byte_length,scan_status,test_only,created_at,encrypted_payload FROM tutor_evidence WHERE user_id=$1",

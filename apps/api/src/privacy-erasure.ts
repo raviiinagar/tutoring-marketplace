@@ -423,6 +423,9 @@ export async function erasePrivacyData(
   );
   if((await client.query("SELECT to_regclass('saved_tutors') AS relation")).rows[0].relation){await client.query('SELECT public_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id]);await client.query('DELETE FROM saved_tutors WHERE owner_id=$1 OR profile_id IN (SELECT public_id FROM tutor_profiles WHERE user_id=$1)',[user.id]);}
   if((await client.query("SELECT to_regclass('tutor_presence') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_presence WHERE user_id=$1',[user.id]);
+  if((await client.query("SELECT to_regclass('tutor_onboarding_drafts') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_onboarding_drafts WHERE user_id=$1',[user.id]);
+  if((await client.query("SELECT to_regclass('tutor_recommendations') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_recommendations WHERE author_id=$1 OR tutor_id=$1',[user.id]);
+  if((await client.query("SELECT to_regclass('tutor_reputation_documents') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_reputation_documents WHERE user_id=$1',[user.id]);
   if((await client.query("SELECT to_regclass('tutor_pro_grants') AS relation")).rows[0].relation){
     await client.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[user.id]);
     await client.query("UPDATE tutor_profiles SET public_email_consent_at=NULL,public_email_consent_version=NULL,subject_ids='{}',hourly_rate_paise=NULL,identity_country=NULL,identity_document=NULL WHERE user_id=$1",[user.id]);
