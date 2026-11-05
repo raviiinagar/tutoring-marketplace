@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { api, describeFailure } from "@/lib/api";
-import { hasErrors, mergeServerFieldErrors, validateDisplayName, validateEmail, validateNewPassword, type FieldErrors } from "@/lib/validation";
+import { PASSWORD_LENGTH_GUIDANCE, hasErrors, mergeServerFieldErrors, validateDisplayName, validateEmail, validateNewPassword, type FieldErrors } from "@/lib/validation";
 import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
 
 export const Route = createFileRoute("/auth/signup")({
@@ -56,7 +56,7 @@ function SignUp() {
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field label="Your name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.display_name} maxLength={200} />
         <Field label="Email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
-        <Field label="Password" type="password" autoComplete="new-password" hint="8 to 128 characters." value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} />
+        <Field label="Password" type="password" autoComplete="new-password" hint={PASSWORD_LENGTH_GUIDANCE} value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} />
         <SubmitButton loading={loading} loadingText="Creating account…">Create account</SubmitButton>
       </form>
     </AuthShell>

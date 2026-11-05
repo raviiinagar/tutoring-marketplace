@@ -1,5 +1,9 @@
 export type FieldErrors = { display_name?: string | undefined; email?: string | undefined; password?: string | undefined };
 
+export const MIN_PASSWORD_LENGTH = 8;
+export const MAX_PASSWORD_LENGTH = 128;
+export const PASSWORD_LENGTH_GUIDANCE = `Use ${MIN_PASSWORD_LENGTH} to ${MAX_PASSWORD_LENGTH} characters.`;
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
 
@@ -22,8 +26,8 @@ export function validateEmail(raw: string): string | undefined {
 /** Passwords are never trimmed. */
 export function validateNewPassword(pw: string): string | undefined {
   if (!pw) return "Enter a password.";
-  if (pw.length < 8) return "Password must be at least 8 characters.";
-  if (pw.length > 128) return "Password must be 128 characters or fewer.";
+  if (pw.length < MIN_PASSWORD_LENGTH) return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+  if (pw.length > MAX_PASSWORD_LENGTH) return `Password must be ${MAX_PASSWORD_LENGTH} characters or fewer.`;
   return undefined;
 }
 
