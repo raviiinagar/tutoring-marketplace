@@ -544,11 +544,11 @@ main { scroll-margin-top: 90px; }
 /* Account workspace reconstructed from the observed first-account reference. */
 .reference-account { background:#f7f7f7; color:#202020; }
 .reference-account .site-header { background:white; backdrop-filter:none; border:0; }
-.reference-account .brand-wordmark { color:#ff6167; }
+.reference-account .brand-wordmark { color:#f4545b; }
 .reference-account .brand-marketplace { color:inherit; }
 .reference-account .brand-tutor::after { display:none; }
 .reference-account .header-nav-pill,.reference-account .header-search-trigger,.reference-header-icon { background:#f7f7f7; }
-.reference-account .header-search-icon { background:#ff6167; }
+.reference-account .header-search-icon { background:#f4545b; }
 .reference-header-icon { display:grid; width:44px; height:44px; place-items:center; border-radius:50%; }
 .reference-account-initial { display:grid; place-items:center; width:34px; height:34px; background:#ff6167; color:#fff; border-radius:50%; }
 .reference-workspace-bar { background:#222; color:#fff; }
