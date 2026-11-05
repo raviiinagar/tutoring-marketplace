@@ -35,7 +35,12 @@ before(async () => {
   });
   db = new Database(url);
 });
-test("an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout", async () => {
+test("an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout", async (t) => {
+  const tools = process.env.PG_RECOVERY_BIN;
+  if (!tools) {
+    t.skip("Set PG_RECOVERY_BIN to a PostgreSQL 16 bin directory containing pg_dump and pg_restore to exercise encrypted export/restore.");
+    return;
+  }
   const { createRecoveryExport, restoreRecoveryExport } =
     await import("../src/recovery.js");
   await cluster.createDatabase("source_test");
@@ -213,9 +218,7 @@ test("an authenticated encrypted export restores all data on PG16 into an empty 
       }).expect(200),
       deleteCookie = deleteLogin.headers["set-cookie"][0].split(";")[0];
     const key = randomBytes(32),
-      output = join(directory, "export.enc"),
-      tools =
-        process.env.PG_RECOVERY_BIN || resolve(".local/tools/pg16/pgsql/bin");
+      output = join(directory, "export.enc");
     const archive = await createRecoveryExport(config, {
       output,
       key,
@@ -489,7 +492,7 @@ test("an environment still under recovery cannot publish a newer-looking backup"
       createRecoveryExport(config, {
         key: randomBytes(32),
         tools:
-          process.env.PG_RECOVERY_BIN || resolve(".local/tools/pg16/pgsql/bin"),
+          process.env.PG_RECOVERY_BIN || join(directory, "tools-must-not-run-before-recovery-validation"),
         output: join(directory, "not-ready.enc"),
         environment: "test-pilot",
         release: "test-release",
@@ -522,11 +525,10 @@ test("compatible application rollback checks preserve money and reject unsupport
         [entry],
       );
     });
-    for (const file of (await readdir(resolve("apps/api/migrations"))).filter(
-      (name) => name.endsWith(".sql"),
-    )) {
+    const migrationFiles = (await readdir(resolve("apps/api/migrations"))).filter((name) => name.endsWith(".sql")).sort();
+    for (const file of migrationFiles) {
       const bytes = await readFile(resolve("apps/api/migrations", file));
-      if (!file.startsWith("028")) await writeFile(join(old, file), bytes);
+      if (file !== migrationFiles.at(-1)) await writeFile(join(old, file), bytes);
       await writeFile(join(future, file), bytes);
     }
     await assert.rejects(
@@ -535,9 +537,9 @@ test("compatible application rollback checks preserve money and reject unsupport
     );
     const compatible = await migrate(rollback, { verifyOnly: true });
     assert.equal(compatible.applied.length, 0);
-    assert.equal(compatible.verified.length, 28);
+    assert.equal(compatible.verified.length, migrationFiles.length);
     await writeFile(
-      join(future, "029-unapplied.sql"),
+      join(future, String(Number(migrationFiles.at(-1)!.split("-")[0]) + 1).padStart(3, "0") + "-unapplied.sql"),
       "CREATE TABLE rollback_should_never_exist(id integer);",
     );
     await assert.rejects(
