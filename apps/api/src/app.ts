@@ -154,6 +154,12 @@ class AccountController {
   }
   @Get("me")
   async me(@Req() request: AuthRequest) { return {user:await this.auth.account(sessionToken(request,this.config))}; }
+  @Post('me/profile')
+  @HttpCode(200)
+  profile(@Body() body: unknown,@Req() request: AuthRequest) {
+    const input=parse(RegistrationSchema.pick({display_name:true}),body);
+    return this.auth.updateProfile(sessionToken(request,this.config),input.display_name,request.correlationId);
+  }
   @Post('auth/recovery-emails')
   @HttpCode(202)
   recovery(@Body() body: unknown,@Req() request: AuthRequest) {

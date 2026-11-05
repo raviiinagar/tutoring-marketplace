@@ -167,6 +167,16 @@ export class AuthService {
   private async audit(client: PoolClient, id: string, event: string, correlation: string, metadata: Record<string,unknown>) {
     await client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),id,event,correlation,this.now(),metadata]);
   }
+  async updateProfile(token: string | undefined, displayName: string, correlation: string) {
+    return this.database.transaction(async client => {
+      const {user} = await this.authenticated(client,token);
+      if (user.display_name !== displayName) {
+        await client.query('UPDATE users SET display_name=$2 WHERE id=$1',[user.id,displayName]);
+        await this.audit(client,user.id,'ACCOUNT_PROFILE_UPDATED',correlation,{fields:['display_name']});
+      }
+      return {user:this.publicAccount({...user,display_name:displayName})};
+    });
+  }
   async changeRoles(token: string | undefined, roles: AccountRole[], correlation: string) {
     return this.database.transaction(async client => {
       const {user} = await this.authenticated(client,token); const sorted = [...roles].sort();
