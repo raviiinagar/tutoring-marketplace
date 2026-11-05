@@ -1,0 +1,33 @@
+{
+  "status": "PASSED",
+  "environment": "Isolated development stack with fictional privacy policy and captured mail; not hosted data",
+  "steps": [
+    {
+      "feature": "Registration",
+      "status": "PASS",
+      "detail": "7 rejected, 8 accepted; unverified account cannot sign in"
+    },
+    {
+      "feature": "Email verification",
+      "status": "PASS",
+      "detail": "Actual captured worker email and browser token confirmation; not SMTP deliverability"
+    },
+    {
+      "feature": "Password recovery/reset",
+      "status": "PASS",
+      "detail": "Captured link, actual 8-character reset, previous session revoked and old password denied",
+      "copyDefect": "Separate live and isolated read confirmed reset guidance says 12-128 characters, although the real 8-character reset succeeded."
+    },
+    {
+      "feature": "Private data export",
+      "status": "PASS",
+      "detail": "Password reauthentication, real worker export/download, own account and no password hash"
+    },
+    {
+      "feature": "Account deletion",
+      "status": "PASS",
+      "detail": "Explicit password/phrase; worker completion, read-only receipt survives reload, deleted account cannot sign in"
+    }
+  ],
+  "pageErrors": []
+}

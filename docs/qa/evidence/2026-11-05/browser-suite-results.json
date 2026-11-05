@@ -1,0 +1,212 @@
+{
+  "source_commit": "ad8b3257d36123847db2525d5d75ab794596dc5a",
+  "scope": "Full unchanged existing Playwright suite, Chrome, isolated development API/database/captured mail",
+  "summary": {
+    "total": 19,
+    "passed": 3,
+    "failed": 15,
+    "skipped": 1
+  },
+  "classification_counts": {
+    "STALE_UI_ASSERTION": 5,
+    "CONFIRMED_ACCESSIBILITY_DEFECT": 1,
+    "PASS": 3,
+    "STALE_AMBIGUOUS_SELECTOR": 3,
+    "STALE_NETWORK_EXPECTATION": 1,
+    "STALE_NAVIGATION_SELECTOR": 5,
+    "SKIPPED": 1
+  },
+  "tests": [
+    {
+      "name": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+      "file": "tests/browser/accessibility.spec.ts",
+      "line": 5,
+      "status": "failed",
+      "duration_ms": 16765,
+      "classification": "STALE_UI_ASSERTION",
+      "reason": "Spec expects a previous page heading or Hello greeting; intended later assertions are not reached.",
+      "error_excerpt": "Error: expect(locator).toBeVisible() failed | Locator: getByRole('heading', { name: 'Find online Tutors', exact: true }) | Expected: visible | Timeout: 5000ms | Error: element(s) not found | Call log: | - Expect \"toBeVisible\" getByRole('heading', { name: 'Find online Tutors', exact: true }) with timeout 5000ms | - waiting for getByRole('heading', { name: 'Find online Tutors', exact: true })"
+    },
+    {
+      "name": "discovery and authentication expose labelled forms, contrast and announced errors",
+      "file": "tests/browser/accessibility.spec.ts",
+      "line": 45,
+      "status": "failed",
+      "duration_ms": 28979,
+      "classification": "CONFIRMED_ACCESSIBILITY_DEFECT",
+      "reason": "Actual axe WCAG2.5.3 failure in the current public header.",
+      "error_excerpt": "Error: 1280-tutors: [{\"id\":\"label-content-name-mismatch\",\"nodes\":[[\".lg\\\\:inline-flex\"]]}] | expect(received).toEqual(expected) // deep equality | - Expected  -  1 | + Received  + 40 | - Array [] | + Array [ | +   Object { | +     \"description\": \"Ensure that elements labelled through their content must have their visible text as part of their accessible name\", | +     \"help\": \"Elements must have their visible text as part of their accessible name\", | +     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright\", | +     \"id\": \"label-content-na"
+    },
+    {
+      "name": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+      "file": "tests/browser/accessibility.spec.ts",
+      "line": 69,
+      "status": "failed",
+      "duration_ms": 12606,
+      "classification": "STALE_UI_ASSERTION",
+      "reason": "Spec expects a previous page heading or Hello greeting; intended later assertions are not reached.",
+      "error_excerpt": "Error: expect(locator).toBeVisible() failed | Locator: getByRole('heading', { name: 'Tutor onboarding', exact: true }) | Expected: visible | Timeout: 5000ms | Error: element(s) not found | Call log: | - Expect \"toBeVisible\" getByRole('heading', { name: 'Tutor onboarding', exact: true }) with timeout 5000ms | - waiting for getByRole('heading', { name: 'Tutor onboarding', exact: true })"
+    },
+    {
+      "name": "form boundaries and keyboard focus stay visible against the input surface",
+      "file": "tests/browser/accessibility.spec.ts",
+      "line": 154,
+      "status": "passed",
+      "duration_ms": 2013,
+      "classification": "PASS",
+      "reason": "",
+      "error_excerpt": ""
+    },
+    {
+      "name": "client-side form errors announce themselves and describe each invalid input",
+      "file": "tests/browser/accessibility.spec.ts",
+      "line": 202,
+      "status": "passed",
+      "duration_ms": 1800,
+      "classification": "PASS",
+      "reason": "",
+      "error_excerpt": ""
+    },
+    {
+      "name": "Lovable account journey from http://localhost:3100",
+      "file": "tests/browser/account.spec.ts",
+      "line": 4,
+      "status": "failed",
+      "duration_ms": 2562,
+      "classification": "STALE_AMBIGUOUS_SELECTOR",
+      "reason": "Non-exact password label matches both the input and its Show-password control.",
+      "error_excerpt": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements: | 1) <input value=\"\" id=\"_R_2ej2q_\" type=\"password\" class=\"input pr-14\" autocomplete=\"new-password\" aria-describedby=\"_R_2ej2q_-hint\" data-tsd-source=\"/src/routes/auth.signup.tsx:59:9\"/> aka getByRole('textbox', { name: 'Password' }) | 2) <button type=\"button\" aria-pressed=\"false\" aria-controls=\"_R_2ej2q_\" aria-label=\"Show password\" data-tsd-source=\"/src/components/account/ui.tsx:501:11\" class=\"absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-lg text-muted-foreground "
+    },
+    {
+      "name": "Lovable account journey from http://127.0.0.1:3100",
+      "file": "tests/browser/account.spec.ts",
+      "line": 4,
+      "status": "failed",
+      "duration_ms": 2983,
+      "classification": "STALE_AMBIGUOUS_SELECTOR",
+      "reason": "Non-exact password label matches both the input and its Show-password control.",
+      "error_excerpt": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements: | 1) <input value=\"\" id=\"_R_2ej2q_\" type=\"password\" class=\"input pr-14\" autocomplete=\"new-password\" aria-describedby=\"_R_2ej2q_-hint\" data-tsd-source=\"/src/routes/auth.signup.tsx:59:9\"/> aka getByRole('textbox', { name: 'Password' }) | 2) <button type=\"button\" aria-pressed=\"false\" aria-controls=\"_R_2ej2q_\" aria-label=\"Show password\" data-tsd-source=\"/src/components/account/ui.tsx:501:11\" class=\"absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-lg text-muted-foreground "
+    },
+    {
+      "name": "mobile empty search confirms optional adult availability consent and unsubscribes using captured email",
+      "file": "tests/browser/availability.spec.ts",
+      "line": 2,
+      "status": "timedOut",
+      "duration_ms": 120150,
+      "classification": "STALE_NETWORK_EXPECTATION",
+      "reason": "Spec waits for old GET /v1/discovery; current search uses POST /v1/discovery/searches.",
+      "error_excerpt": "Test timeout of 120000ms exceeded."
+    },
+    {
+      "name": "public catalogue aliases and Trust maintenance stay consistent",
+      "file": "tests/browser/catalogue.spec.ts",
+      "line": 10,
+      "status": "timedOut",
+      "duration_ms": 180725,
+      "classification": "STALE_NAVIGATION_SELECTOR",
+      "reason": "After sign-in, spec waits for Open staff console on the old dashboard; current account navigation differs. Later privileged operations are not reached.",
+      "error_excerpt": "Test timeout of 180000ms exceeded."
+    },
+    {
+      "name": "mobile public search has honest empty results across eight families and unavailable detail",
+      "file": "tests/browser/discovery.spec.ts",
+      "line": 2,
+      "status": "failed",
+      "duration_ms": 20805,
+      "classification": "STALE_UI_ASSERTION",
+      "reason": "Spec expects a previous page heading or Hello greeting; intended later assertions are not reached.",
+      "error_excerpt": "Error: expect(locator).toBeVisible() failed | Locator: getByRole('heading', { name: 'Find online Tutors', exact: true }) | Expected: visible | Timeout: 20000ms | Error: element(s) not found | Call log: | - Expect \"toBeVisible\" getByRole('heading', { name: 'Find online Tutors', exact: true }) with timeout 20000ms | - waiting for getByRole('heading', { name: 'Find online Tutors', exact: true })"
+    },
+    {
+      "name": "private adult profile and fictional Guardian approval, child consent withdrawal and revocation",
+      "file": "tests/browser/learners.spec.ts",
+      "line": 14,
+      "status": "failed",
+      "duration_ms": 14049,
+      "classification": "STALE_UI_ASSERTION",
+      "reason": "Spec expects a previous page heading or Hello greeting; intended later assertions are not reached.",
+      "error_excerpt": "Error: expect(locator).toBeVisible() failed | Locator: getByRole('heading', { name: 'Hello, Fictional adult', exact: true }) | Expected: visible | Timeout: 5000ms | Error: element(s) not found | Call log: | - Expect \"toBeVisible\" getByRole('heading', { name: 'Hello, Fictional adult', exact: true }) with timeout 5000ms | - waiting for getByRole('heading', { name: 'Hello, Fictional adult', exact: true })"
+    },
+    {
+      "name": "built public journeys meet the adopted mobile lab LCP profile",
+      "file": "tests/browser/mobile-performance.spec.ts",
+      "line": 5,
+      "status": "skipped",
+      "duration_ms": 5,
+      "classification": "SKIPPED",
+      "reason": "",
+      "error_excerpt": ""
+    },
+    {
+      "name": "operations console records scoped health, pauses checkout and keeps mobile recovery controls private",
+      "file": "tests/browser/operations.spec.ts",
+      "line": 59,
+      "status": "failed",
+      "duration_ms": 14746,
+      "classification": "STALE_AMBIGUOUS_SELECTOR",
+      "reason": "Non-exact password label matches both the input and its Show-password control.",
+      "error_excerpt": "Error: locator.fill: Error: strict mode violation: getByLabel('Account password') resolved to 2 elements: | 1) <input value=\"\" id=\"_r_0_\" type=\"password\" class=\"input pr-14\" autocomplete=\"current-password\" data-tsd-source=\"/src/routes/staff.tsx:254:17\"/> aka getByRole('textbox', { name: 'Account password' }) | 2) <button type=\"button\" aria-pressed=\"false\" aria-controls=\"_r_0_\" aria-label=\"Show account password\" data-tsd-source=\"/src/components/account/ui.tsx:501:11\" class=\"absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-lg text-muted-foreground hover:text-foregro"
+    },
+    {
+      "name": "mobile Access Pass page shows the real server price and keeps unconfigured payments disabled",
+      "file": "tests/browser/payments.spec.ts",
+      "line": 2,
+      "status": "timedOut",
+      "duration_ms": 121442,
+      "classification": "STALE_NAVIGATION_SELECTOR",
+      "reason": "Spec waits for removed Access Pass payment link on dashboard. Current access tools are collapsed with a different destination label.",
+      "error_excerpt": "Test timeout of 120000ms exceeded."
+    },
+    {
+      "name": "verified export and deletion complete with a read-only receipt on mobile",
+      "file": "tests/browser/privacy.spec.ts",
+      "line": 38,
+      "status": "failed",
+      "duration_ms": 40370,
+      "classification": "STALE_NAVIGATION_SELECTOR",
+      "reason": "Spec expects a previous dashboard link; intended workflow is not reached.",
+      "error_excerpt": "TimeoutError: locator.click: Timeout 20000ms exceeded. | Call log: | - waiting for getByRole('link', { name: 'Your data and privacy', exact: true })"
+    },
+    {
+      "name": "served indexing documents block development crawlers and exclude private pages",
+      "file": "tests/browser/public-indexing.spec.ts",
+      "line": 3,
+      "status": "passed",
+      "duration_ms": 625,
+      "classification": "PASS",
+      "reason": "",
+      "error_excerpt": ""
+    },
+    {
+      "name": "staff MFA enrollment, scoped console, audit and authenticator recovery",
+      "file": "tests/browser/staff.spec.ts",
+      "line": 10,
+      "status": "timedOut",
+      "duration_ms": 150958,
+      "classification": "STALE_NAVIGATION_SELECTOR",
+      "reason": "After sign-in, spec waits for Open staff console on the old dashboard; current account navigation differs. Later privileged operations are not reached.",
+      "error_excerpt": "Test timeout of 150000ms exceeded."
+    },
+    {
+      "name": "owner and scoped staff exchange a support case while private notes stay staff-only",
+      "file": "tests/browser/support.spec.ts",
+      "line": 38,
+      "status": "failed",
+      "duration_ms": 30700,
+      "classification": "STALE_NAVIGATION_SELECTOR",
+      "reason": "Spec expects a previous dashboard link; intended workflow is not reached.",
+      "error_excerpt": "TimeoutError: locator.click: Timeout 20000ms exceeded. | Call log: | - waiting for getByRole('link', { name: 'Support cases and appeals', exact: true })"
+    },
+    {
+      "name": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+      "file": "tests/browser/tutors.spec.ts",
+      "line": 16,
+      "status": "failed",
+      "duration_ms": 15141,
+      "classification": "STALE_UI_ASSERTION",
+      "reason": "Spec expects a previous page heading or Hello greeting; intended later assertions are not reached.",
+      "error_excerpt": "Error: expect(locator).toBeVisible() failed | Locator: getByRole('heading', { name: 'Hello, Fictional adult', exact: true }) | Expected: visible | Timeout: 5000ms | Error: element(s) not found | Call log: | - Expect \"toBeVisible\" getByRole('heading', { name: 'Hello, Fictional adult', exact: true }) with timeout 5000ms | - waiting for getByRole('heading', { name: 'Hello, Fictional adult', exact: true })"
+    }
+  ],
+  "boundary": "No real account or external payment. Stale selectors do not validate later workflow assertions. Mobile performance requires a separate built-profile run and was skipped."
+}

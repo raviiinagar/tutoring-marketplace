@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-05",
+  "source_commit": "ad8b3257d36123847db2525d5d75ab794596dc5a",
+  "ui": {
+    "tests": 193,
+    "pass": 193,
+    "fail": 0,
+    "skip": 0,
+    "files": 40
+  },
+  "api": {
+    "tests": 235,
+    "pass": 104,
+    "fail": 131,
+    "skip": 0,
+    "files": 37
+  },
+  "legacy_browser": {
+    "tests": 19,
+    "pass": 3,
+    "fail": 15,
+    "skip": 1
+  },
+  "live": {
+    "static_routes": 43,
+    "api_checks": 13,
+    "responsive_page_checks": 42,
+    "widths": [
+      1440,
+      390,
+      320
+    ]
+  },
+  "live_accessibility": {
+    "scans": 12,
+    "affected_scan_combinations": 7,
+    "unique_rule": "label-content-name-mismatch"
+  },
+  "builds": {
+    "contracts": "PASS",
+    "api": "PASS",
+    "cloudflare": "PASS",
+    "project_typecheck": "PASS"
+  },
+  "supplemental_workflows": [
+    "workflow-results.json",
+    "auth-privacy-results.json",
+    "discovery-saved-results.json",
+    "account/browser-results.json",
+    "recovery-supplemental.json"
+  ],
+  "report_local_links_valid": true,
+  "application_changes_deployed": false,
+  "hosted_authenticated_writes": false
+}

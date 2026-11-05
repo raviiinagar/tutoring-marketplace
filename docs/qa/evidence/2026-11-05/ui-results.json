@@ -1,0 +1,1061 @@
+{
+  "date": "2026-11-05",
+  "source_commit": "ad8b3257d36123847db2525d5d75ab794596dc5a",
+  "ui_suite": {
+    "command": "npm run test -- --reporter=json --outputFile=<ignored ui-vitest.json>",
+    "status": "PASSED",
+    "test_files": 40,
+    "reported_suites": 43,
+    "tests": 193,
+    "passed": 193,
+    "failed": 0,
+    "skipped": 0,
+    "failures": []
+  },
+  "typecheck": {
+    "command": "npm run typecheck (lovable-ui)",
+    "status": "PASSED",
+    "exit_code": 0
+  },
+  "executed_files": [
+    {
+      "file": "lovable-ui/src/test/account-settings-reference.test.tsx",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/account.test.ts",
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/admin-team.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/admin.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/app-routing.test.tsx",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/chat-subscription.test.ts",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/classes.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/connections-reference.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/contact-flow.test.tsx",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/coupons.test.tsx",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/direct-tutor-ads.test.tsx",
+      "tests": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/discovery-filter-state.test.ts",
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/homepage-discovery.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/learner-dashboard.test.tsx",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/marketplace-metrics.test.tsx",
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/notifications.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/operations.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/password-field.test.tsx",
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/payments.test.tsx",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/privacy.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/public-traffic.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/refunds.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/request-alternatives.test.tsx",
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/request-deadlines.test.tsx",
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/reviews.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/saved-tutors.test.tsx",
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/share-tutor.test.tsx",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/site-header.test.tsx",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/subject-categories.test.tsx",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/support.test.tsx",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/teacher-search.test.tsx",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/traffic.test.ts",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-introduction-wizard.test.tsx",
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-onboarding.test.tsx",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-presence.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-profile.test.tsx",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-reputation.test.tsx",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-search-filters.test.tsx",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-shell-reference.test.tsx",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": "lovable-ui/src/test/tutor-workspace.test.tsx",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "route_inventory": [
+    {
+      "route": "/account",
+      "source": "lovable-ui/src/routes/account.tsx",
+      "area": "Account",
+      "feature": "Default learner dashboard and contextual tools",
+      "related_ui_tests": [
+        "learner-dashboard",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/account/settings",
+      "source": "lovable-ui/src/routes/account_.settings.tsx",
+      "area": "Account",
+      "feature": "Account name, notifications, optional Tutor links, roles, security and sessions",
+      "related_ui_tests": [
+        "account-settings-reference",
+        "learner-dashboard",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/check-email",
+      "source": "lovable-ui/src/routes/auth.check-email.tsx",
+      "area": "Authentication",
+      "feature": "Verification message guidance and safe resend",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/forgot-password",
+      "source": "lovable-ui/src/routes/auth.forgot-password.tsx",
+      "area": "Authentication",
+      "feature": "Nonenumerating recovery email request",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/reset-password",
+      "source": "lovable-ui/src/routes/auth.reset-password.tsx",
+      "area": "Authentication",
+      "feature": "Reset token, new password and session revocation",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/signin",
+      "source": "lovable-ui/src/routes/auth.signin.tsx",
+      "area": "Authentication",
+      "feature": "Verified email/password sign-in and return routing",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/signup",
+      "source": "lovable-ui/src/routes/auth.signup.tsx",
+      "area": "Authentication",
+      "feature": "Account registration and email verification request",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/auth/verify",
+      "source": "lovable-ui/src/routes/auth.verify.tsx",
+      "area": "Authentication",
+      "feature": "Email-token verification",
+      "related_ui_tests": [
+        "account",
+        "password-field",
+        "site-header"
+      ],
+      "related_existing_browser_specs": [
+        "account",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/availability/$action",
+      "source": "lovable-ui/src/routes/availability.$action.tsx",
+      "area": "Availability",
+      "feature": "Email-token confirmation and unsubscribe",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "availability"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/chat/$connectionId",
+      "source": "lovable-ui/src/routes/chat.$connectionId.tsx",
+      "area": "Messaging",
+      "feature": "Durable private text chat, unread/subscription/reconnect",
+      "related_ui_tests": [
+        "chat-subscription",
+        "app-routing"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/connections",
+      "source": "lovable-ui/src/routes/connections.tsx",
+      "area": "Messaging",
+      "feature": "Contact list, search, honest empty state and chat navigation",
+      "related_ui_tests": [
+        "connections-reference"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/connections/$connectionId",
+      "source": "lovable-ui/src/routes/connections_.$connectionId.tsx",
+      "area": "Messaging",
+      "feature": "Connection authorization, permitted contacts and class invitations",
+      "related_ui_tests": [
+        "classes"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/dev/inbox",
+      "source": "lovable-ui/src/routes/dev.inbox.tsx",
+      "area": "Development only",
+      "feature": "Captured local mail inbox, unavailable as a production email service",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "account",
+        "learners",
+        "staff",
+        "support",
+        "privacy",
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/",
+      "source": "lovable-ui/src/routes/index.tsx",
+      "area": "Public",
+      "feature": "Homepage, subject shortcuts, location links and teacher search",
+      "related_ui_tests": [
+        "homepage-discovery",
+        "teacher-search",
+        "subject-categories",
+        "site-header",
+        "public-traffic"
+      ],
+      "related_existing_browser_specs": [
+        "discovery",
+        "accessibility",
+        "mobile-performance"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/learn/$domain/$subject",
+      "source": "lovable-ui/src/routes/learn.$domain.$subject.tsx",
+      "area": "Public",
+      "feature": "Catalogue subject landing page and search results",
+      "related_ui_tests": [
+        "subject-categories",
+        "homepage-discovery"
+      ],
+      "related_existing_browser_specs": [
+        "catalogue",
+        "public-indexing"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/learners",
+      "source": "lovable-ui/src/routes/learners.tsx",
+      "area": "Learners",
+      "feature": "Adult Learner and Guardian-controlled child profiles, consent and verification",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "learners"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/notifications",
+      "source": "lovable-ui/src/routes/notifications.tsx",
+      "area": "Account",
+      "feature": "Notification history and preference saving",
+      "related_ui_tests": [
+        "notifications"
+      ],
+      "related_existing_browser_specs": [
+        "account"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/payments",
+      "source": "lovable-ui/src/routes/payments.tsx",
+      "area": "Payments",
+      "feature": "Access checkout, one-time purchase and coupon flow",
+      "related_ui_tests": [
+        "payments",
+        "coupons",
+        "refunds"
+      ],
+      "related_existing_browser_specs": [
+        "payments",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/payments/history",
+      "source": "lovable-ui/src/routes/payments_.history.tsx",
+      "area": "Payments",
+      "feature": "Real purchase/refund history and receipt access",
+      "related_ui_tests": [
+        "payments",
+        "refunds"
+      ],
+      "related_existing_browser_specs": [
+        "payments"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/privacy",
+      "source": "lovable-ui/src/routes/privacy.tsx",
+      "area": "Privacy",
+      "feature": "Verified export, deletion, receipt and consent controls",
+      "related_ui_tests": [
+        "privacy"
+      ],
+      "related_existing_browser_specs": [
+        "privacy",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/profiles/$profileId",
+      "source": "lovable-ui/src/routes/profiles_.$profileId.tsx",
+      "area": "Public",
+      "feature": "Published Tutor introduction, photo, declared skills and optional verification",
+      "related_ui_tests": [
+        "saved-tutors",
+        "tutor-profile",
+        "tutor-reputation"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/recommendations/$profileId",
+      "source": "lovable-ui/src/routes/recommendations_.$profileId.tsx",
+      "area": "Reputation",
+      "feature": "Authenticated nonself recommendations, consent and withdrawal",
+      "related_ui_tests": [
+        "tutor-reputation"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/requests",
+      "source": "lovable-ui/src/routes/requests.tsx",
+      "area": "Enquiries",
+      "feature": "Outgoing Contact Requests, deadline/retry/alternative actions",
+      "related_ui_tests": [
+        "request-deadlines",
+        "request-alternatives",
+        "contact-flow"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/reviews",
+      "source": "lovable-ui/src/routes/reviews.tsx",
+      "area": "Reviews",
+      "feature": "Own feedback history and moderation outcomes",
+      "related_ui_tests": [
+        "reviews"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/reviews/$connectionId",
+      "source": "lovable-ui/src/routes/reviews_.$connectionId.tsx",
+      "area": "Reviews",
+      "feature": "Connection-linked review eligibility and submission",
+      "related_ui_tests": [
+        "reviews"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/robots.txt",
+      "source": "lovable-ui/src/routes/robots[.]txt.ts",
+      "area": "Public",
+      "feature": "Crawler policy document",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "public-indexing"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/safety",
+      "source": "lovable-ui/src/routes/safety.tsx",
+      "area": "Safety",
+      "feature": "Own reports and blocks overview",
+      "related_ui_tests": [
+        "app-routing"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/safety/$kind/$targetId",
+      "source": "lovable-ui/src/routes/safety_.$kind.$targetId.tsx",
+      "area": "Safety",
+      "feature": "Targeted report/block actions",
+      "related_ui_tests": [
+        "app-routing"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/saved-tutors",
+      "source": "lovable-ui/src/routes/saved-tutors.tsx",
+      "area": "Account",
+      "feature": "Private saved Tutor shortlist",
+      "related_ui_tests": [
+        "saved-tutors"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/sitemap.xml",
+      "source": "lovable-ui/src/routes/sitemap[.]xml.ts",
+      "area": "Public",
+      "feature": "Public URL sitemap document",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "public-indexing"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff",
+      "source": "lovable-ui/src/routes/staff.tsx",
+      "area": "Administration",
+      "feature": "Staff authentication, MFA/test exception, scopes, dashboards and review workspace",
+      "related_ui_tests": [
+        "admin",
+        "admin-team"
+      ],
+      "related_existing_browser_specs": [
+        "staff",
+        "operations"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/admins",
+      "source": "lovable-ui/src/routes/staff_.admins.tsx",
+      "area": "Administration",
+      "feature": "Single Super Admin delegation and revocation",
+      "related_ui_tests": [
+        "admin-team"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/catalogue",
+      "source": "lovable-ui/src/routes/staff_.catalogue.tsx",
+      "area": "Administration",
+      "feature": "Catalogue term/alias maintenance",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "catalogue"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/finance",
+      "source": "lovable-ui/src/routes/staff_.finance.tsx",
+      "area": "Administration",
+      "feature": "Coupons, reconciliation, refunds and financial cases",
+      "related_ui_tests": [
+        "coupons",
+        "refunds"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/guardians",
+      "source": "lovable-ui/src/routes/staff_.guardians.tsx",
+      "area": "Administration",
+      "feature": "Private Guardian evidence inspection and decisions",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "learners"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/listings",
+      "source": "lovable-ui/src/routes/staff_.listings.tsx",
+      "area": "Administration",
+      "feature": "Legacy listing reviews and safety restrictions",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/metrics",
+      "source": "lovable-ui/src/routes/staff_.metrics.tsx",
+      "area": "Administration",
+      "feature": "Marketplace funnel and matching metrics",
+      "related_ui_tests": [
+        "marketplace-metrics"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/notifications",
+      "source": "lovable-ui/src/routes/staff_.notifications.tsx",
+      "area": "Administration",
+      "feature": "Notification queue, retry and provider confirmation",
+      "related_ui_tests": [
+        "notifications"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/operations",
+      "source": "lovable-ui/src/routes/staff_.operations.tsx",
+      "area": "Administration",
+      "feature": "Health, checkout controls, job recovery and incidents",
+      "related_ui_tests": [
+        "operations"
+      ],
+      "related_existing_browser_specs": [
+        "operations"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/photos",
+      "source": "lovable-ui/src/routes/staff_.photos.tsx",
+      "area": "Administration",
+      "feature": "Tutor portrait inspection and real moderation",
+      "related_ui_tests": [],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/privacy",
+      "source": "lovable-ui/src/routes/staff_.privacy.tsx",
+      "area": "Administration",
+      "feature": "Privacy request verification and processing",
+      "related_ui_tests": [
+        "privacy"
+      ],
+      "related_existing_browser_specs": [
+        "privacy"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/recommendations",
+      "source": "lovable-ui/src/routes/staff_.recommendations.tsx",
+      "area": "Administration",
+      "feature": "Recommendation moderation and badge recalculation",
+      "related_ui_tests": [
+        "tutor-reputation"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/reviews",
+      "source": "lovable-ui/src/routes/staff_.reviews.tsx",
+      "area": "Administration",
+      "feature": "Review moderation, reasons and appeal outcomes",
+      "related_ui_tests": [
+        "reviews"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/safety",
+      "source": "lovable-ui/src/routes/staff_.safety.tsx",
+      "area": "Administration",
+      "feature": "Safety cases, account/listing/connection restrictions",
+      "related_ui_tests": [
+        "app-routing"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/support",
+      "source": "lovable-ui/src/routes/staff_.support.tsx",
+      "area": "Administration",
+      "feature": "Support queue, scoped replies and private notes",
+      "related_ui_tests": [
+        "support"
+      ],
+      "related_existing_browser_specs": [
+        "support"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/staff/tutors",
+      "source": "lovable-ui/src/routes/staff_.tutors.tsx",
+      "area": "Administration",
+      "feature": "Optional identity review, private evidence and publication restrictions",
+      "related_ui_tests": [
+        "tutor-onboarding"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/support",
+      "source": "lovable-ui/src/routes/support.tsx",
+      "area": "Support",
+      "feature": "Case creation, status, messages and appeals",
+      "related_ui_tests": [
+        "support"
+      ],
+      "related_existing_browser_specs": [
+        "support",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/teachers/$slug",
+      "source": "lovable-ui/src/routes/teachers.$slug.tsx",
+      "area": "Public",
+      "feature": "Canonical public teacher profile and listing detail",
+      "related_ui_tests": [
+        "tutor-profile",
+        "share-tutor",
+        "contact-flow",
+        "saved-tutors"
+      ],
+      "related_existing_browser_specs": [
+        "tutors",
+        "public-indexing"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutor",
+      "source": "lovable-ui/src/routes/tutor.tsx",
+      "area": "Tutor",
+      "feature": "Private introduction draft, onboarding, optional ID, portrait and presence",
+      "related_ui_tests": [
+        "tutor-introduction-wizard",
+        "tutor-onboarding",
+        "tutor-presence",
+        "tutor-shell-reference"
+      ],
+      "related_existing_browser_specs": [
+        "tutors",
+        "accessibility"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutor/dashboard",
+      "source": "lovable-ui/src/routes/tutor_.dashboard.tsx",
+      "area": "Tutor",
+      "feature": "Tutor workspace overview and current publication facts",
+      "related_ui_tests": [
+        "tutor-workspace",
+        "tutor-shell-reference"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutor/evaluations",
+      "source": "lovable-ui/src/routes/tutor_.evaluations.tsx",
+      "area": "Tutor",
+      "feature": "Recommendations, diploma progress and conservative badge eligibility",
+      "related_ui_tests": [
+        "tutor-reputation",
+        "tutor-shell-reference"
+      ],
+      "related_existing_browser_specs": [],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutor/listings",
+      "source": "lovable-ui/src/routes/tutor_.listings.tsx",
+      "area": "Tutor",
+      "feature": "Free ad drafts/publication, immediate edits, pause/resume/archive",
+      "related_ui_tests": [
+        "direct-tutor-ads",
+        "tutor-workspace",
+        "tutor-shell-reference"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutor/requests",
+      "source": "lovable-ui/src/routes/tutor_.requests.tsx",
+      "area": "Tutor",
+      "feature": "Incoming requests, acceptance and decline",
+      "related_ui_tests": [
+        "contact-flow",
+        "tutor-workspace",
+        "tutor-shell-reference"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutors",
+      "source": "lovable-ui/src/routes/tutors.tsx",
+      "area": "Public",
+      "feature": "Tutor search, subject/location choice, filters, sorting and availability",
+      "related_ui_tests": [
+        "teacher-search",
+        "tutor-search-filters",
+        "discovery-filter-state",
+        "saved-tutors"
+      ],
+      "related_existing_browser_specs": [
+        "discovery",
+        "accessibility",
+        "mobile-performance"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    },
+    {
+      "route": "/tutors/$listingId",
+      "source": "lovable-ui/src/routes/tutors_.$listingId.tsx",
+      "area": "Public",
+      "feature": "Legacy listing URL redirect to canonical teacher profile",
+      "related_ui_tests": [
+        "tutor-profile"
+      ],
+      "related_existing_browser_specs": [
+        "tutors"
+      ],
+      "coverage_note": "Related component/API-adapter tests are not proof of a completed real browser workflow; browser execution is reported separately."
+    }
+  ],
+  "route_count": 55,
+  "limitations": [
+    "Vitest component tests mostly use mocked API results and jsdom; no real payment or production email delivery is established by them.",
+    "Route inventory is exhaustive for createFileRoute declarations in this revision, excluding the root layout which is not a separate page.",
+    "Related test mapping is static source analysis, not a statement that every listed workflow passed in a browser.",
+    "Current ADR0014 supersedes older mandatory identity/Pro/manual ad-review behavior.",
+    "Existing browser-suite execution and failures are reported separately."
+  ]
+}

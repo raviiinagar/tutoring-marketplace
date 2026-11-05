@@ -1,0 +1,811 @@
+{
+  "asOf": "2026-11-05T02:45:57.851Z",
+  "origin": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+  "staticRouteCount": 43,
+  "http": [
+    {
+      "route": "/account",
+      "status": 200,
+      "ms": 706,
+      "title": "Your dashboard — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/account/settings",
+      "status": 200,
+      "ms": 179,
+      "title": "Account settings — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/check-email",
+      "status": 200,
+      "ms": 210,
+      "title": "Check your email — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/forgot-password",
+      "status": 200,
+      "ms": 175,
+      "title": "Reset password — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/reset-password",
+      "status": 200,
+      "ms": 170,
+      "title": "Choose a new password — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/signin",
+      "status": 200,
+      "ms": 148,
+      "title": "Sign in — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/signup",
+      "status": 200,
+      "ms": 134,
+      "title": "Create account — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/auth/verify",
+      "status": 200,
+      "ms": 146,
+      "title": "Verify email — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/connections",
+      "status": 200,
+      "ms": 170,
+      "title": "Your Connections — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/dev/inbox",
+      "status": 200,
+      "ms": 136,
+      "title": "Local email inbox",
+      "serverError": false
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "ms": 1280,
+      "title": "Find your next teacher | Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/learners",
+      "status": 200,
+      "ms": 147,
+      "title": "Learner profiles — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/notifications",
+      "status": 200,
+      "ms": 157,
+      "title": "Notifications — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/payments",
+      "status": 200,
+      "ms": 125,
+      "title": "Access Pass payment — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/payments/history",
+      "status": 200,
+      "ms": 124,
+      "title": "Payment history — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/privacy",
+      "status": 200,
+      "ms": 151,
+      "title": "Your data and privacy | Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/requests",
+      "status": 200,
+      "ms": 203,
+      "title": "Your Contact Requests — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/reviews",
+      "status": 200,
+      "ms": 118,
+      "title": "My reviews — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/safety",
+      "status": 200,
+      "ms": 182,
+      "title": "Safety and reports — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/saved-tutors",
+      "status": 200,
+      "ms": 167,
+      "title": "Saved Tutors — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff",
+      "status": 200,
+      "ms": 158,
+      "title": "Staff console — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/admins",
+      "status": 200,
+      "ms": 139,
+      "title": "Manage admins — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/catalogue",
+      "status": 200,
+      "ms": 136,
+      "title": "Catalogue administration — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/finance",
+      "status": 200,
+      "ms": 151,
+      "title": "Finance operations — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/guardians",
+      "status": 200,
+      "ms": 128,
+      "title": "Guardian reviews — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/listings",
+      "status": 200,
+      "ms": 149,
+      "title": "Listing review — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/metrics",
+      "status": 200,
+      "ms": 149,
+      "title": "Marketplace value | Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/notifications",
+      "status": 200,
+      "ms": 138,
+      "title": "Notification delivery — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/operations",
+      "status": 200,
+      "ms": 201,
+      "title": "Operations and safe recovery | Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/photos",
+      "status": 200,
+      "ms": 145,
+      "title": "Tutor photo review — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/privacy",
+      "status": 200,
+      "ms": 137,
+      "title": "Privacy operations | Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/recommendations",
+      "status": 200,
+      "ms": 129,
+      "title": "Recommendation moderation — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/reviews",
+      "status": 200,
+      "ms": 142,
+      "title": "Review moderation — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/safety",
+      "status": 200,
+      "ms": 133,
+      "title": "Safety investigations — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/support",
+      "status": 200,
+      "ms": 141,
+      "title": "Support case workspace — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/staff/tutors",
+      "status": 200,
+      "ms": 128,
+      "title": "Tutor evidence review — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/support",
+      "status": 200,
+      "ms": 166,
+      "title": "Support and appeals — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutor",
+      "status": 200,
+      "ms": 154,
+      "title": "Tutor onboarding — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutors",
+      "status": 200,
+      "ms": 196,
+      "title": "Find your next Tutor — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutor/dashboard",
+      "status": 200,
+      "ms": 147,
+      "title": "Tutor dashboard — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutor/evaluations",
+      "status": 200,
+      "ms": 154,
+      "title": "Your evaluations — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutor/listings",
+      "status": 200,
+      "ms": 145,
+      "title": "Teaching offers — Tutor Marketplace",
+      "serverError": false
+    },
+    {
+      "route": "/tutor/requests",
+      "status": 200,
+      "ms": 133,
+      "title": "Tutor enquiries — Tutor Marketplace",
+      "serverError": false
+    }
+  ],
+  "apis": [
+    {
+      "path": "/v1/health",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/v1/catalogue",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/v1/tutor-policy",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/v1/tutor-profiles",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/v1/discovery",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/v1/me",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/me/tutor",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/me/listings",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/me/connections",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/me/contact-requests",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/me/notification-preferences",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/v1/staff/tutors",
+      "status": 401,
+      "expected": 401,
+      "pass": true
+    },
+    {
+      "path": "/dev/mail",
+      "status": 404,
+      "expected": 404,
+      "pass": true
+    }
+  ],
+  "browser": [
+    {
+      "width": 1440,
+      "route": "/",
+      "status": 200,
+      "finalPath": "/",
+      "ms": 1754,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/tutors",
+      "status": 200,
+      "finalPath": "/tutors",
+      "ms": 1056,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signin",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 1097,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signup",
+      "status": 200,
+      "finalPath": "/auth/signup",
+      "ms": 1127,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/forgot-password",
+      "status": 200,
+      "finalPath": "/auth/forgot-password",
+      "ms": 887,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/check-email",
+      "status": 200,
+      "finalPath": "/auth/check-email",
+      "ms": 853,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/account",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 869,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/tutor",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 864,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/account/settings",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 878,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/connections",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 913,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/payments",
+      "status": 200,
+      "finalPath": "/payments",
+      "ms": 856,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/privacy",
+      "status": 200,
+      "finalPath": "/privacy",
+      "ms": 845,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/support",
+      "status": 200,
+      "finalPath": "/support",
+      "ms": 853,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "route": "/staff",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 1766,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "status": 200,
+      "finalPath": "/",
+      "ms": 2736,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/tutors",
+      "status": 200,
+      "finalPath": "/tutors",
+      "ms": 916,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/signin",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 1227,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/signup",
+      "status": 200,
+      "finalPath": "/auth/signup",
+      "ms": 891,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/forgot-password",
+      "status": 200,
+      "finalPath": "/auth/forgot-password",
+      "ms": 906,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/check-email",
+      "status": 200,
+      "finalPath": "/auth/check-email",
+      "ms": 904,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/account",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 903,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/tutor",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 910,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/account/settings",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 897,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/connections",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 899,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/payments",
+      "status": 200,
+      "finalPath": "/payments",
+      "ms": 924,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/privacy",
+      "status": 200,
+      "finalPath": "/privacy",
+      "ms": 1100,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/support",
+      "status": 200,
+      "finalPath": "/support",
+      "ms": 899,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "route": "/staff",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 943,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/",
+      "status": 200,
+      "finalPath": "/",
+      "ms": 2510,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/tutors",
+      "status": 200,
+      "finalPath": "/tutors",
+      "ms": 930,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/auth/signin",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 934,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/auth/signup",
+      "status": 200,
+      "finalPath": "/auth/signup",
+      "ms": 906,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/auth/forgot-password",
+      "status": 200,
+      "finalPath": "/auth/forgot-password",
+      "ms": 870,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/auth/check-email",
+      "status": 200,
+      "finalPath": "/auth/check-email",
+      "ms": 906,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/account",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 910,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/tutor",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 939,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/account/settings",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 945,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/connections",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 879,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/payments",
+      "status": 200,
+      "finalPath": "/payments",
+      "ms": 854,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/privacy",
+      "status": 200,
+      "finalPath": "/privacy",
+      "ms": 858,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/support",
+      "status": 200,
+      "finalPath": "/support",
+      "ms": 844,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "route": "/staff",
+      "status": 200,
+      "finalPath": "/auth/signin",
+      "ms": 855,
+      "noOverflow": true,
+      "brokenImages": [],
+      "pageErrors": []
+    }
+  ],
+  "boundary": "Actual live anonymous browser/HTTP requests only. No authenticated writes, real payments, emails, moderation or destructive operations."
+}

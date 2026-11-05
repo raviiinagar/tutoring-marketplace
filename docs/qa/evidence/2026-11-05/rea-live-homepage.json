@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-05",
+  "operation": "capture_web_screenshot",
+  "evidence_id": "ev_c60e16f002b2510755c7a0fb85196b03c3882986a36e670c31f1d2463c8a6606",
+  "provider": "REA Chrome DevTools Protocol observation provider v2",
+  "origin": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+  "artifact_sha256": "1e6a4a1fde0cf4fa20af6d7be382d5c0f14a43e158184928c9433212fe167826",
+  "scope": "Actual live anonymous homepage viewport",
+  "limitations": [
+    "Passive screenshot evidence does not establish hidden backend state.",
+    "REA capture does not navigate, scroll or evaluate page scripts.",
+    "Browser actions and functional tests used separate Playwright operations."
+  ],
+  "privacy": "Image payload, browser session state and credentials excluded from this record."
+}

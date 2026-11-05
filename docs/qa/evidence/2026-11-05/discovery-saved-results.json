@@ -1,0 +1,25 @@
+{
+  "status": "PASSED",
+  "steps": [
+    {
+      "feature": "Subject/location search and filters",
+      "status": "PASS",
+      "environment": "Actual live anonymous Chrome",
+      "detail": "Physics/Online suggestions, submit, price sort, in-person mode and URL/reload persistence; empty results allowed"
+    },
+    {
+      "feature": "Canonical Tutor profile and unauthenticated save",
+      "status": "PASS",
+      "environment": "Actual live anonymous Chrome",
+      "detail": "Real public card opens profile; saving prompts authentication"
+    },
+    {
+      "feature": "Saved Tutors",
+      "status": "PASS",
+      "environment": "Isolated real API/PostgreSQL",
+      "detail": "Browser save, shortlist reload persistence and removal"
+    }
+  ],
+  "pageErrors": [],
+  "noHostedAuthenticatedWrites": true
+}

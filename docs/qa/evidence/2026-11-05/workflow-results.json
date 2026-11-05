@@ -1,0 +1,64 @@
+{
+  "status": "PASSED",
+  "realApiAndPostgres": true,
+  "mockedResponses": false,
+  "noHostedWrites": true,
+  "steps": [
+    {
+      "feature": "Free Tutor publication",
+      "status": "PASS",
+      "boundary": "Real API; no identity claim or Pro grant"
+    },
+    {
+      "feature": "Adult learner profile",
+      "status": "PASS",
+      "boundary": "Mobile browser create; real API persistence"
+    },
+    {
+      "feature": "No-access enquiry guard",
+      "status": "PASS",
+      "boundary": "Browser cannot send before learner coverage"
+    },
+    {
+      "feature": "100% learner coupon",
+      "status": "PASS",
+      "boundary": "Mobile browser quote/redemption; no provider or real money; matching before acceptance"
+    },
+    {
+      "feature": "Learner enquiry",
+      "status": "PASS",
+      "boundary": "Mobile browser review and explicit send"
+    },
+    {
+      "feature": "Tutor acceptance and pass activation",
+      "status": "PASS",
+      "boundary": "Desktop browser accept; actual learner coverage becomes ACTIVE"
+    },
+    {
+      "feature": "Chat",
+      "status": "PASS",
+      "boundary": "Real browser two-way realtime/reload; API idempotency and outsider denial"
+    },
+    {
+      "feature": "Google Meet class invitation",
+      "status": "PASS",
+      "boundary": "Browser schedule/server-authorized Join URL/cancel; external navigation intercepted and aborted; no real video call tested"
+    },
+    {
+      "feature": "Support",
+      "status": "PASS",
+      "boundary": "Mobile create; real staff inspection and claim API"
+    },
+    {
+      "feature": "Staff workspace",
+      "status": "EXERCISED",
+      "boundary": "Real elevated fixture page navigation; scope/owner decisions covered separately by backend tests"
+    },
+    {
+      "feature": "Existing Connection after ad pause",
+      "status": "PASS",
+      "boundary": "Current real API keeps authorized relationship"
+    }
+  ],
+  "pageErrors": []
+}

@@ -1,0 +1,10 @@
+{
+  "status": "CONFIRMED_USABILITY_GAP",
+  "feature": "Start teaching as a learner",
+  "clicked": "Give private classes",
+  "destination": "/account/settings",
+  "destinationHash": "",
+  "rolesExpanded": false,
+  "tutorCheckboxVisible": false,
+  "environment": "Isolated actual browser and real learner account, no role toggled"
+}

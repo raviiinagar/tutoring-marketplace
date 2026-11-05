@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "test": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+  "source": "apps/api/test/recovery.test.ts:38",
+  "selected_tests": 1,
+  "passed": 1,
+  "failed": 0,
+  "baseline_failure": "Isolated worktree default pg_dump path does not exist",
+  "runtime_correction": "PG_RECOVERY_BIN points to the already-installed PostgreSQL16 tools; no source or tools modified",
+  "boundary": "Isolated test data and empty target database, not a live production recovery drill"
+}

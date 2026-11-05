@@ -1,0 +1,274 @@
+{
+  "tool": "axe-core Playwright",
+  "scope": "Live anonymous pages; automated checks only, not a complete accessibility certification",
+  "checks": [
+    {
+      "width": 1440,
+      "route": "/",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Vinay\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Vinay\" href=\"/teachers/engineering-2081830f-b408-4f2a-90dc-45ac6cca29b2\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Ravi nagar\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Ravi nagar\" href=\"/teachers/ai-c7c04aa8-ff50-4905-94dd-9f63df564fd6\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/tutors",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signin",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signup",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/check-email",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/forgot-password",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Vinay\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Vinay\" href=\"/teachers/engineering-2081830f-b408-4f2a-90dc-45ac6cca29b2\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Ravi nagar\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Ravi nagar\" href=\"/teachers/ai-c7c04aa8-ff50-4905-94dd-9f63df564fd6\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/tutors",
+      "violations": [],
+      "incompleteChecks": 0
+    },
+    {
+      "width": 390,
+      "route": "/auth/signin",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/signup",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/check-email",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/forgot-password",
+      "violations": [],
+      "incompleteChecks": 1
+    }
+  ]
+}

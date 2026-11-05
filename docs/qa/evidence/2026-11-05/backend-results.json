@@ -1,0 +1,2967 @@
+{
+  "source_commit": "ad8b3257d36123847db2525d5d75ab794596dc5a",
+  "complete": true,
+  "declared_cases": 235,
+  "file_count": 37,
+  "summary": {
+    "tests": 235,
+    "pass": 104,
+    "fail": 131,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "classification_counts": {
+    "PASS": 104,
+    "LEGACY_PUBLICATION_FIXTURE": 122,
+    "LEGACY_PUBLICATION_EXPECTATION": 7,
+    "ISOLATED_TOOL_PATH": 1,
+    "STALE_MIGRATION_COUNT": 1
+  },
+  "cases": [
+    {
+      "number": 1,
+      "name": "account name saves on the authenticated identity, persists and keeps Tutor and security facts separate",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 26,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 2,
+      "name": "name bounds and strict request shape prevent changing another account or security fields",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 3,
+      "name": "profile updates require current authenticated session and the allowed request origin",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 47,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 4,
+      "name": "overview requires active staff MFA and exposes finance only to Finance",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 135,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 5,
+      "name": "account directory paging uses a stable cursor and does not repeat rows",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 176,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 6,
+      "name": "anonymous public traffic deduplicates concurrent retries and tab visits without storing supplied identifiers or private payloads",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 212,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 7,
+      "name": "IST midnight separates daily visits and lazy retention drops only old hashed receipts",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 252,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 8,
+      "name": "Support directory searches accounts without leaking credentials and revoked assignments cannot reuse a report session",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 299,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 9,
+      "name": "development accepts loopback aliases but still rejects unrelated origins",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 31,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 10,
+      "name": "verified account journey, secure storage, cookie authentication and revocation",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 11,
+      "name": "invalid, malformed, expired tokens and recovery with a fresh email",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 63,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 12,
+      "name": "concurrent verification consumes one token once",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 72,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 13,
+      "name": "private access, session expiry and disabled accounts",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 77,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 14,
+      "name": "rate limits, duplicate signup and strict request/origin validation",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 90,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 15,
+      "name": "production refuses capture/missing secrets and does not expose development mail",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 101,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 16,
+      "name": "worker retries invalid ciphertext and expires old undelivered mail",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 116,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 17,
+      "name": "roles stay on one identity, deny staff grants and audit without secrets",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 126,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 18,
+      "name": "session inventory and revocation enforce ownership and current access",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 142,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 19,
+      "name": "password recovery is generic, encrypted, expiring, single-use and revokes every session",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 161,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 20,
+      "name": "disabled recovery cannot restore access; successful reset invalidates sibling links and sessions",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 189,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 21,
+      "name": "database restart preserves accounts and migration ledger",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 209,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 22,
+      "name": "empty-category signup requires adult purpose consent and exact validated filters without creating an account or payment rights",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 71,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 23,
+      "name": "simultaneous normalized duplicate signups create one durable confirmation and do not rotate active consent tokens",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 82,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 24,
+      "name": "verification expires at the exact boundary and pending/active expiry purges contact with no notification",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 25,
+      "name": "withdrawal invalidates pending confirmation, cancels queued mail, is idempotent and old links cannot withdraw a new generation",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 92,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 26,
+      "name": "only currently approved matching supply creates one intent; pause, price and same-offer dimensions are authoritative",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 97,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\availability.test.ts:62:384)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\availability.test.ts:98:333)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 27,
+      "name": "abuse limits and origin guards reject repeated requests and workers never revive withdrawn subscriptions",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 108,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 28,
+      "name": "empty projected pages do not hide later eligible supply and changed prices are rechecked after discovery",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 114,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\availability.test.ts:62:384)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\availability.test.ts:116:45)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 29,
+      "name": "email fanout stays capped after withdrawal and a freed slot requires fresh explicit confirmation",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 122,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 30,
+      "name": "public catalogue has all eight domains and separate seeded taxonomy with stable aliases",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 44,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 31,
+      "name": "selection validation rejects unknown, mistyped and unrelated fields while allowing a repeater",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 55,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 32,
+      "name": "catalogue maintenance denies anonymous, public, non-Trust, missing and revoked MFA sessions",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 64,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 33,
+      "name": "Trust edits are durable and audited; inactive terms disappear publicly and fail selection validation",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 72,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 34,
+      "name": "invalid taxonomy, reused aliases, immutable types and concurrent duplicate names are rejected atomically",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 35,
+      "name": "an acknowledged message remains visible to both adult participants after API restart",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 279,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:280:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 36,
+      "name": "simultaneous retries share one immutable message and another sender can reuse its client ID",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 312,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:313:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 37,
+      "name": "unread messages exclude your own sends and persisted read positions never move backwards",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 350,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:351:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 38,
+      "name": "bounded history recovers every missing sequence and loads earlier messages in order",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 396,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:397:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 39,
+      "name": "realtime replays missed committed messages and closes when current Connection authority is revoked",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 485,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:486:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 40,
+      "name": "chat is private, text-only, and bounded against repeated new-message submissions",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 548,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:549:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 41,
+      "name": "participant blocking closes live chat and denies both directions until each owner unblocks",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 602,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:603:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 42,
+      "name": "reports preserve only selected messages and Trust case access requires scoped MFA and an audited purpose",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 648,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:649:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 43,
+      "name": "case sanctions compose across cases, hide suspended supply and leave safety status inspectable by affected adults",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 724,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:725:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 44,
+      "name": "restricted adults can lodge an idempotent private appeal without regaining marketplace permission",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 808,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:809:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 45,
+      "name": "a safety suspension racing Tutor acceptance denies subsequent contact release and stale-offer requests",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 869,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:870:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 46,
+      "name": "safety evidence and decisions reject unrelated IDs, self-review and revoked staff MFA",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 941,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:225:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\chat.test.ts:942:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 47,
+      "name": "only the connected Tutor schedules private encrypted classes and retried saves deduplicate",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 284,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:229:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:285:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 48,
+      "name": "reschedule and cancellation reject stale edits and Join rechecks the authoritative time window",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 331,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:229:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:332:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 49,
+      "name": "unsafe meeting URLs, past dates, excess duration and overposting are rejected",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 386,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:229:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:387:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 50,
+      "name": "a current safety block stops reads, edits and meeting link release",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 410,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:229:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:411:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 51,
+      "name": "personal exports include owned invitations while account erasure removes shared meeting content",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 431,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "connection (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:229:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\classes.test.ts:432:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 52,
+      "name": "Trust Listing inspection and the same operator enquiry cannot deadlock on participant users",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 74,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:75:44)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 53,
+      "name": "Tutor photos stay private until Trust approval and public delivery follows current offer eligibility",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 98,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:99:44)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 54,
+      "name": "photo replacement/removal invalidate old URLs and cannot alter identity approval or remove another Tutor photo",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 120,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:121:44)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 55,
+      "name": "photo upload validates decoding, dimensions, consent, scanner result and privileged reviewer scope",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 131,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 56,
+      "name": "production excludes fictional photo assets even when the underlying Tutor evidence is nonfictional",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 142,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:143:44)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 57,
+      "name": "only the targeted Tutor can decide and contacts require the two adult participants and a granted Connection",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 149,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:150:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 58,
+      "name": "simultaneous repeated acceptance creates one result and an accept/decline race records one immutable decision",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 157,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:158:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 59,
+      "name": "deadline equality rejects both decisions and ordinary pass expiry preserves the original covered request",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 162,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:163:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 60,
+      "name": "revoked submission coverage and matching coverage without activation never release contacts",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 167,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:168:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 61,
+      "name": "pause permits decline, while suspended or revised offers and stale evidence prevent acceptance",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 172,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:173:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 62,
+      "name": "current blocks, account restrictions and safety suspension deny established Connection reads; ordinary pause does not",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 179,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:70:35)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:180:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 63,
+      "name": "Guardian is the adult contact; withdrawn child consent blocks private Connection content and contact access",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 184,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:185:76)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 64,
+      "name": "failed conversation creation rolls back decision, Connection, participants and grant; retry can establish them once",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 188,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:189:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 65,
+      "name": "two accepting Tutors share submission coverage without resetting activation dates or creating extra grants per Connection",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 192,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:193:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 66,
+      "name": "production cannot decide, inspect or release fixture Connections even if fictional rows are imported",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 196,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:58:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:63:97)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:69:68)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:70:35)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\connections.test.ts:197:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 67,
+      "name": "deadline worker records reminders once and expires at equality even after a delayed run",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 67,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:68:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 68,
+      "name": "owner-selected alternatives preserve exact intent without sending, charging or revealing contacts",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 92,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:93:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 69,
+      "name": "requests require authenticated beneficiary authority, eligible exact offers and server coverage; client flags cannot grant access",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 122,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:123:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 70,
+      "name": "submission snapshots coverage and encrypted enquiry; duplicate races return the same result without exposing unrelated records",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 131,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:132:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 71,
+      "name": "six simultaneous enquiries share one coverage but only five remain pending; expired requests free slots at equality",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 139,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:140:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 72,
+      "name": "first matching deadline caps expiry, while active pass expiry never shortens already recorded request coverage",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 144,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:145:24)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 73,
+      "name": "blocks in either direction, revoked coverage and expired identity prevent new requests",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 149,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:150:32)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 74,
+      "name": "Guardian current approval and consent authorize the child beneficiary; withdrawal hides stored private enquiry and prevents reuse",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 154,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:155:76)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 75,
+      "name": "production rejects fixture coverage and fixture replays, has no grant endpoint and isolated grant helper rejects ordinary databases",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 158,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:62:97)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:159:24)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 76,
+      "name": "opposing requests between dual-role participants follow one user lock order and both can complete",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 163,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:56:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:57:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\contact-requests.test.ts:164:58)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 77,
+      "name": "100% coupon works without a payment provider, creates no money, survives retry and activates once on Tutor acceptance",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 361,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:362:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 78,
+      "name": "campaign capacity is atomic across users; disabling prevents new uses and staff requires Finance MFA",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 455,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:456:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 79,
+      "name": "invalid, not-yet-started and expired codes cannot grant access; cancellation does not restore a coupon use",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 491,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:492:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 80,
+      "name": "partial coupon prices the provider order and immutable disclosures; only confirmed discounted capture authorizes access",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 545,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:546:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 81,
+      "name": "coupon matching expiry equality prevents acceptance and permits a new different coupon without altering old facts",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 603,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:604:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 82,
+      "name": "ordinary production-mode verified accounts can redeem a non-cash coupon while checkout stays disabled",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 644,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\coupons.test.ts:645:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 83,
+      "name": "migration preserves prior eligible publication but never exposes private or adverse historical cases",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 51,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 84,
+      "name": "explicit free ad publication works without identity or Pro, while drafts and identity facts stay truthful",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 55,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 85,
+      "name": "new publication validates words, live edits are immediate, revisions and soft archive protect history",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 67,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 86,
+      "name": "optional pending identity does not pause free ads; audited staff restrictions cannot be bypassed",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 75,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 87,
+      "name": "clean consented portrait publishes without fabricated staff approval and staff rejection hides it",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 82,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 88,
+      "name": "learner coverage remains mandatory while a nonverified free Tutor can accept and retain safe connections",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 89,
+      "name": "account restrictions, inactive catalogue and both-direction blocks remain authoritative",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 94,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 90,
+      "name": "public contact still requires explicit consent and current Pro; staff can find free unverified profiles",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 104,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 91,
+      "name": "historical requested ad changes require a revision, and staff restriction lifts never publish automatically",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 111,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 92,
+      "name": "public card portraits are smaller, metadata-free and still denied immediately after withdrawal",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 62,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:57:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:58:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:63:41)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 93,
+      "name": "filters match one exact offer rather than mixing CBSE Physics and JEE Mathematics profile claims",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 85,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:86:87)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 94,
+      "name": "price units, strict filters and stable bounded keyset pagination do not mix hourly and lesson prices",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 90,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:91:70)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 95,
+      "name": "public details expose controlled evidence labels and offer terms while excluding every private identity/evidence field",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 97,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:98:37)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 96,
+      "name": "paused, suspended, expired, revoked, stale-profile, disabled and inactive-taxonomy offers disappear from search and detail",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 103,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:104:35)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 97,
+      "name": "representative offers across eight families retain independent exact combinations and honest empty results",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 112,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:114:128)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 98,
+      "name": "production discovery excludes fictional scanned evidence and invalid adult eligibility never releases a public offer",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 117,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:59:267)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\discovery.test.ts:118:37)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 99,
+      "name": "post-Connection refund approval requires Finance MFA and explicit access treatment while preserving established chat",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 477,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:478:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 100,
+      "name": "verified chargebacks reserve exposure, deduplicate actual debits and expose overlap with completed refunds",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 544,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:545:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 101,
+      "name": "unresolved dispute exposure limits refunds and a stale lost event cannot invent a chargeback after provider victory",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 636,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:637:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 102,
+      "name": "concurrent partial and full case approvals cannot reserve more than the captured platform fee",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 690,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:691:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 103,
+      "name": "an unexpected second capture is refunded separately without overwriting the original capture",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 727,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:728:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 104,
+      "name": "a processed refund webhook resolves an unknown operation once and closes the cancelled purchase",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 759,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:760:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 105,
+      "name": "a refund completing recovery after a partial chargeback must explicitly revoke acquisition",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 776,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\finance.test.ts:777:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 106,
+      "name": "adult profiles are private, unique, editable by owner and require adult attestation and Learner role",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 37,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 107,
+      "name": "Guardian approval records versions, identifiable-adult/authority review and private audited inspection",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 50,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 108,
+      "name": "child profiles have no independent identity; missing/current/withdrawn consent and foreign IDs are enforced",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 64,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 109,
+      "name": "insufficient/rejected evidence, self-review and approval revocation prevent child use",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 110,
+      "name": "concurrent revocation cannot leave a child profile eligible after approval is removed",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 92,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 111,
+      "name": "production child-data gate refuses missing policy, test mode, test adapter and test evidence",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 97,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 112,
+      "name": "new offer eligibility names only current approved Subjects, including a Commerce-only Tutor",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 57,
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal: false !== true",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:59:9)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 113,
+      "name": "offers require approved Subject evidence and strict taxonomy, rates, durations and contact-free text",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 71,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 114,
+      "name": "correction, optimistic edits, approval, public privacy and pause/resume transitions are enforced",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 78,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:55:176)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:79:35)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 115,
+      "name": "foreign owners, missing/scoped MFA and self review cannot change offers",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 88,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:55:176)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:89:37)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 116,
+      "name": "safety suspension survives owner edits and only Trust staff can lift it without auto publication",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 93,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:55:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:56:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:94:35)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 117,
+      "name": "profile revision, approval expiry/revocation, inactive taxonomy and disabled accounts block public availability",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 99,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:55:176)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:56:74)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:100:37)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 118,
+      "name": "concurrent content edit and staff approval permit one revision transition and never stale publication",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 106,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:55:176)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:107:37)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 119,
+      "name": "all eight Learning Domains can publish explicit offers without crossing subject and exam claims",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 111,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\listings.test.ts:114:265)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 120,
+      "name": "Finance MFA sees deduplicated searches and separate request, Connection and mature paid-cohort facts",
+      "file": "apps/api/test/marketplace-metrics.test.ts",
+      "line": 479,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:235:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:239:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:296:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:416:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:456:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:480:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 121,
+      "name": "refund facts stay in the original checkout domain after Listing edits and mature no-match rates have explicit denominators",
+      "file": "apps/api/test/marketplace-metrics.test.ts",
+      "line": 581,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:235:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:239:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:296:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:416:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\marketplace-metrics.test.ts:582:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 122,
+      "name": "critical SMS treats an invalid success or server outage as uncertain, and provider proof binds the unique alert",
+      "file": "apps/api/test/notification-delivery.test.ts",
+      "line": 29,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 123,
+      "name": "general operations SMS requires its own approved template instead of reusing refund wording",
+      "file": "apps/api/test/notification-delivery.test.ts",
+      "line": 74,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 124,
+      "name": "committed enquiries enqueue minimal notifications, retries survive an outage and request replay never duplicates delivery",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 533,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:301:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:534:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 125,
+      "name": "optional enquiry preferences are respected while verified financial service notices cannot be disabled",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 586,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:301:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:587:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 126,
+      "name": "chat notices contain no message text and current read positions and blocks suppress queued delivery",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 653,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:301:19)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:639:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:654:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 127,
+      "name": "availability delivery requires verified consent and unsubscribe cancels queued retries without affecting another subscriber",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 718,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:268:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:752:3)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 128,
+      "name": "Support MFA sees failures without message content, and an uncertain critical SMS is reconciled without blind resend",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 780,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:301:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:421:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:781:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 129,
+      "name": "production refuses a test notification sender even when passed through dependency injection",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 829,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 130,
+      "name": "withdrawing Guardian consent suppresses queued chat notices without disclosing a child alias",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 853,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:856:19)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 131,
+      "name": "concurrent critical alert workers respect the daily owner SMS budget",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 936,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:240:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:244:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:301:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:421:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\notifications.test.ts:937:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 132,
+      "name": "Finance MFA pauses only new checkout and versioned control retries preserve the original purchase",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 511,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:328:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:520:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 133,
+      "name": "durable redacted alerts deduplicate outside support hours and verified recovery resolves only current conditions",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 592,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:328:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:612:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 134,
+      "name": "provider-outage inbox replay is scoped and duplicate replay produces one captured business fact",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 676,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:328:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:681:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 135,
+      "name": "webhook, backup and security observations require scoped evidence and stale health never stays green",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 746,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 136,
+      "name": "notification dead letters recover from an external outage without a duplicate logical notice or leaked provider error",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 860,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 137,
+      "name": "overdue captured access and an unfunded refund reserve raise separate critical conditions",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 926,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:328:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:448:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:927:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 138,
+      "name": "recovery acknowledgement failure can resume the same command after its original event already completed",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 973,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:328:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\operations.test.ts:976:9)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 139,
+      "name": "only Finance with MFA can release recovery after fresh provider reconciliation and explicit refund/bank review",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 1015,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 140,
+      "name": "isolated staging without a payment account can release empty recovery, while production cannot skip provider review",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 1163,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 141,
+      "name": "production HTTPS health becomes unavailable when critical workers or the monitor stop",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 1235,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 142,
+      "name": "Razorpay adapter uses server Orders without partial payment and validates provider responses",
+      "file": "apps/api/test/payment-provider.test.ts",
+      "line": 19,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 143,
+      "name": "checkout is disabled by default and live configuration cannot invent merchant or tax disclosures",
+      "file": "apps/api/test/payment-provider.test.ts",
+      "line": 68,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 144,
+      "name": "server prices one stable hosted checkout and concurrent retries reuse its Order",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 337,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:338:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 145,
+      "name": "callback signatures never grant access; signed capture webhooks journal money once despite replay and lost callbacks",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 402,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:403:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 146,
+      "name": "lost Order responses block replacement charges; durable capture recovers without browser callbacks after restart",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 468,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:469:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 147,
+      "name": "checkout and financial status enforce account, Learner, supply and block authority",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 529,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:530:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 148,
+      "name": "unknown attempts never credit a purchase; mismatched captures remain financial facts requiring review",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 613,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:614:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 149,
+      "name": "late capture keeps its original matching deadline and out-of-order failures cannot undo captured money",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 638,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:639:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 150,
+      "name": "paid capture enables enquiries and the first eligible acceptance activates exactly one 30-day pass",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 696,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:697:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 151,
+      "name": "two paid Tutors accept concurrently with one entitlement, fixed activation dates and one capture through replay",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 745,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:746:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 152,
+      "name": "production excludes test-provider coverage from enquiry, Connection and safety interfaces",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 821,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:822:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 153,
+      "name": "ordinary expiry preserves covered requests and established contacts; only an explicit new checkout creates a repurchase",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 871,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:872:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 154,
+      "name": "supply suspended during provider work preserves captured money and routes to an explicit eligible alternative",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 936,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:937:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 155,
+      "name": "abandoning the Learner role before capture records money without enabling enquiries or contacts",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 1000,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:1001:30)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 156,
+      "name": "paid matching deadline equality cannot activate a pass or authorize a replacement charge",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 1023,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:1024:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 157,
+      "name": "a financial review blocks further paid acquisitions while preserving an established safe Connection",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 1047,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:230:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:234:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:291:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\payments.test.ts:1048:39)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 158,
+      "name": "account erasure preserves captured financial facts and holds private evidence until the Finance obligation closes",
+      "file": "apps/api/test/privacy-finance.test.ts",
+      "line": 512,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:267:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:271:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:328:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:448:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:488:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy-finance.test.ts:513:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 159,
+      "name": "verified export contains only owned data and scanned photo assets, with expiring authorized downloads",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 174,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 160,
+      "name": "deletion revokes activity, clears personal assets, reports retention and reapplies durable tombstones after restore",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 299,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 161,
+      "name": "Guardian withdrawal erases the selected child context, revokes old grants and respects fresh later consent",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 663,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy.test.ts:532:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy.test.ts:536:15)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy.test.ts:666:15)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 162,
+      "name": "restore fails closed when the independent privacy ledger is unavailable",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 831,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 163,
+      "name": "approved evidence retention purges expired unreferenced uploads while current teaching evidence remains available",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 850,
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal: false !== true",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\privacy.test.ts:891:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 164,
+      "name": "production refuses missing, fictional or unapproved retention and recovery configuration",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 894,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 165,
+      "name": "SMTP erasure remains in external review until scoped staff confirms provider handling",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 931,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 166,
+      "name": "canonical Tutor pages and category supply disappear immediately when publication pauses",
+      "file": "apps/api/test/public-pages.test.ts",
+      "line": 268,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\public-pages.test.ts:252:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\public-pages.test.ts:270:11)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 167,
+      "name": "production metadata and sitemap include only current approved supply and approved portraits",
+      "file": "apps/api/test/public-pages.test.ts",
+      "line": 303,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publishOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\public-pages.test.ts:252:7)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\public-pages.test.ts:305:15)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 168,
+      "name": "payment history and immutable receipt snapshots belong only to the payer and exclude direct tuition",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 455,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:426:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:456:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 169,
+      "name": "settlement and bank imports deduplicate, preserve fee-inclusive tax and balance without treating processed settlement as bank credit",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 496,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:426:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:509:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 170,
+      "name": "a missing capture callback is fetched without a new charge and requires audited capture-time evidence before access",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 625,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:294:19)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:626:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 171,
+      "name": "a signed settlement callback is refetched once and remains pending bank evidence",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 727,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 172,
+      "name": "a missing refund callback is fetched by reconciliation without creating a replacement refund or charge",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 764,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:426:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:768:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 173,
+      "name": "daily read-only reconciliation schedules overlapping periods once without creating payment Orders",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 844,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 174,
+      "name": "foreign unexpected captures remain separate from INR totals and preserve their actual currency",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 889,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:426:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reconciliation.test.ts:890:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 175,
+      "name": "independent storage verifies every encrypted upload by downloading it and rejects corrupt remote bytes",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 8,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 176,
+      "name": "the independent watchdog measures loss from the database snapshot rather than a recent upload timestamp",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 75,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 177,
+      "name": "the recovery operator refuses a production identity under a development or test runtime",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 95,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 178,
+      "name": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 38,
+      "status": "FAIL",
+      "error": "'spawn D:\\\\WORK\\\\P1\\\\.local\\\\cloudflare-ui-release\\\\.local\\\\tools\\\\pg16\\\\pgsql\\\\bin\\\\pg_dump.exe ENOENT'",
+      "stack": [],
+      "classification": "ISOLATED_TOOL_PATH"
+    },
+    {
+      "number": 179,
+      "name": "cross-host migration verification accepts only LF/CRLF equivalents without rewriting recorded checksums",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 430,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 180,
+      "name": "production entrypoints reject plaintext database launches",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 453,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 181,
+      "name": "an environment still under recovery cannot publish a newer-looking backup",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 469,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 182,
+      "name": "compatible application rollback checks preserve money and reject unsupported or unapplied migrations",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 503,
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal: 38 !== 28",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\recovery.test.ts:538:12)\r"
+      ],
+      "classification": "STALE_MIGRATION_COUNT"
+    },
+    {
+      "number": 183,
+      "name": "cancellation ends unconnected requests and refunds the full price once through an ambiguous provider retry",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 439,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:410:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:440:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 184,
+      "name": "no-match equality and late capture create a full refund without extending the matching window",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 515,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:410:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:516:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 185,
+      "name": "cancellation and first acceptance serialize, and a completed full refund permits a fresh explicit purchase",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 560,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:410:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:561:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 186,
+      "name": "Finance MFA limits reserve/retry commands, funding references deduplicate and failed refunds remain reserved for review",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 605,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:410:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\refunds.test.ts:606:10)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 187,
+      "name": "only the connected adult payer may attest and submit once at the exact seven-day boundary",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 356,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:289:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:310:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:317:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:357:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 188,
+      "name": "Trust moderation treats negative and positive feedback equally; withdrawal and removal update every public aggregate and reject stale publication",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 412,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:289:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:310:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:317:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:413:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 189,
+      "name": "moderation appeals are private, revision-linked and idempotent for the two adults only",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 545,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:289:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:310:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:317:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:546:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 190,
+      "name": "Guardian consent withdrawal removes public feedback immediately and cannot be bypassed by stale moderation",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 614,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:617:19)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 191,
+      "name": "peer blocks cannot suppress honest reviews; self-moderation and stale restricted publication are denied",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 712,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:289:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:310:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:317:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:713:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 192,
+      "name": "production public reviews exclude imported fixture Connections even if a copied review flag is incorrect",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 780,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:226:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:230:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:289:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:310:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:317:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\reviews.test.ts:781:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 193,
+      "name": "only the configured Super Admin can delegate verified accounts, revoke access, and retain the sole owner",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 194,
+      "name": "legacy FINANCE assignment cannot bypass delegated role boundaries",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 66,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 195,
+      "name": "testing sessions require passwords, bind to the account session and end at the cutoff",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 73,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 196,
+      "name": "disabling the exception invalidates test sessions while normal MFA still works",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 197,
+      "name": "configured owner must already be an active verified staff identity at startup",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 97,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 198,
+      "name": "unsafe config cannot enable the testing exception in real production or indefinitely",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 100,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 199,
+      "name": "logout and an overlapping authenticated read use a consistent lock order",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 44,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 200,
+      "name": "TOTP matches RFC 6238 SHA1 vectors including dates beyond 2038",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 58,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 201,
+      "name": "public accounts cannot assign staff; bootstrap requires a verified account",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 62,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 202,
+      "name": "MFA requires password, same enrollment session, unexpired setup and unreplayed code",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 69,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 203,
+      "name": "scope boundaries, MFA cookie binding and audit actor/target/reason are enforced",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 204,
+      "name": "staff sign-out, session expiry, scope changes and account revocation invalidate privileged access",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 101,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 205,
+      "name": "recovery consumes all backup codes, revokes staff access and requires a new authenticator",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 113,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 206,
+      "name": "password recovery revokes staff access without bypassing the existing authenticator",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 121,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 207,
+      "name": "MFA brute-force limits persist across failed attempts; disabled and operator-revoked accounts lose access",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 134,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 208,
+      "name": "production staff sessions use Secure host cookies and keep raw tokens out of JSON and storage",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 144,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 209,
+      "name": "refund appeals preserve original decisions and use a Finance command for reconsideration",
+      "file": "apps/api/test/support-finance.test.ts",
+      "line": 478,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:233:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:237:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:294:19)\r",
+        "async funded (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:414:13)\r",
+        "async connected (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:454:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support-finance.test.ts:479:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 210,
+      "name": "support cases preserve ownership, scoped assignment, restricted notes and audited resolution",
+      "file": "apps/api/test/support.test.ts",
+      "line": 138,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 211,
+      "name": "review and safety appeals become private Trust cases with revision-safe domain adjudication",
+      "file": "apps/api/test/support.test.ts",
+      "line": 448,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "submitted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:327:7)\r",
+        "async publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:331:15)\r",
+        "async scenario (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:390:19)\r",
+        "async pending (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:411:13)\r",
+        "async accepted (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:418:13)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\support.test.ts:449:13)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 212,
+      "name": "owners can answer a waiting case without exposing restricted notes and policy hours match IST",
+      "file": "apps/api/test/support.test.ts",
+      "line": 699,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 213,
+      "name": "incomplete drafts persist privately, resume exactly and never create or publish a profile",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 50,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 214,
+      "name": "concurrent writes and stale clears cannot overwrite a newer private draft",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 67,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 215,
+      "name": "draft endpoints enforce current verified Tutor identity, strict bounds and CSRF origin",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 80,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 216,
+      "name": "badge derivation never infers unsupported higher levels or awards to unpublished profiles",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 237,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 217,
+      "name": "recommendations require authenticated distinct authors, moderation, current revisions, and withdraw immediately",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 279,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 218,
+      "name": "diploma progress requires owned clean evidence and never awards an upper badge",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 511,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 219,
+      "name": "one private identity makes a free public profile; Pro, approved offer and consent independently control public email",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 215,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 404 \"Not Found\"'",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:217:33)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 220,
+      "name": "Tutor Pro server capture uses INR 600, activates once on confirmation, and has no learner matching deadline",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 227,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 221,
+      "name": "identity edits require new approval; foreign identity requires passport; public restriction removes introduction",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 238,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 222,
+      "name": "a valid submitted enquiry survives ordinary Tutor Pro expiry while new supply and public contact disappear",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 244,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "publish (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:161:251)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:245:131)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 223,
+      "name": "location and hours validate ownership, stale writes and public Subject/city/day/time filters without re-reviewing identity",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 253,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 404 \"Not Found\"'",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:261:63)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 224,
+      "name": "in-person offers and enquiries use real location/mode while closing new students preserves an existing enquiry",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 272,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "offlineOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:214:294)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:275:88)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 225,
+      "name": "material location changes require offer resubmission, not new identity evidence",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 291,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "offlineOffer (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:214:294)\r",
+        "async TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:293:16)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 226,
+      "name": "Saved Tutors are private, authenticated, idempotent and recheck current eligibility and blocks",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 302,
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal: + actual - expected [ +   404, +   404 -   200, -   200 ]",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:305:96)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 227,
+      "name": "Saved Tutors enforce the account limit across concurrent additions without losing existing saves",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 316,
+      "status": "FAIL",
+      "error": "Expected values to be strictly deep-equal: + actual - expected [ +   404, +   404 -   200, -   409 ]",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:320:173)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 228,
+      "name": "free first-class filters and unit-safe price ordering paginate ties and survive cursor-offer removal",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 323,
+      "status": "FAIL",
+      "error": "'expected 200 \"OK\", got 400 \"Bad Request\"'",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutor-simple.test.ts:325:364)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_FIXTURE"
+    },
+    {
+      "number": 229,
+      "name": "adult age boundary and private profile revisions reject children, invalid dates and overposting",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 53,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 230,
+      "name": "uploads enforce formats, size, malicious/scan-error quarantine and cross-account ownership",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 60,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 231,
+      "name": "claim submission requires separate identity and active Subject evidence and limits uploads",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 74,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 232,
+      "name": "private reviews and one-use downloads require Trust MFA, binding, purpose, scan and current revision",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 233,
+      "name": "specific approvals expire, corrections revise claims and revocation blocks publication eligibility",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 95,
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal: false !== true",
+      "stack": [
+        "TestContext.<anonymous> (D:\\WORK\\P1\\.local\\cloudflare-ui-release\\apps\\api\\test\\tutors.test.ts:100:129)\r"
+      ],
+      "classification": "LEGACY_PUBLICATION_EXPECTATION"
+    },
+    {
+      "number": 234,
+      "name": "production refuses test scanner configuration/adapters and disabled uploads fail closed",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 111,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    },
+    {
+      "number": 235,
+      "name": "ClamAV adapter streams framed bytes and fails closed on FOUND and ERROR responses",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 117,
+      "status": "PASS",
+      "error": null,
+      "stack": [],
+      "classification": "PASS"
+    }
+  ],
+  "boundary": "Real isolated HTTP/PostgreSQL suite. No hosted database or credentials. Failing setup does not validate later workflow assertions."
+}

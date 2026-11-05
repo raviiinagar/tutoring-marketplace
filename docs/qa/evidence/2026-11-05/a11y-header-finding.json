@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-05",
+  "source_commit": "ad8b3257d36123847db2525d5d75ab794596dc5a",
+  "environment": "Isolated real browser stack, Chrome, desktop 1280px",
+  "route": "/tutors",
+  "test": "tests/browser/accessibility.spec.ts:45",
+  "detector": "axe-core through @axe-core/playwright",
+  "rule": "label-content-name-mismatch",
+  "impact": "serious",
+  "standard": "WCAG 2.5.3 Label in Name",
+  "target": ".header-search-trigger.lg\\:inline-flex",
+  "visible_text": "What would you like to learn?",
+  "accessible_name": "Search for a teacher",
+  "source": "lovable-ui/src/components/account/ui.tsx:208",
+  "classification": "Current accessibility defect, not a stale selector",
+  "user_impact": "Speech-input users addressing the visible text may not activate the control by that name.",
+  "reproduction": "Load /tutors at desktop width and run the existing accessibility browser scenario; its axe result includes this serious violation.",
+  "privacy": "Only the failing public control metadata is retained; no account data, credentials or full browser trace is included."
+}
