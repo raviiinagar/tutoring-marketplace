@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   api,
@@ -16,6 +16,9 @@ import { accountSessionKey } from "@/lib/session";
 
 export function AccountSettings() {
   const navigate = useNavigate();
+  const hash = useLocation({ select: (location) => location.hash });
+  const rolesSection = useRef<HTMLDetailsElement>(null);
+  const rolesSummary = useRef<HTMLElement>(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loadError, setLoadError] = useState<string>();
@@ -111,6 +114,17 @@ export function AccountSettings() {
       window.removeEventListener("focus", load);
     };
   }, [load]);
+  useEffect(() => {
+    if (!user?.id || hash !== "roles") return;
+    const frame = requestAnimationFrame(() => {
+      if (!rolesSection.current) return;
+      rolesSection.current.open = true;
+      rolesSection.current.scrollIntoView({ block: "center" });
+      rolesSummary.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [user?.id, hash]);
+
   const toggleRole = (role: User["roles"][number]) =>
     security.run(async () => {
       if (!user) return;
@@ -454,8 +468,11 @@ export function AccountSettings() {
             )}
           </section>
           <section className={card}>
-            <details id="roles" className="group scroll-mt-28">
-              <summary className="cursor-pointer py-2 font-bold">How you use your account</summary>
+            <details ref={rolesSection} id="roles" className="group scroll-mt-28">
+              <summary ref={rolesSummary} aria-describedby={hash === "roles" ? "start-teaching-help" : undefined} className="cursor-pointer py-2 font-bold">How you use your account</summary>
+              {hash === "roles" && <p id="start-teaching-help" role="status" className="my-4 text-sm">
+                To start teaching, select Tutor below to enable teaching tools. Your Learner role can stay enabled.
+              </p>}
               <p className="my-4 text-sm leading-relaxed text-muted-foreground">
                 Choose one or both roles. Creating and publishing a teaching ad is free; identity
                 verification is optional.

@@ -8,6 +8,7 @@ import { accountSessionKey } from "@/lib/session";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigate,
+  useLocation: () => window.location.hash.slice(1),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
     <a href={to}>{children}</a>
   ),

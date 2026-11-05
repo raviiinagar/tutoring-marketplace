@@ -7,6 +7,7 @@ import { accountSessionKey } from "@/lib/session";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigate,
+  useLocation: () => window.location.hash.slice(1),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
     <a href={to}>{children}</a>
   ),
@@ -69,6 +70,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  window.history.replaceState(null, "", "/");
   clients.forEach((client) => client.clear());
   clients.length = 0;
   vi.restoreAllMocks();
@@ -124,4 +126,26 @@ it("saves explicit notification choices while leaving financial and security not
     expect(save).toHaveBeenCalledWith({ ...preferences.preferences, chat_email: false }),
   );
   expect(screen.getByText("Security and financial notices remain enabled.")).toBeTruthy();
+});
+
+it("opens, scrolls to and focuses the requested Tutor-role section without changing permissions", async () => {
+  window.history.replaceState(null, "", "/account/settings#roles");
+  const scroll = vi.fn();
+  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: scroll });
+  const changeRoles = vi.spyOn(api, "changeRoles");
+  try {
+    mount();
+    const summary = await screen.findByText("How you use your account");
+    await waitFor(() => expect(summary).toHaveFocus());
+    expect(summary.closest("details")).toHaveAttribute("open");
+    expect(scroll).toHaveBeenCalledWith({ block: "center" });
+    expect(summary).toHaveAccessibleDescription("To start teaching, select Tutor below to enable teaching tools. Your Learner role can stay enabled.");
+    expect(screen.getByRole("checkbox", { name: "Tutor" })).toBeVisible();
+    expect(screen.getByRole("checkbox", { name: "Tutor" })).not.toBeChecked();
+    expect(changeRoles).not.toHaveBeenCalled();
+  } finally {
+    if (original) Object.defineProperty(HTMLElement.prototype, "scrollIntoView", original);
+    else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+  }
 });

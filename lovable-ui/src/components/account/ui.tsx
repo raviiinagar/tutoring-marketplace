@@ -188,6 +188,7 @@ export function SiteHeader({
       ? "/tutor/dashboard"
       : "/account/settings"
     : "/auth/signup";
+  const teacherHash = user && !user.roles.includes("TUTOR") ? "roles" : "";
   const showSearch = !homepage || scrolled;
   const accountLinks = (
     <>
@@ -252,7 +253,7 @@ export function SiteHeader({
               </Link>
             ) : (
               <Link
-                to={teacherPath}
+                to={teacherPath} hash={teacherHash}
                 className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
               >
                 Give private classes
@@ -285,7 +286,10 @@ export function SiteHeader({
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2">
+                <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2" onCloseAutoFocus={(event) => {
+                  // Preserve the explicit destination after same-page start-teaching navigation.
+                  if (document.activeElement?.closest("#roles")) event.preventDefault();
+                }}>
                   {workspaceLinks.map((item) => (
                     <DropdownMenuItem key={item.to} asChild>
                       <Link to={item.to}>{item.label}</Link>
@@ -298,7 +302,7 @@ export function SiteHeader({
                     <Link to="/requests">My enquiries</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={teacherPath}>Give private classes</Link>
+                    <Link to={teacherPath} hash={teacherHash}>Give private classes</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -356,7 +360,7 @@ export function SiteHeader({
             <Link to="/tutors">Find Tutors</Link>
             <a href="/#subjects">Explore subjects</a>
             <a href="/#how-it-works">Help</a>
-            <Link to={teacherPath}>Give private classes</Link>
+            <Link to={teacherPath} hash={teacherHash}>Give private classes</Link>
             {pending ? (
               <span role="status">Checking account...</span>
             ) : user ? (

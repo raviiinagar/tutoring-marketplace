@@ -1,0 +1,41 @@
+{
+  "environment": "Isolated real backend; fictional verified Learner; desktop and mobile keyboard navigation",
+  "checks": [
+    {
+      "width": 1440,
+      "source": "/account",
+      "destination": "/account/settings#roles",
+      "expanded": true,
+      "focus": "Tutor checkbox after Tab from summary",
+      "roleWrites": 0,
+      "violations": 0
+    },
+    {
+      "width": 1440,
+      "source": "/account/settings",
+      "destination": "/account/settings#roles",
+      "expanded": true,
+      "focus": "Tutor checkbox after Tab from summary",
+      "roleWrites": 0,
+      "violations": 0
+    },
+    {
+      "width": 390,
+      "source": "/account",
+      "destination": "/account/settings#roles",
+      "expanded": true,
+      "focus": "Tutor checkbox after Tab from summary",
+      "roleWrites": 0,
+      "violations": 0
+    },
+    {
+      "width": 390,
+      "source": "/account/settings",
+      "destination": "/account/settings#roles",
+      "expanded": true,
+      "focus": "Tutor checkbox after Tab from summary",
+      "roleWrites": 0,
+      "violations": 0
+    }
+  ]
+}

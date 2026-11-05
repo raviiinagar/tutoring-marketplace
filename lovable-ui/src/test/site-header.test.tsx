@@ -8,10 +8,10 @@ vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
     useNavigate: () => navigate,
-    Link: React.forwardRef<HTMLAnchorElement, any>(({ to, children, onClick, ...props }, ref) => (
+    Link: React.forwardRef<HTMLAnchorElement, any>(({ to, hash, children, onClick, ...props }, ref) => (
       <a
         ref={ref}
-        href={to}
+        href={to + (hash ? "#" + hash : "")}
         {...props}
         onClick={(event) => {
           onClick?.(event);
@@ -114,7 +114,7 @@ it("a signed-in Learner is sent to account role selection without changing roles
   await within(nav).findByRole("button", { name: "My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
-    "/account/settings",
+    "/account/settings#roles",
   );
 });
 it("mobile disclosure closes on links and Escape restores the opener", async () => {
