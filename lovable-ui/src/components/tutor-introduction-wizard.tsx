@@ -11,13 +11,13 @@ import {
 import { Field, Notice } from "./account/ui";
 import { Button } from "./ui/button";
 
-const steps = ["Subjects", "About you", "Your rate", "Identity details", "Review"];
+const steps = ["Subjects", "About you", "Your rate", "Ready to teach", "Review"];
 const tips = [
   "Start with the subjects you know. Choose up to 10; specific class levels and teaching formats belong to your teaching offers.",
   "Help learners understand your approach, skills and experience. Write in your own words and keep contact details out of your introduction.",
   "Set an indicative hourly tuition rate. Learners arrange tuition payments directly with you; your platform pass is separate.",
-  "Your identity document stays private. This marketplace checks identity and adulthood before making a profile visible. Teaching expertise is self-declared unless separately reviewed.",
-  "Check your introduction before saving. Saving does not publish it or purchase a pass. Next, submit one private identity document for review.",
+  "Confirm that you are an adult and describe your teaching honestly. Identity verification is optional and separate from publishing your ad.",
+  "Check your introduction before saving. Next, create your teaching ad and publish it for free. No identity document or pass is required to go online.",
 ];
 const initial: TutorIntroduction = {
   display_name: "",
@@ -74,8 +74,11 @@ export function TutorIntroductionWizard({
   };
   function validate(at: number) {
     if (at === 0 && !form.subject_ids.length) return "Choose at least one subject.";
-    if (at === 1 && (form.display_name.trim().length < 2 || form.biography.trim().length < 40))
-      return "Enter your name and at least 40 characters about your teaching.";
+    if (
+      at === 1 &&
+      (form.display_name.trim().length < 2 || form.biography.trim().split(/\s+/).length < 40)
+    )
+      return "Enter your name and at least 40 words about your teaching.";
     if (
       at === 2 &&
       (!Number.isInteger(form.hourly_rate_paise) ||
@@ -84,7 +87,7 @@ export function TutorIntroductionWizard({
     )
       return "Enter an hourly rate between ₹1 and ₹100,000.";
     if (at === 3 && !form.adult_confirmed)
-      return "Confirm that you are at least 18 and will submit your own identity document.";
+      return "Confirm that you are at least 18 and will provide your own teaching services.";
     return undefined;
   }
   async function persist(next: number) {
@@ -216,7 +219,7 @@ export function TutorIntroductionWizard({
                   "Which subjects do you teach?",
                   "Tell learners about yourself",
                   "Set your hourly rate",
-                  "Your private identity details",
+                  "Ready to share your teaching?",
                   "Review your introduction",
                 ][step]
               }
@@ -290,8 +293,8 @@ export function TutorIntroductionWizard({
                     onChange={(e) => change("biography", e.target.value)}
                   />
                   <span className="block text-xs font-normal text-muted-foreground">
-                    {form.biography.length}/1,000 characters · minimum 40 characters under our
-                    current profile rules.
+                    {form.biography.trim() ? form.biography.trim().split(/\s+/).length : 0}/40 words
+                    minimum · {form.biography.length}/1,000 characters
                   </span>
                 </label>
               </>
@@ -312,56 +315,21 @@ export function TutorIntroductionWizard({
               />
             )}
             {step === 3 && (
-              <>
-                <label className="block space-y-2 text-sm font-semibold">
-                  Identity country
-                  <select
-                    className="input"
-                    value={form.identity_country}
-                    onChange={(e) => {
-                      change("identity_country", e.target.value as "IN" | "OTHER");
-                      change("identity_document", e.target.value === "IN" ? "AADHAAR" : "PASSPORT");
-                    }}
-                  >
-                    <option value="IN">India</option>
-                    <option value="OTHER">Other country</option>
-                  </select>
-                </label>
-                <label className="block space-y-2 text-sm font-semibold">
-                  Identity document
-                  <select
-                    className="input"
-                    value={form.identity_document}
-                    onChange={(e) =>
-                      change(
-                        "identity_document",
-                        e.target.value as TutorIntroduction["identity_document"],
-                      )
-                    }
-                  >
-                    {form.identity_country === "IN" && (
-                      <>
-                        <option value="AADHAAR">Aadhaar</option>
-                        <option value="GOVERNMENT_ID">Other government photo ID</option>
-                      </>
-                    )}
-                    <option value="PASSPORT">Passport</option>
-                  </select>
-                </label>
-                <label className="flex gap-3 text-sm">
+              <div className="space-y-5">
+                <label className="flex items-start gap-3 text-sm">
                   <input
                     type="checkbox"
                     required
                     checked={form.adult_confirmed}
                     onChange={(e) => change("adult_confirmed", e.target.checked)}
                   />
-                  I am at least 18 and will upload my own identity document.
+                  I am at least 18 and will provide my own teaching services.
                 </label>
-                <p className="text-xs text-muted-foreground">
-                  Document upload follows profile saving. No diploma is required for this
-                  introduction.
-                </p>
-              </>
+                <Notice tone="info">
+                  Your ad can go online without identity verification. You can verify your identity
+                  later; verification status is shown separately.
+                </Notice>
+              </div>
             )}
             {step === 4 && (
               <>
@@ -387,15 +355,13 @@ export function TutorIntroductionWizard({
                     <dd>₹{(form.hourly_rate_paise / 100).toLocaleString("en-IN")}/hour</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">
-                      Private identity document to submit next
-                    </dt>
-                    <dd>{form.identity_document.replaceAll("_", " ")}</dd>
+                    <dt className="text-muted-foreground">Identity verification</dt>
+                    <dd>Optional. Can be completed later.</dd>
                   </div>
                 </dl>
                 <Notice tone="info">
-                  Your introduction becomes publicly eligible after identity review. Teaching offers
-                  require current Tutor Pro and their own approval.
+                  Publishing your ad is free. No manual ad review, identity approval or Tutor Pro
+                  purchase is required. Verification status is shown separately.
                 </Notice>
               </>
             )}
@@ -415,7 +381,7 @@ export function TutorIntroductionWizard({
                 </Button>
               )}
               <Button type="submit" disabled={busy}>
-                {busy ? "Saving…" : step === 4 ? "Save profile and continue" : "Next"}
+                {busy ? "Saving…" : step === 4 ? "Save introduction and continue" : "Next"}
               </Button>
               <Button
                 type="button"

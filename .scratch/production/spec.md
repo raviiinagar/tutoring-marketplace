@@ -1,6 +1,8 @@
 # Production MVP: India tutoring contact marketplace
 
 Status: ready-for-agent
+
+Owner amendment, 4 November 2026: [ADR0014](../../docs/adr/0014-free-direct-ad-publication-and-optional-identity.md) supersedes mandatory identity/Tutor Pro/ad-review gates for publication. Complete adult Tutor ads can be published directly for free; identity verification is optional and labelled separately. Drafts, safety restrictions, learner payment rules and established records remain protected.
 Owner: VEER
 Decision date: 10 October 2026
 

@@ -74,8 +74,8 @@ export function TutorPro({ identityApproved }: { identityApproved: boolean }) {
         </p>
       </div>
       <p className="text-sm text-muted-foreground">
-        Your identity-approved profile is free. Tutor Pro unlocks teaching offers and, with your
-        consent, your public email after an offer is published. Tuition is separate. One-time
+        Your profile and teaching ads are free. Tutor Pro is optional and can display your verified
+        email publicly with your consent while an ad is online. Tuition is separate. One-time
         purchase; no automatic renewal.
       </p>
       {error && <Notice tone="error">{error}</Notice>}
@@ -93,7 +93,7 @@ export function TutorPro({ identityApproved }: { identityApproved: boolean }) {
       ) : (
         <>
           <p className="text-sm font-medium">
-            {identityApproved ? "Ready for Tutor Pro" : "Complete identity approval first"}
+            {identityApproved ? "Optional Tutor Pro" : "Save your teaching introduction first"}
           </p>
           {state?.purchase && (
             <Notice tone="info">

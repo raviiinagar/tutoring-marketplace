@@ -72,7 +72,7 @@ export function TutorPresenceEditor() {
         });
         setNotice(
           r.data.offers_need_review
-            ? `Saved. ${r.data.offers_need_review} teaching offer(s) need updating and resubmission after the location/mode change.`
+            ? `Saved. ${r.data.offers_need_review} ad(s) need updated teaching details after the location/mode change. Open My ads to update and publish them.`
             : "Location and availability saved.",
         );
       } else setError(describeFailure(r.error));

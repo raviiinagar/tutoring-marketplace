@@ -124,9 +124,9 @@ afterEach(() => {
   vi.restoreAllMocks();
   navigate.mockReset();
 });
-it("gates publication by Pro, eligible subjects, profile state and listing state", () => {
+it("publishes for free while preserving subject, profile and safety restrictions", () => {
   expect(canSubmitOffer(listing, true, ["subject-physics"])).toBe(true);
-  expect(canSubmitOffer(listing, false, ["subject-physics"])).toBe(false);
+  expect(canSubmitOffer(listing, false, ["subject-physics"])).toBe(true);
   expect(canSubmitOffer(listing, true, [])).toBe(false);
   expect(
     canSubmitOffer({ ...listing, requires_profile_review: true }, true, ["subject-physics"]),
@@ -135,9 +135,12 @@ it("gates publication by Pro, eligible subjects, profile state and listing state
     canSubmitOffer({ ...listing, status: "SAFETY_SUSPENDED" }, true, ["subject-physics"]),
   ).toBe(false);
   expect(canResumeOffer({ ...listing, status: "PAUSED" }, true, ["subject-physics"])).toBe(true);
-  expect(canResumeOffer({ ...listing, status: "PAUSED" }, false, ["subject-physics"])).toBe(false);
+  expect(canResumeOffer({ ...listing, status: "PAUSED" }, false, ["subject-physics"])).toBe(true);
+  expect(
+    canSubmitOffer({ ...listing, publication_restricted: true }, false, ["subject-physics"]),
+  ).toBe(false);
   expect(offerAvailability({ ...listing, status: "PUBLISHED", eligible: false })).toMatch(
-    /Not currently available/,
+    /currently unavailable/,
   );
   expect(
     focusTutorOffers([
@@ -215,4 +218,25 @@ it("hides private workspace data and requests sign-in after a private 401", asyn
   mount();
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
   expect(screen.queryByRole("button", { name: "Manage teaching offers" })).toBeNull();
+});
+
+it("counts paused ads as offline without claiming unavailable published ads are available", async () => {
+  vi.mocked(api.listings).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      listings: [
+        { ...listing, id: "paused", status: "PAUSED" },
+        { ...listing, id: "unavailable", status: "PUBLISHED", eligible: false },
+      ],
+      eligible_subject_ids: ["subject-physics"],
+      tutor_pro_active: false,
+    },
+  });
+  mount();
+  await screen.findByText("Offline", { selector: "p.text-xs" });
+  expect(screen.getByText("Offline", { selector: "p.text-xs" }).parentElement).toHaveTextContent(
+    "1Offline",
+  );
+  expect(screen.getByText("Available").parentElement).toHaveTextContent("0Available");
 });

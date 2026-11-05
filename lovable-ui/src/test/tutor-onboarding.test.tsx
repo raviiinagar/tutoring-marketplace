@@ -76,7 +76,21 @@ function mount() {
   );
 }
 beforeEach(() => {
-  vi.spyOn(api,'tutorPresence').mockResolvedValue({ok:true,status:200,data:{presence:{revision:0,location:null,teaching_modes:['ONLINE'],accepting_students:null,weekly_slots:[],timezone:'Asia/Kolkata',updated_at:null}}});
+  vi.spyOn(api, "tutorPresence").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      presence: {
+        revision: 0,
+        location: null,
+        teaching_modes: ["ONLINE"],
+        accepting_students: null,
+        weekly_slots: [],
+        timezone: "Asia/Kolkata",
+        updated_at: null,
+      },
+    },
+  });
   saved = { profile: { ...profile }, evidence: [...docs], claims: [] };
   vi.spyOn(api, "tutorPro").mockResolvedValue({
     ok: true,
@@ -150,13 +164,18 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("shows a short saved profile and a single ID action without qualification or date-of-birth steps", async () => {
+it("keeps identity verification optional and collapsed while offering free ads", async () => {
   mount();
   expect(await screen.findByRole("heading", { name: "1. About you" })).toBeVisible();
   expect(screen.getByText(/Subjects, skills and experience are self-declared/)).toBeVisible();
   expect(screen.queryByLabelText("Date of birth")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Add claim" })).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Submit fictional ID sample" })).toBeEnabled();
+  const identity = screen
+    .getByText(/Identity verification.*optional/, { selector: "summary" })
+    .closest("details")!;
+  expect(identity).not.toHaveAttribute("open");
+  expect(screen.getByRole("link", { name: "Create or manage my ads" })).toBeVisible();
+  expect(screen.getByText(/Your profile and teaching ads are free/)).toBeVisible();
   expect(screen.getByRole("button", { name: "Continue to test payment" })).toBeDisabled();
 });
 it("one upload automatically submits identity and restores scan and pending review status after reload", async () => {
@@ -169,7 +188,10 @@ it("one upload automatically submits identity and restores scan and pending revi
     return { ok: true, status: 200, data: structuredClone(saved) };
   });
   const view = mount();
-  fireEvent.click(await screen.findByRole("button", { name: "Submit fictional ID sample" }));
+  fireEvent.click(
+    await screen.findByText(/Identity verification.*optional/, { selector: "summary" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Submit fictional ID sample" }));
   expect(
     await screen.findByText(/ID uploaded, scan passed, and submitted for Trust review/),
   ).toBeVisible();
@@ -179,20 +201,21 @@ it("one upload automatically submits identity and restores scan and pending revi
   ).not.toBeInTheDocument();
   view.unmount();
   mount();
+  fireEvent.click(
+    await screen.findByText(/Identity verification.*optional/, { selector: "summary" }),
+  );
   expect(await screen.findByText("Waiting for review")).toBeVisible();
   expect(screen.getByText("Scan passed", { exact: false })).toBeVisible();
 });
 it("approved identity has a public-profile link while Tutor Pro stays a separate optional step", async () => {
   saved = {
     ...saved,
-    profile: { ...profile, status: "APPROVED", eligible: true },
+    profile: { ...profile, status: "APPROVED", eligible: true, identity_verified: true },
     claims: [{ ...claim("IDENTITY", 0), status: "APPROVED" }],
   };
   mount();
   expect(await screen.findByRole("link", { name: "View your public profile" })).toBeVisible();
-  expect(
-    screen.getByText(/Your profile can appear publicly without a pass or teaching offer/),
-  ).toBeVisible();
+  expect(screen.getByText(/Your profile is public/)).toBeVisible();
   expect(screen.getByLabelText("Tutor Pro coupon (optional)")).toBeEnabled();
 });
 it("profile editing names the public email consent and avoids a compulsory portrait or qualification document", async () => {
@@ -203,4 +226,16 @@ it("profile editing names the public email consent and avoids a compulsory portr
   expect(screen.queryByLabelText("Date of birth")).not.toBeInTheDocument();
   expect(screen.getByText("Public profile photo · optional")).toBeVisible();
   expect(screen.getByText(/No qualification document required/)).toBeVisible();
+});
+
+it("does not infer verified identity from a public eligible profile", async () => {
+  saved = {
+    ...saved,
+    profile: { ...profile, status: "APPROVED", eligible: true, identity_verified: false },
+    claims: [{ ...claim("IDENTITY", 0), status: "APPROVED" }],
+  };
+  mount();
+  expect(await screen.findByRole("link", { name: "View your public profile" })).toBeVisible();
+  expect(screen.getByText(/Identity not verified/)).toBeVisible();
+  expect(screen.queryByText(/Your identity verification is current/)).not.toBeInTheDocument();
 });

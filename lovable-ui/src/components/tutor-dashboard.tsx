@@ -102,11 +102,15 @@ export function TutorDashboard() {
                       <p className="mt-2 text-sm">
                         {profile.eligible
                           ? "Your introduction is publicly eligible."
-                          : `Profile status: ${profile.status.replaceAll("_", " ").toLowerCase()}`}
+                          : `Profile: ${profile.publication_status?.toLowerCase() || "private draft"}`}
                       </p>
                       <p className="mt-3 text-xs text-muted-foreground">
-                        Your identity-reviewed introduction stays free. Subject expertise is
-                        self-declared unless separately reviewed.
+                        Your profile and ads are free.{" "}
+                        {profile.identity_label ||
+                          (profile.identity_verified
+                            ? "Identity verified."
+                            : "Identity not verified.")}{" "}
+                        Subject expertise is self-declared unless separately reviewed.
                       </p>
                       {profile.eligible && profile.public_id && (
                         <Link
@@ -120,7 +124,8 @@ export function TutorDashboard() {
                     </>
                   ) : (
                     <p className="text-sm">
-                      Create your Tutor profile and submit your own identity document for review.
+                      Introduce yourself and create your first ad. Identity verification is
+                      optional.
                     </p>
                   )
                 }
@@ -143,8 +148,8 @@ export function TutorDashboard() {
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-muted-foreground">
-                        Tutor Pro unlocks teaching offers and eligible consented public contact. It
-                        does not approve your identity or teaching qualifications.
+                        Tutor Pro is optional for consented public email. Your ads can go online
+                        without it. A pass does not verify identity or teaching qualifications.
                       </p>
                     )}
                     <p className="mt-3 text-xs text-muted-foreground">
@@ -191,7 +196,7 @@ export function TutorDashboard() {
                             .length,
                         ],
                         ["Drafts", result.listings.filter((l) => l.status === "DRAFT").length],
-                        ["In review", result.listings.filter((l) => l.status === "REVIEW").length],
+                        ["Offline", result.listings.filter((l) => l.status === "PAUSED").length],
                       ].map(([label, count]) => (
                         <div key={label} className="rounded-2xl bg-amber-50 p-3 text-center">
                           <p className="text-xl font-semibold">{count}</p>
@@ -207,7 +212,9 @@ export function TutorDashboard() {
                             <li key={item.id} className="py-4 first:pt-0">
                               <h3 className="break-words font-semibold">{item.offer.title}</h3>
                               <p className="mt-2 text-sm font-medium">
-                                {offerStatusLabels[item.status]}
+                                {item.status === "PUBLISHED" && !item.eligible
+                                  ? "Unavailable"
+                                  : offerStatusLabels[item.status]}
                               </p>
                               <p className="mt-1 text-sm text-muted-foreground">
                                 {offerAvailability(item)}
@@ -230,7 +237,7 @@ export function TutorDashboard() {
                         <h3 className="font-semibold">Ready to describe your classes?</h3>
                         <p className="mt-2 text-sm text-muted-foreground">
                           Choose an available subject, add your teaching details and review the rate
-                          before saving a draft. Staff review and Tutor Pro rules still apply.
+                          before publishing your ad for free. Identity verification is optional.
                         </p>
                       </div>
                     )}

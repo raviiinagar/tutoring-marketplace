@@ -1,10 +1,10 @@
 import type { TeachingListing } from "./api";
 export const offerStatusLabels: Record<TeachingListing["status"], string> = {
   DRAFT: "Draft",
-  REVIEW: "In review",
+  REVIEW: "Saved ad",
   CHANGES_REQUESTED: "Changes requested",
-  PUBLISHED: "Published",
-  PAUSED: "Paused",
+  PUBLISHED: "Online",
+  PAUSED: "Offline",
   SAFETY_SUSPENDED: "Restricted by staff",
 };
 export function focusTutorOffers(items: readonly TeachingListing[]) {
@@ -30,37 +30,40 @@ export function offerAvailability(item: TeachingListing): string {
   if (item.status === "SAFETY_SUSPENDED")
     return "Staff must lift the restriction before this offer can be published.";
   if (item.requires_profile_review)
-    return "Your profile needs review before this offer can be submitted.";
+    return "Your profile changed. Update the ad before publishing it again.";
   if (item.status === "PUBLISHED")
     return item.eligible
-      ? "Available for learners to discover."
-      : "Not currently available for discovery. Check profile and Tutor Pro status.";
+      ? "Students can discover your ad and send enquiries."
+      : "Your ad is currently unavailable. Check your profile, teaching preferences and any staff restrictions.";
   if (item.status === "REVIEW")
-    return "Waiting for a staff decision. This offer is not public yet.";
+    return "This saved ad is not online. Check its details and publish when ready.";
   if (item.status === "CHANGES_REQUESTED")
-    return "Read the feedback, revise your draft and submit it again.";
+    return "Check the saved feedback and update your ad. Existing staff restrictions still apply.";
   if (item.status === "PAUSED") return "Hidden from discovery until you resume an eligible offer.";
-  return "Saved privately. Submit for staff review when you are ready.";
+  return "Saved privately. Publish your ad when you are ready.";
+}
+export function canPublishAd(item: TeachingListing, subjects: readonly string[]) {
+  return (
+    !item.publication_restricted &&
+    !item.requires_profile_review &&
+    subjects.includes(item.offer.subject_id) &&
+    ["DRAFT", "REVIEW", "CHANGES_REQUESTED"].includes(item.status)
+  );
 }
 export function canSubmitOffer(
   item: TeachingListing,
-  proActive: boolean,
+  _proActive: boolean,
   subjects: readonly string[],
 ) {
-  return (
-    proActive &&
-    !item.requires_profile_review &&
-    subjects.includes(item.offer.subject_id) &&
-    (item.status === "DRAFT" || item.status === "CHANGES_REQUESTED")
-  );
+  return canPublishAd(item, subjects);
 }
 export function canResumeOffer(
   item: TeachingListing,
-  proActive: boolean,
+  _proActive: boolean,
   subjects: readonly string[],
 ) {
   return (
-    proActive &&
+    !item.publication_restricted &&
     !item.requires_profile_review &&
     subjects.includes(item.offer.subject_id) &&
     item.status === "PAUSED"

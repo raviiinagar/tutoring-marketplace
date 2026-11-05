@@ -7,18 +7,15 @@ import {
   type CatalogueKind,
   type TeachingOffer,
   type TeachingListing,
+  type TutorProfile,
+  type TutorPhoto,
 } from "@/lib/api";
-import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
+import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { accountSessionKey } from "@/lib/session";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
-import {
-  canResumeOffer,
-  canSubmitOffer,
-  offerAvailability,
-  offerStatusLabels,
-} from "@/lib/tutor-workspace";
+import { TutorAdManager } from "@/components/tutor-ad-manager";
 export const Route = createFileRoute("/tutor_/listings")({
   ssr: false,
   component: TutorListingsPage,
@@ -181,18 +178,19 @@ export function TutorListingsManager() {
   const [ready, setReady] = useState(false);
   const { loading, run } = useSingleFlight();
   const [eligibleSubjects, setEligibleSubjects] = useState<string[]>([]);
-  const [proActive, setProActive] = useState(false);
+  const [directMode, setDirectMode] = useState(false);
+  const [profile, setProfile] = useState<TutorProfile>();
+  const [photo, setPhoto] = useState<TutorPhoto | null>(null);
   const [approvalsReady, setApprovalsReady] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false),
-    [step, setStep] = useState(0),
-    [filter, setFilter] = useState<TeachingListing["status"] | "ALL">("ALL");
+    [step, setStep] = useState(0);
   const editorHeading = useRef<HTMLHeadingElement>(null),
     feedback = useRef<HTMLDivElement>(null),
     alive = useRef(true),
     loadVersion = useRef(0);
   const initialized = useRef(false);
   const unavailableApprovals =
-    "Available subjects could not be confirmed. Refresh offers before creating or submitting.";
+    "Ad publishing is temporarily unavailable. Refresh your ads to confirm the current publication rules.";
   const load = async () => {
     const version = ++loadVersion.current;
     if (!alive.current) return;
@@ -201,8 +199,9 @@ export function TutorListingsManager() {
     if (!alive.current || version !== loadVersion.current) return;
     if (r.ok) {
       setListings(r.data.listings);
-      setProActive(r.data.tutor_pro_active === true);
-      const available = Array.isArray(r.data.eligible_subject_ids);
+      setDirectMode(r.data.publication_policy === "direct-ads-v1");
+      const available =
+        Array.isArray(r.data.eligible_subject_ids) && r.data.publication_policy === "direct-ads-v1";
       setEligibleSubjects(available ? r.data.eligible_subject_ids : []);
       setApprovalsReady(available);
       setReady(true);
@@ -210,7 +209,7 @@ export function TutorListingsManager() {
       else setError((current) => (current === unavailableApprovals ? undefined : current));
     } else {
       setApprovalsReady(false);
-      setProActive(false);
+      setDirectMode(false);
       setError(describeFailure(r.error));
       expired(r.error);
     }
@@ -227,6 +226,11 @@ export function TutorListingsManager() {
     alive.current = true;
     void load();
     void loadCatalogue();
+    void Promise.all([api.tutor(), api.tutorPhoto()]).then(([p, image]) => {
+      if (!alive.current) return;
+      if (p.ok) setProfile(p.data.profile ?? undefined);
+      if (image.ok) setPhoto(image.data.photo);
+    });
     return () => {
       alive.current = false;
       loadVersion.current++;
@@ -271,31 +275,45 @@ export function TutorListingsManager() {
     void run(async () => {
       setError(undefined);
       setNotice(undefined);
-      if (!proActive || !approvalsReady || !ready) {
-        setError("Refresh your offer access before saving. An active Tutor Pro pass is required.");
+      if (!directMode || !approvalsReady || !ready) {
+        setError("Refresh your ads before saving. Direct publication must be available.");
         return;
       }
       if (!editing && !eligibleSubjects.includes(offer.subject_id)) {
         setError("Choose a subject currently available to your Tutor profile.");
         return;
       }
+      const shouldPublish =
+        (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "publish";
       const r = editing
         ? await api.editListing(editing.id, editing.revision, offer)
         : await api.createListing(offer);
       if (!alive.current) return;
       if (r.ok) {
-        setListings((rows) => [
-          r.data.listing,
-          ...rows.filter((row) => row.id !== r.data.listing.id),
-        ]);
+        let saved = r.data.listing;
+        if (shouldPublish && saved.status !== "PUBLISHED") {
+          const publication = await api.listingAction(saved.id, saved.revision, "PUBLISH");
+          if (!alive.current) return;
+          if (publication.ok) saved = publication.data.listing;
+          else
+            setError(
+              "Your draft was saved, but could not go online. " +
+                describeFailure(publication.error),
+            );
+        }
+        setListings((rows) => [saved, ...rows.filter((row) => row.id !== saved.id)]);
         setOffer(approvedDraft(catalogue, eligibleSubjects));
         setEditing(undefined);
         setEditorOpen(false);
         setStep(0);
         setNotice(
-          r.data.listing.status === "SAFETY_SUSPENDED"
+          saved.status === "SAFETY_SUSPENDED"
             ? "Changes saved. The staff restriction remains in place."
-            : "Draft saved. Submit it for staff review when the details are ready.",
+            : saved.status === "PUBLISHED" && saved.eligible
+              ? "Your ad is online now. Changes are visible to students."
+              : saved.status === "PUBLISHED"
+                ? "Changes saved. Your ad is currently unavailable; check your teaching preferences."
+                : "Your ad is saved as a private draft.",
         );
         await load();
       } else {
@@ -305,7 +323,7 @@ export function TutorListingsManager() {
       }
     });
   };
-  const action = (item: TeachingListing, kind: "SUBMIT" | "PAUSE" | "RESUME") =>
+  const action = (item: TeachingListing, kind: "PUBLISH" | "PAUSE" | "RESUME" | "ARCHIVE") =>
     run(async () => {
       setError(undefined);
       setNotice(undefined);
@@ -314,11 +332,13 @@ export function TutorListingsManager() {
       if (r.ok) {
         setListings((rows) => rows.map((row) => (row.id === item.id ? r.data.listing : row)));
         setNotice(
-          kind === "SUBMIT"
-            ? "Offer submitted for review."
+          kind === "ARCHIVE"
+            ? "Your advert has been deleted from public search and My ads."
             : kind === "PAUSE"
-              ? "Offer paused."
-              : "Offer resumed. Check its current discovery status below.",
+              ? "Your ad is offline."
+              : r.data.listing.eligible
+                ? "Your ad is online now."
+                : "Your ad was saved but is not currently available. Check your teaching preferences and any restrictions.",
         );
         await load();
       } else {
@@ -359,8 +379,7 @@ export function TutorListingsManager() {
     </label>
   );
   const canCreate =
-    ready && approvalsReady && !!catalogue && proActive && eligibleSubjects.length > 0;
-  const visible = listings.filter((item) => filter === "ALL" || item.status === filter);
+    ready && directMode && approvalsReady && !!catalogue && eligibleSubjects.length > 0;
   const beginCreate = () => {
     setEditing(undefined);
     setOffer(approvedDraft(catalogue, eligibleSubjects));
@@ -369,10 +388,10 @@ export function TutorListingsManager() {
     setError(undefined);
     setNotice(undefined);
   };
-  const beginEdit = (item: TeachingListing) => {
+  const beginEdit = (item: TeachingListing, targetStep = 0) => {
     setEditing(item);
     setOffer({ ...item.offer, class_location: item.class_location ?? item.offer.class_location });
-    setStep(0);
+    setStep(targetStep);
     setEditorOpen(true);
     setError(undefined);
     setNotice(undefined);
@@ -384,15 +403,25 @@ export function TutorListingsManager() {
         setError("Choose between one and three teaching languages.");
         return;
       }
+      if (
+        step === 1 &&
+        (offer.title.trim().split(/\s+/).length < 12 ||
+          offer.description.trim().split(/\s+/).length < 40)
+      ) {
+        setError(
+          "Write an ad title of at least 12 words and a class description of at least 40 words.",
+        );
+        return;
+      }
       setError(undefined);
       setStep((value) => value + 1);
     } else save(event);
   };
   return (
     <AuthShell
-      wide
-      title="Your teaching offers"
-      intro="Describe each class clearly, save a private draft and submit it for staff review."
+      dashboard
+      title="My ads"
+      intro="Create your teaching ad for free. Publish when you are ready and update it whenever you like."
       footer={
         <Link to="/tutor/dashboard" className="link">
           Back to Tutor dashboard
@@ -411,173 +440,40 @@ export function TutorListingsManager() {
         {error && <Notice tone="error">{error}</Notice>}
         {notice && <Notice tone="success">{notice}</Notice>}
       </div>
-      <div className="mb-6 mt-5 flex flex-wrap gap-3">
-        <Button
-          className="rounded-full"
-          disabled={loading || editorOpen || !canCreate}
-          onClick={beginCreate}
-        >
-          Create teaching offer
-        </Button>
+      <div className="my-5 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Identity verification is optional. Your ad goes online after you publish it.
+        </p>
         <Button variant="outline" disabled={loading} onClick={() => void load()}>
-          Refresh offers
+          Refresh ads
         </Button>
       </div>
-      {ready && !proActive && (
-        <div className="mb-5">
-          <Notice tone="info">
-            An active Tutor Pro pass is required to create or publish teaching offers. Your
-            identity-reviewed introduction stays free.{" "}
-            <Link to="/tutor" hash="tutor-pro" className="link">
-              View Tutor Pro options
-            </Link>
-          </Notice>
-        </div>
+      {!ready ? (
+        <p role="status">
+          {error ? "Your ads could not be loaded. Refresh to try again." : "Loading your ads…"}
+        </p>
+      ) : (
+        <TutorAdManager
+          ads={listings}
+          catalogue={catalogue}
+          profile={profile}
+          photo={photo}
+          subjects={eligibleSubjects}
+          disabled={loading || editorOpen || !directMode || !approvalsReady}
+          canCreate={canCreate}
+          onCreate={beginCreate}
+          onEdit={beginEdit}
+          onAction={(item, kind) => void action(item, kind)}
+        />
       )}
-      {ready && approvalsReady && catalogue && (
-        <p className="mb-5 text-sm text-muted-foreground">
-          {eligibleSubjects.length
-            ? `Subjects available for new offers: ${eligibleSubjects.map((id) => catalogue.terms.find((term) => term.id === id)?.label || id).join(", ")}.`
-            : "Complete your profile and current identity/review requirements before creating an offer."}{" "}
-          <Link to="/tutor" className="link">
-            Check profile & identity
+      {ready && approvalsReady && !eligibleSubjects.length && (
+        <p className="mt-5 text-sm text-muted-foreground">
+          Complete your teaching introduction and adult declaration before creating an ad.{" "}
+          <Link className="link" to="/tutor">
+            Open your profile
           </Link>
         </p>
       )}
-      <section aria-labelledby="saved-offers-title" className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 id="saved-offers-title" className="text-xl font-semibold">
-            Saved offers
-          </h2>
-          <label className="text-sm font-medium">
-            Filter offers
-            <select
-              aria-label="Filter teaching offers"
-              className="input mt-2"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value as typeof filter)}
-            >
-              <option value="ALL">All offers</option>
-              {Object.entries(offerStatusLabels).map(([value, label]) => (
-                <option value={value} key={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {!ready ? (
-          <p role="status">
-            {error
-              ? "Offers could not be loaded. Refresh to try again."
-              : "Loading your teaching offers…"}
-          </p>
-        ) : !listings.length ? (
-          <div className="rounded-2xl bg-amber-50 p-5">
-            <h3 className="font-semibold">Your first teaching offer starts with a subject</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              When your profile and Tutor Pro access are ready, choose a subject, describe your
-              class and review the tuition before saving.
-            </p>
-          </div>
-        ) : !visible.length ? (
-          <p className="rounded-2xl border p-5 text-sm">No offers match this filter.</p>
-        ) : (
-          visible.map((item) => (
-            <article
-              key={item.id}
-              aria-label={item.offer.title}
-              className="space-y-4 rounded-2xl border bg-card p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 className="min-w-0 break-words text-lg font-semibold">{item.offer.title}</h3>
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold">
-                  {offerStatusLabels[item.status]}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">{offerAvailability(item)}</p>
-              <p className="text-sm font-semibold">
-                ₹{(item.offer.rate_paise / 100).toLocaleString("en-IN")} /{" "}
-                {item.offer.rate_unit === "HOUR"
-                  ? "hour"
-                  : `lesson (${item.offer.lesson_minutes} min)`}{" "}
-                · {item.offer.teaching_mode === "ONLINE" ? "Online" : "In person"}
-              </p>
-              {item.review_reason && (
-                <Notice tone="info">Review feedback: {item.review_reason}</Notice>
-              )}
-              {item.safety_reason && (
-                <Notice tone="info">Safety decision: {item.safety_reason}</Notice>
-              )}
-              <details className="rounded-xl bg-secondary p-4">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Offer details & trial terms
-                </summary>
-                <div className="mt-4">
-                  <OfferSummary
-                    offer={{
-                      ...item.offer,
-                      class_location: item.class_location ?? item.offer.class_location,
-                    }}
-                    catalogue={catalogue}
-                  />
-                </div>
-              </details>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  disabled={loading || editorOpen || !proActive || !approvalsReady || !catalogue}
-                  onClick={() => beginEdit(item)}
-                >
-                  Edit offer
-                </Button>
-                {(item.status === "DRAFT" || item.status === "CHANGES_REQUESTED") && (
-                  <Button
-                    disabled={
-                      loading || editorOpen || !canSubmitOffer(item, proActive, eligibleSubjects)
-                    }
-                    onClick={() => void action(item, "SUBMIT")}
-                  >
-                    Submit offer for review
-                  </Button>
-                )}
-                {item.status === "PUBLISHED" && (
-                  <Button
-                    variant="outline"
-                    disabled={loading || editorOpen}
-                    onClick={() => void action(item, "PAUSE")}
-                  >
-                    Pause offer
-                  </Button>
-                )}
-                {item.status === "PAUSED" && (
-                  <Button
-                    variant="outline"
-                    disabled={
-                      loading || editorOpen || !canResumeOffer(item, proActive, eligibleSubjects)
-                    }
-                    onClick={() => void action(item, "RESUME")}
-                  >
-                    Resume offer
-                  </Button>
-                )}
-                {item.status === "PUBLISHED" && item.eligible && (
-                  <Button variant="outline" asChild>
-                    <Link
-                      to="/tutors/$listingId"
-                      params={{ listingId: item.id }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View public offer
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </article>
-          ))
-        )}
-      </section>
       {editorOpen && (
         <section
           className="mt-8 rounded-3xl border bg-card p-5 sm:p-7"
@@ -603,7 +499,7 @@ export function TutorListingsManager() {
           </ol>
           <form onSubmit={editorSubmit} className="space-y-5">
             <fieldset
-              disabled={loading || !proActive || !approvalsReady || !ready}
+              disabled={loading || !directMode || !approvalsReady || !ready}
               className="space-y-5"
             >
               {step === 0 && (
@@ -681,18 +577,18 @@ export function TutorListingsManager() {
                 <div className="space-y-5">
                   {" "}
                   <Field
-                    label="Offer title"
-                    hint="Describe your subject and learner level. 10–100 characters."
+                    label="Ad title"
+                    hint={`${offer.title.trim() ? offer.title.trim().split(/\s+/).length : 0}/12 words minimum. Describe your subject, approach and learner level.`}
                     required
                     minLength={10}
                     value={offer.title}
-                    maxLength={100}
+                    maxLength={160}
                     onChange={(e) => change("title", e.target.value)}
                   />
                   <label className="block">
-                    Offer description
+                    About the class
                     <textarea
-                      aria-label="Offer description"
+                      aria-label="About the class"
                       className="input mt-2 min-h-28"
                       value={offer.description}
                       maxLength={1500}
@@ -705,7 +601,9 @@ export function TutorListingsManager() {
                       id="offer-description-hint"
                       className="mt-2 block text-sm text-muted-foreground"
                     >
-                      40–1,500 characters. Explain what learners will learn and how you teach.
+                      {offer.description.trim() ? offer.description.trim().split(/\s+/).length : 0}
+                      /40 words minimum · {offer.description.length}/1,500 characters. Explain what
+                      learners will learn and how you teach.
                     </span>
                   </label>
                 </div>
@@ -801,13 +699,13 @@ export function TutorListingsManager() {
               )}
               {step === 3 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Review your teaching offer</h3>
+                  <h3 className="font-semibold">Check your ad before saving</h3>
                   <p className="break-words text-lg font-semibold">{offer.title}</p>
                   <OfferSummary offer={offer} catalogue={catalogue} />
                   <Notice tone="info">
                     {editing?.status === "PUBLISHED"
-                      ? "Saving changes removes the current publication approval and creates a draft for a new review."
-                      : "Saving creates a private draft. Submitting for staff review is a separate action."}{" "}
+                      ? "Saving changes updates your online ad immediately."
+                      : "Choose Publish my ad to go online now, or save a private draft for later."}{" "}
                     Keep contact details and links out of public offer text. Staff restrictions
                     remain until staff lift them.
                   </Notice>
@@ -826,13 +724,25 @@ export function TutorListingsManager() {
                 {step < 3 ? (
                   <Button type="submit">Continue</Button>
                 ) : (
-                  <SubmitButton
-                    loading={loading}
+                  <Button
+                    type="submit"
+                    name="intent"
+                    value="publish"
                     disabled={!ready || (!editing && !eligibleSubjects.includes(offer.subject_id))}
-                    loadingText="Saving…"
                   >
-                    {editing ? "Save revised offer" : "Save draft offer"}
-                  </SubmitButton>
+                    {editing?.status === "PUBLISHED" ? "Save changes" : "Publish my ad"}
+                  </Button>
+                )}
+                {step === 3 && editing?.status !== "PUBLISHED" && (
+                  <Button
+                    type="submit"
+                    name="intent"
+                    value="draft"
+                    variant="outline"
+                    disabled={loading}
+                  >
+                    Save as draft
+                  </Button>
                 )}
               </div>
             </fieldset>

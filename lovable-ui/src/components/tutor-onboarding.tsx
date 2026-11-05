@@ -86,7 +86,7 @@ export function TutorOnboarding() {
           "Profile saved. " +
             (r.data.profile?.eligible
               ? "Your public profile is updated."
-              : "Next: upload one identity document."),
+              : "Your introduction is saved. Create your ad and publish for free."),
         );
       } else {
         setError(describeFailure(r.error));
@@ -133,12 +133,13 @@ export function TutorOnboarding() {
   const p = state?.profile,
     identity = state?.claims.find((c) => c.kind === "IDENTITY"),
     evidence = state?.evidence.find((e) => e.id === identity?.evidence_id);
-  const approved = !!p?.eligible && !!p.hourly_rate_paise && !!p.subject_ids?.length;
+  const approved = p?.identity_verified === true;
+  const profilePublic = p?.eligible === true;
   return (
     <AuthShell
       wide
       title="Your Tutor profile"
-      intro="Introduce yourself, upload one ID, and track approval here. Your profile is free after identity review."
+      intro="Introduce yourself, create your ad and publish for free. Identity verification is optional."
     >
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
@@ -149,8 +150,8 @@ export function TutorOnboarding() {
           <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
             {[
               ["Profile saved", !!p],
-              ["ID submitted", !!identity],
-              ["Profile public", approved],
+              ["Ready to create an ad", !!p?.subject_ids?.length],
+              ["Profile public", profilePublic],
             ].map(([label, done]) => (
               <li
                 key={String(label)}
@@ -188,7 +189,7 @@ export function TutorOnboarding() {
                 <p className="text-xs text-muted-foreground">
                   Subjects, skills and experience are self-declared.
                 </p>
-                {approved && p.public_id && (
+                {profilePublic && p.public_id && (
                   <Button variant="outline" asChild>
                     <Link to="/profiles/$profileId" params={{ profileId: p.public_id }}>
                       View your public profile
@@ -202,8 +203,7 @@ export function TutorOnboarding() {
                 onCompleted={(next, cleanupNotice) => {
                   apply(next);
                   setNotice(
-                    cleanupNotice ||
-                      "Profile saved privately. Next: upload one identity document for review.",
+                    cleanupNotice || "Introduction saved. Create your ad and publish it for free.",
                   );
                 }}
               />
@@ -332,7 +332,7 @@ export function TutorOnboarding() {
                     checked={form.adult_confirmed}
                     onChange={(e) => change("adult_confirmed", e.target.checked)}
                   />
-                  I am at least 18 and will upload my own identity document.
+                  I am at least 18 and will provide my own teaching services.
                 </label>
                 <label className="flex items-start gap-3 text-sm">
                   <input
@@ -376,122 +376,148 @@ export function TutorOnboarding() {
           {p && (
             <>
               <section className="onboarding-section space-y-4">
-                <h2 className="flex items-center gap-2 text-lg font-semibold">
-                  <FileCheck aria-hidden className="size-5" />
-                  2. One private identity document
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {p.identity_country === "OTHER"
-                    ? "Upload your passport."
-                    : "Upload your Aadhaar, passport or another government photo ID."}{" "}
-                  PDF, PNG or JPEG, up to 1 MiB. Mask unnecessary identity numbers. Your ID stays
-                  private; it is never your public photo.
+                <h2 className="text-xl font-semibold">Your teaching profile</h2>
+                <p className="text-sm">
+                  {profilePublic
+                    ? "Your profile is public."
+                    : "Your introduction is saved privately. Publishing your first ad makes it public."}
                 </p>
-                {identity ? (
-                  <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
-                    <p>
-                      <strong>ID uploaded</strong> ·{" "}
-                      {evidence?.scan_status === "CLEAN"
-                        ? "Scan passed"
-                        : evidence?.scan_status || "Checking scan"}
-                    </p>
-                    <p>
-                      Trust review:{" "}
-                      <strong>
-                        {p.status === "SUBMITTED"
-                          ? "Waiting for review"
-                          : approved
-                            ? "Identity approved"
-                            : identity.status}
-                      </strong>
-                    </p>
-                    {identity.review_reason && <p>Reviewer feedback: {identity.review_reason}</p>}
-                    {identity.expires_at && (
-                      <p>
-                        Approval valid until {new Date(identity.expires_at).toLocaleDateString()}.
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      To replace this ID, edit your profile and select “Replace my identity
-                      document”.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm font-medium">
-                      No identity document submitted for this revision yet.
-                    </p>
-                    {state.evidence
-                      .filter(
-                        (item) =>
-                          !state.claims.some((c) => c.evidence_id === item.id) &&
-                          ["ERROR", "REJECTED", "QUARANTINED"].includes(item.scan_status),
-                      )
-                      .slice(-1)
-                      .map((item) => (
-                        <Notice key={item.id} tone="error">
-                          Last upload: {item.scan_status}. This document was not submitted for
-                          approval. Upload a replacement.
-                        </Notice>
-                      ))}
-                    {policy?.test_only ? (
-                      <Notice tone="info">Fictional testing only. Do not upload a real ID.</Notice>
-                    ) : (
-                      <>
-                        <input
-                          ref={input}
-                          aria-label="Identity document"
-                          type="file"
-                          accept="application/pdf,image/png,image/jpeg"
-                          disabled={loading || editing || !policy?.uploads_enabled}
-                          onChange={(e) => setFile(e.target.files?.[0])}
-                        />
-                        {file && (
-                          <p className="text-sm">
-                            Selected: {file.name} · {Math.ceil(file.size / 1024)} KB
-                          </p>
-                        )}
-                      </>
-                    )}
-                    <Button
-                      disabled={
-                        loading ||
-                        editing ||
-                        !policy?.uploads_enabled ||
-                        (!policy.test_only && !file)
-                      }
-                      onClick={() => upload(!!policy?.test_only)}
-                    >
-                      {loading
-                        ? "Uploading and submitting…"
-                        : policy?.test_only
-                          ? "Submit fictional ID sample"
-                          : "Upload ID and submit for review"}
-                    </Button>
-                  </>
-                )}
-                <Button variant="outline" disabled={loading} onClick={() => void run(load)}>
-                  Refresh review status
+                <p className="text-sm text-muted-foreground">
+                  {p.identity_label || (approved ? "Identity verified" : "Identity not verified")}.
+                  Identity verification is optional.
+                </p>
+                <Button asChild>
+                  <Link to="/tutor/listings">Create or manage my ads</Link>
                 </Button>
-                {approved && (
-                  <Notice tone="success">
-                    <ShieldCheck aria-hidden className="mr-2 inline size-4" />
-                    Identity approved. Your profile can appear publicly without a pass or teaching
-                    offer.
-                  </Notice>
-                )}
               </section>
+              <details className="onboarding-section">
+                <summary className="cursor-pointer font-semibold">
+                  Identity verification · optional
+                </summary>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Your ad can go online without an identity document. Complete this optional check
+                  if you want your identity to be verified.
+                </p>
+                <section className="mt-5 space-y-4">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold">
+                    <FileCheck aria-hidden className="size-5" />
+                    Optional private identity document
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {p.identity_country === "OTHER"
+                      ? "Upload your passport."
+                      : "Upload your Aadhaar, passport or another government photo ID."}{" "}
+                    PDF, PNG or JPEG, up to 1 MiB. Mask unnecessary identity numbers. Your ID stays
+                    private; it is never your public photo.
+                  </p>
+                  {identity ? (
+                    <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
+                      <p>
+                        <strong>ID uploaded</strong> ·{" "}
+                        {evidence?.scan_status === "CLEAN"
+                          ? "Scan passed"
+                          : evidence?.scan_status || "Checking scan"}
+                      </p>
+                      <p>
+                        Trust review:{" "}
+                        <strong>
+                          {p.status === "SUBMITTED"
+                            ? "Waiting for review"
+                            : approved
+                              ? "Identity approved"
+                              : identity.status}
+                        </strong>
+                      </p>
+                      {identity.review_reason && <p>Reviewer feedback: {identity.review_reason}</p>}
+                      {identity.expires_at && (
+                        <p>
+                          Approval valid until {new Date(identity.expires_at).toLocaleDateString()}.
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        To replace this ID, edit your profile and select “Replace my identity
+                        document”.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium">
+                        No identity document submitted for this revision yet.
+                      </p>
+                      {state.evidence
+                        .filter(
+                          (item) =>
+                            !state.claims.some((c) => c.evidence_id === item.id) &&
+                            ["ERROR", "REJECTED", "QUARANTINED"].includes(item.scan_status),
+                        )
+                        .slice(-1)
+                        .map((item) => (
+                          <Notice key={item.id} tone="error">
+                            Last upload: {item.scan_status}. This document was not submitted for
+                            approval. Upload a replacement.
+                          </Notice>
+                        ))}
+                      {policy?.test_only ? (
+                        <Notice tone="info">
+                          Fictional testing only. Do not upload a real ID.
+                        </Notice>
+                      ) : (
+                        <>
+                          <input
+                            ref={input}
+                            aria-label="Identity document"
+                            type="file"
+                            accept="application/pdf,image/png,image/jpeg"
+                            disabled={loading || editing || !policy?.uploads_enabled}
+                            onChange={(e) => setFile(e.target.files?.[0])}
+                          />
+                          {file && (
+                            <p className="text-sm">
+                              Selected: {file.name} · {Math.ceil(file.size / 1024)} KB
+                            </p>
+                          )}
+                        </>
+                      )}
+                      <Button
+                        disabled={
+                          loading ||
+                          editing ||
+                          !policy?.uploads_enabled ||
+                          (!policy.test_only && !file)
+                        }
+                        onClick={() => upload(!!policy?.test_only)}
+                      >
+                        {loading
+                          ? "Uploading and submitting…"
+                          : policy?.test_only
+                            ? "Submit fictional ID sample"
+                            : "Upload ID and submit for review"}
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="outline" disabled={loading} onClick={() => void run(load)}>
+                    Refresh review status
+                  </Button>
+                  {approved && (
+                    <Notice tone="success">
+                      <ShieldCheck aria-hidden className="mr-2 inline size-4" />
+                      Your identity verification is current. Publication and verification are
+                      separate.
+                    </Notice>
+                  )}
+                </section>
+              </details>
               <details className="onboarding-section">
                 <summary className="cursor-pointer font-semibold">
                   Public profile photo · optional
                 </summary>
                 <p className="my-3 text-sm text-muted-foreground">
-                  You can add your own portrait later. It is reviewed separately.
+                  You can add your own portrait later. It can appear publicly once scanning passes.
                 </p>
                 <TutorPhotoEditor />
               </details>
               <TutorPresenceEditor />
-              <TutorPro identityApproved={approved} />
+              <TutorPro identityApproved={!!p?.adult_declared_at} />
             </>
           )}
         </div>

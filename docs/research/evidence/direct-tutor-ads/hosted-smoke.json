@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-05",
+  "liveGetChecks": [
+    {
+      "base": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+      "path": "/v1/health",
+      "status": 200
+    },
+    {
+      "base": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+      "path": "/v1/tutor-policy",
+      "status": 200
+    },
+    {
+      "base": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+      "path": "/v1/me/listings",
+      "status": 401
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org",
+      "path": "/v1/health",
+      "status": 200
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org",
+      "path": "/v1/tutor-policy",
+      "status": 200
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org",
+      "path": "/v1/me/listings",
+      "status": 401
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org/payment-sandbox",
+      "path": "/v1/health",
+      "status": 200
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org/payment-sandbox",
+      "path": "/v1/tutor-policy",
+      "status": 200
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org/payment-sandbox",
+      "path": "/v1/me/listings",
+      "status": 401
+    }
+  ],
+  "localFixtureAssetsChecks": [
+    {
+      "width": 1440,
+      "noOverflow": true,
+      "myAds": true,
+      "optionalIdentityCopy": true
+    },
+    {
+      "width": 390,
+      "noOverflow": true,
+      "myAds": true,
+      "optionalIdentityCopy": true
+    },
+    {
+      "width": 320,
+      "noOverflow": true,
+      "myAds": true,
+      "optionalIdentityCopy": true
+    }
+  ],
+  "browserErrors": [],
+  "authenticatedReads": "Deployed Cloudflare assets with every authenticated API read redirected exclusively to the isolated real local API. No hosted authenticated write test or fictional hosted users.",
+  "status": "PASSED"
+}

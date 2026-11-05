@@ -75,14 +75,16 @@ export function TutorPhotoEditor() {
               <p className="text-sm">
                 <strong>
                   Photo:{" "}
-                  {
-                    {
-                      PENDING: "Uploaded — waiting for Trust review",
-                      APPROVED: "Approved for eligible teaching offers",
-                      REJECTED: "Not approved",
-                      REMOVED: "Removed",
-                    }[state.photo.status]
-                  }
+                  {state.photo.self_published &&
+                  state.photo.status === "PENDING" &&
+                  state.photo.scan_status === "CLEAN"
+                    ? "Ready for your public profile"
+                    : {
+                        PENDING: "Uploaded — waiting for Trust review",
+                        APPROVED: "Approved for eligible teaching offers",
+                        REJECTED: "Not approved",
+                        REMOVED: "Removed",
+                      }[state.photo.status]}
                 </strong>
                 <span className="mt-1 block">
                   Scan:{" "}
@@ -95,7 +97,15 @@ export function TutorPhotoEditor() {
                   }
                 </span>
               </p>
-              {state.photo.status === "PENDING" && (
+              {state.photo.self_published &&
+                state.photo.status === "PENDING" &&
+                state.photo.scan_status === "CLEAN" && (
+                  <p className="text-sm text-muted-foreground">
+                    Your portrait is ready to appear when your profile is online. Identity
+                    verification is separate.
+                  </p>
+                )}
+              {state.photo.status === "PENDING" && !state.photo.self_published && (
                 <p className="text-sm text-muted-foreground">
                   Your portrait is saved. It will appear publicly only after approval on an eligible
                   teaching offer.
@@ -154,13 +164,18 @@ export function TutorPhotoEditor() {
                 disabled={loading}
                 onChange={(e) => setConsent(e.target.checked)}
               />
-              This is my own adult portrait, and I agree to display it publicly after approval.
+              This is my own adult portrait, and I agree to display it publicly once scanning
+              passes.
             </label>
             <Button
               type="submit"
               disabled={loading || !file || !consent || !state.policy.uploads_enabled}
             >
-              {loading ? "Uploading…" : "Upload photo for review"}
+              {loading
+                ? "Uploading…"
+                : state.policy.auto_publication
+                  ? "Upload photo"
+                  : "Upload photo for review"}
             </Button>
           </form>
           <Button variant="outline" disabled={loading} onClick={() => void load()}>

@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-04",
+  "evidence_id": "ev_8c13d8c66334c468ce4d6686dc7ec394dffc7c90bf2359af2e40f48b4ae9a716",
+  "operation": "capture_web_screenshot",
+  "provider": {
+    "id": "rea-cdp-browser",
+    "name": "REA Chrome DevTools Protocol observation provider",
+    "version": "2"
+  },
+  "artifact": {
+    "sha256": "26b7007b2f86bed3e79d80ead2048fb8af9ba4c4e46254d1f19d17fa490975a8",
+    "bytes": 160415
+  },
+  "target_path": "/dashboard.html/my-listings/listing/:adId",
+  "observed_sections": [
+    "Courses taught",
+    "Ad title",
+    "Venue",
+    "Levels",
+    "Languages and countries",
+    "About you",
+    "About the class",
+    "Price",
+    "Video",
+    "Recommendations"
+  ],
+  "observed_controls": [
+    "Create An Ad",
+    "Ad is online",
+    "Student's view",
+    "Delete advert"
+  ],
+  "external_mutations": false,
+  "limitations": [
+    "Artifact identity is unavailable for this observation.",
+    "The screenshot contains the visible viewport, including on-screen content.",
+    "REA does not scroll, evaluate JavaScript, or capture beyond the current viewport.",
+    "Browser host platform and architecture were not observed."
+  ],
+  "privacy": "Raw account/ad identifiers and image payload excluded from tracked metadata. Playwright navigated; REA passively captured."
+}

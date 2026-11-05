@@ -1,11 +1,9 @@
 import { Link } from "@tanstack/react-router";
 const links = [
-  { to: "/tutor/dashboard", label: "Tutor dashboard" },
-  { to: "/tutor", label: "Profile & identity" },
-  { to: "/tutor/listings", label: "Teaching offers" },
-  { to: "/tutor/requests", label: "Incoming enquiries" },
-  { to: "/tutor/evaluations", label: "Evaluations & level" },
-  { to: "/account", label: "Learning dashboard" },
+  { to: "/tutor/dashboard", label: "Dashboard" },
+  { to: "/tutor/requests", label: "My messages" },
+  { to: "/tutor/listings", label: "My ads" },
+  { to: "/tutor/evaluations", label: "Evaluations" },
   { to: "/account/settings", label: "My account" },
 ] as const;
 export function TutorWorkspaceNavigation() {
@@ -18,7 +16,7 @@ export function TutorWorkspaceNavigation() {
         <Link
           key={item.to}
           to={item.to}
-          activeOptions={{ exact: item.to === "/tutor" || item.to === "/account" }}
+          activeOptions={{ exact: true }}
           activeProps={{
             "aria-current": "page",
             className: "bg-amber-50 text-amber-950 ring-1 ring-amber-200",

@@ -1,0 +1,33 @@
+{
+  "status": "PASSED",
+  "realBackend": true,
+  "realPostgres": true,
+  "results": [
+    {
+      "label": "desktop",
+      "width": 1440,
+      "serverDraftResume": true,
+      "freeNoIdNoProPublication": true,
+      "realStudentView": true,
+      "liveEdit": true,
+      "pauseResume": true,
+      "archive": true,
+      "noStaffOrPurchaseCalls": true,
+      "noHorizontalOverflow": true,
+      "browserErrors": []
+    },
+    {
+      "label": "mobile",
+      "width": 390,
+      "serverDraftResume": true,
+      "freeNoIdNoProPublication": true,
+      "realStudentView": true,
+      "liveEdit": true,
+      "pauseResume": true,
+      "archive": true,
+      "noStaffOrPurchaseCalls": true,
+      "noHorizontalOverflow": true,
+      "browserErrors": []
+    }
+  ]
+}

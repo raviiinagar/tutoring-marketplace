@@ -69,11 +69,11 @@ A tutor's public offer describing the subjects, learner levels, teaching mode, r
 _Avoid_: Lesson, booking.
 
 **Public Tutor Profile**:
-A Tutor's identity-reviewed public introduction, declared Subjects, indicative rate and self-described experience. Publication does not establish verified teaching expertise or an available teaching offer.
+A Tutor's published introduction, declared Subjects, indicative rate and self-described experience. Identity verification is a separate optional fact; publication does not establish verified identity, expertise or an available teaching offer.
 _Avoid_: Approved teaching offer, qualification verification.
 
 **Tutor Pro Pass**:
-The Tutor's time-limited platform product permitting teaching offers and consented public contact publication. It is separate from the Learner's Access Pass and from Tuition Fees.
+The Tutor's optional time-limited platform product for the separately disclosed premium features and consented public contact publication. Publishing a teaching ad is free. It is separate from the Learner's Access Pass and from Tuition Fees.
 _Avoid_: Learner Access Pass, teaching qualification, tuition payment.
 
 **Contact Request**:

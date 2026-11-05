@@ -38,6 +38,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
       ]}
       summary={
         <>
+          <p className="rounded-full bg-amber-50 px-3 py-2 text-center text-xs font-medium">{listing.evidence_labels.some(check=>check.kind==='IDENTITY') ? 'Identity verified' : 'Identity not verified'}</p>
           {review && review.count > 0 && review.average !== null && (
             <a href="#reviews" className="flex items-center justify-center gap-1 text-sm">
               <Star aria-hidden className="size-4 fill-amber-400 text-amber-400" />
