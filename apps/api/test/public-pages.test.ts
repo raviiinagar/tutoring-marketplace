@@ -1,3 +1,4 @@
+import { publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { productionPrivacyFixture } from "./privacy-fixture.js";
 import { after, before, beforeEach, test } from "node:test";
@@ -72,8 +73,10 @@ before(async () => {
   await migrate(database);
   app = await createApplication(config, database, now);
 });
-beforeEach(() => {
+beforeEach(async () => {
   clock = new Date(clock.getTime() + 8 * 86400000);
+
+ await isolatePublicationFixture(database);
 });
 after(async () => {
   await app?.close();
@@ -139,14 +142,14 @@ async function enroll(cookie: string) {
 }
 const profile = {
   display_name: "Fictional Tutor",
-  biography: "I explain school physics and mathematics using worked examples.",
+  biography: fixtureBiography,
   birth_date: "1990-01-01",
   adult_confirmed: true,
 };
 const offer = {
-  title: "Physics with worked examples",
+  title: fixtureTitle,
   description:
-    "School physics explained patiently with examples and structured practice.",
+    fixtureDescription,
   domain_id: "school",
   subject_id: "subject-physics",
   level_id: "level-class-10",
@@ -161,7 +164,7 @@ const offer = {
 async function tutor(approved = true, subjects = ["subject-physics"]) {
   const user = await fixture(null);
   await post("/v1/me/roles", { roles: ["TUTOR"] }, user.cookie).expect(200);
-  await post("/v1/me/tutor", profile, user.cookie).expect(200);
+  await saveTutorIntroduction(post, user, profile, subjects);
   if (approved) {
     const reviewer = await fixture(["TRUST"]);
     const mfa = await enroll(reviewer.cookie);
@@ -193,7 +196,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
       ).expect(201);
     }
     await post("/v1/me/tutor/submissions", {}, user.cookie).expect(200);
-    const claims = (await get("/v1/me/tutor", user.cookie)).body.claims;
+    const claims = await fixtureClaims(get, user.cookie);
     for (const claim of claims)
       await post(
         "/v1/staff/tutor-claims/" + claim.id + "/reviews",
@@ -206,63 +209,14 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
         },
         mfa.cookie,
       ).expect(200);
-    await grantTutorProFixture(database,config,user.email,clock);return { ...user, reviewer: mfa };
+    await grantTutorProFixture(database,config,user.email,clock);await publishProfileFixture(post, get, user); return { ...user, reviewer: mfa };
   }
   return { ...user, reviewer: undefined };
 }
-async function draft(user: { cookie: string }) {
-  return (await post("/v1/me/listings", offer, user.cookie).expect(201)).body
-    .listing;
-}
-async function submitted(user: { cookie: string }) {
-  const row = await draft(user);
-  return (
-    await post(
-      "/v1/me/listings/" + row.id + "/actions/SUBMIT",
-      { revision: row.revision },
-      user.cookie,
-    ).expect(200)
-  ).body.listing;
-}
-async function publish(user: Awaited<ReturnType<typeof tutor>>) {
-  const row = await submitted(user);
-  return (
-    await post(
-      "/v1/staff/listings/" + row.id + "/reviews",
-      {
-        revision: row.revision,
-        outcome: "APPROVE",
-        reason: "Exact school Physics offer checked",
-      },
-      user.reviewer!.cookie,
-    ).expect(200)
-  ).body.listing;
-}
-async function publishOffer(
-  user: Awaited<ReturnType<typeof tutor>>,
-  payload: unknown,
-) {
-  let row = (await post("/v1/me/listings", payload, user.cookie).expect(201))
-    .body.listing;
-  row = (
-    await post(
-      "/v1/me/listings/" + row.id + "/actions/SUBMIT",
-      { revision: row.revision },
-      user.cookie,
-    ).expect(200)
-  ).body.listing;
-  return (
-    await post(
-      "/v1/staff/listings/" + row.id + "/reviews",
-      {
-        revision: row.revision,
-        outcome: "APPROVE",
-        reason: "Exact public discovery fixture checked",
-      },
-      user.reviewer!.cookie,
-    ).expect(200)
-  ).body.listing;
-}
+const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database);
+
+
+
 const find = (query: Record<string, string | number> = {}) =>
   request(app.getHttpServer()).get("/v1/discovery").query(query);
 test("canonical Tutor pages and category supply disappear immediately when publication pauses", async () => {
@@ -277,7 +231,7 @@ test("canonical Tutor pages and category supply disappear immediately when publi
   assert.equal(found.body.seo.indexable, false);
   assert.equal(
     found.body.seo.title,
-    "Physics with worked examples | Tutor Marketplace",
+    fixtureTitle + " | Tutor Marketplace",
   );
   const old = await get("/v1/public/teachers/old-name-" + row.id).expect(200);
   assert.equal(old.body.redirect_to, "/teachers/physics-" + row.id);

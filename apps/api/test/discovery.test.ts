@@ -1,3 +1,4 @@
+import { publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import {productionPrivacyFixture} from './privacy-fixture.js';
 import sharp from 'sharp';
@@ -32,7 +33,9 @@ before(async()=>{
   const directory=resolve('.local/tests',randomUUID());config=loadConfig({NODE_ENV:'test',DATABASE_URL:`postgres://test_user:${randomBytes(24).toString('hex')}@127.0.0.1:${port}/staff_test`,AUTH_SECRET:randomBytes(48).toString('hex'),WEB_ORIGIN:origin,MAIL_TRANSPORT:'capture',DEV_MAIL_DIR:join(directory,'mail'),EVIDENCE_SCANNER:'test'});
   cluster=await startDatabase(config.databaseUrl,join(directory,'postgres'));database=new Database(config.databaseUrl);await migrate(database);app=await createApplication(config,database,now);
 });
-beforeEach(()=>{clock=new Date(clock.getTime()+8*86400000);});
+beforeEach(async () => {clock=new Date(clock.getTime()+8*86400000);
+ await isolatePublicationFixture(database);
+});
 after(async()=>{await app?.close();await database?.close();await cluster?.stop();});
 async function fixture(scopes:StaffScope[]|null=['SUPPORT']){
   const email=randomUUID()+'@example.test';await post('/v1/auth/registrations',{display_name:'Test operator',email,password}).expect(202);
@@ -46,17 +49,17 @@ async function enroll(cookie:string){
   const confirmed=await post('/v1/staff/mfa/confirmations',{code:totp(secret,clock)},cookie).expect(200);
   return {secret,codes:confirmed.body.recovery_codes as string[],staffCookie:confirmed.headers['set-cookie'][0] as string,cookie:combine(cookie,confirmed.headers['set-cookie'][0])};
 }
-const profile={display_name:'Fictional Tutor',biography:'I explain school physics and mathematics using worked examples.',birth_date:'1990-01-01',adult_confirmed:true};
-const offer={title:'Physics with worked examples',description:'School physics explained patiently with examples and structured practice.',domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse',language_ids:['language-english'],currency:'INR',teaching_mode:'ONLINE',rate_paise:50000,rate_unit:'HOUR',trial_kind:'NONE'};
+const profile={display_name:'Fictional Tutor',biography:fixtureBiography,birth_date:'1990-01-01',adult_confirmed:true};
+const offer={title:fixtureTitle,description:fixtureDescription,domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse',language_ids:['language-english'],currency:'INR',teaching_mode:'ONLINE',rate_paise:50000,rate_unit:'HOUR',trial_kind:'NONE'};
 async function tutor(approved=true,subjects=['subject-physics']){
- const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await post('/v1/me/tutor',profile,user.cookie).expect(200);
- if(approved){const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);for(const [kind,subjectId] of [['IDENTITY',''],...subjects.map(subject=>['QUALIFICATION',subject])]){const file=(await post('/v1/me/tutor/evidence',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(201)).body.evidence.id;await post('/v1/me/tutor/claims',{kind,description:'Fictional evidence for '+kind,evidence_id:file,...(kind==='IDENTITY'?{}:{subject_id:subjectId})},user.cookie).expect(201);}await post('/v1/me/tutor/submissions',{},user.cookie).expect(200);const claims=(await get('/v1/me/tutor',user.cookie)).body.claims;for(const claim of claims)await post('/v1/staff/tutor-claims/'+claim.id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional document and claim checked',reason:'Approve fictional Tutor evidence',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+86400000).toISOString()},mfa.cookie).expect(200);await grantTutorProFixture(database,config,user.email,clock);return {...user,reviewer:mfa};}
+ const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await saveTutorIntroduction(post, user, profile, subjects);
+ if(approved){const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);for(const [kind,subjectId] of [['IDENTITY',''],...subjects.map(subject=>['QUALIFICATION',subject])]){const file=(await post('/v1/me/tutor/evidence',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(201)).body.evidence.id;await post('/v1/me/tutor/claims',{kind,description:'Fictional evidence for '+kind,evidence_id:file,...(kind==='IDENTITY'?{}:{subject_id:subjectId})},user.cookie).expect(201);}await post('/v1/me/tutor/submissions',{},user.cookie).expect(200);const claims = await fixtureClaims(get, user.cookie);for(const claim of claims)await post('/v1/staff/tutor-claims/'+claim.id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional document and claim checked',reason:'Approve fictional Tutor evidence',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+86400000).toISOString()},mfa.cookie).expect(200);await grantTutorProFixture(database,config,user.email,clock);await publishProfileFixture(post, get, user); return { ...user, reviewer: mfa };}
  return {...user,reviewer:undefined};
 }
-async function draft(user:{cookie:string}){return (await post('/v1/me/listings',offer,user.cookie).expect(201)).body.listing;}
-async function submitted(user:{cookie:string}){const row=await draft(user);return (await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;}
-async function publish(user:Awaited<ReturnType<typeof tutor>>){const row=await submitted(user);return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact school Physics offer checked'},user.reviewer!.cookie).expect(200)).body.listing;}
-async function publishOffer(user:Awaited<ReturnType<typeof tutor>>,payload:unknown){let row=(await post('/v1/me/listings',payload,user.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact public discovery fixture checked'},user.reviewer!.cookie).expect(200)).body.listing;}
+const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database);
+
+
+
 const find=(query:Record<string,string|number>={})=>request(app.getHttpServer()).get('/v1/discovery').query(query);
 
 test('public card portraits are smaller, metadata-free and still denied immediately after withdrawal',async()=>{
@@ -100,23 +103,23 @@ test('public details expose controlled evidence labels and offer terms while exc
  await database.pool.query('UPDATE tutor_profiles SET display_name=$2 WHERE user_id=$1',[user.id,'contact@example.test']);assert.equal((await get('/v1/discovery/'+row.id)).body.listing.tutor.display_name,'Tutor');
  await get('/v1/discovery/'+randomUUID()).expect(404);await get('/v1/discovery/invalid').expect(400);
 });
-test('paused, suspended, expired, revoked, stale-profile, disabled and inactive-taxonomy offers disappear from search and detail',async()=>{
+test('paused, safety-restricted, disabled and inactive-taxonomy offers disappear while optional evidence expiry removes verification labels',async()=>{
  const user=await tutor();let row=await publishOffer(user,offer);const invisible=async()=>{assert.equal((await find({subject_id:'subject-physics'})).body.offers.length,0);await get('/v1/discovery/'+row.id).expect(404);await get('/v1/listings/'+row.id).expect(404);};
  row=(await post('/v1/me/listings/'+row.id+'/actions/PAUSE',{revision:row.revision},user.cookie)).body.listing;await invisible();row=(await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision},user.cookie)).body.listing;
  row=(await post('/v1/staff/listings/'+row.id+'/safety',{revision:row.revision,action:'SUSPEND',reason:'Suspend search fixture for safety'},user.reviewer!.cookie)).body.listing;await invisible();row=(await post('/v1/staff/listings/'+row.id+'/safety',{revision:row.revision,action:'LIFT',reason:'Lift search fixture safety restriction'},user.reviewer!.cookie)).body.listing;await invisible();row=(await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision},user.cookie)).body.listing;
- clock=new Date(clock.getTime()+86400000);await invisible();clock=new Date(clock.getTime()-86400000);
+ clock=new Date(clock.getTime()+86400000);const expired=(await get('/v1/discovery/'+row.id).expect(200)).body.listing;assert.equal(expired.identity_verified,false);assert.deepEqual(expired.evidence_labels,[]);clock=new Date(clock.getTime()-86400000);
  await database.pool.query("UPDATE users SET status='DISABLED' WHERE id=$1",[user.id]);await invisible();await database.pool.query("UPDATE users SET status='ACTIVE' WHERE id=$1",[user.id]);
  await database.pool.query("UPDATE catalogue_terms SET active=false WHERE id='curriculum-cbse'");await invisible();await find({curriculum_id:'curriculum-cbse'}).expect(400);await database.pool.query("UPDATE catalogue_terms SET active=true WHERE id='curriculum-cbse'");
- const claims=(await get('/v1/me/tutor',user.cookie)).body.claims;await post('/v1/staff/tutor-claims/'+claims.find((c:{kind:string})=>c.kind==='QUALIFICATION').id+'/reviews',{outcome:'REVOKE',checked_item:'Qualification approval revoked',reason:'Revoke discovery fixture evidence',adult_identity_confirmed:false},user.reviewer!.cookie).expect(200);await invisible();await post('/v1/me/tutor',profile,user.cookie).expect(200);await invisible();
+ const claims=(await get('/v1/me/tutor',user.cookie)).body.claims;await post('/v1/staff/tutor-claims/'+claims.find((c:{kind:string})=>c.kind==='QUALIFICATION').id+'/reviews',{outcome:'REVOKE',checked_item:'Qualification approval revoked',reason:'Revoke discovery fixture evidence',adult_identity_confirmed:false},user.reviewer!.cookie).expect(200);await get('/v1/discovery/'+row.id).expect(200);await post('/v1/staff/tutors/'+user.id+'/publication-restrictions',{action:'SUSPEND',reason:'Explicit public safety restriction after evidence review'},user.reviewer!.cookie).expect(200);await invisible();
 });
 test('representative offers across eight families retain independent exact combinations and honest empty results',async()=>{
  const combinations=[{domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse'}, {domain_id:'entrance',subject_id:'subject-physics',level_id:'level-repeater',exam_id:'exam-jee'}, {domain_id:'higher',subject_id:'subject-physics',level_id:'level-undergraduate'}, {domain_id:'competitive',subject_id:'subject-mathematics',level_id:'level-exam-preparation',exam_id:'exam-ssc'}, {domain_id:'professional',subject_id:'subject-accounting',level_id:'level-exam-preparation',exam_id:'exam-ca'}, {domain_id:'career',subject_id:'subject-programming',level_id:'level-beginner'}, {domain_id:'languages',subject_id:'subject-french',level_id:'level-beginner'}, {domain_id:'arts',subject_id:'subject-music',level_id:'level-beginner'}];
  const user=await tutor(true,[...new Set(combinations.map(c=>c.subject_id))]);for(const combination of combinations){const row=await publishOffer(user,{...offer,curriculum_id:undefined,...combination});const result=await find(combination).expect(200);assert.deepEqual(result.body.offers.map((o:{id:string})=>o.id),[row.id]);await get('/v1/discovery/'+row.id).expect(200);}
  assert.equal((await find({domain_id:'arts',subject_id:'subject-drawing'})).body.offers.length,0);
 });
-test('production discovery excludes fictional scanned evidence and invalid adult eligibility never releases a public offer',async()=>{
+test('production free ads never claim fictional evidence as verified and invalid adult eligibility never releases a public offer',async()=>{
  const user=await tutor();const row=await publishOffer(user,offer);
  const production=loadConfig({...productionPrivacyFixture(),NODE_ENV:'production',DATABASE_URL:config.databaseUrl,AUTH_SECRET:config.authSecret,WEB_ORIGIN:'https://example.test',MAIL_TRANSPORT:'smtp',SMTP_HOST:'smtp.example.test',SMTP_USER:'fixture',SMTP_PASSWORD:'fixture',SMTP_FROM:'fixture@example.test'});const appProduction=await createApplication(production,database,now);
- try{const search=await request(appProduction.getHttpServer()).get('/v1/discovery').expect(200);assert.equal(search.body.offers.length,0);await request(appProduction.getHttpServer()).get('/v1/discovery/'+row.id).expect(404);}finally{await appProduction.close();}
- await database.pool.query('UPDATE tutor_profiles SET encrypted_birth_date=$2 WHERE user_id=$1',[user.id,encrypt({birth_date:'2020-01-01'},config.authSecret)]);assert.equal((await find()).body.offers.length,0);await get('/v1/discovery/'+row.id).expect(404);await get('/v1/listings/'+row.id).expect(404);
+ try{const search=await request(appProduction.getHttpServer()).get('/v1/discovery').expect(200);assert.equal(search.body.offers.length,1);const productionOffer=(await request(appProduction.getHttpServer()).get('/v1/discovery/'+row.id).expect(200)).body.listing;assert.equal(productionOffer.identity_verified,false);assert.deepEqual(productionOffer.evidence_labels,[]);}finally{await appProduction.close();}
+ await database.pool.query('UPDATE tutor_profiles SET adult_declared_at=NULL WHERE user_id=$1',[user.id]);assert.equal((await find()).body.offers.length,0);await get('/v1/discovery/'+row.id).expect(404);await get('/v1/listings/'+row.id).expect(404);
 });

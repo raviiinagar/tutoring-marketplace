@@ -1,3 +1,4 @@
+import { completeFixtureOffer, publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,7 +33,9 @@ before(async()=>{
   const directory=resolve('.local/tests',randomUUID());config=loadConfig({NODE_ENV:'test',DATABASE_URL:`postgres://test_user:${randomBytes(24).toString('hex')}@127.0.0.1:${port}/staff_test`,AUTH_SECRET:randomBytes(48).toString('hex'),WEB_ORIGIN:origin,MAIL_TRANSPORT:'capture',DEV_MAIL_DIR:join(directory,'mail'),EVIDENCE_SCANNER:'test',GUARDIAN_VERIFICATION_MODE:'test'});
   cluster=await startDatabase(config.databaseUrl,join(directory,'postgres'));database=new Database(config.databaseUrl);await migrate(database);app=await createApplication(config,database,now);
 });
-beforeEach(()=>{clock=new Date(clock.getTime()+8*86400000);});
+beforeEach(async () => {clock=new Date(clock.getTime()+8*86400000);
+ await isolatePublicationFixture(database);
+});
 after(async()=>{await app?.close();await database?.close();await cluster?.stop();});
 async function fixture(scopes:StaffScope[]|null=['SUPPORT']){
   const email=randomUUID()+'@example.test';await post('/v1/auth/registrations',{display_name:'Test operator',email,password}).expect(202);
@@ -46,17 +49,17 @@ async function enroll(cookie:string){
   const confirmed=await post('/v1/staff/mfa/confirmations',{code:totp(secret,clock)},cookie).expect(200);
   return {secret,codes:confirmed.body.recovery_codes as string[],staffCookie:confirmed.headers['set-cookie'][0] as string,cookie:combine(cookie,confirmed.headers['set-cookie'][0])};
 }
-const profile={display_name:'Fictional Tutor',biography:'I explain school physics and mathematics using worked examples.',birth_date:'1990-01-01',adult_confirmed:true};
-const offer={title:'Physics with worked examples',description:'School physics explained patiently with examples and structured practice.',domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse',language_ids:['language-english'],currency:'INR',teaching_mode:'ONLINE',rate_paise:50000,rate_unit:'HOUR',trial_kind:'NONE'};
+const profile={display_name:'Fictional Tutor',biography:fixtureBiography,birth_date:'1990-01-01',adult_confirmed:true};
+const offer={title:fixtureTitle,description:fixtureDescription,domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse',language_ids:['language-english'],currency:'INR',teaching_mode:'ONLINE',rate_paise:50000,rate_unit:'HOUR',trial_kind:'NONE'};
 async function tutor(approved=true,subjects=['subject-physics']){
- const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await post('/v1/me/tutor',profile,user.cookie).expect(200);
- if(approved){const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);for(const [kind,subjectId] of [['IDENTITY',''],...subjects.map(subject=>['QUALIFICATION',subject])]){const file=(await post('/v1/me/tutor/evidence',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(201)).body.evidence.id;await post('/v1/me/tutor/claims',{kind,description:'Fictional evidence for '+kind,evidence_id:file,...(kind==='IDENTITY'?{}:{subject_id:subjectId})},user.cookie).expect(201);}await post('/v1/me/tutor/submissions',{},user.cookie).expect(200);const claims=(await get('/v1/me/tutor',user.cookie)).body.claims;for(const claim of claims)await post('/v1/staff/tutor-claims/'+claim.id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional document and claim checked',reason:'Approve fictional Tutor evidence',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+86400000).toISOString()},mfa.cookie).expect(200);await grantTutorProFixture(database,config,user.email,clock);return {...user,reviewer:mfa};}
+ const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await saveTutorIntroduction(post, user, profile, subjects);
+ if(approved){const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);for(const [kind,subjectId] of [['IDENTITY',''],...subjects.map(subject=>['QUALIFICATION',subject])]){const file=(await post('/v1/me/tutor/evidence',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(201)).body.evidence.id;await post('/v1/me/tutor/claims',{kind,description:'Fictional evidence for '+kind,evidence_id:file,...(kind==='IDENTITY'?{}:{subject_id:subjectId})},user.cookie).expect(201);}await post('/v1/me/tutor/submissions',{},user.cookie).expect(200);const claims = await fixtureClaims(get, user.cookie);for(const claim of claims)await post('/v1/staff/tutor-claims/'+claim.id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional document and claim checked',reason:'Approve fictional Tutor evidence',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+86400000).toISOString()},mfa.cookie).expect(200);await grantTutorProFixture(database,config,user.email,clock);await publishProfileFixture(post, get, user); return { ...user, reviewer: mfa };}
  return {...user,reviewer:undefined};
 }
-async function draft(user:{cookie:string}){return (await post('/v1/me/listings',offer,user.cookie).expect(201)).body.listing;}
-async function submitted(user:{cookie:string}){const row=await draft(user);return (await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;}
-async function publish(user:Awaited<ReturnType<typeof tutor>>){const row=await submitted(user);return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact school Physics offer checked'},user.reviewer!.cookie).expect(200)).body.listing;}
-async function publishOffer(user:Awaited<ReturnType<typeof tutor>>,payload:unknown){let row=(await post('/v1/me/listings',payload,user.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact public discovery fixture checked'},user.reviewer!.cookie).expect(200)).body.listing;}
+const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database);
+
+
+
 const find=(query:Record<string,string|number>={})=>request(app.getHttpServer()).get('/v1/discovery').query(query);
 
 async function learner(){const user=await fixture(null);const row=(await post('/v1/me/learners/adult',{alias:'Fictional learner',learning_requirements:'Practice Physics concepts with worked examples',adult_confirmed:true},user.cookie).expect(201)).body.profile;return {...user,profile:row};}
@@ -95,11 +98,11 @@ async function portrait(){return sharp({create:{width:320,height:400,channels:3,
 const uploadPhoto=(data:Buffer,cookie?:string,changes:Record<string,unknown>={})=>post('/v1/me/tutor/photo',{media_type:'image/jpeg',data:data.toString('base64'),public_consent:true,...changes},cookie);
 const reviewPhoto=(id:string,outcome:string,cookie:string)=>post('/v1/staff/tutor-photos/'+id+'/reviews',{outcome,reason:'Fictional adult portrait content reviewed'},cookie);
 
-test('Tutor photos stay private until Trust approval and public delivery follows current offer eligibility',async()=>{
+test('clean consented Tutor photos publish without fabricated review and public delivery follows current offer eligibility',async()=>{
  const teacher=await tutor();const listing=await publish(teacher);const raw=await portrait();
  const photo=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;assert.equal(photo.status,'PENDING');assert.equal(photo.scan_status,'CLEAN');
- assert.equal((await find()).body.offers.find((o:{id:string})=>o.id===listing.id).tutor.photo_url,undefined);
- const publicPath='/v1/discovery/'+listing.id+'/photos/'+photo.id;await get(publicPath).expect(404);await get('/v1/me/tutor/photo/'+photo.id).expect(401);
+ const publicPath='/v1/discovery/'+listing.id+'/photos/'+photo.id;assert.equal(photo.self_published,true);assert.equal((await find()).body.offers.find((o:{id:string})=>o.id===listing.id).tutor.photo_url,publicPath);
+ await get(publicPath).expect(200);await get('/v1/me/tutor/photo/'+photo.id).expect(401);
  const stranger=await fixture(null);await get('/v1/me/tutor/photo/'+photo.id,stranger.cookie).expect(403);
  const another=await tutor();await get('/v1/me/tutor/photo/'+photo.id,another.cookie).expect(404);
  const preview=await get('/v1/me/tutor/photo/'+photo.id,teacher.cookie).expect(200);const metadata=await sharp(preview.body).metadata();assert.equal(metadata.width,640);assert.equal(metadata.height,800);assert.equal(metadata.exif,undefined);assert.equal(metadata.format,'jpeg');
@@ -112,7 +115,7 @@ test('Tutor photos stay private until Trust approval and public delivery follows
  const suspended=(await post('/v1/staff/listings/'+listing.id+'/safety',{revision:resumed.revision,action:'SUSPEND',reason:'Restrict photo and offer during safety review'},teacher.reviewer!.cookie).expect(200)).body.listing;await get(publicPath).expect(404);
  const lifted=(await post('/v1/staff/listings/'+listing.id+'/safety',{revision:suspended.revision,action:'LIFT',reason:'Complete fictional photo and offer safety review'},teacher.reviewer!.cookie).expect(200)).body.listing;
  await post('/v1/me/listings/'+listing.id+'/actions/RESUME',{revision:lifted.revision},teacher.cookie).expect(200);await get(publicPath).expect(200);
- await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,clock]);await get(publicPath).expect(404);
+ await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,clock]);assert.equal((await get('/v1/me/tutor',teacher.cookie).expect(200)).body.profile.identity_verified,false);await get(publicPath).expect(200);
  await database.pool.query('UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1',[teacher.id,new Date(clock.getTime()+86400000)]);await get(publicPath).expect(200);
  await reviewPhoto(photo.id,'REVOKE',teacher.reviewer!.cookie).expect(200);await get(publicPath).expect(404);assert.equal((await database.pool.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photo.id])).rows[0].encrypted_payload,null);
 });
@@ -122,7 +125,7 @@ test('photo replacement/removal invalidate old URLs and cannot alter identity ap
  await reviewPhoto(first.id,'APPROVE',teacher.reviewer!.cookie).expect(200);
  const second=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;await get('/v1/discovery/'+listing.id+'/photos/'+first.id).expect(404);await reviewPhoto(first.id,'APPROVE',teacher.reviewer!.cookie).expect(404);
  const old=(await database.pool.query('SELECT status,encrypted_payload FROM tutor_photos WHERE id=$1',[first.id])).rows[0];assert.equal(old.status,'REMOVED');assert.equal(old.encrypted_payload,null);
- assert.equal((await get('/v1/me/tutor',teacher.cookie)).body.profile.status,'APPROVED');assert.equal((await get('/v1/discovery/'+listing.id)).body.listing.tutor.photo_url,undefined);
+ assert.equal((await get('/v1/me/tutor',teacher.cookie)).body.profile.status,'APPROVED');assert.equal((await get('/v1/discovery/'+listing.id)).body.listing.tutor.photo_url,'/v1/discovery/'+listing.id+'/photos/'+second.id);
  const another=await tutor();await del('/v1/me/tutor/photo/'+second.id,another.cookie).expect(404);
  await del('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(204);await del('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(204);assert.equal((await get('/v1/me/tutor/photo',teacher.cookie)).body.photo,null);
  await get('/v1/me/tutor/photo/'+second.id,teacher.cookie).expect(404);
@@ -169,11 +172,11 @@ test('revoked submission coverage and matching coverage without activation never
  const funded=await pending('MATCHING');const before=(await database.pool.query('SELECT * FROM access_entitlements WHERE id=$1',[funded.coverage])).rows[0];const result=(await decide(funded.row.id,'ACCEPT',funded.teacher.cookie).expect(200)).body;assert.equal(result.connection_status,'PENDING_GRANT');await contacts(result.connection_id,funded.owner.cookie).expect(403).expect(r=>assert.equal(r.body.code,'ACCESS_PENDING'));await get('/v1/me/connections/'+result.connection_id,funded.owner.cookie).expect(403);assert.equal((await database.pool.query('SELECT count(*) FROM connection_access_grants WHERE connection_id=$1',[result.connection_id])).rows[0].count,'0');const after=(await database.pool.query('SELECT * FROM access_entitlements WHERE id=$1',[funded.coverage])).rows[0];assert.deepEqual(after,before);assert.equal(after.starts_at,null);
 });
 
-test('pause permits decline, while suspended or revised offers and stale evidence prevent acceptance',async()=>{
+test('pause permits decline, while suspended or revised offers and a missing adult declaration prevent acceptance',async()=>{
  const s=await pending();let row=(await post('/v1/me/listings/'+s.listing.id+'/actions/PAUSE',{revision:s.listing.revision},s.teacher.cookie).expect(200)).body.listing;await decide(s.row.id,'ACCEPT',s.teacher.cookie).expect(404);const item=(await get('/v1/me/tutor-requests',s.teacher.cookie)).body.requests.find((r:{id:string})=>r.id===s.row.id);assert.equal(item.can_accept,false);assert.equal(item.can_decline,true);await decide(s.row.id,'DECLINE',s.teacher.cookie).expect(200);assert.equal((await decide(s.row.id,'DECLINE',s.teacher.cookie).expect(200)).body.replayed,true);
- row=(await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision},s.teacher.cookie).expect(200)).body.listing;const next=(await submit(enquiry(s.owner.profile.id,row),s.owner.cookie).expect(200)).body.request;row=(await post('/v1/me/listings/'+row.id,{revision:row.revision,offer:{...offer,title:'Revised Physics teaching offer'}},s.teacher.cookie).expect(200)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},s.teacher.cookie)).body.listing;row=(await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Revised fictional Physics offer'},s.teacher.reviewer!.cookie).expect(200)).body.listing;await decide(next.id,'ACCEPT',s.teacher.cookie).expect(409).expect(r=>assert.equal(r.body.code,'OFFER_CHANGED'));
+ row=(await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision},s.teacher.cookie).expect(200)).body.listing;const next=(await submit(enquiry(s.owner.profile.id,row),s.owner.cookie).expect(200)).body.request;row=(await post('/v1/me/listings/'+row.id,{revision:row.revision,offer:completeFixtureOffer({...offer,title:'Revised Physics teaching offer'})},s.teacher.cookie).expect(200)).body.listing;assert.equal(row.status,'PUBLISHED');await decide(next.id,'ACCEPT',s.teacher.cookie).expect(409).expect(r=>assert.equal(r.body.code,'OFFER_CHANGED'));
  await post('/v1/staff/listings/'+row.id+'/safety',{revision:row.revision,action:'SUSPEND',reason:'Suspend fictional offer for safety'},s.teacher.reviewer!.cookie).expect(200);await decide(next.id,'ACCEPT',s.teacher.cookie).expect(403);assert.equal(await connectionCount(next.id),0);
- const fresh=await pending();await post('/v1/me/tutor',profile,fresh.teacher.cookie).expect(200);await decide(fresh.row.id,'ACCEPT',fresh.teacher.cookie).expect(403);const hidden=(await get('/v1/me/tutor-requests',fresh.teacher.cookie)).body.requests.find((r:{id:string})=>r.id===fresh.row.id);assert.equal(hidden.learning_requirements,null);assert.equal(hidden.can_decline,false);
+ const fresh=await pending();await database.pool.query('UPDATE tutor_profiles SET adult_declared_at=NULL WHERE user_id=$1',[fresh.teacher.id]);await decide(fresh.row.id,'ACCEPT',fresh.teacher.cookie).expect(403);const hidden=(await get('/v1/me/tutor-requests',fresh.teacher.cookie)).body.requests.find((r:{id:string})=>r.id===fresh.row.id);assert.equal(hidden.learning_requirements,null);assert.equal(hidden.can_decline,false);
 });
 
 test('current blocks, account restrictions and safety suspension deny established Connection reads; ordinary pause does not',async()=>{

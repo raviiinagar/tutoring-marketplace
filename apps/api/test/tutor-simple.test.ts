@@ -1,3 +1,4 @@
+import { isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, publicationFixtures, publishProfileFixture } from "./helpers/publication.js";
 import {RefundsService} from '../src/refunds.js';
 import {personalExport} from '../src/privacy-inventory.js';
 import { PaymentEvents } from "../src/payment-events.js";
@@ -75,11 +76,13 @@ before(async () => {
     gateway,
   );
 });
-beforeEach(() => {
+beforeEach(async () => {
   clock = new Date(clock.getTime() + 8 * 86400000);
   gateway.loseCreate = false;
   gateway.unavailable = false;
   gateway.onCreate = undefined;
+
+ await isolatePublicationFixture(database);
 });
 after(async () => {
   await app?.close();
@@ -144,9 +147,9 @@ async function enroll(cookie: string) {
   };
 }
 const offer = {
-  title: "Physics with worked examples",
+  title: fixtureTitle,
   description:
-    "School physics explained patiently with examples and structured practice.",
+    fixtureDescription,
   domain_id: "school",
   subject_id: "subject-physics",
   level_id: "level-class-10",
@@ -158,7 +161,7 @@ const offer = {
   rate_unit: "HOUR",
   trial_kind: "NONE",
 };
-async function publish(user:{cookie:string;reviewer:{cookie:string}}){let row=(await post('/v1/me/listings',offer,user.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},user.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Exact fictional Physics teaching offer checked'},user.reviewer.cookie).expect(200)).body.listing;}
+const { publish, publishOffer } = publicationFixtures(post, offer);
 class ProviderFixture {
   orders = new Map<string, any>();
   payments = new Map<string, any>();
@@ -205,13 +208,13 @@ async function campaign(percent = 100, maxUses = 100, product="LEARNER_ACCESS") 
   const r = await post("/v1/staff/coupons", input, mfa.cookie).expect(201);
   return { operator, mfa, input, row: r.body.coupon };
 }
-const intro={display_name:'Fictional Tutor',biography:'I explain physics through practical examples and have experience helping adult learners.',subject_ids:['subject-physics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false};
-async function shortTutor(){const user=await fixture(null);const r=await post('/v1/me/tutor/introduction',intro,user.cookie).expect(200);const id=r.body.profile.public_id;const submitted=await post('/v1/me/tutor/identity',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(200);assert.equal(submitted.body.claims.length,1);assert.equal(submitted.body.profile.status,'SUBMITTED');const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);await post('/v1/staff/tutor-claims/'+submitted.body.claims[0].id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional adult identity document checked',reason:'Fictional adult identity review approved',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+365*86400000).toISOString()},mfa.cookie).expect(200);return {...user,publicId:id,reviewer:mfa};}
+const intro={display_name:'Fictional Tutor',biography:fixtureBiography,subject_ids:['subject-physics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false};
+async function shortTutor(){const user=await fixture(null);const r=await post('/v1/me/tutor/introduction',intro,user.cookie).expect(200);const id=r.body.profile.public_id;const submitted=await post('/v1/me/tutor/identity',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(200);assert.equal(submitted.body.claims.length,1);assert.equal(submitted.body.profile.status,'SUBMITTED');const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);await post('/v1/staff/tutor-claims/'+submitted.body.claims[0].id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional adult identity document checked',reason:'Fictional adult identity review approved',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+365*86400000).toISOString()},mfa.cookie).expect(200);assert.equal((await get("/v1/me/tutor",user.cookie).expect(200)).body.profile.publication_status,"DRAFT");await publishProfileFixture(post,get,user);return {...user,publicId:id,reviewer:mfa};}
 const pro=(user:any,code?:string,key=randomUUID())=>post('/v1/me/tutor/pro/purchases',{request_key:key,policy_version:'tutor-pro-v1',...(code?{coupon_code:code}:{})},user.cookie);
 
 const place={city:'Presence Test City',area:'North Learning Area',country:'India'};
 const presence={expected_revision:0,location:place,teaching_modes:['ONLINE','IN_PERSON'],accepting_students:true,weekly_slots:[{day:'MON',start_minute:960,end_minute:1080}],timezone:'Asia/Kolkata'};
-async function offlineOffer(teacher:Awaited<ReturnType<typeof shortTutor>>){let row=(await post('/v1/me/listings',{...offer,teaching_mode:'IN_PERSON'},teacher.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},teacher.cookie).expect(200)).body.listing;return (await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Coarse city and exact in-person teaching terms reviewed'},teacher.reviewer.cookie).expect(200)).body.listing;}
+const offlineOffer = (teacher: Awaited<ReturnType<typeof shortTutor>>) => publishOffer(teacher, { ...offer, teaching_mode: "IN_PERSON" });
 test('one private identity makes a free public profile; Pro, approved offer and consent independently control public email',async()=>{
  const teacher=await shortTutor();const getProfile=()=>get('/v1/tutor-profiles/'+teacher.publicId);
  const free=(await getProfile().expect(200)).body.profile;assert.equal(free.contact,null);assert.equal(free.offers.length,0);assert.match(free.expertise_label,/self-declared/);const raw=JSON.stringify(free);for(const forbidden of ['birth_date','evidence_id','identity_document',teacher.email,teacher.id])assert.ok(!raw.includes(forbidden),forbidden);
@@ -237,7 +240,7 @@ test('Tutor Pro server capture uses INR 600, activates once on confirmation, and
 });
 test('identity edits require new approval; foreign identity requires passport; public restriction removes introduction',async()=>{
  const u=await fixture(null);await post('/v1/me/tutor/introduction',{...intro,identity_country:'OTHER'},u.cookie).expect(400);await post('/v1/me/tutor/introduction',{...intro,biography:'Reach me at private@example.test for your private classes.'},u.cookie).expect(400);
- const teacher=await shortTutor();await post('/v1/me/tutor/introduction',{...intro,display_name:'Changed identity name',expected_public_revision:1},teacher.cookie).expect(200);await get('/v1/tutor-profiles/'+teacher.publicId).expect(404);await pro(teacher).expect(403);
+ const teacher=await shortTutor();await post('/v1/me/tutor/introduction',{...intro,display_name:'Changed identity name',expected_public_revision:(await get('/v1/me/tutor',teacher.cookie)).body.profile.public_revision},teacher.cookie).expect(200);const changed=(await get('/v1/tutor-profiles/'+teacher.publicId).expect(200)).body.profile;assert.equal(changed.identity_verified,false);assert.equal(changed.display_name,'Changed identity name');await pro(teacher).expect(403);
  const another=await shortTutor();await database.pool.query("UPDATE users SET status='DISABLED' WHERE id=$1",[another.id]);await get('/v1/tutor-profiles/'+another.publicId).expect(404);
 });
 
@@ -247,7 +250,7 @@ test('a valid submitted enquiry survives ordinary Tutor Pro expiry while new sup
  const learnerCode=await campaign();await post('/v1/me/purchases',{request_key:randomUUID(),listing_id:listing.id,listing_revision:listing.revision,learner_id:learner.id,policy_version:'access-v1',coupon_code:learnerCode.input.code},owner.cookie).expect(200);
  const req=(await post('/v1/me/contact-requests',{request_key:randomUUID(),listing_id:listing.id,listing_revision:listing.revision,learner_id:learner.id,subject_id:'subject-physics',teaching_mode:'ONLINE',learning_requirements:'Fictional Physics enquiry before Tutor Pro expiry',preferred_times:'Weekday evening, IST'},owner.cookie).expect(200)).body.request;
  const second=(await post('/v1/me/contact-requests',{request_key:randomUUID(),listing_id:otherListing.id,listing_revision:otherListing.revision,learner_id:learner.id,subject_id:'subject-physics',teaching_mode:'ONLINE',learning_requirements:'Second fictional Physics enquiry before Tutor Pro expiry',preferred_times:'Weekday evening, IST'},owner.cookie).expect(200)).body.request;
- clock=new Date(clock.getTime()+2*3600000);teacher.cookie=(await post('/v1/auth/sessions',{email:teacher.email,password}).expect(200)).headers['set-cookie'][0];await get('/v1/discovery/'+listing.id).expect(404);const accepted=await post('/v1/me/tutor-requests/'+req.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(200);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);await database.pool.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[teacher.id]);await post('/v1/me/tutor-requests/'+second.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(403);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);
+ clock=new Date(clock.getTime()+2*3600000);teacher.cookie=(await post('/v1/auth/sessions',{email:teacher.email,password}).expect(200)).headers['set-cookie'][0];await get('/v1/discovery/'+listing.id).expect(200);const accepted=await post('/v1/me/tutor-requests/'+req.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(200);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);await database.pool.query("UPDATE tutor_pro_grants SET status='REVOKED' WHERE payer_id=$1",[teacher.id]);await post('/v1/me/tutor-requests/'+second.id+'/decisions',{decision:'ACCEPT'},teacher.cookie).expect(403);await get('/v1/me/connections/'+accepted.body.connection_id+'/contacts',owner.cookie).expect(200);
 });
 
 test('location and hours validate ownership, stale writes and public Subject/city/day/time filters without re-reviewing identity',async()=>{
@@ -294,8 +297,8 @@ test('material location changes require offer resubmission, not new identity evi
  const changed=await post('/v1/me/tutor/presence',{...presence,expected_revision:1,location:{...place,city:'Another Teaching City'}},teacher.cookie).expect(200);assert.equal(changed.body.offers_need_review,1);
  await get('/v1/discovery/'+listing.id).expect(404);const own=(await get('/v1/me/listings',teacher.cookie).expect(200)).body.listings.find((l:any)=>l.id===listing.id);assert.equal(own.status,'CHANGES_REQUESTED');assert.ok(own.revision>listing.revision);
  assert.equal((await get('/v1/me/tutor',teacher.cookie)).body.profile.status,'APPROVED');
- const submitted=(await post('/v1/me/listings/'+listing.id+'/actions/SUBMIT',{revision:own.revision},teacher.cookie).expect(200)).body.listing;
- await post('/v1/staff/listings/'+listing.id+'/reviews',{revision:submitted.revision,outcome:'APPROVE',reason:'Updated city and unchanged in-person offer reviewed'},teacher.reviewer.cookie).expect(200);
+ const corrected=(await post('/v1/me/listings/'+listing.id,{revision:own.revision,offer:own.offer},teacher.cookie).expect(200)).body.listing;
+ const submitted=(await post('/v1/me/listings/'+listing.id+'/actions/PUBLISH',{revision:corrected.revision},teacher.cookie).expect(200)).body.listing;assert.equal(submitted.status,'PUBLISHED');assert.equal(submitted.reviewed_by,null);
  assert.equal((await get('/v1/discovery/'+listing.id).expect(200)).body.listing.class_location.city,'Another Teaching City');
 });
 
@@ -309,7 +312,7 @@ test('Saved Tutors are private, authenticated, idempotent and recheck current el
  await request(app.getHttpServer()).post(path).set('Cookie',owner.cookie).send({}).expect(403);
  const exported=await database.transaction(async c=>personalExport(c,(await c.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock));assert.equal(exported.saved_tutors[0].profile_id,teacher.publicId);assert.equal(exported.saved_tutors[0].profile,undefined);
  await database.pool.query('INSERT INTO account_blocks(owner_id,blocked_id) VALUES($1,$2)',[teacher.id,owner.id]);list=(await get('/v1/me/saved-tutors',owner.cookie)).body;assert.equal(list.items[0].profile,null);await post(path,{},owner.cookie).expect(404);
- await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1',[teacher.id]);await database.pool.query("UPDATE tutor_profiles SET status='REVOKED' WHERE user_id=$1",[teacher.id]);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items[0].profile,null);
+ await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1',[teacher.id]);await post('/v1/staff/tutors/'+teacher.id+'/publication-restrictions',{action:'SUSPEND',reason:'Restrict saved profile during an explicit safety investigation'},teacher.reviewer.cookie).expect(200);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items[0].profile,null);
  await request(app.getHttpServer()).delete(path).set('Origin',origin).set('Cookie',owner.cookie).send({}).expect(200);await request(app.getHttpServer()).delete(path).set('Origin',origin).set('Cookie',owner.cookie).send({}).expect(200);assert.equal((await get('/v1/me/saved-tutors',owner.cookie)).body.items.length,0);
 });
 
@@ -322,7 +325,7 @@ test('Saved Tutors enforce the account limit across concurrent additions without
 
 test('free first-class filters and unit-safe price ordering paginate ties and survive cursor-offer removal',async()=>{
  const teacher=await shortTutor(),coupon=await campaign(100,100,'TUTOR_PRO');await pro(teacher,coupon.input.code).expect(200);const ids:string[]=[];
- for(const [rate,trial] of [[30000,'FREE'],[30000,'FREE'],[50000,'NONE'],[20000,'FREE']] as const){let row=(await post('/v1/me/listings',{...offer,rate_paise:rate,trial_kind:trial,...trial==='FREE'?{trial_minutes:30}:{}},teacher.cookie).expect(201)).body.listing;row=(await post('/v1/me/listings/'+row.id+'/actions/SUBMIT',{revision:row.revision},teacher.cookie).expect(200)).body.listing;await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Fictional price and optional free trial terms checked'},teacher.reviewer.cookie).expect(200);ids.push(row.id);}
+ for(const [rate,trial] of [[30000,'FREE'],[30000,'FREE'],[50000,'NONE'],[20000,'FREE']] as const){const row=await publishOffer(teacher,{...offer,rate_paise:rate,trial_kind:trial,...trial==='FREE'?{trial_minutes:30}:{}});ids.push(row.id);}
  const uniqueCity='Sorted Trial City '+randomUUID().slice(0,8);await post('/v1/me/tutor/presence',{...presence,location:{city:uniqueCity,country:'India'},teaching_modes:['ONLINE']},teacher.cookie).expect(200);const prefix='/v1/discovery?location='+encodeURIComponent(uniqueCity)+'&rate_unit=HOUR';
  await get('/v1/discovery?sort=PRICE_ASC').expect(400);await get(prefix+'&trial_kind=PAID').expect(400);await get(prefix+'&sort=PRICE_ASC&cursor='+randomUUID()).expect(400);
  let page=(await get(prefix+'&sort=PRICE_ASC&limit=2').expect(200)).body;assert.deepEqual(page.offers.map((o:any)=>o.offer.rate_paise),[20000,30000]);assert.equal(page.order,'price_ascending');const cursor=page.next_cursor;assert.ok(cursor.startsWith('p1.'));

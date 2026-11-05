@@ -1,3 +1,4 @@
+import { isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
@@ -70,8 +71,10 @@ after(async () => {
   await database?.close();
   await cluster?.stop();
 });
-beforeEach(() => {
+beforeEach(async () => {
   clock = new Date(clock.getTime() + 2 * 3600000);
+
+ await isolatePublicationFixture(database);
 });
 async function account() {
   const email = randomUUID() + "@example.test";
@@ -148,17 +151,7 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
     ).expect(201)
   ).body.profile;
   await post("/v1/me/roles", { roles: ["TUTOR"] }, teacher.cookie).expect(200);
-  await post(
-    "/v1/me/tutor",
-    {
-      display_name: "Fictional chat Tutor",
-      biography:
-        "I explain school Physics through patient worked examples and practice.",
-      birth_date: "1990-01-01",
-      adult_confirmed: true,
-    },
-    teacher.cookie,
-  ).expect(200);
+  await saveTutorIntroduction(post, teacher, { display_name: "Fictional chat Tutor", biography: fixtureBiography });
   for (const kind of ["IDENTITY", "QUALIFICATION"]) {
     const evidence = (
       await post(
@@ -184,8 +177,7 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
     ).expect(201);
   }
   await post("/v1/me/tutor/submissions", {}, teacher.cookie).expect(200);
-  const claims = (await get("/v1/me/tutor", teacher.cookie).expect(200)).body
-    .claims;
+  const claims = await fixtureClaims(get, teacher.cookie);
   for (const claim of claims)
     await post(
       "/v1/staff/tutor-claims/" + claim.id + "/reviews",
@@ -199,9 +191,9 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
       reviewer.cookie,
     ).expect(200);
   const offer = {
-    title: "Physics for a private chat fixture",
+    title: fixtureTitle,
     description:
-      "School Physics explained through clear worked examples and structured practice.",
+      fixtureDescription,
     domain_id: "school",
     subject_id: "subject-physics",
     level_id: "level-class-10",
@@ -214,27 +206,9 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
     trial_kind: "NONE",
   };
   await grantTutorProFixture(database,config,teacher.email,clock);
-  let listing = (
-    await post("/v1/me/listings", offer, teacher.cookie).expect(201)
-  ).body.listing;
-  listing = (
-    await post(
-      "/v1/me/listings/" + listing.id + "/actions/SUBMIT",
-      { revision: listing.revision },
-      teacher.cookie,
-    ).expect(200)
-  ).body.listing;
-  listing = (
-    await post(
-      "/v1/staff/listings/" + listing.id + "/reviews",
-      {
-        revision: listing.revision,
-        outcome: "APPROVE",
-        reason: "Approve exact fictional chat teaching offer",
-      },
-      reviewer.cookie,
-    ).expect(200)
-  ).body.listing;
+  const listing = await publicationFixtures(post, offer).publish(teacher);
+  
+  
   await grantContactFixture(database, config, owner.email, state, clock);
   const enquiry = (
     await post(
