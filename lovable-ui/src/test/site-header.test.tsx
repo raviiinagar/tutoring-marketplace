@@ -101,7 +101,7 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   );
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");
-  for (const name of ["Dashboard", "My account", "Saved Tutors", "My enquiries", "Messages"])
+  for (const name of ["Dashboard", "My Account", "Saved Tutors", "My enquiries", "My messages"])
     expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
   expect(within(nav).queryByRole("link", { name: "Sign in" })).toBeNull();
   fireEvent.keyDown(menu, { key: "Escape" });

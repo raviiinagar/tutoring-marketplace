@@ -2,18 +2,13 @@ import { Link } from "@tanstack/react-router";
 
 export const workspaceLinks = [
   { to: "/account", label: "Dashboard" },
-  { to: "/requests", label: "My enquiries" },
-  { to: "/connections", label: "Messages" },
-  { to: "/saved-tutors", label: "Saved Tutors" },
-  { to: "/account/settings", label: "My account" },
+  { to: "/connections", label: "My messages" },
+  { to: "/account/settings", label: "My Account" },
 ] as const;
 
 export function WorkspaceNavigation() {
   return (
-    <nav
-      aria-label="Workspace navigation"
-      className="mb-7 flex flex-wrap gap-1 border-b pb-3 text-sm"
-    >
+    <nav aria-label="Workspace navigation" className="reference-workspace-nav">
       {workspaceLinks.map((item) => (
         <Link
           key={item.to}
@@ -21,9 +16,9 @@ export function WorkspaceNavigation() {
           activeOptions={{ exact: item.to === "/account" }}
           activeProps={{
             "aria-current": "page",
-            className: "bg-amber-50 text-amber-950 ring-1 ring-amber-200",
+            className: "reference-workspace-active",
           }}
-          className="inline-flex min-h-11 items-center rounded-full px-4 font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+          className="reference-workspace-link"
         >
           {item.label}
         </Link>

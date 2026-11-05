@@ -102,8 +102,9 @@ afterEach(() => {
 });
 it("shows actual access and honest empty learning states without invented phone verification or booking totals", async () => {
   mount(<LearnerDashboard />);
-  await screen.findByText("Your first enquiry starts with a Tutor");
+  await screen.findByText("No requests");
   expect(screen.getByText("Email verified")).toBeTruthy();
+  fireEvent.click(screen.getByText("Learning tools and access"));
   expect(screen.getByText(/of 5 pending enquiries/).textContent).toContain("3");
   expect(screen.getByText(/No current Access Pass/)).toBeTruthy();
   expect(screen.queryByText(/Phone verified|Completed lessons/)).toBeNull();
@@ -118,9 +119,9 @@ it("renders a failed section as a retry rather than an empty count", async () =>
   });
   mount(<LearnerDashboard />);
   await screen.findByText("Enquiries could not be loaded.");
-  expect(screen.queryByText("Your first enquiry starts with a Tutor")).toBeNull();
+  expect(screen.queryByText("No requests")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry enquiries" }));
-  await screen.findByText("Your first enquiry starts with a Tutor");
+  await screen.findByText("No requests");
 });
 it("does not leak a late private result after switching accounts", async () => {
   let finish!: (result: Awaited<ReturnType<typeof api.contactRequests>>) => void;
@@ -131,14 +132,14 @@ it("does not leak a late private result after switching accounts", async () => {
       }),
   );
   const client = mount(<LearnerDashboard />);
-  await screen.findByText("Hello, Fictional Learner");
+  await screen.findByText("Fictional Learner");
   const other = { ...user, id: "second-account", display_name: "Other Learner" };
   vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user: other } });
   act(() =>
     client.setQueryData(accountSessionKey, { ok: true, status: 200, data: { user: other } }),
   );
-  await screen.findByText("Hello, Other Learner");
-  await screen.findByText("Your first enquiry starts with a Tutor");
+  await screen.findByText("Other Learner");
+  await screen.findByText("No requests");
   const request: ContactRequest = {
     id: "old-private-request",
     listing_id: "offer",
@@ -173,7 +174,7 @@ it("does not leak a late private result after switching accounts", async () => {
     finish({ ok: true, status: 200, data: { requests: [request], next_cursor: null } }),
   );
   expect(screen.queryByText("Private old-account offer")).toBeNull();
-  expect(screen.queryByText("Hello, Fictional Learner")).toBeNull();
+  expect(screen.queryByText("Fictional Learner")).toBeNull();
 });
 it("clears the dashboard and redirects when a private endpoint returns 401", async () => {
   vi.mocked(api.connections).mockResolvedValue({
@@ -182,7 +183,7 @@ it("clears the dashboard and redirects when a private endpoint returns 401", asy
   });
   mount(<LearnerDashboard />);
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
-  expect(screen.queryByText("Hello, Fictional Learner")).toBeNull();
+  expect(screen.queryByText("Fictional Learner")).toBeNull();
 });
 it("preserves the last-role guard and updates the shared session after explicit role changes", async () => {
   vi.spyOn(api, "changeRoles").mockResolvedValue({
@@ -191,6 +192,8 @@ it("preserves the last-role guard and updates the shared session after explicit 
     data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
   });
   const client = mount(<AccountSettings />);
+  await screen.findByText("How you use your account");
+  fireEvent.click(screen.getByText("How you use your account"));
   const current = await screen.findByRole("checkbox", { name: "Learner" });
   expect(current.hasAttribute("disabled")).toBe(true);
   expect(api.changeRoles).not.toHaveBeenCalled();

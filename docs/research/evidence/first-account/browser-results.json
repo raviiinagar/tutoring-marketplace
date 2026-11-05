@@ -1,0 +1,35 @@
+{
+  "status": "PASSED",
+  "realPostgres": true,
+  "noMockedResponses": true,
+  "results": [
+    {
+      "kind": "desktop",
+      "width": 1440,
+      "realChrome": true,
+      "realBackend": true,
+      "emptyDashboard": true,
+      "threeTabs": true,
+      "messages": true,
+      "namePersists": true,
+      "preferencesPersist": true,
+      "noAutomaticTutorRole": true,
+      "noOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "kind": "mobile",
+      "width": 390,
+      "realChrome": true,
+      "realBackend": true,
+      "emptyDashboard": true,
+      "threeTabs": true,
+      "messages": true,
+      "namePersists": true,
+      "preferencesPersist": true,
+      "noAutomaticTutorRole": true,
+      "noOverflow": true,
+      "pageErrors": []
+    }
+  ]
+}

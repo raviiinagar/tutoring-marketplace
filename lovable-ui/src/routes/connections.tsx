@@ -14,7 +14,7 @@ export const Route = createFileRoute("/connections")({
     ],
   }),
 });
-function Connections() {
+export function Connections() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<ConnectionSummary[]>([]);
   const [cursor, setCursor] = useState<string>();
@@ -28,96 +28,86 @@ function Connections() {
     if (r.ok) {
       setRows(r.data.connections);
       setNext(r.data.next_cursor || undefined);
-    } else if (r.error.kind === "http" && r.error.status === 401)
+    } else if (r.error.kind === "http" && r.error.status === 401) {
+      setRows([]);
+      setNext(undefined);
       void navigate({ to: "/auth/signin", replace: true });
+      return;
+    }
     else setError(describeFailure(r.error));
     setLoading(false);
   }, [cursor, navigate]);
   useEffect(() => {
     void load();
   }, [load]);
+  const [search, setSearch] = useState("");
+  const filtered = rows.filter((row) =>
+    row.offer.title.toLowerCase().includes(search.trim().toLowerCase()),
+  );
   return (
-    <AuthShell title="Your Connections">
-      <p className="text-sm text-muted-foreground">
-        Accepted enquiries with permission to connect. Contacts are checked again when you open
-        them. Tuition is paid directly to the Tutor.
-      </p>
-      {error && (
-        <div className="mt-4">
-          <Notice tone="error">{error}</Notice>
-        </div>
-      )}
-      {loading ? (
-        <p role="status" className="mt-5">
-          Loading Connections…
-        </p>
-      ) : (
-        <div className="mt-5 space-y-5">
-          {!rows.length && (
-            <div className="space-y-3 rounded-xl border bg-muted/30 p-5">
-              <h2 className="font-semibold">No Connections yet</h2>
-              <p className="text-sm text-muted-foreground">
-                A Connection appears after a Tutor accepts your enquiry and the access requirements
-                are met. You can then open your messages here.
-              </p>
-              <Link to="/requests" className="link inline-block">
-                Check my enquiries
-              </Link>
+    <AuthShell title="My messages" reference dashboard fullWidth>
+      <div className="reference-inbox">
+        <aside className="reference-inbox-sidebar" aria-label="Contacts">
+          <label htmlFor="contacts-search" className="font-semibold text-sm">
+            All my contacts
+          </label>
+          <input
+            className="mt-3"
+            id="contacts-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search contacts"
+          />
+          {!loading && !error && !filtered.length && <p className="py-5 text-sm">No results</p>}
+          {filtered.map((row) => (
+            <Link
+              key={row.id}
+              to={row.available ? "/chat/$connectionId" : "/connections/$connectionId"}
+              params={{ connectionId: row.id }}
+              className="reference-contact-row"
+            >
+              <strong>{row.offer.title}</strong>
+              <small>
+                {row.available
+                  ? row.unread_count === null
+                    ? "Open messages"
+                    : `${row.unread_count} unread messages`
+                  : connectionReason(row.unavailable_reason)}
+              </small>
+            </Link>
+          ))}
+          <Link to="/requests" className="reference-subtle-link mt-5 inline-block">
+            My class requests
+          </Link>
+        </aside>
+        <section className="reference-inbox-main" aria-label="Messages">
+          {error && (
+            <div className="mt-4">
+              <Notice tone="error">{error}</Notice>
             </div>
           )}
-          {rows.map((row) => (
-            <article key={row.id} className="rounded-2xl border p-5">
-              <h2 className="break-words font-semibold">{row.offer.title}</h2>
-              <p className="mt-2 text-sm">
-                {row.available ? "Connection active" : connectionReason(row.unavailable_reason)}
-              </p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Accepted: {new Date(row.created_at).toLocaleString()}
-              </p>
-              {row.test_only && (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Fictional test Connection. No payment was made.
+          {loading ? (
+            <p role="status" className="mt-5">
+              Loading Connections…
+            </p>
+          ) : (
+            !error && (
+              <div className="reference-inbox-notice">
+                <h2>{rows.length ? "Your conversations" : "No message"}</h2>
+                <p>
+                  {rows.length
+                    ? "Choose a conversation to read messages and arrange your next class."
+                    : "You haven't found a teacher yet. Search for a teacher to start your learning journey."}
                 </p>
-              )}
-              <Link
-                to="/connections/$connectionId"
-                params={{ connectionId: row.id }}
-                className="link mt-4 inline-block"
-              >
-                Open Connection
-              </Link>
-              {row.available && (
-                <Link
-                  to="/chat/$connectionId"
-                  params={{ connectionId: row.id }}
-                  className="link ml-4 inline-block"
-                >
-                  Open chat
-                  {Boolean(row.unread_count) && (
-                    <span className="ml-2 rounded-full bg-coral-soft px-2 py-0.5 text-xs">
-                      {row.unread_count} unread
-                    </span>
-                  )}
-                </Link>
-              )}
-              <Link
-                to="/reviews/$connectionId"
-                params={{ connectionId: row.id }}
-                className="link mt-4 block text-sm"
-              >
-                Tutor feedback and review eligibility
-              </Link>
-              <Link
-                to="/safety/$kind/$targetId"
-                params={{ kind: "connection", targetId: row.id }}
-                className="link mt-4 block text-sm"
-              >
-                Report or block
-              </Link>
-            </article>
-          ))}
-        </div>
-      )}
+              </div>
+            )
+          )}
+          <Button asChild className="reference-inbox-cta">
+            <Link to="/tutors">Search for a teacher</Link>
+          </Button>
+        </section>
+      </div>
       <nav aria-label="Connection pages" className="mt-6 flex flex-wrap gap-3">
         <Button variant="outline" disabled={loading} onClick={() => void load()}>
           Refresh Connections

@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-05",
+  "actualHostedChecks": [
+    {
+      "base": "https://tutor-marketplace-ravii-preview.tutoring-marketplace-ravii-preview.workers.dev",
+      "health": 200,
+      "anonymousProfileEdit": 401
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org",
+      "health": 200,
+      "anonymousProfileEdit": 401
+    },
+    {
+      "base": "https://ravii-tutoring-test.duckdns.org/payment-sandbox",
+      "health": 200,
+      "anonymousProfileEdit": 401
+    }
+  ],
+  "deployedAssetsWithIsolatedApi": [
+    {
+      "width": 1440,
+      "allThreeScreens": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 390,
+      "allThreeScreens": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "width": 320,
+      "allThreeScreens": true,
+      "noHorizontalOverflow": true
+    }
+  ],
+  "status": "PASSED",
+  "browserErrors": [],
+  "boundary": "Actual hosted health, anonymous authorization and redirects. Authenticated deployed UI reads routed exclusively to real isolated PostgreSQL/API with fictional accounts; no hosted authenticated writes."
+}

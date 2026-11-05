@@ -405,6 +405,7 @@ export const api = {
   recoveryEmail: (email:string) => request<CodeMessage>('POST','/v1/auth/recovery-emails',{email}),
   resetPassword: (token:string,password:string) => request<CodeMessage>('POST','/v1/auth/password-resets',{token,password}),
   changeRoles: (roles:User['roles']) => request<{user:User}>('POST','/v1/me/roles',{roles}),
+  updateAccountProfile:(display_name:string)=>request<{user:User}>('POST','/v1/me/profile',{display_name}),
   sessions: () => request<{sessions:AccountSession[]}>('GET','/v1/auth/sessions'),
   revokeSession: (id:string) => request<void>('DELETE','/v1/auth/sessions/by-id/'+encodeURIComponent(id)),
   revokeOthers: () => request<void>('DELETE','/v1/auth/sessions/others'),

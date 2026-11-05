@@ -540,3 +540,63 @@ main { scroll-margin-top: 90px; }
 .teacher-search-clear { display:grid; flex-shrink:0; place-items:center; width:32px; min-height:40px; border-radius:99px; color:var(--muted-foreground); }
 .teacher-search-clear:hover { background:#fff3cf; color:var(--foreground); }
 .teacher-search-clear:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+
+/* Account workspace reconstructed from the observed first-account reference. */
+.reference-account { background:#f7f7f7; color:#202020; }
+.reference-account .site-header { background:white; backdrop-filter:none; border:0; }
+.reference-account .brand-wordmark { color:#ff6167; }
+.reference-account .brand-marketplace { color:inherit; }
+.reference-account .brand-tutor::after { display:none; }
+.reference-account .header-nav-pill,.reference-account .header-search-trigger,.reference-header-icon { background:#f7f7f7; }
+.reference-account .header-search-icon { background:#ff6167; }
+.reference-header-icon { display:grid; width:44px; height:44px; place-items:center; border-radius:50%; }
+.reference-account-initial { display:grid; place-items:center; width:34px; height:34px; background:#ff6167; color:#fff; border-radius:50%; }
+.reference-workspace-bar { background:#222; color:#fff; }
+.reference-workspace-nav { display:flex; gap:36px; min-height:62px; overflow-x:auto; white-space:nowrap; scrollbar-width:thin; }
+.reference-workspace-link { display:flex; align-items:center; min-height:62px; border-bottom:4px solid transparent; padding:4px 0 0; font-size:15px; font-weight:700; color:#aaa; }
+.reference-workspace-link:hover { color:#fff; }
+.reference-workspace-link[aria-current=page],.reference-workspace-active { color:white; border-bottom-color:#c9c9c9; }
+.account-workspace:not(.reference-account .account-workspace)>.reference-workspace-nav { background:#222; padding:0 20px; margin-bottom:28px; }
+.reference-account .account-content { animation:none; }
+.reference-account .account-workspace { padding-top:24px; }
+.reference-dashboard-grid { display:grid; grid-template-columns:minmax(0,.83fr) minmax(0,1fr); gap:22px; align-items:start; }
+.reference-profile-card,.reference-requests-card { background:#fff; border-radius:5px; min-width:0; }
+.reference-profile-card { padding:56px 44px 36px; text-align:center; }
+.reference-profile-picture { display:grid; place-items:center; width:180px; height:180px; background:#f7f7f7; border-radius:36%; margin:0 auto; color:#d1d1d1; }
+.reference-person-icon { font-size:56px; font-weight:700; }
+.reference-profile-card h2 { font-size:34px; font-weight:750; margin:22px 0 26px; overflow-wrap:anywhere; }
+.reference-verification-row { display:flex; align-items:center; justify-content:space-between; gap:16px; border-top:1px solid #f1f1f1; padding:24px 0; text-align:left; font-weight:600; }
+.reference-verified,.reference-unverified { display:grid; place-items:center; border-radius:50%; width:24px; height:24px; color:white; background:#49c38a; }
+.reference-unverified { background:#ff6070; }
+.reference-subtle-link { font-size:13px; color:#666; text-decoration:underline; text-underline-offset:3px; }
+.reference-card-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:44px; border-bottom:1px solid #f6f6f6; }
+.reference-card-heading h2 { font-size:24px; font-weight:700; }
+.reference-no-requests { display:flex; flex-wrap:wrap; align-items:center; gap:20px; padding:28px; min-height:116px; }
+.reference-no-requests p { flex:1; font-weight:650; color:#999; }
+.reference-coral-button { background:linear-gradient(110deg,#ff9c9c,#ff5f87); border:0; color:white; border-radius:28px; font-weight:700; padding:12px 24px; box-shadow:none; }
+.reference-teaching-link { display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:24px; font-size:14px; }
+.reference-account-tools { border-top:1px solid #e8e8e8; margin-top:40px; padding:22px 0; font-size:14px; color:#555; }
+.reference-account-tools summary { cursor:pointer; }
+.reference-inbox { display:grid; grid-template-columns:300px minmax(0,1fr); background:#fff; min-height:65vh; margin:-24px -20px 0; }
+.reference-inbox-sidebar { border-right:1px solid #eee; padding:24px; }
+.reference-inbox-sidebar input,.reference-inbox-sidebar select { width:100%; min-height:44px; padding:10px; background:#f7f7f7; border-radius:10px; border:1px solid transparent; font-size:14px; }
+.reference-inbox-main { display:flex; flex-direction:column; min-height:65vh; padding:28px 32px; min-width:0; }
+.reference-inbox-notice { border-radius:28px; padding:22px; background:#e7f1ff; }
+.reference-inbox-notice h2 { font-size:24px; font-weight:700; color:#1677ff; }
+.reference-inbox-notice p { margin-top:8px; font-weight:600; line-height:1.6; }
+.reference-inbox-cta { background:#1677ff; color:#fff; border-radius:20px; padding:18px 28px; min-height:56px; align-self:center; margin-top:auto; }
+.reference-contact-row { display:block; border-bottom:1px solid #eee; padding:18px 0; font-size:14px; overflow-wrap:anywhere; }
+.reference-contact-row small { display:block; margin-top:6px; color:#777; }
+@media(max-width:700px) {
+ .reference-dashboard-grid { grid-template-columns:minmax(0,1fr); }
+ .reference-profile-card { padding:32px 26px 24px; }
+ .reference-profile-picture { width:140px; height:140px; }
+ .reference-card-heading { padding:25px; }
+ .reference-no-requests { padding:24px; gap:16px; }
+ .reference-workspace-nav { gap:24px; }
+ .reference-workspace-link { font-size:13px; }
+ .reference-inbox { grid-template-columns:minmax(0,1fr); }
+ .reference-inbox-sidebar { border-right:0; border-bottom:1px solid #eee; }
+ .reference-inbox-main { padding:24px 20px; min-height:50vh; }
+ .reference-inbox-cta { margin-top:40px; }
+}

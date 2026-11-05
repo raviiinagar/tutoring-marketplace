@@ -12,7 +12,17 @@ import {
   type ReactNode,
 } from "react";
 
-import { ArrowUpRight, ChevronDown, CircleHelp, Eye, EyeOff, Menu, Search, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  CircleHelp,
+  Eye,
+  EyeOff,
+  Heart,
+  Menu,
+  Search,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { api, describeFailure, type Catalogue } from "@/lib/api";
@@ -120,7 +130,13 @@ function HeaderSearchDialog({
   );
 }
 
-export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
+export function SiteHeader({
+  homepage = false,
+  accountStyle = false,
+}: {
+  homepage?: boolean;
+  accountStyle?: boolean;
+}) {
   const [open, setOpen] = useState(false),
     [searchOpen, setSearchOpen] = useState(false),
     [scrolled, setScrolled] = useState(false);
@@ -230,12 +246,18 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
             >
               <CircleHelp aria-hidden className="size-5" />
             </a>
-            <Link
-              to={teacherPath}
-              className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
-            >
-              Give private classes
-            </Link>
+            {accountStyle && user ? (
+              <Link to="/saved-tutors" aria-label="Saved Tutors" className="reference-header-icon">
+                <Heart aria-hidden className="size-5" />
+              </Link>
+            ) : (
+              <Link
+                to={teacherPath}
+                className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
+              >
+                Give private classes
+              </Link>
+            )}
             {pending ? (
               <span role="status" className="text-sm text-muted-foreground">
                 Checking account...
@@ -246,9 +268,21 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
                   <Button
                     variant="outline"
                     className="header-nav-pill h-11 rounded-full border-0 px-5 shadow-none"
+                    aria-label={accountStyle ? "My account menu" : "My account"}
                   >
-                    My account
-                    <ChevronDown aria-hidden className="size-4" />
+                    {accountStyle ? (
+                      <>
+                        <Menu aria-hidden className="size-5" />
+                        <span className="reference-account-initial" aria-hidden>
+                          {user.display_name.trim().slice(0, 1).toUpperCase()}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        My account
+                        <ChevronDown aria-hidden className="size-4" />
+                      </>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2">
@@ -257,6 +291,15 @@ export function SiteHeader({ homepage = false }: { homepage?: boolean }) {
                       <Link to={item.to}>{item.label}</Link>
                     </DropdownMenuItem>
                   ))}
+                  <DropdownMenuItem asChild>
+                    <Link to="/saved-tutors">Saved Tutors</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/requests">My enquiries</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={teacherPath}>Give private classes</Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -345,6 +388,8 @@ export function AuthShell({
   footer,
   wide = false,
   dashboard = false,
+  reference = false,
+  fullWidth = false,
 }: {
   title: string;
   intro?: ReactNode;
@@ -352,6 +397,8 @@ export function AuthShell({
   footer?: ReactNode;
   wide?: boolean;
   dashboard?: boolean;
+  reference?: boolean;
+  fullWidth?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
@@ -365,14 +412,22 @@ export function AuthShell({
     );
   return (
     <AccountReady.Provider value={ready}>
-      <div className="min-h-screen">
-        <SiteHeader />
+      <div className={reference ? "reference-account min-h-screen" : "min-h-screen"}>
+        <SiteHeader accountStyle={reference} />
+        {reference && (
+          <div className="reference-workspace-bar">
+            <div className="mx-auto max-w-[1200px] px-5">
+              <WorkspaceNavigation />
+            </div>
+          </div>
+        )}
         <main
           id="main-content"
           tabIndex={-1}
-          className={`account-workspace mx-auto w-full ${dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
+          className={`account-workspace mx-auto w-full ${reference && fullWidth ? "max-w-none" : reference ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
         >
           {ready &&
+            !reference &&
             !window.location.pathname.startsWith("/auth/") &&
             (window.location.pathname === "/tutor" ||
             window.location.pathname.startsWith("/tutor/") ? (
@@ -387,9 +442,13 @@ export function AuthShell({
                 : "card-surface animate-rise account-content"
             }
           >
-            <h1 className="break-words text-3xl font-semibold sm:text-4xl">{title}</h1>
+            <h1
+              className={reference ? "sr-only" : "break-words text-3xl font-semibold sm:text-4xl"}
+            >
+              {title}
+            </h1>
             {intro && <div className="mt-3 text-muted-foreground">{intro}</div>}
-            <div className="mt-8">{children}</div>
+            <div className={reference ? "" : "mt-8"}>{children}</div>
           </div>
           {footer && <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>}
         </main>
