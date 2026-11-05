@@ -1,0 +1,120 @@
+{
+  "date": "2026-11-05",
+  "branch": "fix/audit-product-bugs",
+  "backend": {
+    "release": "audit-product-bugs-20261105-c3c51708bcbc",
+    "sourceCommit": "c3c51708bcbcab768d27d14ddccf1f0e25729e5b",
+    "previousRelease": "first-account-20261105-12817186c2ec",
+    "archiveSha256": "2789e9f39675670fde68a86fe27af7c389cfb434a7d58567f3bcd7319a72d4cb",
+    "moduleSha256": "b15f8a2c23de50f31041c24e2266d41ff098e38d237a790e0e9648b355d7283c",
+    "changedFiles": [
+      "apps/api/dist/listings.js"
+    ],
+    "sandbox": {
+      "environment": "sandbox",
+      "release": "audit-product-bugs-20261105-c3c51708bcbc",
+      "previous_release": "first-account-20261105-12817186c2ec",
+      "schema_migrations": 38,
+      "new_migrations": 0,
+      "preserved_table_row_counts": 109,
+      "runtime_configuration_preserved_except_release_id": true,
+      "backups_verified": true,
+      "overlaid_modules": [
+        "listings.js"
+      ]
+    },
+    "main": {
+      "environment": "main",
+      "release": "audit-product-bugs-20261105-c3c51708bcbc",
+      "previous_release": "first-account-20261105-12817186c2ec",
+      "schema_migrations": 38,
+      "new_migrations": 0,
+      "preserved_table_row_counts": 109,
+      "runtime_configuration_preserved_except_release_id": true,
+      "backups_verified": true,
+      "overlaid_modules": [
+        "listings.js"
+      ]
+    },
+    "runtime": {
+      "release": "audit-product-bugs-20261105-c3c51708bcbc",
+      "listing_sha256": "b15f8a2c23de50f31041c24e2266d41ff098e38d237a790e0e9648b355d7283c",
+      "services": {
+        "tutoring-api": {
+          "active": "active",
+          "process_release": "audit-product-bugs-20261105-c3c51708bcbc"
+        },
+        "tutoring-worker": {
+          "active": "active",
+          "process_release": "audit-product-bugs-20261105-c3c51708bcbc"
+        },
+        "tutoring-payment-sandbox-api": {
+          "active": "active",
+          "process_release": "audit-product-bugs-20261105-c3c51708bcbc"
+        },
+        "tutoring-payment-sandbox-worker": {
+          "active": "active",
+          "process_release": "audit-product-bugs-20261105-c3c51708bcbc"
+        }
+      },
+      "backup_result": "success",
+      "stop_timer": [
+        "NextElapseUSecRealtime=Tue 2026-11-10 10:25:48 UTC",
+        "ActiveState=active"
+      ]
+    }
+  },
+  "frontend": {
+    "sourceCommit": "8e4b993c04e3ad32f58ac28cc1ea9ead099a484b",
+    "previousVersion": "26be40b0-35f4-4300-a1ff-279aa740f9ed",
+    "version": "c9bf7796-7df8-4589-8f32-26353444e94a",
+    "pages": [
+      {
+        "path": "/",
+        "status": 200,
+        "html": true,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/auth/signin",
+        "status": 200,
+        "html": true,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/health",
+        "status": 200,
+        "html": false,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/catalogue",
+        "status": 200,
+        "html": false,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/me",
+        "status": 401,
+        "html": false,
+        "cacheControl": "no-store"
+      }
+    ],
+    "styles": [
+      {
+        "path": "/assets/styles-miV5YshL.css",
+        "status": 200,
+        "wordmarkFixed": true,
+        "searchIconFixed": true
+      }
+    ]
+  },
+  "operatorAccess": {
+    "method": "CloudFormation previous-template change set",
+    "changedResource": "SshOnly",
+    "action": "Modify",
+    "replacement": false,
+    "scope": "Existing operator IPv4 /32 only"
+  },
+  "validationScope": "Hosted checks are read-only health, auth guards, published CSS and process/artifact verification. No hosted Tutor, payment or evidence fixture was created or modified."
+}
