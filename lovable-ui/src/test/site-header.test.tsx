@@ -77,7 +77,7 @@ it("anonymous desktop navigation has own brand, help, teaching and one sign-in d
   expect(within(nav).getByRole("link", { name: "Help" })).toHaveAttribute("href", "/#how-it-works");
   expect(within(nav).queryByRole("link", { name: "Join us" })).toBeNull();
   expect(screen.getByRole("link", { name: "Tutor Marketplace home" })).toBeVisible();
-  expect(screen.queryByRole("button", { name: "Search for a teacher" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Search for a teacher/ })).toBeNull();
 });
 it("pending session announces checking without a false logged-in state", () => {
   vi.mocked(api.me).mockImplementation(() => new Promise(() => {}));
@@ -146,16 +146,16 @@ it("mobile disclosure closes on history and desktop resizing", async () => {
 });
 it("homepage search appears after the hero scroll threshold; other pages show it immediately", () => {
   const { unmount } = mount(true);
-  expect(screen.queryByRole("button", { name: "Search for a teacher" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Search for a teacher/ })).toBeNull();
   window.scrollY = 301;
   fireEvent.scroll(window);
-  expect(screen.getAllByRole("button", { name: "Search for a teacher" })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: /Search for a teacher/ })).toHaveLength(2);
   window.scrollY = 200;
   fireEvent.scroll(window);
-  expect(screen.queryByRole("button", { name: "Search for a teacher" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Search for a teacher/ })).toBeNull();
   unmount();
   mount();
-  expect(screen.getAllByRole("button", { name: "Search for a teacher" })).toHaveLength(2);
+  expect(screen.getAllByRole("button", { name: /Search for a teacher/ })).toHaveLength(2);
 });
 it("search lazily fetches real catalogue, retries failures and navigates with chosen filters", async () => {
   const catalogueRequest = vi
@@ -167,7 +167,7 @@ it("search lazily fetches real catalogue, retries failures and navigates with ch
     .mockResolvedValueOnce({ ok: true, status: 200, data: catalogue });
   mount();
   expect(catalogueRequest).not.toHaveBeenCalled();
-  const trigger = screen.getAllByRole("button", { name: "Search for a teacher" })[0]!;
+  const trigger = screen.getAllByRole("button", { name: /Search for a teacher/ })[0]!;
   await waitFor(() => expect(trigger).toBeEnabled());
   fireEvent.click(trigger);
   await screen.findByRole("alert");
@@ -188,7 +188,7 @@ it("search lazily fetches real catalogue, retries failures and navigates with ch
 it("closing a loading search returns focus to its opening control", async () => {
   vi.spyOn(api, "catalogue").mockImplementation(() => new Promise(() => {}));
   mount();
-  const trigger = screen.getAllByRole("button", { name: "Search for a teacher" })[0]!;
+  const trigger = screen.getAllByRole("button", { name: /Search for a teacher/ })[0]!;
   await waitFor(() => expect(trigger).toBeEnabled());
   trigger.focus();
   fireEvent.click(trigger);

@@ -1,0 +1,65 @@
+{
+  "environment": "Isolated real backend with fictional published supply; source fix/audit-ui, no deployment",
+  "checks": [
+    {
+      "width": 1440,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/tutors",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signin",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signup",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/check-email",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/auth/forgot-password",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/tutors",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/signin",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/signup",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/check-email",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/auth/forgot-password",
+      "violations": []
+    }
+  ]
+}

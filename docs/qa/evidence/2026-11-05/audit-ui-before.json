@@ -1,0 +1,285 @@
+{
+  "tool": "axe-core Playwright",
+  "scope": "Live anonymous pages; automated checks only, not a complete accessibility certification",
+  "checks": [
+    {
+      "width": 1440,
+      "route": "/",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Vinay\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Vinay\" href=\"/teachers/engineering-2081830f-b408-4f2a-90dc-45ac6cca29b2\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Ravi nagar\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Ravi nagar\" href=\"/teachers/ai-c7c04aa8-ff50-4905-94dd-9f63df564fd6\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/tutors",
+      "violations": [],
+      "incompleteChecks": 0
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signin",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/signup",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/check-email",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\" disabled=\"\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 1440,
+      "route": "/auth/forgot-password",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".lg\\:inline-flex"
+              ],
+              "html": "<button type=\"button\" aria-label=\"Search for a teacher\" class=\"header-search-trigger hidden items-center gap-3 rounded-full lg:inline-flex\" disabled=\"\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "help": "Elements must have their visible text as part of their accessible name",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch?application=playwright",
+          "tags": [
+            "cat.semantics",
+            "wcag21a",
+            "wcag253",
+            "EN-301-549",
+            "EN-9.2.5.3",
+            "RGAAv4",
+            "RGAA-6.1.5"
+          ],
+          "nodes": [
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Vinay\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Vinay\" href=\"/teachers/engineering-2081830f-b408-4f2a-90dc-45ac6cca29b2\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "a[aria-label=\"View Tutor Ravi nagar\"]"
+              ],
+              "html": "<a class=\"teacher-cover\" aria-label=\"View Tutor Ravi nagar\" href=\"/teachers/ai-c7c04aa8-ff50-4905-94dd-9f63df564fd6\">",
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/tutors",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "tags": [
+            "cat.color",
+            "wcag2aa",
+            "wcag143",
+            "TTv5",
+            "TT13.c",
+            "EN-301-549",
+            "EN-9.1.4.3",
+            "ACT",
+            "RGAAv4",
+            "RGAA-3.2.1"
+          ],
+          "nodes": [
+            {
+              "target": [
+                ".mb-2"
+              ],
+              "html": "<p class=\"mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong\">Find your next learning chapter</p>",
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.97 (foreground color: #d17e88, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".mt-3"
+              ],
+              "html": "<p class=\"mt-3 max-w-2xl text-muted-foreground\">Choose the exact subject and learning goal you need. Browsing is free; tuition is paid directly to your Tutor.</p>",
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.75 (foreground color: #9d9ba0, background color: #ffffff, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/signin",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/signup",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/check-email",
+      "violations": [],
+      "incompleteChecks": 1
+    },
+    {
+      "width": 390,
+      "route": "/auth/forgot-password",
+      "violations": [],
+      "incompleteChecks": 1
+    }
+  ],
+  "environment": "Live anonymous site, reproduced before QA01; public supply differs from isolated after-scan fixtures."
+}

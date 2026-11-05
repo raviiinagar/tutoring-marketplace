@@ -1,0 +1,35 @@
+{
+  "environment": "Isolated real backend with fictional published supply; source fix/audit-ui, no deployment",
+  "checks": [
+    {
+      "width": 1440,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/tutors?subject_id=subject-physics",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/tutors?subject_id=subject-physics",
+      "violations": []
+    },
+    {
+      "width": 320,
+      "route": "/",
+      "violations": []
+    },
+    {
+      "width": 320,
+      "route": "/tutors?subject_id=subject-physics",
+      "violations": []
+    }
+  ]
+}

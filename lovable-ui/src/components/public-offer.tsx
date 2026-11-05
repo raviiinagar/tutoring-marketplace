@@ -13,7 +13,7 @@ export function PublicOfferCard({listing,catalogue,priority=false}:{listing:Publ
   const subject=catalogue?.terms.find(t=>t.id===listing.offer.subject_id)?.label||listing.offer.subject_id.replace(/^subject-/,'');
   const summary=listing.review_summary;
   return <article className="teacher-card">
-    <Link to="/teachers/$slug" params={{slug}} className="teacher-cover" aria-label={`View Tutor ${name}`}>
+    <Link to="/teachers/$slug" params={{slug}} className="teacher-cover">
       <span aria-hidden className="teacher-initials">{name.trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase()}</span>
       <TutorPortrait card priority={priority} url={listing.tutor.photo_url} name={name} className="teacher-portrait"/>
       <div className="teacher-cover-caption"><h3 className="teacher-cover-name">{name}</h3><p className="teacher-cover-location">{compactTutorLocation(listing.presence,listing.offer.teaching_mode)}</p></div>

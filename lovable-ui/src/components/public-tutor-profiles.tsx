@@ -37,7 +37,6 @@ export function PublicTutorCard({
           to="/profiles/$profileId"
           params={{ profileId: profile.id }}
           className="teacher-cover"
-          aria-label={`View Tutor ${profile.display_name}`}
         >
           <span aria-hidden className="teacher-initials">
             {profile.display_name

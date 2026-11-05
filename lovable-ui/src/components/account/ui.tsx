@@ -206,7 +206,7 @@ export function SiteHeader({
   const searchTrigger = (mobile: boolean) => (
     <button
       type="button"
-      aria-label="Search for a teacher"
+      aria-label={mobile ? "Search for a teacher" : "What would you like to learn? Search for a teacher"}
       className={
         mobile
           ? "header-search-trigger header-search-mobile inline-flex size-10 items-center justify-center rounded-full lg:hidden"
