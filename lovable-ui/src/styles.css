@@ -552,12 +552,15 @@ main { scroll-margin-top: 90px; }
 .reference-header-icon { display:grid; width:44px; height:44px; place-items:center; border-radius:50%; }
 .reference-account-initial { display:grid; place-items:center; width:34px; height:34px; background:#ff6167; color:#fff; border-radius:50%; }
 .reference-workspace-bar { background:#222; color:#fff; }
+.reference-header-group { position:sticky; top:0; z-index:20; }
+.reference-header-group .site-header { position:relative; z-index:auto; }
 .reference-workspace-nav { display:flex; gap:36px; min-height:62px; overflow-x:auto; white-space:nowrap; scrollbar-width:thin; }
 .reference-workspace-link { display:flex; align-items:center; min-height:62px; border-bottom:4px solid transparent; padding:4px 0 0; font-size:15px; font-weight:700; color:#aaa; }
 .reference-workspace-link:hover { color:#fff; }
 .reference-workspace-link[aria-current=page],.reference-workspace-active { color:white; border-bottom-color:#c9c9c9; }
 .account-workspace:not(.reference-account .account-workspace)>.reference-workspace-nav { background:#222; padding:0 20px; margin-bottom:28px; }
 .reference-account .account-content { animation:none; }
+.reference-account .account-workspace:focus { outline:none; }
 .reference-account .account-workspace { padding-top:24px; }
 .reference-dashboard-grid { display:grid; grid-template-columns:minmax(0,.83fr) minmax(0,1fr); gap:22px; align-items:start; }
 .reference-profile-card,.reference-requests-card { background:#fff; border-radius:5px; min-width:0; }

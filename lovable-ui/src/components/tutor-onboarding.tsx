@@ -138,8 +138,8 @@ export function TutorOnboarding() {
   return (
     <AuthShell
       wide
-      title="Your Tutor profile"
-      intro="Introduce yourself, create your ad and publish for free. Identity verification is optional."
+      title={p ? "Your Tutor profile" : "Create your teaching ad"}
+      intro={p ? "Manage your introduction and teaching details. Identity verification is optional." : "Start with what you teach. Save your progress and publish when you are ready."}
     >
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
@@ -147,7 +147,7 @@ export function TutorOnboarding() {
         <p role="status">Loading your profile…</p>
       ) : (
         <div className="space-y-6">
-          <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
+          {p && <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
             {[
               ["Profile saved", !!p],
               ["Ready to create an ad", !!p?.subject_ids?.length],
@@ -166,10 +166,10 @@ export function TutorOnboarding() {
                 </span>
               </li>
             ))}
-          </ol>
-          <section className="onboarding-section space-y-4">
+          </ol>}
+          <section className={p ? "onboarding-section space-y-4" : "space-y-4"}>
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">1. About you</h2>
+              {p && <h2 className="text-lg font-semibold">1. About you</h2>}
               {p && !editing && (
                 <Button variant="outline" onClick={() => setEditing(true)}>
                   Edit profile

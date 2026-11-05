@@ -402,6 +402,8 @@ export function AuthShell({
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
+  const tutorWorkspace = ready && (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/"));
+  const referenceLayout = reference || tutorWorkspace;
   if (ready && window.location.pathname.startsWith("/staff"))
     return (
       <AccountReady.Provider value={ready}>
@@ -412,22 +414,24 @@ export function AuthShell({
     );
   return (
     <AccountReady.Provider value={ready}>
-      <div className={reference ? "reference-account min-h-screen" : "min-h-screen"}>
-        <SiteHeader accountStyle={reference} />
-        {reference && (
+      <div className={referenceLayout ? "reference-account min-h-screen" : "min-h-screen"}>
+        {referenceLayout ? (
+          <div className="reference-header-group">
+          <SiteHeader accountStyle />
           <div className="reference-workspace-bar">
             <div className="mx-auto max-w-[1200px] px-5">
-              <WorkspaceNavigation />
+              {tutorWorkspace ? <TutorWorkspaceNavigation /> : <WorkspaceNavigation />}
             </div>
           </div>
-        )}
+          </div>
+        ) : <SiteHeader />}
         <main
           id="main-content"
           tabIndex={-1}
-          className={`account-workspace mx-auto w-full ${reference && fullWidth ? "max-w-none" : reference ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
+          className={`account-workspace mx-auto w-full ${referenceLayout && fullWidth ? "max-w-none" : referenceLayout ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
         >
           {ready &&
-            !reference &&
+            !referenceLayout &&
             !window.location.pathname.startsWith("/auth/") &&
             (window.location.pathname === "/tutor" ||
             window.location.pathname.startsWith("/tutor/") ? (
@@ -437,7 +441,7 @@ export function AuthShell({
             ))}
           <div
             className={
-              dashboard
+              dashboard || referenceLayout
                 ? "animate-rise account-content"
                 : "card-surface animate-rise account-content"
             }

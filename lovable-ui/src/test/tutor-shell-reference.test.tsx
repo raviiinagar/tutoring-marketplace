@@ -1,0 +1,20 @@
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthShell } from "@/components/account/ui";
+import { api } from "@/lib/api";
+vi.mock("@tanstack/react-router",()=>({useNavigate:()=>vi.fn(),Link:({to,children}:{to:string;children:React.ReactNode})=><a href={to}>{children}</a>}));
+afterEach(()=>{cleanup();vi.restoreAllMocks();window.history.replaceState({},"","/");});
+it.each(["/tutor","/tutor/dashboard","/tutor/listings","/tutor/evaluations","/tutor/requests"])("keeps %s in the consistent account header and external teaching navigation",async path=>{
+ window.history.replaceState({},"",path);
+ vi.spyOn(api,"me").mockResolvedValue({ok:true,status:200,data:{user:{id:"fictional-tutor",display_name:"Fictional Tutor",email:"tutor@example.test",email_verified:true,roles:["TUTOR"],created_at:"2026-11-05"}}});
+ const client=new QueryClient({defaultOptions:{queries:{retry:false}}});
+ const {container}=render(<QueryClientProvider client={client}><AuthShell title="Teaching page"><p>Teaching content</p></AuthShell></QueryClientProvider>);
+ await screen.findByRole("navigation",{name:"Teaching workspace navigation"});
+ expect(container.querySelector(".reference-account")).not.toBeNull();
+ expect(container.querySelector(".reference-workspace-bar nav")).not.toBeNull();
+ expect(container.querySelector("main nav")).toBeNull();
+ expect(container.querySelector(".card-surface")).toBeNull();
+ expect(screen.getAllByRole("navigation",{name:"Teaching workspace navigation"})).toHaveLength(1);
+ client.clear();
+});

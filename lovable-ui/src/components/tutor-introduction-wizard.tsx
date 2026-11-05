@@ -181,7 +181,7 @@ export function TutorIntroductionWizard({
             aria-current={step === i ? "step" : undefined}
             className={
               "rounded-full px-3 py-2 text-sm " +
-              (step === i ? "bg-amber-100 font-semibold" : "bg-muted text-muted-foreground")
+              (step === i ? "bg-[#ffe7e8] text-[#cf3e50] font-semibold" : "bg-white text-muted-foreground")
             }
           >
             {i + 1}. {label}
@@ -197,21 +197,21 @@ export function TutorIntroductionWizard({
         aria-valuemax={5}
       >
         <div
-          className="h-full bg-amber-300 transition-all"
+          className="h-full bg-[#ff6268] transition-all"
           style={{ width: `${(step + 1) * 20}%` }}
         />
       </div>
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
       <div className="grid items-start gap-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)]">
-        <aside className="rounded-3xl bg-amber-50 p-6">
+        <aside className="rounded-2xl bg-[#fff0f0] p-6">
           <h3 className="font-semibold">Good to know</h3>
           <p className="mt-3 text-sm leading-relaxed">{tips[step]}</p>
           <p className="mt-5 text-xs text-muted-foreground">
             {draft ? `Last saved ${new Date(draft.updated_at).toLocaleString()}` : "Not saved yet"}
           </p>
         </aside>
-        <form onSubmit={next} className="min-w-0 space-y-5 rounded-3xl border bg-card p-5 sm:p-7">
+        <form onSubmit={next} className="min-w-0 space-y-5 rounded-2xl bg-white p-5 sm:p-8">
           <fieldset disabled={busy} className="space-y-5">
             <h3 ref={heading} tabIndex={-1} className="text-2xl font-semibold outline-none">
               {

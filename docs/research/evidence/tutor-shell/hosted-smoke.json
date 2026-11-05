@@ -1,0 +1,32 @@
+{
+  "status": "PASSED",
+  "liveHealth": 200,
+  "actualAnonymousRedirect": true,
+  "boundary": "Deployed Cloudflare assets; authenticated reads exclusively routed to isolated real API/PostgreSQL fictional drafts. No hosted authenticated write or real user draft modified.",
+  "results": [
+    {
+      "width": 1440,
+      "fiveRoutesConsistent": true,
+      "resumedDraft": true,
+      "noPrematurePendingCards": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "fiveRoutesConsistent": true,
+      "resumedDraft": true,
+      "noPrematurePendingCards": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "width": 320,
+      "fiveRoutesConsistent": true,
+      "resumedDraft": true,
+      "noPrematurePendingCards": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": []
+    }
+  ]
+}

@@ -10,7 +10,7 @@ export function TutorWorkspaceNavigation() {
   return (
     <nav
       aria-label="Teaching workspace navigation"
-      className="mb-7 flex flex-wrap gap-1 border-b pb-3 text-sm"
+      className="reference-workspace-nav"
     >
       {links.map((item) => (
         <Link
@@ -19,9 +19,9 @@ export function TutorWorkspaceNavigation() {
           activeOptions={{ exact: true }}
           activeProps={{
             "aria-current": "page",
-            className: "bg-amber-50 text-amber-950 ring-1 ring-amber-200",
+            className: "reference-workspace-active",
           }}
-          className="inline-flex min-h-11 items-center rounded-full px-4 font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
+          className="reference-workspace-link"
         >
           {item.label}
         </Link>

@@ -1,0 +1,39 @@
+{
+  "status": "PASSED",
+  "realApiAndPostgres": true,
+  "noMockedResponses": true,
+  "results": [
+    {
+      "kind": "desktop",
+      "width": 1440,
+      "privateDraftRetained": true,
+      "noPrematurePendingCards": true,
+      "consistentRoutes": [
+        "/tutor",
+        "/tutor/dashboard",
+        "/tutor/listings",
+        "/tutor/evaluations",
+        "/tutor/requests"
+      ],
+      "noOuterFocusBorder": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "kind": "mobile",
+      "width": 390,
+      "privateDraftRetained": true,
+      "noPrematurePendingCards": true,
+      "consistentRoutes": [
+        "/tutor",
+        "/tutor/dashboard",
+        "/tutor/listings",
+        "/tutor/evaluations",
+        "/tutor/requests"
+      ],
+      "noOuterFocusBorder": true,
+      "noHorizontalOverflow": true,
+      "pageErrors": []
+    }
+  ]
+}
