@@ -1,0 +1,58 @@
+{
+  "base": "4dafe8b",
+  "branch": "fix/audit-product-bugs",
+  "changedBeforeReproduction": false,
+  "listings": {
+    "command": "node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-reporter=tap apps/api/test/listings.test.ts",
+    "cases": 8,
+    "passed": 7,
+    "failed": 1,
+    "file": "apps/api/test/listings.test.ts",
+    "line": 114,
+    "expectedHttp": 400,
+    "actualHttp": 200,
+    "assertion": "paused ad edited to a four-word title must not RESUME"
+  },
+  "contrast": {
+    "command": "playwright test --grep-invert QA01:|QA05: (pre-edit diagnostic)",
+    "test": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+    "capturedFrom": "pre-edit Playwright error-context output",
+    "route": "/tutor",
+    "width": 390,
+    "rule": "color-contrast",
+    "nodes": 1,
+    "target": ".brand-tutor",
+    "foreground": "#ff6167",
+    "background": "#ffffff",
+    "ratio": 2.93,
+    "minimum": 3,
+    "fontSize": "21px",
+    "fontWeight": "bold"
+  },
+  "fullBeforeCounts": {
+    "source": "parent branch completed evidence, not a new full baseline",
+    "api": {
+      "passed": 231,
+      "failed": 4,
+      "skipped": 0,
+      "total": 235
+    },
+    "browser": {
+      "passed": 17,
+      "failed": 1,
+      "skipped": 1,
+      "total": 19
+    },
+    "ui": {
+      "passed": 196,
+      "failed": 0,
+      "total": 196
+    },
+    "qaRegressions": {
+      "passed": 3,
+      "failed": 0,
+      "total": 3
+    }
+  },
+  "note": "Additional full-before diagnostic attempts were interrupted after both defects reproduced. They are not claimed as completed full-suite baselines."
+}

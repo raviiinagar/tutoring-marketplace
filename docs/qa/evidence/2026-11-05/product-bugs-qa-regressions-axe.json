@@ -1,0 +1,146 @@
+[
+  {
+    "case": "QA01: visible labels remain in accessible names on home and search at desktop and mobile widths",
+    "attachment": "QA01 axe results",
+    "result": [
+      {
+        "route": "/",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/tutors?subject_id=subject-physics",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/tutors?subject_id=subject-physics",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/",
+        "width": 320,
+        "violations": []
+      },
+      {
+        "route": "/tutors?subject_id=subject-physics",
+        "width": 320,
+        "violations": []
+      }
+    ]
+  },
+  {
+    "case": "QA01: repeat the twelve audit accessibility combinations",
+    "attachment": "Twelve audit accessibility combinations",
+    "result": [
+      {
+        "route": "/",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/tutors",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/auth/signin",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/auth/signup",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/auth/check-email",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/auth/forgot-password",
+        "width": 1440,
+        "violations": []
+      },
+      {
+        "route": "/",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/tutors",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/auth/signin",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/auth/signup",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/auth/check-email",
+        "width": 390,
+        "violations": []
+      },
+      {
+        "route": "/auth/forgot-password",
+        "width": 390,
+        "violations": []
+      }
+    ]
+  },
+  {
+    "case": "QA05: keyboard start-teaching opens and focuses the Tutor choice without granting it",
+    "attachment": "QA05 keyboard and mobile results",
+    "result": [
+      {
+        "width": 1440,
+        "source": "/account",
+        "destination": "/account/settings#roles",
+        "expanded": true,
+        "focus": "Tutor checkbox after Tab from summary",
+        "roleWrites": 0,
+        "violations": 0
+      },
+      {
+        "width": 1440,
+        "source": "/account/settings",
+        "destination": "/account/settings#roles",
+        "expanded": true,
+        "focus": "Tutor checkbox after Tab from summary",
+        "roleWrites": 0,
+        "violations": 0
+      },
+      {
+        "width": 390,
+        "source": "/account",
+        "destination": "/account/settings#roles",
+        "expanded": true,
+        "focus": "Tutor checkbox after Tab from summary",
+        "roleWrites": 0,
+        "violations": 0
+      },
+      {
+        "width": 390,
+        "source": "/account/settings",
+        "destination": "/account/settings#roles",
+        "expanded": true,
+        "focus": "Tutor checkbox after Tab from summary",
+        "roleWrites": 0,
+        "violations": 0
+      }
+    ]
+  }
+]

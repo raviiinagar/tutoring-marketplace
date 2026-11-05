@@ -1,0 +1,53 @@
+{
+  "complete": true,
+  "summary": {
+    "tests": 8,
+    "pass": 7,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    {
+      "number": 1,
+      "name": "new offer eligibility follows active declared Subjects independently of optional evidence, including a Commerce-only Tutor",
+      "status": "passed"
+    },
+    {
+      "number": 2,
+      "name": "offers require an adult Tutor role and declared Subjects with strict taxonomy, rates, durations and contact-free text",
+      "status": "passed"
+    },
+    {
+      "number": 3,
+      "name": "direct publication, optimistic live edits, public privacy and pause/resume content boundaries are enforced",
+      "status": "failed"
+    },
+    {
+      "number": 4,
+      "name": "foreign owners, missing/scoped MFA and self review cannot change offers",
+      "status": "passed"
+    },
+    {
+      "number": 5,
+      "name": "safety suspension survives owner edits and only Trust staff can lift it without auto publication",
+      "status": "passed"
+    },
+    {
+      "number": 6,
+      "name": "optional evidence does not control free publication while safety holds, inactive taxonomy and disabled accounts block availability",
+      "status": "passed"
+    },
+    {
+      "number": 7,
+      "name": "concurrent content edit and staff safety restriction permit one revision transition and never stale publication",
+      "status": "passed"
+    },
+    {
+      "number": 8,
+      "name": "all eight Learning Domains can publish explicit offers without crossing subject and exam claims",
+      "status": "passed"
+    }
+  ]
+}

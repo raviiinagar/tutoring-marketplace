@@ -1,0 +1,126 @@
+{
+  "note": "Latest result per case across a completed full suite plus unchanged environment-corrected reruns. These are not represented as single clean full-suite runs; full-run evidence remains separate.",
+  "api": {
+    "fullRunSummary": {
+      "tests": 235,
+      "pass": 231,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "rerunSummary": {
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "summary": {
+      "tests": 235,
+      "pass": 232,
+      "fail": 3,
+      "skipped": 0
+    },
+    "remainingFailures": [
+      {
+        "number": 219,
+        "name": "one private identity makes a free public profile; Pro, approved offer and consent independently control public email",
+        "status": "failed",
+        "verifiedBy": "full API run"
+      },
+      {
+        "number": 222,
+        "name": "a valid submitted enquiry survives ordinary Tutor Pro expiry while new supply and public contact disappear",
+        "status": "failed",
+        "verifiedBy": "full API run"
+      },
+      {
+        "number": 233,
+        "name": "specific approvals expire, corrections revise claims and revocation blocks publication eligibility",
+        "status": "failed",
+        "verifiedBy": "full API run"
+      }
+    ],
+    "environmentRerunCases": [
+      {
+        "number": 178,
+        "name": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+        "status": "passed",
+        "verifiedBy": "recovery-file rerun with corrected PG_RECOVERY_BIN"
+      },
+      {
+        "number": 179,
+        "name": "cross-host migration verification accepts only LF/CRLF equivalents without rewriting recorded checksums",
+        "status": "passed",
+        "verifiedBy": "recovery-file rerun with corrected PG_RECOVERY_BIN"
+      },
+      {
+        "number": 180,
+        "name": "production entrypoints reject plaintext database launches",
+        "status": "passed",
+        "verifiedBy": "recovery-file rerun with corrected PG_RECOVERY_BIN"
+      },
+      {
+        "number": 181,
+        "name": "an environment still under recovery cannot publish a newer-looking backup",
+        "status": "passed",
+        "verifiedBy": "recovery-file rerun with corrected PG_RECOVERY_BIN"
+      },
+      {
+        "number": 182,
+        "name": "compatible application rollback checks preserve money and reject unsupported or unapplied migrations",
+        "status": "passed",
+        "verifiedBy": "recovery-file rerun with corrected PG_RECOVERY_BIN"
+      }
+    ]
+  },
+  "browser": {
+    "fullRunStats": {
+      "startTime": "2026-11-05T16:04:02.613Z",
+      "duration": 1183731.7410000002,
+      "expected": 17,
+      "skipped": 1,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "rerunStats": {
+      "startTime": "2026-11-05T16:25:29.334Z",
+      "duration": 10457.366,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "summary": {
+      "tests": 19,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 1
+    },
+    "remainingFailures": [],
+    "environmentRerunCases": [
+      {
+        "file": "accessibility.spec.ts",
+        "line": 6,
+        "title": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+        "status": "passed",
+        "expectedStatus": "passed",
+        "duration": 24556,
+        "verifiedBy": "unchanged keyboard case rerun after hydration warmup"
+      }
+    ],
+    "unchangedSkips": [
+      {
+        "file": "mobile-performance.spec.ts",
+        "line": 5,
+        "title": "built public journeys meet the adopted mobile lab LCP profile",
+        "status": "skipped",
+        "expectedStatus": "skipped",
+        "duration": 20,
+        "verifiedBy": "full original browser run"
+      }
+    ]
+  }
+}

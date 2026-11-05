@@ -1,0 +1,38 @@
+{
+  "complete": true,
+  "summary": {
+    "tests": 5,
+    "pass": 5,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    {
+      "number": 1,
+      "name": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+      "status": "passed"
+    },
+    {
+      "number": 2,
+      "name": "cross-host migration verification accepts only LF/CRLF equivalents without rewriting recorded checksums",
+      "status": "passed"
+    },
+    {
+      "number": 3,
+      "name": "production entrypoints reject plaintext database launches",
+      "status": "passed"
+    },
+    {
+      "number": 4,
+      "name": "an environment still under recovery cannot publish a newer-looking backup",
+      "status": "passed"
+    },
+    {
+      "number": 5,
+      "name": "compatible application rollback checks preserve money and reject unsupported or unapplied migrations",
+      "status": "passed"
+    }
+  ]
+}

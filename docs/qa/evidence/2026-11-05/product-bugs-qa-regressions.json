@@ -1,0 +1,37 @@
+{
+  "complete": true,
+  "stats": {
+    "startTime": "2026-11-05T16:27:51.035Z",
+    "duration": 98253.099,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "audit-ui.spec.ts",
+      "line": 5,
+      "title": "QA01: visible labels remain in accessible names on home and search at desktop and mobile widths",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 20386
+    },
+    {
+      "file": "audit-ui.spec.ts",
+      "line": 28,
+      "title": "QA01: repeat the twelve audit accessibility combinations",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 52056
+    },
+    {
+      "file": "audit-ui.spec.ts",
+      "line": 53,
+      "title": "QA05: keyboard start-teaching opens and focuses the Tutor choice without granting it",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 21614
+    }
+  ]
+}

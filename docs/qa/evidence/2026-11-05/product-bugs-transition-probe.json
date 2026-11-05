@@ -1,0 +1,36 @@
+{
+  "complete": true,
+  "liveEdit": 400,
+  "republish": 400,
+  "resume": 400,
+  "resumeWhileSuspended": 409,
+  "resumeAfterLift": 400,
+  "sameErrorShape": true,
+  "legacyStaffReview": {
+    "status": 200,
+    "published": true,
+    "titleWords": 4
+  },
+  "fieldErrors": {
+    "code": "VALIDATION_ERROR",
+    "message": "Complete the ad before publishing.",
+    "field_errors": {
+      "title": [
+        "Use at least 12 words in your ad title."
+      ],
+      "description": [
+        "Use at least 40 words about your class."
+      ]
+    }
+  },
+  "correlationIds": "validated independently as per-request UUIDs",
+  "legacyStaffReviewClassification": "additional product bypass, reproduced but not modified in this patch",
+  "reproduction": "Seed one retained REVIEW listing with a four-word title and short description on an otherwise eligible Tutor. Authenticated Trust reviewer APPROVE returns 200/PUBLISHED without publishable(payload).",
+  "applicationFile": "apps/api/src/listings.ts",
+  "applicationLine": 118,
+  "actions": {
+    "SUBMIT": 400,
+    "PUBLISH": 400,
+    "RESUME": 400
+  }
+}

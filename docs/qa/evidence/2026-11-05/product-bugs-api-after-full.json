@@ -1,0 +1,1188 @@
+{
+  "complete": true,
+  "summary": {
+    "tests": 235,
+    "pass": 231,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    {
+      "number": 1,
+      "name": "account name saves on the authenticated identity, persists and keeps Tutor and security facts separate",
+      "status": "passed"
+    },
+    {
+      "number": 2,
+      "name": "name bounds and strict request shape prevent changing another account or security fields",
+      "status": "passed"
+    },
+    {
+      "number": 3,
+      "name": "profile updates require current authenticated session and the allowed request origin",
+      "status": "passed"
+    },
+    {
+      "number": 4,
+      "name": "overview requires active staff MFA and exposes finance only to Finance",
+      "status": "passed"
+    },
+    {
+      "number": 5,
+      "name": "account directory paging uses a stable cursor and does not repeat rows",
+      "status": "passed"
+    },
+    {
+      "number": 6,
+      "name": "anonymous public traffic deduplicates concurrent retries and tab visits without storing supplied identifiers or private payloads",
+      "status": "passed"
+    },
+    {
+      "number": 7,
+      "name": "IST midnight separates daily visits and lazy retention drops only old hashed receipts",
+      "status": "passed"
+    },
+    {
+      "number": 8,
+      "name": "Support directory searches accounts without leaking credentials and revoked assignments cannot reuse a report session",
+      "status": "passed"
+    },
+    {
+      "number": 9,
+      "name": "development accepts loopback aliases but still rejects unrelated origins",
+      "status": "passed"
+    },
+    {
+      "number": 10,
+      "name": "verified account journey, secure storage, cookie authentication and revocation",
+      "status": "passed"
+    },
+    {
+      "number": 11,
+      "name": "invalid, malformed, expired tokens and recovery with a fresh email",
+      "status": "passed"
+    },
+    {
+      "number": 12,
+      "name": "concurrent verification consumes one token once",
+      "status": "passed"
+    },
+    {
+      "number": 13,
+      "name": "private access, session expiry and disabled accounts",
+      "status": "passed"
+    },
+    {
+      "number": 14,
+      "name": "rate limits, duplicate signup and strict request/origin validation",
+      "status": "passed"
+    },
+    {
+      "number": 15,
+      "name": "production refuses capture/missing secrets and does not expose development mail",
+      "status": "passed"
+    },
+    {
+      "number": 16,
+      "name": "worker retries invalid ciphertext and expires old undelivered mail",
+      "status": "passed"
+    },
+    {
+      "number": 17,
+      "name": "roles stay on one identity, deny staff grants and audit without secrets",
+      "status": "passed"
+    },
+    {
+      "number": 18,
+      "name": "session inventory and revocation enforce ownership and current access",
+      "status": "passed"
+    },
+    {
+      "number": 19,
+      "name": "password recovery is generic, encrypted, expiring, single-use and revokes every session",
+      "status": "passed"
+    },
+    {
+      "number": 20,
+      "name": "disabled recovery cannot restore access; successful reset invalidates sibling links and sessions",
+      "status": "passed"
+    },
+    {
+      "number": 21,
+      "name": "database restart preserves accounts and migration ledger",
+      "status": "passed"
+    },
+    {
+      "number": 22,
+      "name": "empty-category signup requires adult purpose consent and exact validated filters without creating an account or payment rights",
+      "status": "passed"
+    },
+    {
+      "number": 23,
+      "name": "simultaneous normalized duplicate signups create one durable confirmation and do not rotate active consent tokens",
+      "status": "passed"
+    },
+    {
+      "number": 24,
+      "name": "verification expires at the exact boundary and pending/active expiry purges contact with no notification",
+      "status": "passed"
+    },
+    {
+      "number": 25,
+      "name": "withdrawal invalidates pending confirmation, cancels queued mail, is idempotent and old links cannot withdraw a new generation",
+      "status": "passed"
+    },
+    {
+      "number": 26,
+      "name": "only currently approved matching supply creates one intent; pause, price and same-offer dimensions are authoritative",
+      "status": "passed"
+    },
+    {
+      "number": 27,
+      "name": "abuse limits and origin guards reject repeated requests and workers never revive withdrawn subscriptions",
+      "status": "passed"
+    },
+    {
+      "number": 28,
+      "name": "empty projected pages do not hide later eligible supply and changed prices are rechecked after discovery",
+      "status": "passed"
+    },
+    {
+      "number": 29,
+      "name": "email fanout stays capped after withdrawal and a freed slot requires fresh explicit confirmation",
+      "status": "passed"
+    },
+    {
+      "number": 30,
+      "name": "public catalogue has all eight domains and separate seeded taxonomy with stable aliases",
+      "status": "passed"
+    },
+    {
+      "number": 31,
+      "name": "selection validation rejects unknown, mistyped and unrelated fields while allowing a repeater",
+      "status": "passed"
+    },
+    {
+      "number": 32,
+      "name": "catalogue maintenance denies anonymous, public, non-Trust, missing and revoked MFA sessions",
+      "status": "passed"
+    },
+    {
+      "number": 33,
+      "name": "Trust edits are durable and audited; inactive terms disappear publicly and fail selection validation",
+      "status": "passed"
+    },
+    {
+      "number": 34,
+      "name": "invalid taxonomy, reused aliases, immutable types and concurrent duplicate names are rejected atomically",
+      "status": "passed"
+    },
+    {
+      "number": 35,
+      "name": "an acknowledged message remains visible to both adult participants after API restart",
+      "status": "passed"
+    },
+    {
+      "number": 36,
+      "name": "simultaneous retries share one immutable message and another sender can reuse its client ID",
+      "status": "passed"
+    },
+    {
+      "number": 37,
+      "name": "unread messages exclude your own sends and persisted read positions never move backwards",
+      "status": "passed"
+    },
+    {
+      "number": 38,
+      "name": "bounded history recovers every missing sequence and loads earlier messages in order",
+      "status": "passed"
+    },
+    {
+      "number": 39,
+      "name": "realtime replays missed committed messages and closes when current Connection authority is revoked",
+      "status": "passed"
+    },
+    {
+      "number": 40,
+      "name": "chat is private, text-only, and bounded against repeated new-message submissions",
+      "status": "passed"
+    },
+    {
+      "number": 41,
+      "name": "participant blocking closes live chat and denies both directions until each owner unblocks",
+      "status": "passed"
+    },
+    {
+      "number": 42,
+      "name": "reports preserve only selected messages and Trust case access requires scoped MFA and an audited purpose",
+      "status": "passed"
+    },
+    {
+      "number": 43,
+      "name": "case sanctions compose across cases, hide suspended supply and leave safety status inspectable by affected adults",
+      "status": "passed"
+    },
+    {
+      "number": 44,
+      "name": "restricted adults can lodge an idempotent private appeal without regaining marketplace permission",
+      "status": "passed"
+    },
+    {
+      "number": 45,
+      "name": "a safety suspension racing Tutor acceptance denies subsequent contact release and stale-offer requests",
+      "status": "passed"
+    },
+    {
+      "number": 46,
+      "name": "safety evidence and decisions reject unrelated IDs, self-review and revoked staff MFA",
+      "status": "passed"
+    },
+    {
+      "number": 47,
+      "name": "only the connected Tutor schedules private encrypted classes and retried saves deduplicate",
+      "status": "passed"
+    },
+    {
+      "number": 48,
+      "name": "reschedule and cancellation reject stale edits and Join rechecks the authoritative time window",
+      "status": "passed"
+    },
+    {
+      "number": 49,
+      "name": "unsafe meeting URLs, past dates, excess duration and overposting are rejected",
+      "status": "passed"
+    },
+    {
+      "number": 50,
+      "name": "a current safety block stops reads, edits and meeting link release",
+      "status": "passed"
+    },
+    {
+      "number": 51,
+      "name": "personal exports include owned invitations while account erasure removes shared meeting content",
+      "status": "passed"
+    },
+    {
+      "number": 52,
+      "name": "Trust Listing inspection and the same operator enquiry cannot deadlock on participant users",
+      "status": "passed"
+    },
+    {
+      "number": 53,
+      "name": "clean consented Tutor photos publish without fabricated review and public delivery follows current offer eligibility",
+      "status": "passed"
+    },
+    {
+      "number": 54,
+      "name": "photo replacement/removal invalidate old URLs and cannot alter identity approval or remove another Tutor photo",
+      "status": "passed"
+    },
+    {
+      "number": 55,
+      "name": "photo upload validates decoding, dimensions, consent, scanner result and privileged reviewer scope",
+      "status": "passed"
+    },
+    {
+      "number": 56,
+      "name": "production excludes fictional photo assets even when the underlying Tutor evidence is nonfictional",
+      "status": "passed"
+    },
+    {
+      "number": 57,
+      "name": "only the targeted Tutor can decide and contacts require the two adult participants and a granted Connection",
+      "status": "passed"
+    },
+    {
+      "number": 58,
+      "name": "simultaneous repeated acceptance creates one result and an accept/decline race records one immutable decision",
+      "status": "passed"
+    },
+    {
+      "number": 59,
+      "name": "deadline equality rejects both decisions and ordinary pass expiry preserves the original covered request",
+      "status": "passed"
+    },
+    {
+      "number": 60,
+      "name": "revoked submission coverage and matching coverage without activation never release contacts",
+      "status": "passed"
+    },
+    {
+      "number": 61,
+      "name": "pause permits decline, while suspended or revised offers and a missing adult declaration prevent acceptance",
+      "status": "passed"
+    },
+    {
+      "number": 62,
+      "name": "current blocks, account restrictions and safety suspension deny established Connection reads; ordinary pause does not",
+      "status": "passed"
+    },
+    {
+      "number": 63,
+      "name": "Guardian is the adult contact; withdrawn child consent blocks private Connection content and contact access",
+      "status": "passed"
+    },
+    {
+      "number": 64,
+      "name": "failed conversation creation rolls back decision, Connection, participants and grant; retry can establish them once",
+      "status": "passed"
+    },
+    {
+      "number": 65,
+      "name": "two accepting Tutors share submission coverage without resetting activation dates or creating extra grants per Connection",
+      "status": "passed"
+    },
+    {
+      "number": 66,
+      "name": "production cannot decide, inspect or release fixture Connections even if fictional rows are imported",
+      "status": "passed"
+    },
+    {
+      "number": 67,
+      "name": "deadline worker records reminders once and expires at equality even after a delayed run",
+      "status": "passed"
+    },
+    {
+      "number": 68,
+      "name": "owner-selected alternatives preserve exact intent without sending, charging or revealing contacts",
+      "status": "passed"
+    },
+    {
+      "number": 69,
+      "name": "requests require authenticated beneficiary authority, eligible exact offers and server coverage; client flags cannot grant access",
+      "status": "passed"
+    },
+    {
+      "number": 70,
+      "name": "submission snapshots coverage and encrypted enquiry; duplicate races return the same result without exposing unrelated records",
+      "status": "passed"
+    },
+    {
+      "number": 71,
+      "name": "six simultaneous enquiries share one coverage but only five remain pending; expired requests free slots at equality",
+      "status": "passed"
+    },
+    {
+      "number": 72,
+      "name": "first matching deadline caps expiry, while active pass expiry never shortens already recorded request coverage",
+      "status": "passed"
+    },
+    {
+      "number": 73,
+      "name": "blocks in either direction, revoked coverage and a missing adult declaration prevent new requests",
+      "status": "passed"
+    },
+    {
+      "number": 74,
+      "name": "Guardian current approval and consent authorize the child beneficiary; withdrawal hides stored private enquiry and prevents reuse",
+      "status": "passed"
+    },
+    {
+      "number": 75,
+      "name": "production rejects fixture coverage and fixture replays, has no grant endpoint and isolated grant helper rejects ordinary databases",
+      "status": "passed"
+    },
+    {
+      "number": 76,
+      "name": "opposing requests between dual-role participants follow one user lock order and both can complete",
+      "status": "passed"
+    },
+    {
+      "number": 77,
+      "name": "100% coupon works without a payment provider, creates no money, survives retry and activates once on Tutor acceptance",
+      "status": "passed"
+    },
+    {
+      "number": 78,
+      "name": "campaign capacity is atomic across users; disabling prevents new uses and staff requires Finance MFA",
+      "status": "passed"
+    },
+    {
+      "number": 79,
+      "name": "invalid, not-yet-started and expired codes cannot grant access; cancellation does not restore a coupon use",
+      "status": "passed"
+    },
+    {
+      "number": 80,
+      "name": "partial coupon prices the provider order and immutable disclosures; only confirmed discounted capture authorizes access",
+      "status": "passed"
+    },
+    {
+      "number": 81,
+      "name": "coupon matching expiry equality prevents acceptance and permits a new different coupon without altering old facts",
+      "status": "passed"
+    },
+    {
+      "number": 82,
+      "name": "ordinary production-mode verified accounts can redeem a non-cash coupon while checkout stays disabled",
+      "status": "passed"
+    },
+    {
+      "number": 83,
+      "name": "migration preserves prior eligible publication but never exposes private or adverse historical cases",
+      "status": "passed"
+    },
+    {
+      "number": 84,
+      "name": "explicit free ad publication works without identity or Pro, while drafts and identity facts stay truthful",
+      "status": "passed"
+    },
+    {
+      "number": 85,
+      "name": "new publication validates words, live edits are immediate, revisions and soft archive protect history",
+      "status": "passed"
+    },
+    {
+      "number": 86,
+      "name": "optional pending identity does not pause free ads; audited staff restrictions cannot be bypassed",
+      "status": "passed"
+    },
+    {
+      "number": 87,
+      "name": "clean consented portrait publishes without fabricated staff approval and staff rejection hides it",
+      "status": "passed"
+    },
+    {
+      "number": 88,
+      "name": "learner coverage remains mandatory while a nonverified free Tutor can accept and retain safe connections",
+      "status": "passed"
+    },
+    {
+      "number": 89,
+      "name": "account restrictions, inactive catalogue and both-direction blocks remain authoritative",
+      "status": "passed"
+    },
+    {
+      "number": 90,
+      "name": "public contact still requires explicit consent and current Pro; staff can find free unverified profiles",
+      "status": "passed"
+    },
+    {
+      "number": 91,
+      "name": "historical requested ad changes require a revision, and staff restriction lifts never publish automatically",
+      "status": "passed"
+    },
+    {
+      "number": 92,
+      "name": "public card portraits are smaller, metadata-free and still denied immediately after withdrawal",
+      "status": "passed"
+    },
+    {
+      "number": 93,
+      "name": "filters match one exact offer rather than mixing CBSE Physics and JEE Mathematics profile claims",
+      "status": "passed"
+    },
+    {
+      "number": 94,
+      "name": "price units, strict filters and stable bounded keyset pagination do not mix hourly and lesson prices",
+      "status": "passed"
+    },
+    {
+      "number": 95,
+      "name": "public details expose controlled evidence labels and offer terms while excluding every private identity/evidence field",
+      "status": "passed"
+    },
+    {
+      "number": 96,
+      "name": "paused, safety-restricted, disabled and inactive-taxonomy offers disappear while optional evidence expiry removes verification labels",
+      "status": "passed"
+    },
+    {
+      "number": 97,
+      "name": "representative offers across eight families retain independent exact combinations and honest empty results",
+      "status": "passed"
+    },
+    {
+      "number": 98,
+      "name": "production free ads never claim fictional evidence as verified and invalid adult eligibility never releases a public offer",
+      "status": "passed"
+    },
+    {
+      "number": 99,
+      "name": "post-Connection refund approval requires Finance MFA and explicit access treatment while preserving established chat",
+      "status": "passed"
+    },
+    {
+      "number": 100,
+      "name": "verified chargebacks reserve exposure, deduplicate actual debits and expose overlap with completed refunds",
+      "status": "passed"
+    },
+    {
+      "number": 101,
+      "name": "unresolved dispute exposure limits refunds and a stale lost event cannot invent a chargeback after provider victory",
+      "status": "passed"
+    },
+    {
+      "number": 102,
+      "name": "concurrent partial and full case approvals cannot reserve more than the captured platform fee",
+      "status": "passed"
+    },
+    {
+      "number": 103,
+      "name": "an unexpected second capture is refunded separately without overwriting the original capture",
+      "status": "passed"
+    },
+    {
+      "number": 104,
+      "name": "a processed refund webhook resolves an unknown operation once and closes the cancelled purchase",
+      "status": "passed"
+    },
+    {
+      "number": 105,
+      "name": "a refund completing recovery after a partial chargeback must explicitly revoke acquisition",
+      "status": "passed"
+    },
+    {
+      "number": 106,
+      "name": "adult profiles are private, unique, editable by owner and require adult attestation and Learner role",
+      "status": "passed"
+    },
+    {
+      "number": 107,
+      "name": "Guardian approval records versions, identifiable-adult/authority review and private audited inspection",
+      "status": "passed"
+    },
+    {
+      "number": 108,
+      "name": "child profiles have no independent identity; missing/current/withdrawn consent and foreign IDs are enforced",
+      "status": "passed"
+    },
+    {
+      "number": 109,
+      "name": "insufficient/rejected evidence, self-review and approval revocation prevent child use",
+      "status": "passed"
+    },
+    {
+      "number": 110,
+      "name": "concurrent revocation cannot leave a child profile eligible after approval is removed",
+      "status": "passed"
+    },
+    {
+      "number": 111,
+      "name": "production child-data gate refuses missing policy, test mode, test adapter and test evidence",
+      "status": "passed"
+    },
+    {
+      "number": 112,
+      "name": "new offer eligibility follows active declared Subjects independently of optional evidence, including a Commerce-only Tutor",
+      "status": "passed"
+    },
+    {
+      "number": 113,
+      "name": "offers require an adult Tutor role and declared Subjects with strict taxonomy, rates, durations and contact-free text",
+      "status": "passed"
+    },
+    {
+      "number": 114,
+      "name": "direct publication, optimistic live edits, public privacy and pause/resume content boundaries are enforced",
+      "status": "passed"
+    },
+    {
+      "number": 115,
+      "name": "foreign owners, missing/scoped MFA and self review cannot change offers",
+      "status": "passed"
+    },
+    {
+      "number": 116,
+      "name": "safety suspension survives owner edits and only Trust staff can lift it without auto publication",
+      "status": "passed"
+    },
+    {
+      "number": 117,
+      "name": "optional evidence does not control free publication while safety holds, inactive taxonomy and disabled accounts block availability",
+      "status": "passed"
+    },
+    {
+      "number": 118,
+      "name": "concurrent content edit and staff safety restriction permit one revision transition and never stale publication",
+      "status": "passed"
+    },
+    {
+      "number": 119,
+      "name": "all eight Learning Domains can publish explicit offers without crossing subject and exam claims",
+      "status": "passed"
+    },
+    {
+      "number": 120,
+      "name": "Finance MFA sees deduplicated searches and separate request, Connection and mature paid-cohort facts",
+      "status": "passed"
+    },
+    {
+      "number": 121,
+      "name": "refund facts stay in the original checkout domain after Listing edits and mature no-match rates have explicit denominators",
+      "status": "passed"
+    },
+    {
+      "number": 122,
+      "name": "critical SMS treats an invalid success or server outage as uncertain, and provider proof binds the unique alert",
+      "status": "passed"
+    },
+    {
+      "number": 123,
+      "name": "general operations SMS requires its own approved template instead of reusing refund wording",
+      "status": "passed"
+    },
+    {
+      "number": 124,
+      "name": "committed enquiries enqueue minimal notifications, retries survive an outage and request replay never duplicates delivery",
+      "status": "passed"
+    },
+    {
+      "number": 125,
+      "name": "optional enquiry preferences are respected while verified financial service notices cannot be disabled",
+      "status": "passed"
+    },
+    {
+      "number": 126,
+      "name": "chat notices contain no message text and current read positions and blocks suppress queued delivery",
+      "status": "passed"
+    },
+    {
+      "number": 127,
+      "name": "availability delivery requires verified consent and unsubscribe cancels queued retries without affecting another subscriber",
+      "status": "passed"
+    },
+    {
+      "number": 128,
+      "name": "Support MFA sees failures without message content, and an uncertain critical SMS is reconciled without blind resend",
+      "status": "passed"
+    },
+    {
+      "number": 129,
+      "name": "production refuses a test notification sender even when passed through dependency injection",
+      "status": "passed"
+    },
+    {
+      "number": 130,
+      "name": "withdrawing Guardian consent suppresses queued chat notices without disclosing a child alias",
+      "status": "passed"
+    },
+    {
+      "number": 131,
+      "name": "concurrent critical alert workers respect the daily owner SMS budget",
+      "status": "passed"
+    },
+    {
+      "number": 132,
+      "name": "Finance MFA pauses only new checkout and versioned control retries preserve the original purchase",
+      "status": "passed"
+    },
+    {
+      "number": 133,
+      "name": "durable redacted alerts deduplicate outside support hours and verified recovery resolves only current conditions",
+      "status": "passed"
+    },
+    {
+      "number": 134,
+      "name": "provider-outage inbox replay is scoped and duplicate replay produces one captured business fact",
+      "status": "passed"
+    },
+    {
+      "number": 135,
+      "name": "webhook, backup and security observations require scoped evidence and stale health never stays green",
+      "status": "passed"
+    },
+    {
+      "number": 136,
+      "name": "notification dead letters recover from an external outage without a duplicate logical notice or leaked provider error",
+      "status": "passed"
+    },
+    {
+      "number": 137,
+      "name": "overdue captured access and an unfunded refund reserve raise separate critical conditions",
+      "status": "passed"
+    },
+    {
+      "number": 138,
+      "name": "recovery acknowledgement failure can resume the same command after its original event already completed",
+      "status": "passed"
+    },
+    {
+      "number": 139,
+      "name": "only Finance with MFA can release recovery after fresh provider reconciliation and explicit refund/bank review",
+      "status": "passed"
+    },
+    {
+      "number": 140,
+      "name": "isolated staging without a payment account can release empty recovery, while production cannot skip provider review",
+      "status": "passed"
+    },
+    {
+      "number": 141,
+      "name": "production HTTPS health becomes unavailable when critical workers or the monitor stop",
+      "status": "passed"
+    },
+    {
+      "number": 142,
+      "name": "Razorpay adapter uses server Orders without partial payment and validates provider responses",
+      "status": "passed"
+    },
+    {
+      "number": 143,
+      "name": "checkout is disabled by default and live configuration cannot invent merchant or tax disclosures",
+      "status": "passed"
+    },
+    {
+      "number": 144,
+      "name": "server prices one stable hosted checkout and concurrent retries reuse its Order",
+      "status": "passed"
+    },
+    {
+      "number": 145,
+      "name": "callback signatures never grant access; signed capture webhooks journal money once despite replay and lost callbacks",
+      "status": "passed"
+    },
+    {
+      "number": 146,
+      "name": "lost Order responses block replacement charges; durable capture recovers without browser callbacks after restart",
+      "status": "passed"
+    },
+    {
+      "number": 147,
+      "name": "checkout and financial status enforce account, Learner, supply and block authority",
+      "status": "passed"
+    },
+    {
+      "number": 148,
+      "name": "unknown attempts never credit a purchase; mismatched captures remain financial facts requiring review",
+      "status": "passed"
+    },
+    {
+      "number": 149,
+      "name": "late capture keeps its original matching deadline and out-of-order failures cannot undo captured money",
+      "status": "passed"
+    },
+    {
+      "number": 150,
+      "name": "paid capture enables enquiries and the first eligible acceptance activates exactly one 30-day pass",
+      "status": "passed"
+    },
+    {
+      "number": 151,
+      "name": "two paid Tutors accept concurrently with one entitlement, fixed activation dates and one capture through replay",
+      "status": "passed"
+    },
+    {
+      "number": 152,
+      "name": "production excludes test-provider coverage from enquiry, Connection and safety interfaces",
+      "status": "passed"
+    },
+    {
+      "number": 153,
+      "name": "ordinary expiry preserves covered requests and established contacts; only an explicit new checkout creates a repurchase",
+      "status": "passed"
+    },
+    {
+      "number": 154,
+      "name": "supply suspended during provider work preserves captured money and routes to an explicit eligible alternative",
+      "status": "passed"
+    },
+    {
+      "number": 155,
+      "name": "abandoning the Learner role before capture records money without enabling enquiries or contacts",
+      "status": "passed"
+    },
+    {
+      "number": 156,
+      "name": "paid matching deadline equality cannot activate a pass or authorize a replacement charge",
+      "status": "passed"
+    },
+    {
+      "number": 157,
+      "name": "a financial review blocks further paid acquisitions while preserving an established safe Connection",
+      "status": "passed"
+    },
+    {
+      "number": 158,
+      "name": "account erasure preserves captured financial facts and holds private evidence until the Finance obligation closes",
+      "status": "passed"
+    },
+    {
+      "number": 159,
+      "name": "verified export contains only owned data and scanned photo assets, with expiring authorized downloads",
+      "status": "passed"
+    },
+    {
+      "number": 160,
+      "name": "deletion revokes activity, clears personal assets, reports retention and reapplies durable tombstones after restore",
+      "status": "passed"
+    },
+    {
+      "number": 161,
+      "name": "Guardian withdrawal erases the selected child context, revokes old grants and respects fresh later consent",
+      "status": "passed"
+    },
+    {
+      "number": 162,
+      "name": "restore fails closed when the independent privacy ledger is unavailable",
+      "status": "passed"
+    },
+    {
+      "number": 163,
+      "name": "approved evidence retention purges expired unreferenced uploads while current teaching evidence remains available",
+      "status": "passed"
+    },
+    {
+      "number": 164,
+      "name": "production refuses missing, fictional or unapproved retention and recovery configuration",
+      "status": "passed"
+    },
+    {
+      "number": 165,
+      "name": "SMTP erasure remains in external review until scoped staff confirms provider handling",
+      "status": "passed"
+    },
+    {
+      "number": 166,
+      "name": "canonical Tutor pages and category supply disappear immediately when publication pauses",
+      "status": "passed"
+    },
+    {
+      "number": 167,
+      "name": "production metadata and sitemap include only current approved supply and approved portraits",
+      "status": "passed"
+    },
+    {
+      "number": 168,
+      "name": "payment history and immutable receipt snapshots belong only to the payer and exclude direct tuition",
+      "status": "passed"
+    },
+    {
+      "number": 169,
+      "name": "settlement and bank imports deduplicate, preserve fee-inclusive tax and balance without treating processed settlement as bank credit",
+      "status": "passed"
+    },
+    {
+      "number": 170,
+      "name": "a missing capture callback is fetched without a new charge and requires audited capture-time evidence before access",
+      "status": "passed"
+    },
+    {
+      "number": 171,
+      "name": "a signed settlement callback is refetched once and remains pending bank evidence",
+      "status": "passed"
+    },
+    {
+      "number": 172,
+      "name": "a missing refund callback is fetched by reconciliation without creating a replacement refund or charge",
+      "status": "passed"
+    },
+    {
+      "number": 173,
+      "name": "daily read-only reconciliation schedules overlapping periods once without creating payment Orders",
+      "status": "passed"
+    },
+    {
+      "number": 174,
+      "name": "foreign unexpected captures remain separate from INR totals and preserve their actual currency",
+      "status": "passed"
+    },
+    {
+      "number": 175,
+      "name": "independent storage verifies every encrypted upload by downloading it and rejects corrupt remote bytes",
+      "status": "passed"
+    },
+    {
+      "number": 176,
+      "name": "the independent watchdog measures loss from the database snapshot rather than a recent upload timestamp",
+      "status": "passed"
+    },
+    {
+      "number": 177,
+      "name": "the recovery operator refuses a production identity under a development or test runtime",
+      "status": "passed"
+    },
+    {
+      "number": 178,
+      "name": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+      "status": "failed"
+    },
+    {
+      "number": 179,
+      "name": "cross-host migration verification accepts only LF/CRLF equivalents without rewriting recorded checksums",
+      "status": "passed"
+    },
+    {
+      "number": 180,
+      "name": "production entrypoints reject plaintext database launches",
+      "status": "passed"
+    },
+    {
+      "number": 181,
+      "name": "an environment still under recovery cannot publish a newer-looking backup",
+      "status": "passed"
+    },
+    {
+      "number": 182,
+      "name": "compatible application rollback checks preserve money and reject unsupported or unapplied migrations",
+      "status": "passed"
+    },
+    {
+      "number": 183,
+      "name": "cancellation ends unconnected requests and refunds the full price once through an ambiguous provider retry",
+      "status": "passed"
+    },
+    {
+      "number": 184,
+      "name": "no-match equality and late capture create a full refund without extending the matching window",
+      "status": "passed"
+    },
+    {
+      "number": 185,
+      "name": "cancellation and first acceptance serialize, and a completed full refund permits a fresh explicit purchase",
+      "status": "passed"
+    },
+    {
+      "number": 186,
+      "name": "Finance MFA limits reserve/retry commands, funding references deduplicate and failed refunds remain reserved for review",
+      "status": "passed"
+    },
+    {
+      "number": 187,
+      "name": "only the connected adult payer may attest and submit once at the exact seven-day boundary",
+      "status": "passed"
+    },
+    {
+      "number": 188,
+      "name": "Trust moderation treats negative and positive feedback equally; withdrawal and removal update every public aggregate and reject stale publication",
+      "status": "passed"
+    },
+    {
+      "number": 189,
+      "name": "moderation appeals are private, revision-linked and idempotent for the two adults only",
+      "status": "passed"
+    },
+    {
+      "number": 190,
+      "name": "Guardian consent withdrawal removes public feedback immediately and cannot be bypassed by stale moderation",
+      "status": "passed"
+    },
+    {
+      "number": 191,
+      "name": "peer blocks cannot suppress honest reviews; self-moderation and stale restricted publication are denied",
+      "status": "passed"
+    },
+    {
+      "number": 192,
+      "name": "production public reviews exclude imported fixture Connections even if a copied review flag is incorrect",
+      "status": "passed"
+    },
+    {
+      "number": 193,
+      "name": "only the configured Super Admin can delegate verified accounts, revoke access, and retain the sole owner",
+      "status": "passed"
+    },
+    {
+      "number": 194,
+      "name": "legacy FINANCE assignment cannot bypass delegated role boundaries",
+      "status": "passed"
+    },
+    {
+      "number": 195,
+      "name": "testing sessions require passwords, bind to the account session and end at the cutoff",
+      "status": "passed"
+    },
+    {
+      "number": 196,
+      "name": "disabling the exception invalidates test sessions while normal MFA still works",
+      "status": "passed"
+    },
+    {
+      "number": 197,
+      "name": "configured owner must already be an active verified staff identity at startup",
+      "status": "passed"
+    },
+    {
+      "number": 198,
+      "name": "unsafe config cannot enable the testing exception in real production or indefinitely",
+      "status": "passed"
+    },
+    {
+      "number": 199,
+      "name": "logout and an overlapping authenticated read use a consistent lock order",
+      "status": "passed"
+    },
+    {
+      "number": 200,
+      "name": "TOTP matches RFC 6238 SHA1 vectors including dates beyond 2038",
+      "status": "passed"
+    },
+    {
+      "number": 201,
+      "name": "public accounts cannot assign staff; bootstrap requires a verified account",
+      "status": "passed"
+    },
+    {
+      "number": 202,
+      "name": "MFA requires password, same enrollment session, unexpired setup and unreplayed code",
+      "status": "passed"
+    },
+    {
+      "number": 203,
+      "name": "scope boundaries, MFA cookie binding and audit actor/target/reason are enforced",
+      "status": "passed"
+    },
+    {
+      "number": 204,
+      "name": "staff sign-out, session expiry, scope changes and account revocation invalidate privileged access",
+      "status": "passed"
+    },
+    {
+      "number": 205,
+      "name": "recovery consumes all backup codes, revokes staff access and requires a new authenticator",
+      "status": "passed"
+    },
+    {
+      "number": 206,
+      "name": "password recovery revokes staff access without bypassing the existing authenticator",
+      "status": "passed"
+    },
+    {
+      "number": 207,
+      "name": "MFA brute-force limits persist across failed attempts; disabled and operator-revoked accounts lose access",
+      "status": "passed"
+    },
+    {
+      "number": 208,
+      "name": "production staff sessions use Secure host cookies and keep raw tokens out of JSON and storage",
+      "status": "passed"
+    },
+    {
+      "number": 209,
+      "name": "refund appeals preserve original decisions and use a Finance command for reconsideration",
+      "status": "passed"
+    },
+    {
+      "number": 210,
+      "name": "support cases preserve ownership, scoped assignment, restricted notes and audited resolution",
+      "status": "passed"
+    },
+    {
+      "number": 211,
+      "name": "review and safety appeals become private Trust cases with revision-safe domain adjudication",
+      "status": "passed"
+    },
+    {
+      "number": 212,
+      "name": "owners can answer a waiting case without exposing restricted notes and policy hours match IST",
+      "status": "passed"
+    },
+    {
+      "number": 213,
+      "name": "incomplete drafts persist privately, resume exactly and never create or publish a profile",
+      "status": "passed"
+    },
+    {
+      "number": 214,
+      "name": "concurrent writes and stale clears cannot overwrite a newer private draft",
+      "status": "passed"
+    },
+    {
+      "number": 215,
+      "name": "draft endpoints enforce current verified Tutor identity, strict bounds and CSRF origin",
+      "status": "passed"
+    },
+    {
+      "number": 216,
+      "name": "badge derivation never infers unsupported higher levels or awards to unpublished profiles",
+      "status": "passed"
+    },
+    {
+      "number": 217,
+      "name": "recommendations require authenticated distinct authors, moderation, current revisions, and withdraw immediately",
+      "status": "passed"
+    },
+    {
+      "number": 218,
+      "name": "diploma progress requires owned clean evidence and never awards an upper badge",
+      "status": "passed"
+    },
+    {
+      "number": 219,
+      "name": "one private identity makes a free public profile; Pro, approved offer and consent independently control public email",
+      "status": "failed"
+    },
+    {
+      "number": 220,
+      "name": "Tutor Pro server capture uses INR 600, activates once on confirmation, and has no learner matching deadline",
+      "status": "passed"
+    },
+    {
+      "number": 221,
+      "name": "identity edits require new approval; foreign identity requires passport; public restriction removes introduction",
+      "status": "passed"
+    },
+    {
+      "number": 222,
+      "name": "a valid submitted enquiry survives ordinary Tutor Pro expiry while new supply and public contact disappear",
+      "status": "failed"
+    },
+    {
+      "number": 223,
+      "name": "location and hours validate ownership, stale writes and public Subject/city/day/time filters without re-reviewing identity",
+      "status": "passed"
+    },
+    {
+      "number": 224,
+      "name": "in-person offers and enquiries use real location/mode while closing new students preserves an existing enquiry",
+      "status": "passed"
+    },
+    {
+      "number": 225,
+      "name": "material location changes require offer resubmission, not new identity evidence",
+      "status": "passed"
+    },
+    {
+      "number": 226,
+      "name": "Saved Tutors are private, authenticated, idempotent and recheck current eligibility and blocks",
+      "status": "passed"
+    },
+    {
+      "number": 227,
+      "name": "Saved Tutors enforce the account limit across concurrent additions without losing existing saves",
+      "status": "passed"
+    },
+    {
+      "number": 228,
+      "name": "free first-class filters and unit-safe price ordering paginate ties and survive cursor-offer removal",
+      "status": "passed"
+    },
+    {
+      "number": 229,
+      "name": "adult age boundary and private profile revisions reject children, invalid dates and overposting",
+      "status": "passed"
+    },
+    {
+      "number": 230,
+      "name": "uploads enforce formats, size, malicious/scan-error quarantine and cross-account ownership",
+      "status": "passed"
+    },
+    {
+      "number": 231,
+      "name": "claim submission requires separate identity and active Subject evidence and limits uploads",
+      "status": "passed"
+    },
+    {
+      "number": 232,
+      "name": "private reviews and one-use downloads require Trust MFA, binding, purpose, scan and current revision",
+      "status": "passed"
+    },
+    {
+      "number": 233,
+      "name": "specific approvals expire, corrections revise claims and revocation blocks publication eligibility",
+      "status": "failed"
+    },
+    {
+      "number": 234,
+      "name": "production refuses test scanner configuration/adapters and disabled uploads fail closed",
+      "status": "passed"
+    },
+    {
+      "number": 235,
+      "name": "ClamAV adapter streams framed bytes and fails closed on FOUND and ERROR responses",
+      "status": "passed"
+    }
+  ]
+}

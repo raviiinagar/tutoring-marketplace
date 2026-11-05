@@ -1,0 +1,43 @@
+{
+  "ui": {
+    "passed": 196,
+    "failed": 0,
+    "skipped": 0,
+    "testFiles": 41,
+    "command": "npm --prefix lovable-ui test -- --maxWorkers=2 --pool=forks --reporter=verbose"
+  },
+  "typecheck": {
+    "passed": true,
+    "command": "npm run typecheck",
+    "scope": [
+      "contracts",
+      "API",
+      "legacy web workspace",
+      "active UI",
+      "pilot tests"
+    ]
+  },
+  "changesToTests": [],
+  "changesToExpectations": [],
+  "changesToSkips": [],
+  "deletedTests": [],
+  "builds": {
+    "api": {
+      "passed": true,
+      "command": "npm run build -w @tutoring/api"
+    },
+    "cloudflare": {
+      "passed": true,
+      "command": "npm --prefix lovable-ui run build:cloudflare",
+      "deployed": false
+    }
+  },
+  "isolation": {
+    "branch": "fix/audit-product-bugs",
+    "base": "4dafe8b",
+    "rootGitStatusUnchanged": true,
+    "existingTestsUnchanged": true,
+    "packageAndTrackedConfigurationUnchanged": true,
+    "deployed": false
+  }
+}

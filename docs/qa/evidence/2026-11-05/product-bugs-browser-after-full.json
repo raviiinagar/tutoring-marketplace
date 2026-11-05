@@ -1,0 +1,165 @@
+{
+  "complete": true,
+  "stats": {
+    "startTime": "2026-11-05T16:04:02.613Z",
+    "duration": 1183731.7410000002,
+    "expected": 17,
+    "skipped": 1,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "file": "accessibility.spec.ts",
+      "line": 6,
+      "title": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+      "status": "failed",
+      "expectedStatus": "passed",
+      "duration": 24556
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "line": 46,
+      "title": "discovery and authentication expose labelled forms, contrast and announced errors",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 79730
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "line": 70,
+      "title": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 67312
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "line": 163,
+      "title": "form boundaries and keyboard focus stay visible against the input surface",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 5453
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "line": 211,
+      "title": "client-side form errors announce themselves and describe each invalid input",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 3363
+    },
+    {
+      "file": "account.spec.ts",
+      "line": 5,
+      "title": "Lovable account journey from http://localhost:3100",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 56426
+    },
+    {
+      "file": "account.spec.ts",
+      "line": 5,
+      "title": "Lovable account journey from http://127.0.0.1:3100",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 61065
+    },
+    {
+      "file": "availability.spec.ts",
+      "line": 2,
+      "title": "mobile empty search confirms optional adult availability consent and unsubscribes using captured email",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 14355
+    },
+    {
+      "file": "catalogue.spec.ts",
+      "line": 12,
+      "title": "public catalogue aliases and Trust maintenance stay consistent",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 72242
+    },
+    {
+      "file": "discovery.spec.ts",
+      "line": 2,
+      "title": "mobile public search has honest empty results across eight families and unavailable detail",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 31617
+    },
+    {
+      "file": "learners.spec.ts",
+      "line": 17,
+      "title": "private adult profile and fictional Guardian approval, child consent withdrawal and revocation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 88189
+    },
+    {
+      "file": "mobile-performance.spec.ts",
+      "line": 5,
+      "title": "built public journeys meet the adopted mobile lab LCP profile",
+      "status": "skipped",
+      "expectedStatus": "skipped",
+      "duration": 20
+    },
+    {
+      "file": "operations.spec.ts",
+      "line": 60,
+      "title": "operations console records scoped health, pauses checkout and keeps mobile recovery controls private",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 92781
+    },
+    {
+      "file": "payments.spec.ts",
+      "line": 3,
+      "title": "mobile Access Pass page shows the real server price and keeps unconfigured payments disabled",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 9565
+    },
+    {
+      "file": "privacy.spec.ts",
+      "line": 39,
+      "title": "verified export and deletion complete with a read-only receipt on mobile",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 43567
+    },
+    {
+      "file": "public-indexing.spec.ts",
+      "line": 3,
+      "title": "served indexing documents block development crawlers and exclude private pages",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 880
+    },
+    {
+      "file": "staff.spec.ts",
+      "line": 12,
+      "title": "staff MFA enrollment, scoped console, audit and authenticator recovery",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 64356
+    },
+    {
+      "file": "support.spec.ts",
+      "line": 40,
+      "title": "owner and scoped staff exchange a support case while private notes stay staff-only",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 97583
+    },
+    {
+      "file": "tutors.spec.ts",
+      "line": 19,
+      "title": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+      "status": "passed",
+      "expectedStatus": "passed",
+      "duration": 336682
+    }
+  ]
+}

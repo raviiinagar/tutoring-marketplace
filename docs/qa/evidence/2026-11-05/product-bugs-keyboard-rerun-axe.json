@@ -1,0 +1,10 @@
+[
+  {
+    "case": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+    "attachment": "mobile-discovery-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/tutors",
+      "violations": []
+    }
+  }
+]
