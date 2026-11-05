@@ -1,3 +1,4 @@
+import { fixtureBiography } from "../../apps/api/test/helpers/publication";
 import { test, expect } from "@playwright/test";
 import { auditAccessibility } from "./accessibility";
 test.use({ reducedMotion: "reduce" });
@@ -36,7 +37,7 @@ test("keyboard users skip navigation and recover focus after mobile menu and rou
     .getByRole("link", { name: "Find Tutors", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Find online Tutors", exact: true }),
+    page.getByRole("heading", { name: "Find your next Tutor", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("main")).toBeFocused();
   await auditAccessibility(page, info, "mobile-discovery");
@@ -116,12 +117,17 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
       })
     ).status(),
   ).toBe(200);
+  expect((await page.request.post("/v1/me/tutor/introduction", {
+    headers, data: { display_name: "Fictional accessibility Tutor", biography: fixtureBiography,
+      subject_ids: ["subject-physics"], hourly_rate_paise: 50000, identity_country: "IN",
+      identity_document: "AADHAAR", adult_confirmed: true, public_email_consent: false },
+  })).status()).toBe(200);
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     for (const [path, label] of [
       ["/payments", "Your Access Pass payment"],
-      ["/tutor", "Tutor onboarding"],
-      ["/tutor/listings", "Your teaching offers"],
+      ["/tutor", "Your Tutor profile"],
+      ["/tutor/listings", "My ads"],
       ["/support", "Support and appeals"],
       ["/privacy", "Your data and privacy"],
     ]) {
@@ -130,8 +136,10 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
         page.getByRole("heading", { name: label, exact: true }),
       ).toBeVisible();
       // Wait for the authoritative response, rather than auditing a temporary loading shell.
-      if (path === "/tutor")
-        await expect(page.getByLabel("Tutor display name")).toBeEnabled();
+      if (path === "/tutor") {
+        await page.getByRole("button", { name: "Edit profile", exact: true }).click();
+        await expect(page.getByLabel("Your public name", { exact: true })).toBeEnabled();
+      }
       if (path === "/privacy")
         await expect(
           page.getByLabel("Current password", { exact: true }),
@@ -142,10 +150,11 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
         ).toBeVisible();
       if (path === "/payments")
         await expect(page.getByText("₹599.00", { exact: false })).toBeVisible();
-      if (path === "/tutor/listings")
-        await expect(
-          page.getByLabel("Offer title", { exact: true }),
-        ).toBeVisible();
+      if (path === "/tutor/listings") {
+        await page.getByRole("button", { name: "Create an ad", exact: true }).click();
+        await page.getByRole("button", { name: "Continue", exact: true }).click();
+        await expect(page.getByLabel("Ad title", { exact: true })).toBeVisible();
+      }
       await auditAccessibility(page, info, width + path.replaceAll("/", "-"));
     }
   }

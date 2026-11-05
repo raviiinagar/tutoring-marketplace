@@ -1,3 +1,5 @@
+import { openAdminArea } from "./navigation";
+import { openAccountHelp } from "./navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -7,7 +9,7 @@ test.use({actionTimeout:20_000});
 const password = "Support-browser-password-321!";
 async function signup(page: Page, email: string) {
   await page.goto("/auth/signup");
-  await page.getByLabel("Your name").fill("Fictional support user");
+  await page.getByLabel("Your name", { exact: true }).fill("Fictional support user");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   const registration = page.waitForResponse(
@@ -46,14 +48,15 @@ test("owner and scoped staff exchange a support case while private notes stay st
   let granted = false;
   try {
     await signup(page, `support-owner-${Date.now()}@example.test`);
+    await openAccountHelp(page);
     await page
-      .getByRole("link", { name: "Support cases and appeals", exact: true })
+      .getByRole("link", { name: "Support and appeals", exact: true })
       .click();
     await expect(
       page.getByText("Monday-Saturday, 10:00-18:00 IST", { exact: true }),
     ).toBeVisible();
     await page
-      .getByLabel("Subject", { exact: true })
+      .getByRole("textbox", { name: "Subject", exact: true })
       .fill("Help with a lost device session");
     await page
       .getByLabel("Describe the issue", { exact: true })
@@ -93,15 +96,15 @@ test("owner and scoped staff exchange a support case while private notes stay st
     );
     granted = true;
     await staff.goto("/staff");
-    await staff.getByLabel("Account password").fill(password);
+    await staff.getByLabel("Account password", { exact: true }).fill(password);
     await staff
       .getByRole("button", { name: "Create authenticator setup", exact: true })
       .click();
     const secret = await staff
-      .getByLabel("Authenticator setup key")
+      .getByLabel("Authenticator setup key", { exact: true })
       .textContent();
     await staff
-      .getByLabel("Authenticator code")
+      .getByLabel("Authenticator code", { exact: true })
       .fill(totp(secret!.trim(), new Date()));
     await staff
       .getByRole("button", { name: "Confirm MFA", exact: true })
@@ -109,12 +112,7 @@ test("owner and scoped staff exchange a support case while private notes stay st
     await staff
       .getByRole("button", { name: "I saved my recovery codes", exact: true })
       .click();
-    await staff
-      .getByRole("link", {
-        name: "Handle support cases and appeals",
-        exact: true,
-      })
-      .click();
+    await openAdminArea(staff, "Support & appeals");
     await staff
       .getByLabel("Reason for case access", { exact: true })
       .fill("Investigate fictional lost session request");

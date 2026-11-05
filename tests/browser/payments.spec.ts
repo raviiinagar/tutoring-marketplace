@@ -1,3 +1,4 @@
+import { openLearningTools } from "./navigation";
 import { test, expect } from "@playwright/test";
 test("mobile Access Pass page shows the real server price and keeps unconfigured payments disabled", async ({
   page,
@@ -44,8 +45,9 @@ test("mobile Access Pass page shows the real server price and keeps unconfigured
     ).status(),
   ).toBe(200);
   await page.goto("/account");
+  await openLearningTools(page);
   await page
-    .getByRole("link", { name: "Access Pass payment", exact: true })
+    .getByRole("link", { name: "View pass and payments", exact: true })
     .click();
   await expect(
     page.getByRole("heading", {
@@ -55,7 +57,7 @@ test("mobile Access Pass page shows the real server price and keeps unconfigured
   ).toBeVisible();
   await expect(
     page.getByText(
-      "Access Pass purchases are not available yet. Browsing Tutors is free.",
+      "Paid Access Pass purchases are not available yet. A valid 100% off coupon can still provide access without payment. Browsing Tutors is free.",
       { exact: true },
     ),
   ).toBeVisible();

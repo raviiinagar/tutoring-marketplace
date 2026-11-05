@@ -1,3 +1,4 @@
+import { openAccountSettings } from "./navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -7,7 +8,7 @@ test.use({ actionTimeout: 20_000 });
 const password = "Privacy-browser-password-321!";
 async function signup(page: Page, email: string) {
   await page.goto("/auth/signup");
-  await page.getByLabel("Your name").fill("Fictional privacy user");
+  await page.getByLabel("Your name", { exact: true }).fill("Fictional privacy user");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   const registration = page.waitForResponse(
@@ -41,8 +42,9 @@ test("verified export and deletion complete with a read-only receipt on mobile",
   test.setTimeout(180_000);
   const email = `privacy-owner-${Date.now()}@example.test`;
   await signup(page, email);
+  await openAccountSettings(page);
   await page
-    .getByRole("link", { name: "Your data and privacy", exact: true })
+    .getByRole("link", { name: "Open privacy settings", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your data and privacy", exact: true }),

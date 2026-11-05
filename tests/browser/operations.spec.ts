@@ -1,3 +1,4 @@
+import { openAdminArea } from "./navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -7,7 +8,7 @@ test.use({ actionTimeout: 20_000 });
 const password = "Operations-browser-password-321!";
 async function signup(page: Page, email: string) {
   await page.goto("/auth/signup");
-  await page.getByLabel("Your name").fill("Fictional operations owner");
+  await page.getByLabel("Your name", { exact: true }).fill("Fictional operations owner");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   const registration = page.waitForResponse(
@@ -67,27 +68,22 @@ test("operations console records scoped health, pauses checkout and keeps mobile
     await operator("grant", email);
     granted = true;
     await page.goto("/staff");
-    await page.getByLabel("Account password").fill(password);
+    await page.getByLabel("Account password", { exact: true }).fill(password);
     await page
       .getByRole("button", { name: "Create authenticator setup", exact: true })
       .click();
     const secret = (await page
-      .getByLabel("Authenticator setup key")
+      .getByLabel("Authenticator setup key", { exact: true })
       .textContent())!.trim();
-    await page.getByLabel("Authenticator code").fill(totp(secret, new Date()));
+    await page.getByLabel("Authenticator code", { exact: true }).fill(totp(secret, new Date()));
     await page
       .getByRole("button", { name: "Confirm MFA", exact: true })
       .click();
     await page
       .getByRole("button", { name: "I saved my recovery codes", exact: true })
       .click();
-    await page
-      .getByRole("link", {
-        name: "Monitor operations and recover failed work",
-        exact: true,
-      })
-      .click();
-    const reason = page.getByLabel("Reason for operations access");
+    await openAdminArea(page, "Operations");
+    const reason = page.getByLabel("Reason for operations access", { exact: true });
     await reason.fill("Inspect fictional billing health before recovery");
     const inspect = page.getByRole("button", {
       name: "Inspect operations",
@@ -106,9 +102,9 @@ test("operations console records scoped health, pauses checkout and keeps mobile
     const shell = await page.request.get("/staff/operations");
     expect(shell.headers()["x-robots-tag"]).toContain("noindex");
     expect(shell.headers()["cache-control"]).toContain("no-store");
-    await page.getByLabel("Evidence type").selectOption("WEBHOOK_DELIVERY");
+    await page.getByRole("combobox", { name: "Evidence type", exact: true }).selectOption("WEBHOOK_DELIVERY");
     await page
-      .getByLabel("Evidence reference")
+      .getByLabel("Evidence reference", { exact: true })
       .fill("FICTIONAL-WEBHOOK-DISABLED");
     await page
       .getByRole("button", { name: "Record verified observation", exact: true })
@@ -155,7 +151,7 @@ test("operations console records scoped health, pauses checkout and keeps mobile
     await expect(
       page.getByRole("button", { name: "Pause new checkout", exact: true }),
     ).toBeVisible();
-    await page.getByLabel("Operations area").selectOption("SUPPORT");
+    await page.getByRole("combobox", { name: "Operations area", exact: true }).selectOption("SUPPORT");
     await inspect.click();
     await expect(
       page.getByRole("heading", { name: "Checkout control", exact: true }),
