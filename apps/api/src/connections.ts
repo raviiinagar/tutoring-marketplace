@@ -1,4 +1,3 @@
-import {proCurrentSql} from './tutor-pro-access.js';
 import {requestTiming} from './request-lifecycle.js';
 import {PaidAccess,testCoverage,coverageAllowed} from './paid-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
@@ -31,7 +30,9 @@ export class ConnectionsService {
   private async safety(client:PoolClient,row:Row,ignoreBlock=false){
     await requireSafetyClear(client,'LISTING',row.listing_id);
     const learner=await this.learners.requireUsable(client,row.payer_id,row.learner_id);
-    await this.tutors.requireQualified(client,row.tutor_id,row.offer_snapshot.subject_id);
+    // Taking a public profile offline does not delete an established safe
+    // Connection. Current adult/subject eligibility and safety still apply.
+    await this.tutors.requireQualified(client,row.tutor_id,row.offer_snapshot.subject_id,false);
     const listing=(await client.query('SELECT * FROM teaching_listings WHERE id=$1 FOR UPDATE',[row.listing_id])).rows[0];
     if(!listing||listing.user_id!==row.tutor_id||listing.safety_suspended)throw denied('LISTING_RESTRICTED','This teaching offer is restricted.');
     if(!ignoreBlock)await this.unblocked(client,row);return {learner,listing};
@@ -54,7 +55,9 @@ export class ConnectionsService {
       await this.safety(client,row);if(expected==='PENDING')await this.paidAccess.forRequest(client,row);return true;
     }catch(error){if(error instanceof ApiProblem&&[403,404,409].includes(error.getStatus()))return false;throw error;}
   }
-  private async acceptOffer(client:PoolClient,row:Row){if(row.tutor_pro_grant_id&&!(await client.query(proCurrentSql+' AND g.id=$4',[row.tutor_id,row.created_at,this.config.mode!=='production',row.tutor_pro_grant_id])).rowCount)throw new ApiProblem(403,'TUTOR_PRO_REVOKED','This enquiry cannot be accepted after the Tutor Pro grant was revoked.');const current=await this.listings.requireAvailable(client,row.listing_id,true);if(current.user_id!==row.tutor_id||current.revision!==row.listing_revision||current.profile_revision!==row.profile_revision||current.offer.subject_id!==row.offer_snapshot.subject_id||current.offer.teaching_mode!==row.offer_snapshot.teaching_mode)throw new ApiProblem(409,'OFFER_CHANGED','The submitted teaching offer changed. A new enquiry is required.');}
+  // ADR0014 removes only the Tutor advertising pass prerequisite. Learner
+  // coverage, participant authorization and safe current offer checks remain.
+  private async acceptOffer(client:PoolClient,row:Row){const current=await this.listings.requireAvailable(client,row.listing_id,true);if(current.user_id!==row.tutor_id||current.revision!==row.listing_revision||current.profile_revision!==row.profile_revision||current.offer.subject_id!==row.offer_snapshot.subject_id||current.offer.teaching_mode!==row.offer_snapshot.teaching_mode)throw new ApiProblem(409,'OFFER_CHANGED','The submitted teaching offer changed. A new enquiry is required.');}
   private async decisionView(client:PoolClient,row:Row,replayed:boolean){const connection=(await client.query('SELECT id,status FROM connections WHERE request_id=$1',[row.id])).rows[0];return {request_id:row.id,status:row.status,connection_id:connection?.id||null,connection_status:connection?.status||null,replayed};}
 
   async decide(token:string|undefined,id:string,decision:'ACCEPT'|'DECLINE',correlation:string){return this.database.transaction(async client=>{

@@ -12,7 +12,7 @@ import {encrypt,decrypt} from './security.js';
 
 export const photoInput=z.strictObject({media_type:z.enum(['image/jpeg','image/png']),data:z.string().min(4).max(1398104),public_consent:z.literal(true)});
 export const photoReview=z.strictObject({outcome:z.enum(['APPROVE','REJECT','REVOKE']),reason:z.string().trim().min(10).max(240)});
-const columns='id,user_id,status,scan_status,test_only,byte_length,review_reason,created_at';
+const columns='id,user_id,status,self_published,scan_status,test_only,byte_length,review_reason,created_at';
 const missing=()=>new ApiProblem(404,'NOT_FOUND','Tutor photo not found.');
 const invalid=()=>new ApiProblem(400,'INVALID_PHOTO','Use a valid single-frame JPEG or PNG, 128 pixels per side or larger, at most 1 MiB and 4 million pixels.');
 
@@ -20,7 +20,7 @@ export class TutorPhotosService {
   constructor(private readonly database:Database,private readonly config:Config,private readonly auth:AuthService,private readonly staff:StaffService,private readonly scanner:EvidenceScanner|undefined,private readonly now:()=>Date=()=>new Date()){
     if(config.mode==='production'&&scanner?.testOnly)throw new Error('Test photo scanner is forbidden in production');
   }
-  policy(){return {uploads_enabled:!!this.scanner,test_only:!!this.scanner?.testOnly,max_bytes:1048576,media_types:['image/jpeg','image/png'],notice:'Upload your own portrait only. After Trust approval, your photo appears publicly on eligible teaching offers. Do not upload identity documents or photos of children.'};}
+  policy(){return {auto_publication:true,uploads_enabled:!!this.scanner,test_only:!!this.scanner?.testOnly,max_bytes:1048576,media_types:['image/jpeg','image/png'],notice:'Upload your own portrait only. After a clean safety scan, your consented portrait appears on your published profile and ads. Staff can remove unsuitable photos. Do not upload identity documents or photos of children.'};}
   private async owner(client:PoolClient,token?:string){const {user}=await this.auth.authenticated(client,token);if(!user.roles.includes('TUTOR'))throw new ApiProblem(403,'TUTOR_ROLE_REQUIRED','Choose the Tutor role in your account.');if(!(await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rowCount)throw new ApiProblem(409,'PROFILE_REQUIRED','Create a Tutor profile first.');return user;}
   private audit(client:PoolClient,actor:string,event:string,target:string,correlation:string,metadata:Record<string,unknown>={}){return client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),actor,event,correlation,this.now(),{target,...metadata}]);}
   async own(token?:string){return this.database.transaction(async client=>{const user=await this.owner(client,token);const photo=(await client.query(`SELECT ${columns} FROM tutor_photos WHERE user_id=$1 AND status<>'REMOVED' ORDER BY created_at DESC,id DESC LIMIT 1`,[user.id])).rows[0];return {policy:this.policy(),photo:photo||null};});}
@@ -44,7 +44,7 @@ export class TutorPhotosService {
     return this.database.transaction(async client=>{
       const current=await this.owner(client,token);const id=randomUUID();
       await client.query("UPDATE tutor_photos SET status='REMOVED',encrypted_payload=NULL,byte_length=0 WHERE user_id=$1 AND status IN ('PENDING','APPROVED')",[current.id]);
-      await client.query('INSERT INTO tutor_photos(id,user_id,status,scan_status,test_only,encrypted_payload,byte_length,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[id,current.id,scan==='CLEAN'?'PENDING':'REJECTED',scan,this.scanner!.testOnly,scan==='CLEAN'?encrypt({data:bytes.toString('base64')},this.config.authSecret):null,scan==='CLEAN'?bytes.length:0,this.now()]);
+      await client.query('INSERT INTO tutor_photos(id,user_id,status,scan_status,test_only,encrypted_payload,byte_length,created_at,self_published) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)',[id,current.id,scan==='CLEAN'?'PENDING':'REJECTED',scan,this.scanner!.testOnly,scan==='CLEAN'?encrypt({data:bytes.toString('base64')},this.config.authSecret):null,scan==='CLEAN'?bytes.length:0,this.now(),scan==='CLEAN']);
       await this.audit(client,current.id,'TUTOR_PHOTO_UPLOADED',id,correlation,{scan_status:scan});
       return {photo:(await client.query(`SELECT ${columns} FROM tutor_photos WHERE id=$1`,[id])).rows[0]};
     });

@@ -1,6 +1,6 @@
 import {priceSort,readPriceCursor,writePriceCursor} from './discovery-order.js';
 import {presenceFilters,addPresenceFilters,publicPresence} from './tutor-presence.js';
-import {tutorProPredicate} from './tutor-pro-access.js';
+import {publicTutorSql,publicPhotoSql} from './tutor-publication.js';
 import {ReviewPublication} from './review-publication.js';
 import sharp from 'sharp';
 import {z} from 'zod';
@@ -28,17 +28,13 @@ export const availableSql=`SELECT l.id,l.user_id,l.revision,l.payload,p.display_
      AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only)
      AND (c.kind='IDENTITY' OR c.subject_id=l.payload->>'subject_id')) AS evidence_labels
  FROM teaching_listings l JOIN tutor_profiles p ON p.user_id=l.user_id JOIN users u ON u.id=l.user_id LEFT JOIN tutor_presence tp ON tp.user_id=l.user_id
- LEFT JOIN tutor_photos photo ON photo.user_id=l.user_id AND photo.status='APPROVED' AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
- WHERE tp.accepting_students IS DISTINCT FROM FALSE AND l.payload->>'teaching_mode'=ANY(COALESCE(tp.teaching_modes,ARRAY['ONLINE'])) AND (l.payload->>'teaching_mode'<>'IN_PERSON' OR tp.location->>'city' IS NOT NULL) AND l.status='PUBLISHED' AND l.approved AND NOT l.safety_suspended
+ LEFT JOIN tutor_photos photo ON photo.user_id=l.user_id AND ${publicPhotoSql()} AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
+ WHERE tp.accepting_students IS DISTINCT FROM FALSE AND l.payload->>'teaching_mode'=ANY(COALESCE(tp.teaching_modes,ARRAY['ONLINE'])) AND (l.payload->>'teaching_mode'<>'IN_PERSON' OR tp.location->>'city' IS NOT NULL) AND l.status='PUBLISHED' AND (l.approved OR l.publication_policy='direct-ads-v1') AND l.archived_at IS NULL AND NOT l.safety_suspended
    AND NOT EXISTS (SELECT 1 FROM safety_restrictions sr WHERE sr.lifted_at IS NULL AND ((sr.target_type='ACCOUNT' AND sr.target_id=u.id) OR (sr.target_type='LISTING' AND sr.target_id=l.id)))
-   AND p.status='APPROVED' AND p.revision=l.profile_revision AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL AND 'TUTOR'=ANY(u.roles)
-   AND EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
-     WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.kind='IDENTITY' AND c.adult_identity_confirmed
-       AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only))
+   AND ${publicTutorSql()}
    AND ((p.onboarding_version=2 AND l.payload->>'subject_id'=ANY(p.subject_ids)) OR EXISTS (SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id
      WHERE c.user_id=l.user_id AND c.profile_revision=p.revision AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.subject_id=l.payload->>'subject_id'
        AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only)))
-   AND ${tutorProPredicate('l.user_id','$1','NOT $2::boolean')}
    AND NOT EXISTS (SELECT 1 FROM (VALUES ('SUBJECT',l.payload->>'subject_id'),('LEVEL',l.payload->>'level_id'),('CURRICULUM',l.payload->>'curriculum_id'),('EXAM',l.payload->>'exam_id')) AS field(kind,id)
      WHERE field.id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM catalogue_terms t WHERE t.id=field.id AND t.kind=field.kind AND t.active AND l.payload->>'domain_id'=ANY(t.domain_ids)))
    AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements_text(l.payload->'language_ids') AS language(id)
@@ -77,7 +73,10 @@ export class DiscoveryService {
     // display name must not become a public contact field.
     const name=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(row.display_name)?'Tutor':row.display_name;
     const offer=row.payload;
-    return {id:row.id,public_path:'/teachers/'+offer.subject_id.replace(/^subject-/, '')+'-'+row.id,revision:row.revision,presence:publicPresence(row),class_location:row.payload.teaching_mode==='IN_PERSON'?row.location:null,review_summary:row.review_summary||{count:0,average:null,label:'Connection-linked reviews'},tutor:{display_name:name,...(row.photo_id?{photo_url:`/v1/discovery/${row.id}/photos/${row.photo_id}`}:{})},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,...(offer.teaching_mode==='IN_PERSON'?{class_location:row.location}:{}),rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
+    row.evidence_labels ||= [];
+    const identityVerified=row.evidence_labels.some((c:{kind:string})=>c.kind==='IDENTITY');
+    // Expose the optional verification fact separately from availability.
+    return {identity_verified:identityVerified,identity_label:identityVerified?'Identity and adult status reviewed':'Identity not verified',id:row.id,public_path:'/teachers/'+offer.subject_id.replace(/^subject-/, '')+'-'+row.id,revision:row.revision,presence:publicPresence(row),class_location:row.payload.teaching_mode==='IN_PERSON'?row.location:null,review_summary:row.review_summary||{count:0,average:null,label:'Connection-linked reviews'},tutor:{display_name:name,...(row.photo_id?{photo_url:`/v1/discovery/${row.id}/photos/${row.photo_id}`}:{})},offer:{title:offer.title,description:offer.description,domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,...(offer.curriculum_id?{curriculum_id:offer.curriculum_id}:{}),...(offer.exam_id?{exam_id:offer.exam_id}:{}),language_ids:offer.language_ids,currency:offer.currency,teaching_mode:offer.teaching_mode,...(offer.teaching_mode==='IN_PERSON'?{class_location:row.location}:{}),rate_paise:offer.rate_paise,rate_unit:offer.rate_unit,...(offer.lesson_minutes?{lesson_minutes:offer.lesson_minutes}:{}),trial_kind:offer.trial_kind,...(offer.trial_minutes?{trial_minutes:offer.trial_minutes}:{}),...(offer.trial_price_paise?{trial_price_paise:offer.trial_price_paise}:{})},available:true,evidence_labels:row.evidence_labels.map((c:{kind:string;reviewed_at:string;expires_at:string})=>({kind:c.kind,label:c.kind==='IDENTITY'?'Identity and adult-status evidence reviewed':c.kind==='QUALIFICATION'?'Matching Subject qualification evidence reviewed':'Matching Subject experience evidence reviewed',reviewed_at:c.reviewed_at,expires_at:c.expires_at})),verification_disclaimer:'Evidence review does not guarantee teaching quality, qualification authenticity or learning outcomes.'};
   }
   async search(input:Filters){return this.database.transaction(async client=>{
     // Catalogue validation and the result projection share one read-only snapshot.

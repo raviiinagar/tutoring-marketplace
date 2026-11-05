@@ -120,8 +120,9 @@ export async function reputationSnapshot(
     p.account_status === "ACTIVE" &&
     !!p.email_verified_at &&
     p.roles.includes("TUTOR") &&
-    p.status === "APPROVED" &&
-    identity &&
+    p.publication_status === "PUBLISHED" &&
+    !!p.adult_declared_at &&
+    !p.publication_restricted &&
     !restricted &&
     p.subject_ids.length > 0 &&
     p.hourly_rate_paise !== null &&
@@ -145,7 +146,7 @@ export async function reputationSnapshot(
   const photo =
     (
       await c.query(
-        "SELECT 1 FROM tutor_photos WHERE user_id=$1 AND status='APPROVED' AND scan_status='CLEAN' AND encrypted_payload IS NOT NULL AND (NOT $2 OR NOT test_only)",
+        "SELECT 1 FROM tutor_photos WHERE user_id=$1 AND (status='APPROVED' OR (status='PENDING' AND self_published)) AND scan_status='CLEAN' AND encrypted_payload IS NOT NULL AND (NOT $2 OR NOT test_only)",
         [userId, production],
       )
     ).rowCount! > 0;
@@ -170,8 +171,8 @@ export async function reputationSnapshot(
   const introductionWords = words(p?.biography);
   const currentOffers = (
     await c.query(
-      "SELECT payload FROM teaching_listings WHERE user_id=$1 AND profile_revision=$2 AND status<>'SAFETY_SUSPENDED'",
-      [userId, p?.revision ?? 0],
+      "SELECT payload FROM teaching_listings WHERE user_id=$1 AND NOT safety_suspended AND archived_at IS NULL",
+      [userId],
     )
   ).rows;
   const classQuality = currentOffers.some(
@@ -205,11 +206,11 @@ export async function reputationSnapshot(
     criteria: {
       photo: met(
         photo,
-        "Approved clean portrait; no inference about teaching quality.",
+        "Consented public portrait with a clean scan; no inference about teaching quality or staff approval.",
       ),
       profile: met(
         profileQuality,
-        `Level checklist: about-you section ${introductionWords}/40 words; a saved current-profile teaching offer needs a title of at least 12 words and class description of at least 40 words. These word minima affect this level only, not basic profile publication. Pausing or Tutor Pro expiry alone does not remove this text evidence.`,
+        `Level checklist: about-you section ${introductionWords}/40 words; a saved unrestricted teaching ad needs a title of at least 12 words and class description of at least 40 words. Existing legacy publications are preserved. Pausing or Tutor Pro expiry alone does not remove this text evidence.`,
       ),
       identity: met(
         identity,
@@ -246,7 +247,7 @@ export async function reputationSnapshot(
           "At least two published recommendations from distinct verified accounts.",
           "Approved clean profile photo.",
           "About-you section of at least 40 words.",
-          "Saved current-profile teaching text: title of at least 12 words and class description of at least 40 words. A restricted offer cannot qualify.",
+          "Saved teaching text: title of at least 12 words and class description of at least 40 words. Restricted and archived ads cannot qualify.",
         ],
         blocked_reason:
           recommendations >= 2 && publicEligible && qualityReady

@@ -9,13 +9,14 @@ import {ApiProblem} from './errors.js';
 import {decrypt} from './security.js';
 import {isAdult} from './tutors.js';
 import {availableSql} from './discovery.js';
+import {identityVerifiedSql,publicTutorSql,publicPhotoSql} from './tutor-publication.js';
+import {currentTutorPro} from './tutor-pro-access.js';
 const noContact=(s:string)=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(s);
-const visible=`SELECT p.*,u.email,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at,photo.id AS photo_id FROM tutor_profiles p JOIN users u ON u.id=p.user_id LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id LEFT JOIN tutor_photos photo ON photo.user_id=p.user_id AND photo.status='APPROVED' AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
- WHERE p.status='APPROVED' AND u.status='ACTIVE' AND u.email_verified_at IS NOT NULL AND 'TUTOR'=ANY(u.roles)
+const visible=`SELECT p.*,u.email,${identityVerifiedSql()} AS identity_verified,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at,photo.id AS photo_id FROM tutor_profiles p JOIN users u ON u.id=p.user_id LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id LEFT JOIN tutor_photos photo ON photo.user_id=p.user_id AND ${publicPhotoSql()} AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
+ WHERE ${publicTutorSql()}
  AND cardinality(p.subject_ids)>0 AND p.hourly_rate_paise IS NOT NULL
  AND NOT EXISTS(SELECT 1 FROM safety_restrictions s WHERE s.target_type='ACCOUNT' AND s.target_id=u.id AND s.lifted_at IS NULL)
- AND NOT EXISTS(SELECT 1 FROM unnest(p.subject_ids) s(id) WHERE NOT EXISTS(SELECT 1 FROM catalogue_terms t WHERE t.id=s.id AND t.kind='SUBJECT' AND t.active))
- AND EXISTS(SELECT 1 FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id WHERE c.user_id=p.user_id AND c.profile_revision=p.revision AND c.kind='IDENTITY' AND c.adult_identity_confirmed AND c.status='APPROVED' AND c.expires_at>$1 AND e.scan_status='CLEAN' AND (NOT $2::boolean OR NOT e.test_only))`;
+ AND NOT EXISTS(SELECT 1 FROM unnest(p.subject_ids) s(id) WHERE NOT EXISTS(SELECT 1 FROM catalogue_terms t WHERE t.id=s.id AND t.kind='SUBJECT' AND t.active))`;
 const filters=z.strictObject({...presenceFilters,subject_id:z.string().regex(/^[a-z][a-z0-9-]{1,79}$/).optional(),cursor:z.uuid().optional()}).refine(v=>v.at_time===undefined||!!v.day,'Choose a day for the preferred time.');
 export class PublicTutors {
  constructor(private readonly database:Database,private readonly config:Config,private readonly now:()=>Date=()=>new Date()){}
@@ -28,7 +29,10 @@ export class PublicTutors {
  private async project(client:PoolClient,p:Record<string,any>){
   const offers=(await client.query(availableSql+" AND l.user_id=$3 ORDER BY l.id LIMIT 20",[this.now(),this.config.mode==='production',p.user_id])).rows;
   const consent=p.public_email_consent_at&&p.public_email_consent_version==='public-tutor-email-v1';
-  return {id:p.public_id,display_name:p.display_name,biography:p.biography,presence:publicPresence(p),subject_ids:p.subject_ids,hourly_rate_paise:p.hourly_rate_paise,currency:'INR',identity_label:'Identity and adult status reviewed',expertise_label:'Subjects, skills and experience are self-declared',photo_url:p.photo_id?`/v1/tutor-profiles/${p.public_id}/photos/${p.photo_id}`:null,contact:consent&&offers.length?{email:p.email,email_verified:true}:null,offers:offers.map(l=>({id:l.id,title:l.payload.title,rate_paise:l.payload.rate_paise,rate_unit:l.payload.rate_unit})),contact_status:consent&&offers.length?'PUBLIC':'NOT_PUBLIC'};
+  // Free ads do not imply consent to publish contact details. ADR0014 retains
+  // the separately agreed current Pro + explicit consent public-email rule.
+  const contactEnabled=!!consent&&offers.length>0&&!!await currentTutorPro(client,p.user_id,this.now(),this.config.mode!=='production');
+  return {id:p.public_id,display_name:p.display_name,biography:p.biography,presence:publicPresence(p),subject_ids:p.subject_ids,hourly_rate_paise:p.hourly_rate_paise,currency:'INR',identity_verified:!!p.identity_verified,identity_label:p.identity_verified?'Identity and adult status reviewed':'Identity not verified',publication_status:p.publication_status,expertise_label:'Subjects, skills and experience are self-declared',photo_url:p.photo_id?`/v1/tutor-profiles/${p.public_id}/photos/${p.photo_id}`:null,contact:contactEnabled?{email:p.email,email_verified:true}:null,offers:offers.map(l=>({id:l.id,title:l.payload.title,rate_paise:l.payload.rate_paise,rate_unit:l.payload.rate_unit})),contact_status:contactEnabled?'PUBLIC':'NOT_PUBLIC'};
  }
  async search(raw:unknown){const input=filters.safeParse(raw);if(!input.success)throw new ApiProblem(400,'INVALID_FILTER','Choose a valid Subject or page.');return this.database.transaction(async client=>{
   await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');

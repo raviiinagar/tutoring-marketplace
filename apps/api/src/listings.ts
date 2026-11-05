@@ -1,5 +1,5 @@
+import {identityVerified,publicationPolicy,wordCount} from './tutor-publication.js';
 import {requireTutorMode,publicPresence} from './tutor-presence.js';
-import {currentTutorPro} from './tutor-pro-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
@@ -14,7 +14,7 @@ import {ApiProblem} from './errors.js';
 const noContact=(value:string)=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(value);
 const text=(min:number,max:number)=>z.string().trim().min(min).max(max).refine(noContact,'Keep contact details and links out of public offers.');
 export const offerInput=z.strictObject({
-  title:text(10,100),description:text(40,1500),
+  title:text(10,160),description:text(40,1500),
   domain_id:selectionInput.shape.domain_id,subject_id:selectionInput.shape.subject_id,level_id:selectionInput.shape.level_id,
   curriculum_id:selectionInput.shape.curriculum_id,exam_id:selectionInput.shape.exam_id,
   language_ids:z.array(selectionInput.shape.language_id).min(1).max(3).refine(ids=>new Set(ids).size===ids.length),
@@ -41,52 +41,69 @@ const fail=(code:string,message:string,status=409)=>new ApiProblem(status,code,m
 export class ListingsService {
   constructor(private readonly database:Database,private readonly auth:AuthService,private readonly staff:StaffService,private readonly catalogue:CatalogueService,private readonly tutors:TutorsService,private readonly now:()=>Date=()=>new Date()){}
   private role(user:{roles:string[]}){if(!user.roles.includes('TUTOR'))throw fail('TUTOR_ROLE_REQUIRED','Choose the Tutor role.',403);}
-  private async row(client:PoolClient,id:string,owner?:string){const row=(await client.query('SELECT * FROM teaching_listings WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!row||owner&&row.user_id!==owner)throw fail('NOT_FOUND','Listing not found.',404);return row;}
+  private async row(client:PoolClient,id:string,owner?:string){const row=(await client.query('SELECT * FROM teaching_listings WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!row||owner&&(row.user_id!==owner||row.archived_at))throw fail('NOT_FOUND','Listing not found.',404);return row;}
   private version(row:Record<string,any>,revision:number){if(row.revision!==revision)throw fail('STALE_LISTING','This offer changed. Refresh it before continuing.');}
   private async selection(client:PoolClient,offer:Offer){for(const language_id of offer.language_ids)await this.catalogue.requireSelection(client,{domain_id:offer.domain_id,subject_id:offer.subject_id,level_id:offer.level_id,curriculum_id:offer.curriculum_id,exam_id:offer.exam_id,language_id});}
   private async audit(client:PoolClient,actor:string,id:string,event:string,correlation:string,reason?:string){await client.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),actor,event,correlation,this.now(),{target:id,...(reason?{reason}:{})}]);}
   private async view(client:PoolClient,row:Record<string,any>,existingRequest=false){
-    const profile=(await client.query('SELECT p.revision,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at FROM tutor_profiles p LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id WHERE p.user_id=$1',[row.user_id])).rows[0];
-    const stale=profile?.revision!==row.profile_revision;let eligible=false;
-    if(row.status==='PUBLISHED'&&row.approved&&!row.safety_suspended&&!stale){
+    const profile=(await client.query('SELECT p.revision,p.publication_status,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at FROM tutor_profiles p LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id WHERE p.user_id=$1',[row.user_id])).rows[0];
+    let eligible=false;
+    if(row.status==='PUBLISHED'&&(row.approved||row.publication_policy===publicationPolicy)&&!row.safety_suspended&&!row.archived_at){
       // Eligibility failures are ordinary state; database/programming failures must propagate.
-      try{if(!existingRequest){await this.tutors.requirePro(client,row.user_id);if(profile?.accepting_students===false)throw fail('TUTOR_NOT_ACCEPTING','This Tutor is not accepting new students.');await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
+      try{if(!existingRequest){if(profile?.accepting_students===false)throw fail('TUTOR_NOT_ACCEPTING','This Tutor is not accepting new students.');await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
     }
-    return {id:row.id,user_id:row.user_id,offer:row.payload,presence:publicPresence(profile??{}),class_location:row.payload.teaching_mode==='IN_PERSON'?profile?.location??null:null,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':stale&&row.status!=='DRAFT'?'CHANGES_REQUESTED':row.status,eligible,requires_profile_review:stale,review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
+    return {id:row.id,user_id:row.user_id,offer:row.payload,presence:publicPresence(profile??{}),class_location:row.payload.teaching_mode==='IN_PERSON'?profile?.location??null:null,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':row.status,eligible,requires_profile_review:false,publication_policy:row.publication_policy,archived_at:row.archived_at,identity_verified:await identityVerified(client,row.user_id,this.now(),this.tutors.productionMode()),review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }
   async own(token?:string){return this.database.transaction(async client=>{
     const {user}=await this.auth.authenticated(client,token);this.role(user);
-    const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 ORDER BY created_at,id',[user.id])).rows;const listings=[];
+    const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 AND archived_at IS NULL ORDER BY created_at,id',[user.id])).rows;const listings=[];
     for(const row of rows)listings.push(await this.view(client,row));
     const declared=(await client.query('SELECT subject_ids,onboarding_version FROM tutor_profiles WHERE user_id=$1',[user.id])).rows[0];
     const candidates=declared?.onboarding_version===2?declared.subject_ids.map((subject_id:string)=>({subject_id})):(await client.query("SELECT DISTINCT c.subject_id FROM tutor_claims c JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision JOIN catalogue_terms t ON t.id=c.subject_id AND t.kind='SUBJECT' AND t.active WHERE c.user_id=$1 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' ORDER BY c.subject_id",[user.id])).rows;
     const eligible_subject_ids:string[]=[];
-    for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
-    let tutor_pro_active=true;try{await this.tutors.requirePro(client,user.id);}catch(error){if(!(error instanceof ApiProblem))throw error;tutor_pro_active=false;}return {listings,eligible_subject_ids,tutor_pro_active};
+    for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id,false);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
+    let tutor_pro_active=true;try{await this.tutors.requirePro(client,user.id);}catch(error){if(!(error instanceof ApiProblem))throw error;tutor_pro_active=false;}return {listings,eligible_subject_ids,tutor_pro_active,publication_policy:publicationPolicy,identity_optional:true,free_publication:true};
   });}
   async create(token:string|undefined,offer:Offer,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);await this.tutors.requirePro(client,user.id);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id);await this.selection(client,offer);await requireTutorMode(client,user.id,offer.teaching_mode);
+    const {user}=await this.auth.authenticated(client,token);this.role(user);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id,false);await this.selection(client,offer);await requireTutorMode(client,user.id,offer.teaching_mode);
     if(Number((await client.query('SELECT count(*) FROM teaching_listings WHERE user_id=$1',[user.id])).rows[0].count)>=20)throw fail('LISTING_LIMIT','At most twenty offers per Tutor.',429);
-    const id=randomUUID();await client.query('INSERT INTO teaching_listings(id,user_id,payload,profile_revision,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$5)',[id,user.id,offer,qualified.profile_revision,this.now()]);await this.audit(client,user.id,id,'LISTING_CREATED',correlation);return {listing:await this.view(client,await this.row(client,id))};
+    const id=randomUUID();await client.query("INSERT INTO teaching_listings(id,user_id,payload,profile_revision,created_at,updated_at,publication_policy) VALUES($1,$2,$3,$4,$5,$5,'direct-ads-v1')",[id,user.id,offer,qualified.profile_revision,this.now()]);await this.audit(client,user.id,id,'LISTING_CREATED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
+  private publishable(offer:Offer){
+    const errors:Record<string,string[]>={};if(wordCount(offer.title)<12)errors.title=['Use at least 12 words in your ad title.'];if(wordCount(offer.description)<40)errors.description=['Use at least 40 words about your class.'];
+    if(Object.keys(errors).length)throw new ApiProblem(400,'VALIDATION_ERROR','Complete the ad before publishing.',errors);
+  }
   async edit(token:string|undefined,id:string,input:z.infer<typeof editOfferInput>,correlation:string){return this.database.transaction(async client=>{
     const {user}=await this.auth.authenticated(client,token);this.role(user);
-    // Owner -> profile -> listing follows Tutor review/revision lock order.
-    const profile=(await client.query('SELECT revision FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];const row=await this.row(client,id,user.id);this.version(row,input.revision);await this.selection(client,input.offer);await requireTutorMode(client,user.id,input.offer.teaching_mode);
-    await client.query("UPDATE teaching_listings SET payload=$2,profile_revision=$3,revision=revision+1,status='DRAFT',approved=false,review_reason=NULL,reviewed_by=NULL,reviewed_at=NULL,updated_at=$4 WHERE id=$1",[id,input.offer,profile.revision,this.now()]);await this.audit(client,user.id,id,'LISTING_EDITED',correlation);return {listing:await this.view(client,await this.row(client,id))};
+    const qualified=await this.tutors.requireQualified(client,user.id,input.offer.subject_id,false);const row=await this.row(client,id,user.id);this.version(row,input.revision);await this.selection(client,input.offer);await requireTutorMode(client,user.id,input.offer.teaching_mode);
+    const online=row.status==='PUBLISHED'&&!row.safety_suspended;
+    // Editing an ad must not silently undo an explicit profile pause. Profile
+    // publication is changed only by an explicit publication/resume action.
+    if(online){this.publishable(input.offer);await requireSafetyClear(client,'LISTING',row.id);}
+    await client.query("UPDATE teaching_listings SET payload=$2,profile_revision=$3,revision=revision+1,status=$4,publication_policy='direct-ads-v1',approved=false,review_reason=NULL,reviewed_by=NULL,reviewed_at=NULL,updated_at=$5 WHERE id=$1",[id,input.offer,qualified.profile_revision,online?'PUBLISHED':row.status==='CHANGES_REQUESTED'?'DRAFT':row.status,this.now()]);await this.audit(client,user.id,id,'LISTING_EDITED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
-  async ownerAction(token:string|undefined,id:string,action:'SUBMIT'|'PAUSE'|'RESUME',revision:number,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);const profile=(await client.query('SELECT revision FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];const row=await this.row(client,id,user.id);this.version(row,revision);
-    if(row.safety_suspended)throw fail('SAFETY_SUSPENDED','Staff must lift the safety suspension.');
-    let status:string;
-    if(action==='PAUSE'){if(row.status!=='PUBLISHED')throw fail('INVALID_LISTING_STATE','Only a published offer can be paused.');status='PAUSED';}
-    else{
-      if(row.profile_revision!==profile.revision)throw fail('PROFILE_CHANGED','Save the offer again after your revised Tutor profile is approved.');
-      await this.tutors.requirePro(client,user.id);await this.tutors.requireQualified(client,user.id,row.payload.subject_id);await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);
-      if(action==='SUBMIT'){if(!['DRAFT','CHANGES_REQUESTED'].includes(row.status))throw fail('INVALID_LISTING_STATE','Only draft or corrected offers can be submitted.');status='REVIEW';}
-      else{if(row.status!=='PAUSED'||!row.approved)throw fail('INVALID_LISTING_STATE','Only an approved paused offer can resume.');status='PUBLISHED';}
+  async ownerAction(token:string|undefined,id:string,action:'SUBMIT'|'PUBLISH'|'PAUSE'|'RESUME'|'ARCHIVE',revision:number,correlation:string){return this.database.transaction(async client=>{
+    const {user}=await this.auth.authenticated(client,token);this.role(user);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id]);const row=await this.row(client,id,user.id);this.version(row,revision);
+    if(action==='ARCHIVE'){
+      await client.query("UPDATE teaching_listings SET status='PAUSED',archived_at=$2,revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);await this.audit(client,user.id,id,'LISTING_ARCHIVED',correlation);return {listing:await this.view(client,await this.row(client,id))};
     }
-    await client.query('UPDATE teaching_listings SET status=$2,revision=revision+1,updated_at=$3 WHERE id=$1',[id,status,this.now()]);await this.audit(client,user.id,id,'LISTING_'+action,correlation);return {listing:await this.view(client,await this.row(client,id))};
+    if(action==='PAUSE'){
+      if(row.status!=='PUBLISHED')throw fail('INVALID_LISTING_STATE','Only an online ad can be paused.');
+      await client.query("UPDATE teaching_listings SET status='PAUSED',revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);
+    }else{
+      if(row.safety_suspended)throw fail('SAFETY_SUSPENDED','Staff must lift the safety suspension.');
+      await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,user.id,row.payload.subject_id,false);await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);
+      if(action==='RESUME'){
+        if(row.status!=='PAUSED'||!row.approved&&row.publication_policy!==publicationPolicy)throw fail('INVALID_LISTING_STATE','Only a previously online paused ad can resume.');
+      }else{
+        if(!['DRAFT','REVIEW','CHANGES_REQUESTED','PAUSED'].includes(row.status))throw fail('INVALID_LISTING_STATE','Only a private or paused ad can be published.');
+        if(row.status==='CHANGES_REQUESTED')throw fail('REVISION_REQUIRED','Revise the ad to address the recorded feedback before publishing.');
+        this.publishable(row.payload);
+      }
+      await this.tutors.publishProfile(client,user.id,action!=='RESUME'||!row.approved);
+      await client.query("UPDATE teaching_listings SET status='PUBLISHED',publication_policy='direct-ads-v1',revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);
+    }
+    await this.audit(client,user.id,id,'LISTING_'+action,correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
   private async staffRow(client:PoolClient,actor:string,id:string){const found=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[id])).rows[0];if(!found)throw fail('NOT_FOUND','Listing not found.',404);if(found.user_id===actor)throw fail('SELF_REVIEW','You cannot review or lift restrictions on your own offer.',403);await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[found.user_id]);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[found.user_id]);return this.row(client,id);}
   private async staffTarget(client:PoolClient,account:string|undefined,token:string|undefined,id:string){
@@ -104,7 +121,7 @@ export class ListingsService {
   private async decision(client:PoolClient,actor:string,row:Record<string,any>,outcome:string,reason:string,correlation:string){await client.query('INSERT INTO listing_decisions(id,listing_id,actor_id,revision,outcome,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)',[randomUUID(),row.id,actor,row.revision,outcome,reason,this.now()]);await this.audit(client,actor,row.id,'LISTING_'+outcome,correlation,reason);}
   async safety(account:string|undefined,token:string|undefined,id:string,input:z.infer<typeof listingSafetyInput>,correlation:string){return this.database.transaction(async client=>{const {actor,row}=await this.staffTarget(client,account,token,id);this.version(row,input.revision);const suspend=input.action==='SUSPEND';if(row.safety_suspended===suspend)throw fail('INVALID_LISTING_STATE','That restriction state is already recorded.');await client.query("UPDATE teaching_listings SET safety_suspended=$2,status=CASE WHEN status='PUBLISHED' THEN 'PAUSED' ELSE status END,revision=revision+1,safety_reason=$3,safety_actor=$4,updated_at=$5 WHERE id=$1",[id,suspend,input.reason,actor.id,this.now()]);await this.decision(client,actor.id,row,input.action,input.reason,correlation);return {listing:await this.view(client,await this.row(client,id))};});}
   // Task 08 and later commands use this seam; they never trust a stored status alone.
-  // Only the committed-request acceptance path may honor an existing request after ordinary Pro expiry.
-  async requireAvailable(client:PoolClient,id:string,existingRequest=false){const found=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[id])).rows[0];if(!found)throw fail('NOT_FOUND','Listing unavailable.',404);await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[found.user_id]);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[found.user_id]);const row=await this.row(client,id);const view=await this.view(client,row,existingRequest);if(!view.eligible)throw fail('NOT_FOUND','Listing unavailable.',404);return view;}
-  async publicOffer(id:string){return this.database.transaction(async client=>{const view=await this.requireAvailable(client,id);return {listing:{id:view.id,...view.offer,verification:'Identity reviewed. Subject expertise may be self-declared; see the evidence labels on the full offer.'}};});}
+  // Existing requests may retain their response right when new enquiries close.
+  async requireAvailable(client:PoolClient,id:string,existingRequest=false){const found=(await client.query('SELECT user_id FROM teaching_listings WHERE id=$1',[id])).rows[0];if(!found)throw fail('NOT_FOUND','Listing unavailable.',404);await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[found.user_id]);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[found.user_id]);const row=await this.row(client,id);if(row.archived_at)throw fail('NOT_FOUND','Listing unavailable.',404);const view=await this.view(client,row,existingRequest);if(!view.eligible)throw fail('NOT_FOUND','Listing unavailable.',404);return view;}
+  async publicOffer(id:string){return this.database.transaction(async client=>{const view=await this.requireAvailable(client,id);return {listing:{id:view.id,...view.offer,identity_verified:view.identity_verified,verification:view.identity_verified?'Identity and adult status reviewed. Subject expertise is self-declared unless separately labelled.':'Identity not verified. Adult status and subject expertise are self-declared.'}};});}
 }

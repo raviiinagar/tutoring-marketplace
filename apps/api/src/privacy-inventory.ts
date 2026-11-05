@@ -23,6 +23,7 @@ export async function personalExport(
   const savedTable=(await client.query("SELECT to_regclass('public.saved_tutors') AS present")).rows[0].present;
   const presenceTable=(await client.query("SELECT to_regclass('public.tutor_presence') AS present")).rows[0].present;
   const proTable=(await client.query("SELECT to_regclass('public.tutor_pro_grants') AS present")).rows[0].present;
+  const directPublicationTable=(await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='tutor_profiles' AND column_name='publication_status') AS present")).rows[0].present;
   const draftTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_drafts') AS present")).rows[0].present;
   const recommendationsTable=(await client.query("SELECT to_regclass('public.tutor_recommendations') AS present")).rows[0].present;
   const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
@@ -100,6 +101,7 @@ export async function personalExport(
           biography: profile.biography,
           ...(proTable?{public_id:profile.public_id,public_revision:profile.public_revision,subject_ids:profile.subject_ids,hourly_rate_paise:profile.hourly_rate_paise,identity_country:profile.identity_country,identity_document:profile.identity_document,public_email_consent_at:profile.public_email_consent_at,public_email_consent_version:profile.public_email_consent_version}:{}),
           birth_date: read(profile.encrypted_birth_date)?.birth_date,
+          ...(directPublicationTable?{publication_status:profile.publication_status,publication_restricted:profile.publication_restricted,adult_declared_at:profile.adult_declared_at}:{}),
           status: profile.status,
           revision: profile.revision,
           created_at: profile.created_at,

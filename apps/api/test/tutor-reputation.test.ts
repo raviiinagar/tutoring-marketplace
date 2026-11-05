@@ -126,7 +126,7 @@ async function tutor() {
     {
       display_name: "Fictional Physics teacher",
       biography:
-        "Patient Physics explanations with worked examples and structured practice for learners.",
+        "I teach patient and practical lessons with worked examples and guided exercises. My experience includes helping learners develop confidence and understand difficult ideas. We discuss your goals together and adapt the pace to your needs with regular feedback and clear explanations.",
       subject_ids: ["subject-physics"],
       hourly_rate_paise: 50000,
       identity_country: "IN",
@@ -164,6 +164,8 @@ async function tutor() {
       [user.id],
     )
   ).rows[0].public_id;
+  // Identity approval alone no longer publishes an introduction (ADR0014).
+  await post('/v1/me/tutor/publication',{expected_public_revision:1,action:'PUBLISH'},user.cookie).expect(200);
   return { ...user, publicId, evidence };
 }
 // Explicitly fictional isolated quality fixture; no live pass or credential is awarded.
@@ -495,10 +497,8 @@ test("recommendations require authenticated distinct authors, moderation, curren
     ).body.published_recommendations.length,
     1,
   );
-  await db.pool.query(
-    "UPDATE tutor_profiles SET status='REVOKED' WHERE user_id=$1",
-    [owner.id],
-  );
+  const currentProfile=(await get('/v1/me/tutor',owner.cookie).expect(200)).body.profile;
+  await post('/v1/me/tutor/publication',{expected_public_revision:currentProfile.public_revision,action:'PAUSE'},owner.cookie).expect(200);
   assert.equal(
     (await get("/v1/me/tutor/progression", owner.cookie).expect(200)).body
       .level,
@@ -537,5 +537,7 @@ test("diploma progress requires owned clean evidence and never awards an upper b
     await get("/v1/me/tutor/progression", owner.cookie).expect(200)
   ).body;
   assert.equal(updated.criteria.diploma.status, "NOT_MET");
-  assert.equal(updated.level, null);
+  assert.equal(updated.level, "NEW");
+  assert.equal(updated.criteria.identity.status, "NOT_MET");
+  assert.equal((await get('/v1/tutor-profiles/'+owner.publicId).expect(200)).body.profile.identity_verified,false);
 });
