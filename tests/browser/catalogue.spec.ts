@@ -39,11 +39,11 @@ await page.getByRole('button',{name:'I saved my recovery codes',exact:true}).cli
     const domains=page.locator('#subjects');await expect(domains.locator('[data-domain]')).toHaveCount(8,{timeout:15_000});
     await page.getByLabel('Search subjects or exams', { exact: true }).fill('IIT-JEE');
     await expect(domains.locator('[data-domain=entrance]')).toBeVisible();
-    await domains.locator('[data-domain=entrance]').click();
+    await domains.getByRole('button',{name:'All entrance examinations options',exact:true}).click();
     const dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Exam tracks',exact:true})).toBeVisible();await expect(dialog.getByText('NEET',{exact:true})).toBeVisible();await expect(dialog.getByText('CUET',{exact:true})).toBeVisible();await expect(dialog.getByText('Physics',{exact:true})).toBeVisible();await expect(dialog.getByText('Hindi',{exact:true})).toBeVisible();
     await page.keyboard.press('Escape');
     await page.getByLabel('Search subjects or exams', { exact: true }).fill(`Browser alias ${suffix}`);
-    await domains.locator('[data-domain=career]').click();await expect(dialog.getByText(label,{exact:true})).toBeVisible();await page.keyboard.press('Escape');
+    await domains.getByRole('button',{name:'All career skills options',exact:true}).click();await expect(dialog.getByText(label,{exact:true})).toBeVisible();await page.keyboard.press('Escape');
     await page.goto('/staff/catalogue');await page.getByRole('button',{name:`Edit ${label} SUBJECT`,exact:true}).click();
     await expect(page.getByLabel('Stable identifier', { exact: true })).toBeDisabled();await page.getByLabel('Active in public catalogue', { exact: true }).uncheck();await page.getByLabel('Reason for catalogue change', { exact: true }).fill('Deactivate browser fixture subject');await page.getByRole('button',{name:'Save catalogue term',exact:true}).click();await expect(page.getByRole('main').getByRole('status')).toContainText('Catalogue term saved');
     await page.goto('/');await expect(page.getByRole('combobox',{name:'Subject or exam',exact:true})).toBeEnabled();await page.getByLabel('Search subjects or exams', { exact: true }).fill(`Browser alias ${suffix}`);await expect(domains).toContainText('No matching subjects');
