@@ -98,8 +98,8 @@ export class ListingsService {
       }else{
         if(!['DRAFT','REVIEW','CHANGES_REQUESTED','PAUSED'].includes(row.status))throw fail('INVALID_LISTING_STATE','Only a private or paused ad can be published.');
         if(row.status==='CHANGES_REQUESTED')throw fail('REVISION_REQUIRED','Revise the ad to address the recorded feedback before publishing.');
-        this.publishable(row.payload);
       }
+      this.publishable(row.payload);
       await this.tutors.publishProfile(client,user.id,action!=='RESUME'||!row.approved);
       await client.query("UPDATE teaching_listings SET status='PUBLISHED',publication_policy='direct-ads-v1',revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);
     }
