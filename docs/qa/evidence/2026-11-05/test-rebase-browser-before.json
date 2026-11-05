@@ -1,0 +1,148 @@
+{
+  "source_commit": "fd45a00",
+  "suite": "Original browser suite",
+  "selection": "All original 19 cases; three QA01/QA05 regression cases tracked separately",
+  "summary": {
+    "startTime": "2026-11-05T05:37:19.959Z",
+    "duration": 815782.287,
+    "expected": 4,
+    "skipped": 1,
+    "unexpected": 14,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "name": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+      "file": "accessibility.spec.ts",
+      "line": 5,
+      "status": "failed",
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Find online Tutors', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\n"
+    },
+    {
+      "name": "discovery and authentication expose labelled forms, contrast and announced errors",
+      "file": "accessibility.spec.ts",
+      "line": 45,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+      "file": "accessibility.spec.ts",
+      "line": 69,
+      "status": "failed",
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Tutor onboarding', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\n"
+    },
+    {
+      "name": "form boundaries and keyboard focus stay visible against the input surface",
+      "file": "accessibility.spec.ts",
+      "line": 154,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "client-side form errors announce themselves and describe each invalid input",
+      "file": "accessibility.spec.ts",
+      "line": 202,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "Lovable account journey from http://localhost:3100",
+      "file": "account.spec.ts",
+      "line": 4,
+      "status": "failed",
+      "error": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" id=\"_R_2ej2q_\" type=\"password\" class=\"input pr-14\" autocomplete=\"new-password\" aria-describedby=\"_R_2ej2q_-hint\" data-tsd-source=\"/src/routes/auth.signup.tsx:59:9\"/> aka getByRole('textbox', { name: 'Password' })\n    2) <button t"
+    },
+    {
+      "name": "Lovable account journey from http://127.0.0.1:3100",
+      "file": "account.spec.ts",
+      "line": 4,
+      "status": "failed",
+      "error": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" id=\"_R_2ej2q_\" type=\"password\" class=\"input pr-14\" autocomplete=\"new-password\" aria-describedby=\"_R_2ej2q_-hint\" data-tsd-source=\"/src/routes/auth.signup.tsx:59:9\"/> aka getByRole('textbox', { name: 'Password' })\n    2) <button t"
+    },
+    {
+      "name": "mobile empty search confirms optional adult availability consent and unsubscribes using captured email",
+      "file": "availability.spec.ts",
+      "line": 2,
+      "status": "timedOut",
+      "error": "Test timeout of 120000ms exceeded."
+    },
+    {
+      "name": "public catalogue aliases and Trust maintenance stay consistent",
+      "file": "catalogue.spec.ts",
+      "line": 10,
+      "status": "timedOut",
+      "error": "Test timeout of 180000ms exceeded."
+    },
+    {
+      "name": "mobile public search has honest empty results across eight families and unavailable detail",
+      "file": "discovery.spec.ts",
+      "line": 2,
+      "status": "failed",
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Find online Tutors', exact: true })\nExpected: visible\nTimeout: 20000ms\nError: element(s) not found\n\n"
+    },
+    {
+      "name": "private adult profile and fictional Guardian approval, child consent withdrawal and revocation",
+      "file": "learners.spec.ts",
+      "line": 14,
+      "status": "failed",
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Hello, Fictional adult', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\n"
+    },
+    {
+      "name": "built public journeys meet the adopted mobile lab LCP profile",
+      "file": "mobile-performance.spec.ts",
+      "line": 5,
+      "status": "skipped",
+      "error": ""
+    },
+    {
+      "name": "operations console records scoped health, pauses checkout and keeps mobile recovery controls private",
+      "file": "operations.spec.ts",
+      "line": 59,
+      "status": "failed",
+      "error": "Error: locator.fill: Error: strict mode violation: getByLabel('Account password') resolved to 2 elements:\n    1) <input value=\"\" id=\"_r_0_\" type=\"password\" class=\"input pr-14\" autocomplete=\"current-password\" data-tsd-source=\"/src/routes/staff.tsx:254:17\"/> aka getByRole('textbox', { name: 'Account password' })\n    2) <button type=\"button\" aria-pres"
+    },
+    {
+      "name": "mobile Access Pass page shows the real server price and keeps unconfigured payments disabled",
+      "file": "payments.spec.ts",
+      "line": 2,
+      "status": "timedOut",
+      "error": "Test timeout of 120000ms exceeded."
+    },
+    {
+      "name": "verified export and deletion complete with a read-only receipt on mobile",
+      "file": "privacy.spec.ts",
+      "line": 38,
+      "status": "failed",
+      "error": "TimeoutError: locator.click: Timeout 20000ms exceeded.\n"
+    },
+    {
+      "name": "served indexing documents block development crawlers and exclude private pages",
+      "file": "public-indexing.spec.ts",
+      "line": 3,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "staff MFA enrollment, scoped console, audit and authenticator recovery",
+      "file": "staff.spec.ts",
+      "line": 10,
+      "status": "timedOut",
+      "error": "Test timeout of 150000ms exceeded."
+    },
+    {
+      "name": "owner and scoped staff exchange a support case while private notes stay staff-only",
+      "file": "support.spec.ts",
+      "line": 38,
+      "status": "failed",
+      "error": "TimeoutError: locator.click: Timeout 20000ms exceeded.\n"
+    },
+    {
+      "name": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+      "file": "tutors.spec.ts",
+      "line": 16,
+      "status": "failed",
+      "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Hello, Fictional adult', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\n"
+    }
+  ]
+}
