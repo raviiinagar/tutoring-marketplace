@@ -207,8 +207,8 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
   };
   await grantTutorProFixture(database,config,teacher.email,clock);
   const listing = await publicationFixtures(post, offer).publish(teacher);
-  
-  
+
+
   await grantContactFixture(database, config, owner.email, state, clock);
   const enquiry = (
     await post(

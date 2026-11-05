@@ -1,0 +1,139 @@
+[
+  {
+    "case": "QA01: visible labels remain in accessible names on home and search at desktop and mobile widths",
+    "attachment": "QA01 axe results",
+    "result": [
+      {
+        "width": 1440,
+        "route": "/",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/tutors?subject_id=subject-physics",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/tutors?subject_id=subject-physics",
+        "violations": []
+      },
+      {
+        "width": 320,
+        "route": "/",
+        "violations": []
+      },
+      {
+        "width": 320,
+        "route": "/tutors?subject_id=subject-physics",
+        "violations": []
+      }
+    ]
+  },
+  {
+    "case": "QA01: repeat the twelve audit accessibility combinations",
+    "attachment": "Twelve audit accessibility combinations",
+    "result": [
+      {
+        "width": 1440,
+        "route": "/",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/tutors",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/auth/signin",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/auth/signup",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/auth/check-email",
+        "violations": []
+      },
+      {
+        "width": 1440,
+        "route": "/auth/forgot-password",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/",
+        "violations": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": [
+                  ".scroll-reveal[data-reveal=\"pending\"] > .teacher-card > .teacher-card-details > .font-normal.teacher-card-summary > a"
+                ],
+                "html": "<a data-tsd-source=\"/src/components/public-offer.tsx:23:56\" href=\"/teachers/physics-f21a03da-8cd5-429a-b523-97d4f3fa60ef\">",
+                "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.02 (foreground color: #fcfcfc, background color: #ffffff, font size: 11.3pt (15px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".scroll-reveal[data-reveal=\"pending\"] > .teacher-card > .teacher-card-details > .font-normal.teacher-card-summary > a > .font-medium"
+                ],
+                "html": "<span class=\"font-medium\" data-tsd-source=\"/src/components/public-offer.tsx:23:99\">Physics</span>",
+                "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.02 (foreground color: #fcfcfc, background color: #ffffff, font size: 11.3pt (15px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".scroll-reveal[data-reveal=\"pending\"] > .teacher-card > .teacher-card-details > .teacher-card-price"
+                ],
+                "html": "<p class=\"teacher-card-price\" data-tsd-source=\"/src/components/public-offer.tsx:24:7\">\u20b9650<span data-tsd-source=\"/src/components/public-offer.tsx:24:85\">/hr</span></p>",
+                "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.02 (foreground color: #fcfcfc, background color: #ffffff, font size: 11.3pt (15px), font weight: normal). Expected contrast ratio of 4.5:1"
+              },
+              {
+                "target": [
+                  ".scroll-reveal[data-reveal=\"pending\"] > .teacher-card > .teacher-card-details > .teacher-card-price > span"
+                ],
+                "html": "<span data-tsd-source=\"/src/components/public-offer.tsx:24:85\">/hr</span>",
+                "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.02 (foreground color: #fcfcfc, background color: #ffffff, font size: 11.3pt (15px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "route": "/tutors",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/auth/signin",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/auth/signup",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/auth/check-email",
+        "violations": []
+      },
+      {
+        "width": 390,
+        "route": "/auth/forgot-password",
+        "violations": []
+      }
+    ]
+  }
+]

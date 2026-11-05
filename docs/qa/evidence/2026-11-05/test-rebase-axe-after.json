@@ -1,0 +1,162 @@
+[
+  {
+    "case": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+    "attachment": "mobile-discovery-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/tutors",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "390--accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "390-tutors-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/tutors",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "390-auth-signin-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/auth/signin",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "390-auth-signup-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/auth/signup",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "1280--accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "1280-tutors-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/tutors",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "1280-auth-signin-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/auth/signin",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "1280-auth-signup-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/auth/signup",
+      "violations": []
+    }
+  },
+  {
+    "case": "discovery and authentication expose labelled forms, contrast and announced errors",
+    "attachment": "signin-error-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/auth/signin",
+      "violations": []
+    }
+  },
+  {
+    "case": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+    "attachment": "390-payments-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/payments",
+      "violations": []
+    }
+  },
+  {
+    "case": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+    "attachment": "390-tutor-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/tutor",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "tags": [
+            "cat.color",
+            "wcag2aa",
+            "wcag143",
+            "TTv5",
+            "TT13.c",
+            "EN-301-549",
+            "EN-9.1.4.3",
+            "ACT",
+            "RGAAv4",
+            "RGAA-3.2.1"
+          ],
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+          "nodes": [
+            {
+              "any": [
+                {
+                  "id": "color-contrast",
+                  "data": {
+                    "fgColor": "#ff6167",
+                    "bgColor": "#ffffff",
+                    "contrastRatio": 2.93,
+                    "fontSize": "15.8pt (21px)",
+                    "fontWeight": "bold",
+                    "messageKey": null,
+                    "expectedContrastRatio": "3:1"
+                  },
+                  "relatedNodes": [
+                    {
+                      "html": "<header class=\"site-header sticky top-0 z-20 border-b bg-background/95 backdrop-blur-xl\" data-tsd-source=\"/src/components/account/ui.tsx:227:7\">",
+                      "target": [
+                        "header"
+                      ]
+                    }
+                  ],
+                  "impact": "serious",
+                  "message": "Element has insufficient color contrast of 2.93 (foreground color: #ff6167, background color: #ffffff, font size: 15.8pt (21px), font weight: bold). Expected contrast ratio of 3:1"
+                }
+              ],
+              "all": [],
+              "none": [],
+              "impact": "serious",
+              "html": "<span class=\"brand-tutor\" data-tsd-source=\"/src/components/account/ui.tsx:51:7\">Tutor</span>",
+              "target": [
+                ".brand-tutor"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.93 (foreground color: #ff6167, background color: #ffffff, font size: 15.8pt (21px), font weight: bold). Expected contrast ratio of 3:1"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+    "attachment": "connected-mobile-chat-accessibility.json",
+    "result": {
+      "url": "http://localhost:3100/chat/ffa4f8c9-889f-4669-bf02-d8ed35021c9b",
+      "violations": []
+    }
+  }
+]

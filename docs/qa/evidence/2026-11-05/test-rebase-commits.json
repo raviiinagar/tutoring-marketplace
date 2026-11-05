@@ -1,0 +1,91 @@
+[
+  {
+    "commit": "8b70b23",
+    "subject": "test: record fresh unchanged API and browser rebase baselines",
+    "files": [
+      "docs/qa/evidence/2026-11-05/test-rebase-api-before.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-browser-before.json"
+    ]
+  },
+  {
+    "commit": "d5ca29c",
+    "subject": "test: rebase publication fixtures onto explicit free ads",
+    "files": [
+      "apps/api/test/availability.test.ts",
+      "apps/api/test/chat.test.ts",
+      "apps/api/test/classes.test.ts",
+      "apps/api/test/connections.test.ts",
+      "apps/api/test/contact-requests.test.ts",
+      "apps/api/test/coupons.test.ts",
+      "apps/api/test/discovery.test.ts",
+      "apps/api/test/finance.test.ts",
+      "apps/api/test/helpers/publication.ts",
+      "apps/api/test/listings.test.ts",
+      "apps/api/test/marketplace-metrics.test.ts",
+      "apps/api/test/notifications.test.ts",
+      "apps/api/test/operations.test.ts",
+      "apps/api/test/payments.test.ts",
+      "apps/api/test/privacy-finance.test.ts",
+      "apps/api/test/privacy.test.ts",
+      "apps/api/test/public-pages.test.ts",
+      "apps/api/test/reconciliation.test.ts",
+      "apps/api/test/refunds.test.ts",
+      "apps/api/test/reviews.test.ts",
+      "apps/api/test/support-finance.test.ts",
+      "apps/api/test/support.test.ts",
+      "apps/api/test/tutor-simple.test.ts"
+    ]
+  },
+  {
+    "commit": "58869df",
+    "subject": "test: derive recovery migrations and require explicit PG16 tools",
+    "files": [
+      "apps/api/test/recovery.test.ts"
+    ]
+  },
+  {
+    "commit": "f05ad33",
+    "subject": "test: follow current account navigation and direct-ad browser journeys",
+    "files": [
+      "tests/browser/accessibility.spec.ts",
+      "tests/browser/account.spec.ts",
+      "tests/browser/availability.spec.ts",
+      "tests/browser/catalogue.spec.ts",
+      "tests/browser/discovery.spec.ts",
+      "tests/browser/learners.spec.ts",
+      "tests/browser/navigation.ts",
+      "tests/browser/operations.spec.ts",
+      "tests/browser/payments.spec.ts",
+      "tests/browser/privacy.spec.ts",
+      "tests/browser/staff.spec.ts",
+      "tests/browser/support.spec.ts",
+      "tests/browser/tutors.spec.ts"
+    ]
+  },
+  {
+    "commit": "4ea989d",
+    "subject": "test: target catalogue shortcut buttons explicitly",
+    "files": [
+      "tests/browser/catalogue.spec.ts"
+    ]
+  },
+  {
+    "commit": "final evidence and verification commit (this report)",
+    "subject": "test: finalize rebase evidence and verification",
+    "files": [
+      "apps/api/test/chat.test.ts",
+      "apps/api/test/classes.test.ts",
+      "apps/api/test/listings.test.ts",
+      "docs/qa/evidence/2026-11-05/test-rebase-api-after.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-assertion-preservation.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-axe-after.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-axe-regressions.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-browser-after.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-browser-regressions.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-commits.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-expectation-changes.json",
+      "docs/qa/evidence/2026-11-05/test-rebase-recovery-prerequisite.json",
+      "docs/qa/test-rebase-2026-11-05.md"
+    ]
+  }
+]

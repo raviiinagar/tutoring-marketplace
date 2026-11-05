@@ -83,7 +83,7 @@ test('offers require an adult Tutor role and declared Subjects with strict taxon
  const user=await tutor();const pending=await tutor(false);await post('/v1/me/listings',offer).expect(401);
  const noTutor=await fixture(null);await post('/v1/me/listings',offer,noTutor.cookie).expect(403);
  const free=await publish(pending);assert.equal(free.identity_verified,false);
- 
+
  for(const change of [{owner_id:user.id},{currency:'USD'},{rate_paise:1},{rate_paise:100.1},{teaching_mode:'IN_PERSON'},{language_ids:['language-english','language-english']},{curriculum_id:undefined},{domain_id:'career'},{subject_id:'exam-jee'},{rate_unit:'LESSON'},{trial_kind:'FREE'},{trial_price_paise:500},{title:'Contact tutor@example.test'},{description:'Contact me at https://example.test for private tutoring lessons.'},{curriculum_id:'curriculum-isc',level_id:'level-class-10'}])await post('/v1/me/listings',{...offer,...change},user.cookie).expect(change.subject_id==='exam-jee'?403:change.teaching_mode==='IN_PERSON'?409:400);
  await post('/v1/me/listings',{...offer,domain_id:'entrance',subject_id:'subject-mathematics',level_id:'level-repeater',curriculum_id:undefined,exam_id:'exam-neet'},user.cookie).expect(400);
  await post('/v1/me/listings',{...offer,subject_id:'subject-mathematics'},user.cookie).expect(403);

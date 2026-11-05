@@ -1,0 +1,1671 @@
+{
+  "suite": "API",
+  "complete": true,
+  "summary": {
+    "tests": 235,
+    "pass": 231,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    {
+      "name": "account name saves on the authenticated identity, persists and keeps Tutor and security facts separate",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 26,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "name bounds and strict request shape prevent changing another account or security fields",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "profile updates require current authenticated session and the allowed request origin",
+      "file": "apps/api/test/account-profile.test.ts",
+      "line": 47,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "overview requires active staff MFA and exposes finance only to Finance",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 135,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "account directory paging uses a stable cursor and does not repeat rows",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 176,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "anonymous public traffic deduplicates concurrent retries and tab visits without storing supplied identifiers or private payloads",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 212,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "IST midnight separates daily visits and lazy retention drops only old hashed receipts",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 252,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Support directory searches accounts without leaking credentials and revoked assignments cannot reuse a report session",
+      "file": "apps/api/test/admin.test.ts",
+      "line": 299,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "development accepts loopback aliases but still rejects unrelated origins",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 31,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "verified account journey, secure storage, cookie authentication and revocation",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "invalid, malformed, expired tokens and recovery with a fresh email",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 63,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent verification consumes one token once",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 72,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "private access, session expiry and disabled accounts",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 77,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "rate limits, duplicate signup and strict request/origin validation",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 90,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production refuses capture/missing secrets and does not expose development mail",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 101,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "worker retries invalid ciphertext and expires old undelivered mail",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 116,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "roles stay on one identity, deny staff grants and audit without secrets",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 126,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "session inventory and revocation enforce ownership and current access",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 142,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "password recovery is generic, encrypted, expiring, single-use and revokes every session",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 161,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "disabled recovery cannot restore access; successful reset invalidates sibling links and sessions",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 189,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "database restart preserves accounts and migration ledger",
+      "file": "apps/api/test/auth.test.ts",
+      "line": 209,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "empty-category signup requires adult purpose consent and exact validated filters without creating an account or payment rights",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 74,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "simultaneous normalized duplicate signups create one durable confirmation and do not rotate active consent tokens",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 85,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "verification expires at the exact boundary and pending/active expiry purges contact with no notification",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 90,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "withdrawal invalidates pending confirmation, cancels queued mail, is idempotent and old links cannot withdraw a new generation",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 95,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only currently approved matching supply creates one intent; pause, price and same-offer dimensions are authoritative",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 100,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "abuse limits and origin guards reject repeated requests and workers never revive withdrawn subscriptions",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 111,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "empty projected pages do not hide later eligible supply and changed prices are rechecked after discovery",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 117,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "email fanout stays capped after withdrawal and a freed slot requires fresh explicit confirmation",
+      "file": "apps/api/test/availability.test.ts",
+      "line": 125,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "public catalogue has all eight domains and separate seeded taxonomy with stable aliases",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 44,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "selection validation rejects unknown, mistyped and unrelated fields while allowing a repeater",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 55,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "catalogue maintenance denies anonymous, public, non-Trust, missing and revoked MFA sessions",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 64,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Trust edits are durable and audited; inactive terms disappear publicly and fail selection validation",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 72,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "invalid taxonomy, reused aliases, immutable types and concurrent duplicate names are rejected atomically",
+      "file": "apps/api/test/catalogue.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "an acknowledged message remains visible to both adult participants after API restart",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 253,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "simultaneous retries share one immutable message and another sender can reuse its client ID",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 286,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "unread messages exclude your own sends and persisted read positions never move backwards",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 324,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "bounded history recovers every missing sequence and loads earlier messages in order",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 370,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "realtime replays missed committed messages and closes when current Connection authority is revoked",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 459,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "chat is private, text-only, and bounded against repeated new-message submissions",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 522,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "participant blocking closes live chat and denies both directions until each owner unblocks",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 576,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "reports preserve only selected messages and Trust case access requires scoped MFA and an audited purpose",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 622,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "case sanctions compose across cases, hide suspended supply and leave safety status inspectable by affected adults",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 698,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "restricted adults can lodge an idempotent private appeal without regaining marketplace permission",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 782,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a safety suspension racing Tutor acceptance denies subsequent contact release and stale-offer requests",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 843,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "safety evidence and decisions reject unrelated IDs, self-review and revoked staff MFA",
+      "file": "apps/api/test/chat.test.ts",
+      "line": 915,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only the connected Tutor schedules private encrypted classes and retried saves deduplicate",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 258,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "reschedule and cancellation reject stale edits and Join rechecks the authoritative time window",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 305,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "unsafe meeting URLs, past dates, excess duration and overposting are rejected",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 360,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a current safety block stops reads, edits and meeting link release",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 384,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "personal exports include owned invitations while account erasure removes shared meeting content",
+      "file": "apps/api/test/classes.test.ts",
+      "line": 405,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Trust Listing inspection and the same operator enquiry cannot deadlock on participant users",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 77,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "clean consented Tutor photos publish without fabricated review and public delivery follows current offer eligibility",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 101,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "photo replacement/removal invalidate old URLs and cannot alter identity approval or remove another Tutor photo",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 123,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "photo upload validates decoding, dimensions, consent, scanner result and privileged reviewer scope",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 134,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production excludes fictional photo assets even when the underlying Tutor evidence is nonfictional",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 145,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only the targeted Tutor can decide and contacts require the two adult participants and a granted Connection",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 152,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "simultaneous repeated acceptance creates one result and an accept/decline race records one immutable decision",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 160,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "deadline equality rejects both decisions and ordinary pass expiry preserves the original covered request",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 165,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "revoked submission coverage and matching coverage without activation never release contacts",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 170,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "pause permits decline, while suspended or revised offers and a missing adult declaration prevent acceptance",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 175,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "current blocks, account restrictions and safety suspension deny established Connection reads; ordinary pause does not",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 182,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Guardian is the adult contact; withdrawn child consent blocks private Connection content and contact access",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 187,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "failed conversation creation rolls back decision, Connection, participants and grant; retry can establish them once",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 191,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "two accepting Tutors share submission coverage without resetting activation dates or creating extra grants per Connection",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 195,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production cannot decide, inspect or release fixture Connections even if fictional rows are imported",
+      "file": "apps/api/test/connections.test.ts",
+      "line": 199,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "deadline worker records reminders once and expires at equality even after a delayed run",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 70,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "owner-selected alternatives preserve exact intent without sending, charging or revealing contacts",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 95,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "requests require authenticated beneficiary authority, eligible exact offers and server coverage; client flags cannot grant access",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 125,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "submission snapshots coverage and encrypted enquiry; duplicate races return the same result without exposing unrelated records",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 134,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "six simultaneous enquiries share one coverage but only five remain pending; expired requests free slots at equality",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 142,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "first matching deadline caps expiry, while active pass expiry never shortens already recorded request coverage",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 147,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "blocks in either direction, revoked coverage and a missing adult declaration prevent new requests",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 152,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Guardian current approval and consent authorize the child beneficiary; withdrawal hides stored private enquiry and prevents reuse",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 157,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production rejects fixture coverage and fixture replays, has no grant endpoint and isolated grant helper rejects ordinary databases",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 161,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "opposing requests between dual-role participants follow one user lock order and both can complete",
+      "file": "apps/api/test/contact-requests.test.ts",
+      "line": 166,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "100% coupon works without a payment provider, creates no money, survives retry and activates once on Tutor acceptance",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 315,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "campaign capacity is atomic across users; disabling prevents new uses and staff requires Finance MFA",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 409,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "invalid, not-yet-started and expired codes cannot grant access; cancellation does not restore a coupon use",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 445,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "partial coupon prices the provider order and immutable disclosures; only confirmed discounted capture authorizes access",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 499,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "coupon matching expiry equality prevents acceptance and permits a new different coupon without altering old facts",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 557,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "ordinary production-mode verified accounts can redeem a non-cash coupon while checkout stays disabled",
+      "file": "apps/api/test/coupons.test.ts",
+      "line": 598,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "migration preserves prior eligible publication but never exposes private or adverse historical cases",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 51,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "explicit free ad publication works without identity or Pro, while drafts and identity facts stay truthful",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 55,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "new publication validates words, live edits are immediate, revisions and soft archive protect history",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 67,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "optional pending identity does not pause free ads; audited staff restrictions cannot be bypassed",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 75,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "clean consented portrait publishes without fabricated staff approval and staff rejection hides it",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 82,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "learner coverage remains mandatory while a nonverified free Tutor can accept and retain safe connections",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "account restrictions, inactive catalogue and both-direction blocks remain authoritative",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 94,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "public contact still requires explicit consent and current Pro; staff can find free unverified profiles",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 104,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "historical requested ad changes require a revision, and staff restriction lifts never publish automatically",
+      "file": "apps/api/test/direct-tutor-publication.test.ts",
+      "line": 111,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "public card portraits are smaller, metadata-free and still denied immediately after withdrawal",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 65,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "filters match one exact offer rather than mixing CBSE Physics and JEE Mathematics profile claims",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 88,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "price units, strict filters and stable bounded keyset pagination do not mix hourly and lesson prices",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 93,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "public details expose controlled evidence labels and offer terms while excluding every private identity/evidence field",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 100,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "paused, safety-restricted, disabled and inactive-taxonomy offers disappear while optional evidence expiry removes verification labels",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 106,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "representative offers across eight families retain independent exact combinations and honest empty results",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 115,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production free ads never claim fictional evidence as verified and invalid adult eligibility never releases a public offer",
+      "file": "apps/api/test/discovery.test.ts",
+      "line": 120,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "post-Connection refund approval requires Finance MFA and explicit access treatment while preserving established chat",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 431,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "verified chargebacks reserve exposure, deduplicate actual debits and expose overlap with completed refunds",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 498,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "unresolved dispute exposure limits refunds and a stale lost event cannot invent a chargeback after provider victory",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 590,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent partial and full case approvals cannot reserve more than the captured platform fee",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 644,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "an unexpected second capture is refunded separately without overwriting the original capture",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 681,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a processed refund webhook resolves an unknown operation once and closes the cancelled purchase",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 713,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a refund completing recovery after a partial chargeback must explicitly revoke acquisition",
+      "file": "apps/api/test/finance.test.ts",
+      "line": 730,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "adult profiles are private, unique, editable by owner and require adult attestation and Learner role",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 37,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Guardian approval records versions, identifiable-adult/authority review and private audited inspection",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 50,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "child profiles have no independent identity; missing/current/withdrawn consent and foreign IDs are enforced",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 64,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "insufficient/rejected evidence, self-review and approval revocation prevent child use",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent revocation cannot leave a child profile eligible after approval is removed",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 92,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production child-data gate refuses missing policy, test mode, test adapter and test evidence",
+      "file": "apps/api/test/learners.test.ts",
+      "line": 97,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "new offer eligibility follows active declared Subjects independently of optional evidence, including a Commerce-only Tutor",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 60,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "offers require an adult Tutor role and declared Subjects with strict taxonomy, rates, durations and contact-free text",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 82,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "direct publication, optimistic live edits, public privacy and pause/resume content boundaries are enforced",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 92,
+      "status": "FAIL",
+      "error": "'expected 400 \"Bad Request\", got 200 \"OK\"'",
+      "stack": [
+        "TestContext.<anonymous> (<worktree>\\apps\\api\\test\\listings.test.ts:114:94)"
+      ]
+    },
+    {
+      "name": "foreign owners, missing/scoped MFA and self review cannot change offers",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 117,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "safety suspension survives owner edits and only Trust staff can lift it without auto publication",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 122,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "optional evidence does not control free publication while safety holds, inactive taxonomy and disabled accounts block availability",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 128,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent content edit and staff safety restriction permit one revision transition and never stale publication",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 148,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "all eight Learning Domains can publish explicit offers without crossing subject and exam claims",
+      "file": "apps/api/test/listings.test.ts",
+      "line": 163,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Finance MFA sees deduplicated searches and separate request, Connection and mature paid-cohort facts",
+      "file": "apps/api/test/marketplace-metrics.test.ts",
+      "line": 433,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "refund facts stay in the original checkout domain after Listing edits and mature no-match rates have explicit denominators",
+      "file": "apps/api/test/marketplace-metrics.test.ts",
+      "line": 535,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "critical SMS treats an invalid success or server outage as uncertain, and provider proof binds the unique alert",
+      "file": "apps/api/test/notification-delivery.test.ts",
+      "line": 29,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "general operations SMS requires its own approved template instead of reusing refund wording",
+      "file": "apps/api/test/notification-delivery.test.ts",
+      "line": 74,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "committed enquiries enqueue minimal notifications, retries survive an outage and request replay never duplicates delivery",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 487,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "optional enquiry preferences are respected while verified financial service notices cannot be disabled",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 540,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "chat notices contain no message text and current read positions and blocks suppress queued delivery",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 607,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "availability delivery requires verified consent and unsubscribe cancels queued retries without affecting another subscriber",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 672,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Support MFA sees failures without message content, and an uncertain critical SMS is reconciled without blind resend",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 734,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production refuses a test notification sender even when passed through dependency injection",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 783,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "withdrawing Guardian consent suppresses queued chat notices without disclosing a child alias",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 807,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent critical alert workers respect the daily owner SMS budget",
+      "file": "apps/api/test/notifications.test.ts",
+      "line": 890,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Finance MFA pauses only new checkout and versioned control retries preserve the original purchase",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 465,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "durable redacted alerts deduplicate outside support hours and verified recovery resolves only current conditions",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 546,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "provider-outage inbox replay is scoped and duplicate replay produces one captured business fact",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 630,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "webhook, backup and security observations require scoped evidence and stale health never stays green",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 700,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "notification dead letters recover from an external outage without a duplicate logical notice or leaked provider error",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 814,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "overdue captured access and an unfunded refund reserve raise separate critical conditions",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 880,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "recovery acknowledgement failure can resume the same command after its original event already completed",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 927,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only Finance with MFA can release recovery after fresh provider reconciliation and explicit refund/bank review",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 969,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "isolated staging without a payment account can release empty recovery, while production cannot skip provider review",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 1117,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production HTTPS health becomes unavailable when critical workers or the monitor stop",
+      "file": "apps/api/test/operations.test.ts",
+      "line": 1189,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Razorpay adapter uses server Orders without partial payment and validates provider responses",
+      "file": "apps/api/test/payment-provider.test.ts",
+      "line": 19,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "checkout is disabled by default and live configuration cannot invent merchant or tax disclosures",
+      "file": "apps/api/test/payment-provider.test.ts",
+      "line": 68,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "server prices one stable hosted checkout and concurrent retries reuse its Order",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 291,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "callback signatures never grant access; signed capture webhooks journal money once despite replay and lost callbacks",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 356,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "lost Order responses block replacement charges; durable capture recovers without browser callbacks after restart",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 422,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "checkout and financial status enforce account, Learner, supply and block authority",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 483,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "unknown attempts never credit a purchase; mismatched captures remain financial facts requiring review",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 567,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "late capture keeps its original matching deadline and out-of-order failures cannot undo captured money",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 592,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "paid capture enables enquiries and the first eligible acceptance activates exactly one 30-day pass",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 650,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "two paid Tutors accept concurrently with one entitlement, fixed activation dates and one capture through replay",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 699,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production excludes test-provider coverage from enquiry, Connection and safety interfaces",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 775,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "ordinary expiry preserves covered requests and established contacts; only an explicit new checkout creates a repurchase",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 825,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "supply suspended during provider work preserves captured money and routes to an explicit eligible alternative",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 890,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "abandoning the Learner role before capture records money without enabling enquiries or contacts",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 954,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "paid matching deadline equality cannot activate a pass or authorize a replacement charge",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 977,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a financial review blocks further paid acquisitions while preserving an established safe Connection",
+      "file": "apps/api/test/payments.test.ts",
+      "line": 1001,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "account erasure preserves captured financial facts and holds private evidence until the Finance obligation closes",
+      "file": "apps/api/test/privacy-finance.test.ts",
+      "line": 466,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "verified export contains only owned data and scanned photo assets, with expiring authorized downloads",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 177,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "deletion revokes activity, clears personal assets, reports retention and reapplies durable tombstones after restore",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 302,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Guardian withdrawal erases the selected child context, revokes old grants and respects fresh later consent",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 617,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "restore fails closed when the independent privacy ledger is unavailable",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 785,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "approved evidence retention purges expired unreferenced uploads while current teaching evidence remains available",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 804,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production refuses missing, fictional or unapproved retention and recovery configuration",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 848,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "SMTP erasure remains in external review until scoped staff confirms provider handling",
+      "file": "apps/api/test/privacy.test.ts",
+      "line": 885,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "canonical Tutor pages and category supply disappear immediately when publication pauses",
+      "file": "apps/api/test/public-pages.test.ts",
+      "line": 222,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production metadata and sitemap include only current approved supply and approved portraits",
+      "file": "apps/api/test/public-pages.test.ts",
+      "line": 257,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "payment history and immutable receipt snapshots belong only to the payer and exclude direct tuition",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 409,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "settlement and bank imports deduplicate, preserve fee-inclusive tax and balance without treating processed settlement as bank credit",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 450,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a missing capture callback is fetched without a new charge and requires audited capture-time evidence before access",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 579,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a signed settlement callback is refetched once and remains pending bank evidence",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 681,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a missing refund callback is fetched by reconciliation without creating a replacement refund or charge",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 718,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "daily read-only reconciliation schedules overlapping periods once without creating payment Orders",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 798,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "foreign unexpected captures remain separate from INR totals and preserve their actual currency",
+      "file": "apps/api/test/reconciliation.test.ts",
+      "line": 843,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "independent storage verifies every encrypted upload by downloading it and rejects corrupt remote bytes",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 8,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "the independent watchdog measures loss from the database snapshot rather than a recent upload timestamp",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 75,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "the recovery operator refuses a production identity under a development or test runtime",
+      "file": "apps/api/test/recovery-storage.test.ts",
+      "line": 95,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "an authenticated encrypted export restores all data on PG16 into an empty isolated database and pauses checkout",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 38,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "cross-host migration verification accepts only LF/CRLF equivalents without rewriting recorded checksums",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 433,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production entrypoints reject plaintext database launches",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 456,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "an environment still under recovery cannot publish a newer-looking backup",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 472,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "compatible application rollback checks preserve money and reject unsupported or unapplied migrations",
+      "file": "apps/api/test/recovery.test.ts",
+      "line": 506,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "cancellation ends unconnected requests and refunds the full price once through an ambiguous provider retry",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 393,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "no-match equality and late capture create a full refund without extending the matching window",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 469,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "cancellation and first acceptance serialize, and a completed full refund permits a fresh explicit purchase",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 514,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Finance MFA limits reserve/retry commands, funding references deduplicate and failed refunds remain reserved for review",
+      "file": "apps/api/test/refunds.test.ts",
+      "line": 559,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only the connected adult payer may attest and submit once at the exact seven-day boundary",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 310,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Trust moderation treats negative and positive feedback equally; withdrawal and removal update every public aggregate and reject stale publication",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 366,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "moderation appeals are private, revision-linked and idempotent for the two adults only",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 499,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Guardian consent withdrawal removes public feedback immediately and cannot be bypassed by stale moderation",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 568,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "peer blocks cannot suppress honest reviews; self-moderation and stale restricted publication are denied",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 666,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production public reviews exclude imported fixture Connections even if a copied review flag is incorrect",
+      "file": "apps/api/test/reviews.test.ts",
+      "line": 734,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "only the configured Super Admin can delegate verified accounts, revoke access, and retain the sole owner",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 41,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "legacy FINANCE assignment cannot bypass delegated role boundaries",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 66,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "testing sessions require passwords, bind to the account session and end at the cutoff",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 73,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "disabling the exception invalidates test sessions while normal MFA still works",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "configured owner must already be an active verified staff identity at startup",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 97,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "unsafe config cannot enable the testing exception in real production or indefinitely",
+      "file": "apps/api/test/staff-governance.test.ts",
+      "line": 100,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "logout and an overlapping authenticated read use a consistent lock order",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 44,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "TOTP matches RFC 6238 SHA1 vectors including dates beyond 2038",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 58,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "public accounts cannot assign staff; bootstrap requires a verified account",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 62,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "MFA requires password, same enrollment session, unexpired setup and unreplayed code",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 69,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "scope boundaries, MFA cookie binding and audit actor/target/reason are enforced",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 87,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "staff sign-out, session expiry, scope changes and account revocation invalidate privileged access",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 101,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "recovery consumes all backup codes, revokes staff access and requires a new authenticator",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 113,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "password recovery revokes staff access without bypassing the existing authenticator",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 121,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "MFA brute-force limits persist across failed attempts; disabled and operator-revoked accounts lose access",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 134,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "production staff sessions use Secure host cookies and keep raw tokens out of JSON and storage",
+      "file": "apps/api/test/staff.test.ts",
+      "line": 144,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "refund appeals preserve original decisions and use a Finance command for reconsideration",
+      "file": "apps/api/test/support-finance.test.ts",
+      "line": 432,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "support cases preserve ownership, scoped assignment, restricted notes and audited resolution",
+      "file": "apps/api/test/support.test.ts",
+      "line": 141,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "review and safety appeals become private Trust cases with revision-safe domain adjudication",
+      "file": "apps/api/test/support.test.ts",
+      "line": 402,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "owners can answer a waiting case without exposing restricted notes and policy hours match IST",
+      "file": "apps/api/test/support.test.ts",
+      "line": 653,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "incomplete drafts persist privately, resume exactly and never create or publish a profile",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 50,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "concurrent writes and stale clears cannot overwrite a newer private draft",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 67,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "draft endpoints enforce current verified Tutor identity, strict bounds and CSRF origin",
+      "file": "apps/api/test/tutor-onboarding-drafts.test.ts",
+      "line": 80,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "badge derivation never infers unsupported higher levels or awards to unpublished profiles",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 237,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "recommendations require authenticated distinct authors, moderation, current revisions, and withdraw immediately",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 279,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "diploma progress requires owned clean evidence and never awards an upper badge",
+      "file": "apps/api/test/tutor-reputation.test.ts",
+      "line": 511,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "one private identity makes a free public profile; Pro, approved offer and consent independently control public email",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 218,
+      "status": "FAIL",
+      "error": "'expected 403 \"Forbidden\", got 201 \"Created\"'",
+      "stack": [
+        "TestContext.<anonymous> (<worktree>\\apps\\api\\test\\tutor-simple.test.ts:221:53)"
+      ]
+    },
+    {
+      "name": "Tutor Pro server capture uses INR 600, activates once on confirmation, and has no learner matching deadline",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 230,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "identity edits require new approval; foreign identity requires passport; public restriction removes introduction",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 241,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "a valid submitted enquiry survives ordinary Tutor Pro expiry while new supply and public contact disappear",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 247,
+      "status": "FAIL",
+      "error": "'expected 403 \"Forbidden\", got 200 \"OK\"'",
+      "stack": [
+        "TestContext.<anonymous> (<worktree>\\apps\\api\\test\\tutor-simple.test.ts:253:629)"
+      ]
+    },
+    {
+      "name": "location and hours validate ownership, stale writes and public Subject/city/day/time filters without re-reviewing identity",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 256,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "in-person offers and enquiries use real location/mode while closing new students preserves an existing enquiry",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 275,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "material location changes require offer resubmission, not new identity evidence",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 294,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Saved Tutors are private, authenticated, idempotent and recheck current eligibility and blocks",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 305,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "Saved Tutors enforce the account limit across concurrent additions without losing existing saves",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 319,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "free first-class filters and unit-safe price ordering paginate ties and survive cursor-offer removal",
+      "file": "apps/api/test/tutor-simple.test.ts",
+      "line": 326,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "adult age boundary and private profile revisions reject children, invalid dates and overposting",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 53,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "uploads enforce formats, size, malicious/scan-error quarantine and cross-account ownership",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 60,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "claim submission requires separate identity and active Subject evidence and limits uploads",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 74,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "private reviews and one-use downloads require Trust MFA, binding, purpose, scan and current revision",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 83,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "specific approvals expire, corrections revise claims and revocation blocks publication eligibility",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 95,
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal: false !== true",
+      "stack": [
+        "TestContext.<anonymous> (<worktree>\\apps\\api\\test\\tutors.test.ts:100:129)"
+      ]
+    },
+    {
+      "name": "production refuses test scanner configuration/adapters and disabled uploads fail closed",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 111,
+      "status": "PASS",
+      "stack": []
+    },
+    {
+      "name": "ClamAV adapter streams framed bytes and fails closed on FOUND and ERROR responses",
+      "file": "apps/api/test/tutors.test.ts",
+      "line": 117,
+      "status": "PASS",
+      "stack": []
+    }
+  ]
+}

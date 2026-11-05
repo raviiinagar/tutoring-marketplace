@@ -1,0 +1,147 @@
+{
+  "suite": "Original 19 browser cases",
+  "source_commit": "4ea989d",
+  "summary": {
+    "startTime": "2026-11-05T13:24:20.121Z",
+    "duration": 506597.42,
+    "expected": 17,
+    "skipped": 1,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "name": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+      "file": "accessibility.spec.ts",
+      "line": 6,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "discovery and authentication expose labelled forms, contrast and announced errors",
+      "file": "accessibility.spec.ts",
+      "line": 46,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+      "file": "accessibility.spec.ts",
+      "line": 70,
+      "status": "failed",
+      "error": "Error: 390-tutor: [{\"id\":\"color-contrast\",\"nodes\":[[\".brand-tutor\"]]}]\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 58\n\n- Array []\n+ Array [\n+   Object {\n+     \"description\": \"Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds\",\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"helpUrl\": \"https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"all\": Array [],\n+         \"any\": Array [\n+           Object {\n+             \"data\": Object {\n+               \"bgColor\": \"#ffffff\",\n+               \"contrastRatio\": 2.93,\n+               \"expectedContrastRatio\": \"3:1\",\n+               \"fgColor\": \"#ff6167\",\n+               \"fontSize\": \"15.8pt (21px)\",\n+               \"fontWeight\": \"bold\",\n+               \"messageKey\": null,\n+             },\n+             \"id\": \"color-contrast\",\n+             \"impact\": \"serious\",\n+             \"message\": \"Element has insufficient color contrast of 2.93 (foreground color: #ff6167, background color: #ffffff, font size: 15.8pt (21px), font weight: bold). Expected contrast ratio of 3:1\",\n+             \"relatedNodes\": Array [\n+               Object {\n+                 \"html\": \"<header class=\\\"site-header sticky top-0 z-20 border-b bg-background/95 backdrop-blur-xl\\\" data-tsd-source=\\\"/src/components/account/ui.tsx:227:7\\\">\",\n+                 \"target\": Array [\n+                   \"header\",\n+                 ],\n+               },\n+             ],\n+           },\n+         ],\n+         \"failureSummary\": \"Fix any of the following:\n+   Element has insufficient color contrast of 2.93 (foreground color: #ff6167, background color: #ffffff, font size: 15.8pt (21px), font weight: bold). Expected contrast ratio of 3:1\",\n+         \"html\": \"<span class=\\\"brand-tutor\\\" data-tsd-source=\\\"/src/components/account/ui.tsx:51:7\\\">Tutor</span>\",\n+         \"impact\": \"serious\",\n+         \"none\": Array [],\n+         \"target\": Array [\n+           \".brand-tutor\",\n+         ],\n+       },\n+     ],\n+     \"tags\": Array [\n+       \"cat.color\",\n+       \"wcag2aa\",\n+       \"wcag143\",\n+       \"TTv5\",\n+       \"TT13.c\",\n+       \"EN-301-549\",\n+       \"EN-9.1.4.3\",\n+       \"ACT\",\n+       \"RGAAv4\",\n+       \"RGAA-3.2.1\",\n+     ],\n+   },\n+ ]\n\n   at accessibility.ts:51\n\n  49 |         })),\n  50 |       ),\n> 51 |   ).toEqual([]);\n     |     ^\n  52 |   expect(\n  53 |     await page.evaluate(\n  54 |       () => document.documentElement.scrollWidth <= innerWidth + 1,\n    at auditAccessibility (<worktree>\\tests\\browser\\accessibility.ts:51:5)\n    at <worktree>\\tests\\browser\\accessibility.spec.ts:158:7"
+    },
+    {
+      "name": "form boundaries and keyboard focus stay visible against the input surface",
+      "file": "accessibility.spec.ts",
+      "line": 163,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "client-side form errors announce themselves and describe each invalid input",
+      "file": "accessibility.spec.ts",
+      "line": 211,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "Lovable account journey from http://localhost:3100",
+      "file": "account.spec.ts",
+      "line": 5,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "Lovable account journey from http://127.0.0.1:3100",
+      "file": "account.spec.ts",
+      "line": 5,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "mobile empty search confirms optional adult availability consent and unsubscribes using captured email",
+      "file": "availability.spec.ts",
+      "line": 2,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "public catalogue aliases and Trust maintenance stay consistent",
+      "file": "catalogue.spec.ts",
+      "line": 12,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "mobile public search has honest empty results across eight families and unavailable detail",
+      "file": "discovery.spec.ts",
+      "line": 2,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "private adult profile and fictional Guardian approval, child consent withdrawal and revocation",
+      "file": "learners.spec.ts",
+      "line": 17,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "built public journeys meet the adopted mobile lab LCP profile",
+      "file": "mobile-performance.spec.ts",
+      "line": 5,
+      "status": "skipped",
+      "error": ""
+    },
+    {
+      "name": "operations console records scoped health, pauses checkout and keeps mobile recovery controls private",
+      "file": "operations.spec.ts",
+      "line": 60,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "mobile Access Pass page shows the real server price and keeps unconfigured payments disabled",
+      "file": "payments.spec.ts",
+      "line": 3,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "verified export and deletion complete with a read-only receipt on mobile",
+      "file": "privacy.spec.ts",
+      "line": 39,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "served indexing documents block development crawlers and exclude private pages",
+      "file": "public-indexing.spec.ts",
+      "line": 3,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "staff MFA enrollment, scoped console, audit and authenticator recovery",
+      "file": "staff.spec.ts",
+      "line": 12,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "owner and scoped staff exchange a support case while private notes stay staff-only",
+      "file": "support.spec.ts",
+      "line": 40,
+      "status": "passed",
+      "error": ""
+    },
+    {
+      "name": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+      "file": "tutors.spec.ts",
+      "line": 19,
+      "status": "passed",
+      "error": ""
+    }
+  ]
+}

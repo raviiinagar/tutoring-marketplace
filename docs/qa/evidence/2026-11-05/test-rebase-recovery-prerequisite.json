@@ -1,0 +1,12 @@
+{
+  "command": "node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-name-pattern=\"an authenticated encrypted export restores all data on PG16\" apps/api/test/recovery.test.ts",
+  "environment": {
+    "PG_RECOVERY_BIN": "unset"
+  },
+  "tests": 1,
+  "pass": 0,
+  "fail": 0,
+  "skip": 1,
+  "message": "Set PG_RECOVERY_BIN to a PostgreSQL 16 bin directory containing pg_dump and pg_restore to exercise encrypted export/restore.",
+  "note": "Focused prerequisite check only; full API suite supplies the tool path and does not use this skip."
+}
