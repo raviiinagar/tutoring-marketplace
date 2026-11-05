@@ -24,3 +24,10 @@ it("signup and reset show the same password-length rule", async () => {
   render(<Reset />);
   expect(await screen.findByText((_, element) => element?.tagName === "P" && element.textContent === PASSWORD_LENGTH_GUIDANCE + " Resetting signs out every device.")).toBeTruthy();
 });
+
+it("describes the actual Guardian policy, verification and consent gates", () => {
+  const Signup = SignupRoute.options.component!;
+  render(<Signup />);
+  expect(screen.getByText("This creates your own account. To manage a child learner, verify your email and enable the Learner role. Child profiles require a configured Guardian verification policy, approved Guardian verification and acceptance of the current notice and consent.")).toBeTruthy();
+  expect(screen.queryByText(/later update/i)).toBeNull();
+});

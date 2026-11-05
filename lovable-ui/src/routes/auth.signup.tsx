@@ -49,7 +49,7 @@ function SignUp() {
   return (
     <AuthShell
       title="Create your account"
-      intro={<p>This creates your own account. Child learner profiles and guardian tools will come in a later update.</p>}
+      intro={<p>This creates your own account. To manage a child learner, verify your email and enable the Learner role. Child profiles require a configured Guardian verification policy, approved Guardian verification and acceptance of the current notice and consent.</p>}
       footer={<>Already have an account? <Link to="/auth/signin" className="link">Sign in</Link></>}
     >
       <form noValidate onSubmit={onSubmit} className="space-y-5">
