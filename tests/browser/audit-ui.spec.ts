@@ -66,7 +66,7 @@ test("QA05: keyboard start-teaching opens the private wizard without granting a 
     await page.setViewportSize({ width, height: 844 });
     for (const source of ["/account", "/account/settings"]) {
       await page.goto(source);
-      const menu = page.getByRole("button", { name: width < 1024 ? "Open menu" : "My account menu", exact: true });
+      const menu = page.getByRole("button", { name: width < 1024 ? "F Open menu" : "F My account menu", exact: true });
       await expect(menu).toBeEnabled({ timeout: 45000 });
       await menu.focus();
       await page.keyboard.press("Enter");

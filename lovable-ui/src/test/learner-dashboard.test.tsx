@@ -1,7 +1,8 @@
-﻿import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LearnerDashboard } from "@/components/learner-dashboard";
+import { SiteHeader } from "@/components/account/ui";
 import { AccountSettings } from "@/components/account-settings";
 import { api, type User, type ContactRequest } from "@/lib/api";
 import { accountSessionKey } from "@/lib/session";
@@ -222,4 +223,62 @@ it("keeps sign-out failure visible and only navigates after a confirmed sign-out
   expect(navigate).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
+});
+
+it("shows the saved Settings portrait on the dashboard and navbar for the same account", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
+  });
+  vi.spyOn(api, "tutor").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { profile: null, claims: [], evidence: [] },
+  });
+  vi.spyOn(api, "tutorPhoto").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      photo: {
+        id: "saved-owner-photo",
+        status: "PENDING",
+        self_published: true,
+        scan_status: "CLEAN",
+        test_only: true,
+        review_reason: null,
+      },
+      policy: {
+        auto_publication: true,
+        uploads_enabled: true,
+        test_only: true,
+        max_bytes: 1048576,
+        media_types: ["image/png"],
+        notice: "Own portrait",
+      },
+    },
+  });
+  mount(
+    <>
+      <div data-testid="settings">
+        <AccountSettings />
+      </div>
+      <div data-testid="dashboard">
+        <LearnerDashboard />
+      </div>
+      <div data-testid="navbar">
+        <SiteHeader />
+      </div>
+    </>,
+  );
+  const photo = await within(screen.getByTestId("settings")).findByRole("img");
+  expect(photo).toHaveAttribute("src", api.photoPreviewUrl("saved-owner-photo"));
+  expect(
+    await within(screen.getByTestId("dashboard")).findByAltText("Your profile photo"),
+  ).toHaveAttribute("src", photo.getAttribute("src"));
+  const navbarPhotos = await within(screen.getByTestId("navbar")).findAllByAltText(
+    "Your profile photo",
+  );
+  for (const avatar of navbarPhotos)
+    expect(avatar).toHaveAttribute("src", photo.getAttribute("src"));
 });

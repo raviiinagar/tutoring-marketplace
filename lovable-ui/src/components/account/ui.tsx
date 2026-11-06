@@ -1,3 +1,5 @@
+import { accountInitial } from "@/lib/account-photo";
+import { AccountAvatar } from "@/components/account-avatar";
 import { AdminShell } from "@/components/admin-shell";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
@@ -272,17 +274,24 @@ export function SiteHeader({
                   <Button
                     variant="outline"
                     className="header-nav-pill h-11 rounded-full border-0 px-5 shadow-none"
-                    aria-label={accountStyle ? "My account menu" : "My account"}
+                    aria-label={`${accountInitial(user.display_name)} ${accountStyle ? "My account menu" : "My account"}`}
                   >
                     {accountStyle ? (
                       <>
                         <Menu aria-hidden className="size-5" />
-                        <span className="reference-account-initial" aria-hidden>
-                          {user.display_name.trim().slice(0, 1).toUpperCase()}
-                        </span>
+                        <AccountAvatar
+                          decorative
+                          user={user}
+                          className="reference-account-initial"
+                        />
                       </>
                     ) : (
                       <>
+                        <AccountAvatar
+                          decorative
+                          user={user}
+                          className="size-8 rounded-full bg-muted"
+                        />{" "}
                         My account
                         <ChevronDown aria-hidden className="size-4" />
                       </>
@@ -332,12 +341,24 @@ export function SiteHeader({
               variant="ghost"
               size="icon"
               className="lg:hidden"
-              aria-label={open ? "Close menu" : "Open menu"}
+              aria-label={
+                open
+                  ? "Close menu"
+                  : user
+                    ? `${accountInitial(user.display_name)} Open menu`
+                    : "Open menu"
+              }
               aria-expanded={open}
               aria-controls={open ? "mobile-navigation" : undefined}
               onClick={() => setOpen((value) => !value)}
             >
-              {open ? <X /> : <Menu />}
+              {open ? (
+                <X />
+              ) : user ? (
+                <AccountAvatar decorative user={user} className="reference-account-initial" />
+              ) : (
+                <Menu />
+              )}
             </Button>
           </div>
         </div>

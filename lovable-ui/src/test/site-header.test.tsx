@@ -87,7 +87,7 @@ it("pending session announces checking without a false logged-in state", () => {
   mount(true);
   expect(screen.getByRole("status")).toHaveTextContent("Checking account");
   expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "My account" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /My account/ })).toBeNull();
 });
 it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped account menu", async () => {
   vi.mocked(api.me).mockResolvedValue({
@@ -97,7 +97,7 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   });
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
-  const account = await within(nav).findByRole("button", { name: "My account" });
+  const account = await within(nav).findByRole("button", { name: "T My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
     "/tutor/dashboard",
@@ -114,7 +114,7 @@ it("a signed-in Learner enters unified onboarding without selecting a role first
   vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user } });
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
-  await within(nav).findByRole("button", { name: "My account" });
+  await within(nav).findByRole("button", { name: "T My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
     "/tutor",

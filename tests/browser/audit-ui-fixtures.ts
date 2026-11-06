@@ -25,6 +25,7 @@ export async function auditAccount(client: APIRequestContext, origin: string) {
   expect((await client.post("/v1/auth/sessions", {
     headers: { Origin: origin }, data: { email, password },
   })).ok()).toBe(true);
+  return { email, password };
 }
 
 export async function auditSupply(client: APIRequestContext, origin: string) {

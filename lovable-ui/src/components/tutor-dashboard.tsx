@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { useTutorDashboard } from "@/lib/tutor-dashboard";
 import { focusTutorOffers, offerAvailability, offerStatusLabels } from "@/lib/tutor-workspace";
 import { RequestDeadline } from "./request-deadline";
+import { AccountAvatar } from "./account-avatar";
 import { TutorProgressionPanel } from "./tutor-progression";
 function Data<T>({
   query,
@@ -111,6 +112,10 @@ export function TutorDashboard() {
         <aside aria-label="Tutor profile and access" className="min-w-0 space-y-5">
           <TutorProgressionPanel id={data.user.id} compact />
           <section className={panel + " bg-gradient-to-b from-amber-50 to-card"}>
+            <AccountAvatar
+              user={data.user}
+              className="mb-4 size-24 rounded-3xl bg-muted text-3xl"
+            />
             <h2 className="text-xl font-semibold">Profile & identity</h2>
             <div className="mt-4">
               <Data query={data.profile} label="Tutor profile">

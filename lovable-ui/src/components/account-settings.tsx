@@ -7,11 +7,11 @@ import {
   type User,
   type AccountSession,
   type NotificationPreferenceView,
-  type TutorPhoto,
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
-import { Check, UserRound, ShieldCheck, Bell, Camera, CreditCard } from "lucide-react";
+import { Check, ShieldCheck, Bell, Camera, CreditCard } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AccountAvatar } from "./account-avatar";
 import { accountSessionKey } from "@/lib/session";
 
 export function AccountSettings() {
@@ -38,7 +38,7 @@ export function AccountSettings() {
   const preferenceSave = useSingleFlight();
   const preferenceDirty = useRef(false),
     preferenceEpoch = useRef(0);
-  const [photo, setPhoto] = useState<TutorPhoto | null>(null);
+
   const [identityVerified, setIdentityVerified] = useState<boolean>();
   const generation = useRef(0),
     active = useRef(true),
@@ -63,17 +63,16 @@ export function AccountSettings() {
         setPreferenceError(undefined);
         setPreferenceNotice(undefined);
         preferenceDirty.current = false;
-        setPhoto(null);
+
         setIdentityVerified(undefined);
       }
       actor.current = res.data.user.id;
       setUser(res.data.user);
       queryClient.setQueryData(accountSessionKey, res);
-      const [staff, listed, notifications, portrait, tutor] = await Promise.all([
+      const [staff, listed, notifications, tutor] = await Promise.all([
         api.staffAccess(),
         api.sessions(),
         api.notificationPreferences(),
-        res.data.user.roles.includes("TUTOR") ? api.tutorPhoto() : Promise.resolve(undefined),
         res.data.user.roles.includes("TUTOR") ? api.tutor() : Promise.resolve(undefined),
       ]);
       if (!active.current || attempt !== generation.current) return;
@@ -86,7 +85,7 @@ export function AccountSettings() {
         if (preferenceAttempt === preferenceEpoch.current && !preferenceDirty.current)
           setPreferences(notifications.data);
       } else setPreferenceError(describeFailure(notifications.error));
-      if (portrait?.ok) setPhoto(portrait.data.photo);
+
       if (tutor?.ok) setIdentityVerified(tutor.data.profile?.identity_verified === true);
     } else if (res.error.kind === "http" && res.error.status === 401) {
       setUser(null);
@@ -439,18 +438,10 @@ export function AccountSettings() {
               Profile Photo
             </h2>
             <div className="relative mx-auto flex aspect-square w-full max-w-52 items-center justify-center rounded-[56px] bg-[#f1f1f1]">
-              {photo &&
-              photo.scan_status === "CLEAN" &&
-              (photo.status === "APPROVED" ||
-                (photo.status === "PENDING" && photo.self_published)) ? (
-                <img
-                  src={api.photoPreviewUrl(photo.id)}
-                  alt="Your Tutor portrait"
-                  className="h-full w-full rounded-[56px] object-cover"
-                />
-              ) : (
-                <UserRound aria-hidden className="size-20 text-[#b6b6b6]" />
-              )}
+              <AccountAvatar
+                user={user}
+                className="absolute inset-0 h-full w-full rounded-[56px] text-5xl text-muted-foreground"
+              />
               <Camera
                 aria-hidden
                 className="absolute -bottom-2 -right-2 size-12 rounded-full border-4 border-white bg-[#ff6268] p-2.5 text-white"
@@ -469,10 +460,19 @@ export function AccountSettings() {
           </section>
           <section className={card}>
             <details ref={rolesSection} id="roles" className="group scroll-mt-28">
-              <summary ref={rolesSummary} aria-describedby={hash === "roles" ? "start-teaching-help" : undefined} className="cursor-pointer py-2 font-bold">How you use your account</summary>
-              {hash === "roles" && <p id="start-teaching-help" role="status" className="my-4 text-sm">
-                To start teaching, select Tutor below to enable teaching tools. Your Learner role can stay enabled.
-              </p>}
+              <summary
+                ref={rolesSummary}
+                aria-describedby={hash === "roles" ? "start-teaching-help" : undefined}
+                className="cursor-pointer py-2 font-bold"
+              >
+                How you use your account
+              </summary>
+              {hash === "roles" && (
+                <p id="start-teaching-help" role="status" className="my-4 text-sm">
+                  To start teaching, select Tutor below to enable teaching tools. Your Learner role
+                  can stay enabled.
+                </p>
+              )}
               <p className="my-4 text-sm leading-relaxed text-muted-foreground">
                 Choose one or both roles. Creating and publishing a teaching ad is free; identity
                 verification is optional.

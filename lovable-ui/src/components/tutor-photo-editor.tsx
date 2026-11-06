@@ -1,10 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { api, describeFailure, type TutorPhotoState } from "@/lib/api";
+import { useRef, useState, type FormEvent } from "react";
+import { api, describeFailure } from "@/lib/api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTutorAccount } from "@/lib/tutor-dashboard";
+import { useAccountPhoto, updateAccountPhoto } from "@/lib/account-photo";
 import { Button } from "@/components/ui/button";
 
 export function TutorPhotoEditor() {
-  const [state, setState] = useState<TutorPhotoState>();
+  const { user } = useTutorAccount();
+  const client = useQueryClient();
+  const photoQuery = useAccountPhoto(user);
+  const state = photoQuery.data;
   const [file, setFile] = useState<File>();
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string>();
@@ -13,13 +19,9 @@ export function TutorPhotoEditor() {
   const { loading, run } = useSingleFlight();
   const load = async () => {
     setError(undefined);
-    const result = await api.tutorPhoto();
-    if (result.ok) setState(result.data);
-    else setError(describeFailure(result.error));
+    const result = await photoQuery.refetch();
+    if (result.isError) setError("Could not load your profile photo. Please try again.");
   };
-  useEffect(() => {
-    void load();
-  }, []);
   const upload = (event: FormEvent) => {
     event.preventDefault();
     void run(async () => {
@@ -43,6 +45,7 @@ export function TutorPhotoEditor() {
         setConsent(false);
         setFile(undefined);
         if (input.current) input.current.value = "";
+        if (user) updateAccountPhoto(client, user.id, { ...state, photo: result.data.photo });
         await load();
         setNotice("Portrait uploaded. Check its scan and Trust review status below.");
       } else setError(describeFailure(result.error));
@@ -53,7 +56,11 @@ export function TutorPhotoEditor() {
       <h2 id="tutor-photo-title" className="font-semibold">
         Public Tutor photo
       </h2>
-      {error && <Notice tone="error">{error}</Notice>}
+      {(error || photoQuery.isError) && (
+        <Notice tone="error">
+          {error || "Could not load your profile photo. Please try again."}
+        </Notice>
+      )}
       {notice && <Notice tone="success">{notice}</Notice>}
       {!state && <p role="status">Loading photo status…</p>}
       {state && (
@@ -131,6 +138,7 @@ export function TutorPhotoEditor() {
                     setNotice(undefined);
                     const result = await api.removeTutorPhoto(state.photo!.id);
                     if (result.ok) {
+                      if (user) updateAccountPhoto(client, user.id, { ...state, photo: null });
                       await load();
                       setNotice("Portrait removed.");
                     } else setError(describeFailure(result.error));

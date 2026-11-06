@@ -1,10 +1,12 @@
+import { accountInitial } from "@/lib/account-photo";
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { ArrowUpRight, MessageCircle, Check, X, UserRound } from "lucide-react";
+import { ArrowUpRight, MessageCircle, Check, X } from "lucide-react";
 import { AuthShell, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { useLearnerDashboard } from "@/lib/learner-dashboard";
+import { AccountAvatar } from "./account-avatar";
 import { RequestDeadline } from "./request-deadline";
 
 function DashboardData<T>({
@@ -60,9 +62,13 @@ export function LearnerDashboard() {
           <Link
             to="/account/settings"
             className="reference-profile-picture"
-            aria-label="Manage your profile"
+            aria-label={`${accountInitial(user.display_name)} Manage your profile`}
           >
-            <UserRound aria-hidden className="size-16 text-[#d8d8d8]" />
+            <AccountAvatar
+              decorative
+              user={user}
+              className="h-full w-full rounded-[inherit] text-5xl text-muted-foreground"
+            />
           </Link>
           <h2>{user.display_name}</h2>
           <div className="reference-verification-row">

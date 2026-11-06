@@ -1,0 +1,82 @@
+{
+  "red_reproduction": {
+    "file": "lovable-ui/src/test/learner-dashboard.test.tsx",
+    "passed": 6,
+    "failed": 1,
+    "reason": "Settings used the saved owner preview; dashboard had no photo image"
+  },
+  "final_checks": {
+    "ui": {
+      "passed": 219,
+      "failed": 0
+    },
+    "targeted_api": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "suites": [
+        "connections.test.ts",
+        "listings.test.ts"
+      ]
+    },
+    "browser": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "suites": [
+        "accessibility.spec.ts",
+        "account-avatar.spec.ts",
+        "audit-ui.spec.ts",
+        "unified-tutor-onboarding.spec.ts"
+      ]
+    },
+    "full_typecheck": "passed",
+    "cloudflare_build": "passed",
+    "changed_ui_lint": {
+      "errors": 0,
+      "warnings": 3,
+      "note": "Existing exhaustive-deps/refresh warnings; repository-wide lint debt remains under the prior scoped-release exception."
+    },
+    "axe": "All selected accessibility/QA01 scans passed, including twelve audit combinations and signed-in avatar/fallback label checks."
+  },
+  "hosted_saved_photo": {
+    "frontend": "compiled Cloudflare artifact on local Wrangler",
+    "backend": "deployed payment sandbox over HTTPS",
+    "routing": "operator-only browser API bridge retaining configured sandbox origin; no deployed configuration changes",
+    "mutations": "sign-in/sign-out only; no photo uploads or publication actions",
+    "checks": [
+      {
+        "width": 1440,
+        "settings_dashboard_navbar_same_saved_photo": true,
+        "refresh": true,
+        "signout_relogin": true,
+        "publication_preserved": "PAUSED",
+        "ads_preserved": 0,
+        "page_errors": 0,
+        "horizontal_overflow": false
+      },
+      {
+        "width": 390,
+        "settings_dashboard_navbar_same_saved_photo": true,
+        "refresh": true,
+        "signout_relogin": true,
+        "publication_preserved": "PAUSED",
+        "ads_preserved": 0,
+        "page_errors": 0,
+        "horizontal_overflow": false
+      }
+    ]
+  },
+  "root_preservation": {
+    "root_head_unchanged": true,
+    "root_status_unchanged": true,
+    "recorded_root_files_unchanged": 646
+  },
+  "deployment": {
+    "status": "pending",
+    "previous_frontend_version": "74cfc857-fad4-439f-ad64-ad11f298b5b1",
+    "backend_change": false,
+    "migrations": false,
+    "configuration_change": false
+  }
+}
