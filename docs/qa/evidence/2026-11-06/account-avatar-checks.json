@@ -73,10 +73,55 @@
     "recorded_root_files_unchanged": 646
   },
   "deployment": {
-    "status": "pending",
+    "status": "deployed and smoke-tested",
+    "target": "existing public staging",
+    "source_commit": "a4c1e13",
+    "frontend_version": "a4ae5f0f-c142-4320-be40-78b73698e9d3",
     "previous_frontend_version": "74cfc857-fad4-439f-ad64-ad11f298b5b1",
     "backend_change": false,
     "migrations": false,
-    "configuration_change": false
+    "configuration_change": false,
+    "public_smoke": {
+      "frontend_version": "a4ae5f0f-c142-4320-be40-78b73698e9d3",
+      "source": "a4c1e13",
+      "avatar_asset": {
+        "file": "ui-DWCDJerX.js",
+        "status": 200,
+        "sha256": "418ba067fa56a837fdf6f0a49d77c859cfa5b6be2a36434a81f663aa82f66403",
+        "matches_tested_build": true
+      },
+      "api_proxy": [
+        {
+          "path": "/v1/health",
+          "status": 200
+        },
+        {
+          "path": "/v1/catalogue",
+          "status": 200
+        },
+        {
+          "path": "/v1/me",
+          "status": 401
+        }
+      ],
+      "checks": [
+        {
+          "width": 1440,
+          "homepage_signin_hydrated": true,
+          "anonymous_tutor_guard": true,
+          "private_photo_requires_auth": true,
+          "horizontal_overflow": false,
+          "page_errors": 0
+        },
+        {
+          "width": 390,
+          "homepage_signin_hydrated": true,
+          "anonymous_tutor_guard": true,
+          "private_photo_requires_auth": true,
+          "horizontal_overflow": false,
+          "page_errors": 0
+        }
+      ]
+    }
   }
 }
