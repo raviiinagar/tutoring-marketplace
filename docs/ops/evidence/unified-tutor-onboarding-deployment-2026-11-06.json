@@ -1,0 +1,208 @@
+{
+  "source_commit": "464c9fe50fa074d3023eea0dcd40f2af3f3c9a85",
+  "source_changed_files": [
+    "apps/api/src/listings.ts",
+    "apps/api/src/tutor-onboarding-drafts.ts",
+    "apps/api/src/tutor-publication.ts",
+    "apps/api/src/tutors.ts",
+    "apps/api/test/availability.test.ts",
+    "apps/api/test/chat.test.ts",
+    "apps/api/test/classes.test.ts",
+    "apps/api/test/connections.test.ts",
+    "apps/api/test/contact-requests.test.ts",
+    "apps/api/test/coupons.test.ts",
+    "apps/api/test/direct-tutor-publication.test.ts",
+    "apps/api/test/discovery.test.ts",
+    "apps/api/test/finance.test.ts",
+    "apps/api/test/helpers/publication.ts",
+    "apps/api/test/listings.test.ts",
+    "apps/api/test/marketplace-metrics.test.ts",
+    "apps/api/test/notifications.test.ts",
+    "apps/api/test/operations.test.ts",
+    "apps/api/test/payments.test.ts",
+    "apps/api/test/privacy-finance.test.ts",
+    "apps/api/test/privacy.test.ts",
+    "apps/api/test/public-pages.test.ts",
+    "apps/api/test/reconciliation.test.ts",
+    "apps/api/test/refunds.test.ts",
+    "apps/api/test/reviews.test.ts",
+    "apps/api/test/support-finance.test.ts",
+    "apps/api/test/support.test.ts",
+    "apps/api/test/tutor-onboarding-drafts.test.ts",
+    "apps/api/test/tutor-simple.test.ts",
+    "apps/api/test/tutors.test.ts",
+    "docs/api/direct-tutor-publication.md",
+    "docs/ops/unified-tutor-onboarding-handoff-2026-11-06.md",
+    "docs/qa/evidence/2026-11-06/unified-onboarding-checks.json",
+    "docs/qa/unified-tutor-onboarding-verification-2026-11-06.md",
+    "lovable-ui/src/components/account/ui.tsx",
+    "lovable-ui/src/components/tutor-ad-manager.tsx",
+    "lovable-ui/src/components/tutor-dashboard.tsx",
+    "lovable-ui/src/components/tutor-introduction-wizard.tsx",
+    "lovable-ui/src/components/tutor-onboarding.tsx",
+    "lovable-ui/src/lib/tutor-workspace.ts",
+    "lovable-ui/src/routes/tutor.tsx",
+    "lovable-ui/src/routes/tutor_.listings.tsx",
+    "lovable-ui/src/test/direct-tutor-ads.test.tsx",
+    "lovable-ui/src/test/site-header.test.tsx",
+    "lovable-ui/src/test/tutor-introduction-wizard.test.tsx",
+    "lovable-ui/src/test/tutor-onboarding.test.tsx",
+    "lovable-ui/src/test/tutor-workspace.test.tsx",
+    "tests/browser/accessibility.spec.ts",
+    "tests/browser/audit-ui-fixtures.ts",
+    "tests/browser/audit-ui.spec.ts",
+    "tests/browser/tutors.spec.ts",
+    "tests/browser/unified-tutor-onboarding.spec.ts"
+  ],
+  "backend_release": "unified-onboarding-20261106-464c9fe50fa0",
+  "archive_sha256": "f77e11ab1fa08bc290502e8b2aa6ebbcde6b0d3faff4c5fc1fe84ba457759835",
+  "previous_backend_release": "audit-product-bugs-20261105-c3c51708bcbc",
+  "frontend_version": "74cfc857-fad4-439f-ad64-ad11f298b5b1",
+  "previous_frontend_version": "c9bf7796-7df8-4589-8f32-26353444e94a",
+  "backend_verification": {
+    "release": "unified-onboarding-20261106-464c9fe50fa0",
+    "listing_sha256": "dc16cf302457e02f0def305ae7bc7a3d99fc76d55bf396f1988dfd4f654111c9",
+    "services": {
+      "tutoring-api": {
+        "active": "active",
+        "process_release": "unified-onboarding-20261106-464c9fe50fa0"
+      },
+      "tutoring-worker": {
+        "active": "active",
+        "process_release": "unified-onboarding-20261106-464c9fe50fa0"
+      },
+      "tutoring-payment-sandbox-api": {
+        "active": "active",
+        "process_release": "unified-onboarding-20261106-464c9fe50fa0"
+      },
+      "tutoring-payment-sandbox-worker": {
+        "active": "active",
+        "process_release": "unified-onboarding-20261106-464c9fe50fa0"
+      }
+    },
+    "backup_result": "success",
+    "stop_timer": [
+      "NextElapseUSecRealtime=Tue 2026-11-10 10:25:48 UTC",
+      "ActiveState=active"
+    ]
+  },
+  "frontend_verification": {
+    "version": "74cfc857-fad4-439f-ad64-ad11f298b5b1",
+    "pages": [
+      {
+        "path": "/",
+        "status": 200,
+        "html": true,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/auth/signin",
+        "status": 200,
+        "html": true,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/health",
+        "status": 200,
+        "html": false,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/catalogue",
+        "status": 200,
+        "html": false,
+        "cacheControl": "no-store"
+      },
+      {
+        "path": "/v1/me",
+        "status": 401,
+        "html": false,
+        "cacheControl": "no-store"
+      }
+    ],
+    "styles": [
+      {
+        "path": "/assets/styles-Dq4-pJQv.css",
+        "status": 200,
+        "wordmarkFixed": true,
+        "wizardStepFixed": true,
+        "searchIconFixed": true
+      }
+    ]
+  },
+  "sandbox_api_smoke": {
+    "environment": "payment-sandbox",
+    "checks": [
+      "Verified learner login and unchanged Access Pass gate",
+      "Private draft resume adds Tutor without publication",
+      "Optional draft photo; clean upload does not auto-publish; new publication requires photo",
+      "Explicit free publication without identity approval or public email disclosure",
+      "Unpublish works; invalid short-title resume blocked; valid resume succeeds",
+      "Delete/archive hides advert and keeps account history"
+    ],
+    "passed": 6,
+    "fictional_ad_archived": true
+  },
+  "staged_browser_smoke": {
+    "frontend": "compiled Cloudflare artifact on local Wrangler",
+    "backend": "deployed payment sandbox over HTTPS",
+    "routing": "operator-only browser API bridge; sandbox origin retained; no deployed origin configuration changed",
+    "checks": [
+      {
+        "width": 1440,
+        "learner_dashboard": true,
+        "tutor_edit_saved_without_publication": true,
+        "explicit_ad_publication": true,
+        "unpublish_and_delete": true,
+        "overflow": false,
+        "page_errors": 0
+      },
+      {
+        "width": 390,
+        "learner_dashboard": true,
+        "tutor_edit_saved_without_publication": true,
+        "explicit_ad_publication": true,
+        "unpublish_and_delete": true,
+        "overflow": false,
+        "page_errors": 0
+      }
+    ]
+  },
+  "existing_ads": {
+    "main": {
+      "stored_published_ads_preserved": 2,
+      "public_statuses_before_and_after": [
+        200,
+        200
+      ],
+      "installed_modules_match_artifact": true,
+      "migrations": 38,
+      "postgres_major": 16,
+      "scanner_ping": true
+    },
+    "sandbox": {
+      "stored_published_ads_preserved": 5,
+      "public_statuses_before_and_after": [
+        404,
+        404,
+        404,
+        404,
+        404
+      ],
+      "installed_modules_match_artifact": true,
+      "migrations": 38,
+      "postgres_major": 16,
+      "scanner_ping": true
+    }
+  },
+  "root_preservation": {
+    "root_head_unchanged": true,
+    "recorded_root_files_unchanged": true,
+    "recorded_file_count": 15,
+    "root_status_unchanged": true,
+    "changed_recorded_files": []
+  },
+  "schema_changes": 0,
+  "new_environment_variables": 0,
+  "production_rollout": "not performed; configured targets are staging"
+}
