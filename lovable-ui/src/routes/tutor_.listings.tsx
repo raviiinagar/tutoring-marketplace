@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { accountSessionKey } from "@/lib/session";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 import { TutorAdManager } from "@/components/tutor-ad-manager";
+import { hasPublicationPhoto } from "@/lib/tutor-workspace";
 export const Route = createFileRoute("/tutor_/listings")({
   ssr: false,
   component: TutorListingsPage,
@@ -181,6 +182,9 @@ export function TutorListingsManager() {
   const [directMode, setDirectMode] = useState(false);
   const [profile, setProfile] = useState<TutorProfile>();
   const [photo, setPhoto] = useState<TutorPhoto | null>(null);
+  // A photo is needed to put an ad online, never to keep a private draft.
+  // This mirrors requirePublicationPhoto on the server, which stays authoritative.
+  const canPublishPhoto = hasPublicationPhoto(photo);
   const [approvalsReady, setApprovalsReady] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false),
     [step, setStep] = useState(0);
@@ -403,14 +407,12 @@ export function TutorListingsManager() {
         setError("Choose between one and three teaching languages.");
         return;
       }
+      // The description carries no word minimum; any non-empty text is valid.
       if (
         step === 1 &&
-        (offer.title.trim().split(/\s+/).length < 12 ||
-          offer.description.trim().split(/\s+/).length < 40)
+        (offer.title.trim().split(/\s+/).length < 12 || !offer.description.trim())
       ) {
-        setError(
-          "Write an ad title of at least 12 words and a class description of at least 40 words.",
-        );
+        setError("Write an ad title of at least 12 words and a description of your class.");
         return;
       }
       setError(undefined);
@@ -592,7 +594,6 @@ export function TutorListingsManager() {
                       className="input mt-2 min-h-28"
                       value={offer.description}
                       maxLength={1500}
-                      minLength={40}
                       aria-describedby="offer-description-hint"
                       onChange={(e) => change("description", e.target.value)}
                       required
@@ -601,9 +602,8 @@ export function TutorListingsManager() {
                       id="offer-description-hint"
                       className="mt-2 block text-sm text-muted-foreground"
                     >
-                      {offer.description.trim() ? offer.description.trim().split(/\s+/).length : 0}
-                      /40 words minimum · {offer.description.length}/1,500 characters. Explain what
-                      learners will learn and how you teach.
+                      {offer.description.length}/1,500 characters. Explain what learners will learn
+                      and how you teach. There is no minimum length.
                     </span>
                   </label>
                 </div>
@@ -709,6 +709,16 @@ export function TutorListingsManager() {
                     Keep contact details and links out of public offer text. Staff restrictions
                     remain until staff lift them.
                   </Notice>
+                  {editing?.status !== "PUBLISHED" && !canPublishPhoto && (
+                    <Notice tone="info">
+                      Add a profile photo before you can publish this ad. You can still save it as a
+                      private draft now and publish once your photo is in place.{" "}
+                      <Link to="/tutor" className="underline">
+                        Add your photo
+                      </Link>
+                      . Adding a photo never publishes an ad on its own.
+                    </Notice>
+                  )}
                 </div>
               )}
               <div className="flex flex-wrap gap-3">
@@ -728,7 +738,11 @@ export function TutorListingsManager() {
                     type="submit"
                     name="intent"
                     value="publish"
-                    disabled={!ready || (!editing && !eligibleSubjects.includes(offer.subject_id))}
+                    disabled={
+                      !ready ||
+                      (!editing && !eligibleSubjects.includes(offer.subject_id)) ||
+                      (editing?.status !== "PUBLISHED" && !canPublishPhoto)
+                    }
                   >
                     {editing?.status === "PUBLISHED" ? "Save changes" : "Publish my ad"}
                   </Button>

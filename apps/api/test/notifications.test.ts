@@ -229,7 +229,7 @@ async function tutor(approved = true, subjects = ["subject-physics"]) {
   }
   return { ...user, reviewer: undefined };
 }
-const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database);
+const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database, get);
 
 
 

@@ -8,7 +8,10 @@ vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
     useNavigate: () => navigate,
-    Link: React.forwardRef<HTMLAnchorElement, any>(({ to, hash, children, onClick, ...props }, ref) => (
+    Link: React.forwardRef<
+      HTMLAnchorElement,
+      React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; hash?: string }
+    >(({ to, hash, children, onClick, ...props }, ref) => (
       <a
         ref={ref}
         href={to + (hash ? "#" + hash : "")}
@@ -107,14 +110,14 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   fireEvent.keyDown(menu, { key: "Escape" });
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
 });
-it("a signed-in Learner is sent to account role selection without changing roles", async () => {
+it("a signed-in Learner enters unified onboarding without selecting a role first", async () => {
   vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user } });
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   await within(nav).findByRole("button", { name: "My account" });
   expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
     "href",
-    "/account/settings#roles",
+    "/tutor",
   );
 });
 it("mobile disclosure closes on links and Escape restores the opener", async () => {

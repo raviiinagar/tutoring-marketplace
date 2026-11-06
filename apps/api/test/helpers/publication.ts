@@ -17,7 +17,7 @@ export function completeFixtureOffer(payload: Record<string, unknown>) {
   const result = {
     ...payload,
     title: title.trim().split(/\s+/).length >= 12 ? title : title + " with patient explanations practical examples and guided practice for curious learners",
-    description: String(payload.description).trim().split(/\s+/).length >= 40 ? payload.description : fixtureDescription,
+    description: payload.description,
   };
   assert.ok(result.title.length <= 160, "A valid publication fixture title must fit the real limit");
   return result;
@@ -47,8 +47,17 @@ export async function publishProfileFixture(post: FixturePost, get: FixtureGet, 
   }, owner.cookie).expect(200);
 }
 
+/** Prepare a consented, clean synthetic portrait through the real upload endpoint. */
+export async function ensurePublicationPhoto(post: FixturePost, get: FixtureGet, owner: Owner) {
+  const current = (await get("/v1/me/tutor/photo", owner.cookie).expect(200)).body.photo;
+  if (current?.scan_status === "CLEAN" && (current.status === "APPROVED" || (current.status === "PENDING" && current.self_published === true))) return current;
+  const { default: sharp } = await import("sharp");
+  const bytes = await sharp({ create: { width: 128, height: 160, channels: 3, background: "#dd8888" } }).png().toBuffer();
+  return (await post("/v1/me/tutor/photo", { media_type: "image/png", data: Buffer.concat([bytes, Buffer.from("FICTIONAL-TUTOR-EVIDENCE")]).toString("base64"), public_consent: true }, owner.cookie).expect(201)).body.photo;
+}
+
 /** Real publication APIs, no fabricated approval or direct publication-state writes. */
-export function publicationFixtures(post: FixturePost, offer: Record<string, unknown>, database?: () => Database) {
+export function publicationFixtures(post: FixturePost, offer: Record<string, unknown>, database?: () => Database, get?: FixtureGet) {
   const draft = async (owner: Owner, payload = offer) =>
     (await post("/v1/me/listings", completeFixtureOffer(payload), owner.cookie).expect(201)).body.listing;
   const publishOffer = async (owner: Owner, payload: Record<string, unknown>, id?: string) => {
@@ -58,6 +67,8 @@ export function publicationFixtures(post: FixturePost, offer: Record<string, unk
       await database().pool.query("UPDATE teaching_listings SET id=$2 WHERE id=$1", [row.id, id]);
       row.id = id;
     }
+    assert.ok(get, "Publication fixtures require the owner photo endpoint");
+    await ensurePublicationPhoto(post, get, owner);
     const published = (await post("/v1/me/listings/" + row.id + "/actions/PUBLISH", { revision: row.revision }, owner.cookie).expect(200)).body.listing;
     assert.equal(published.status, "PUBLISHED");
     assert.equal(published.eligible, true);

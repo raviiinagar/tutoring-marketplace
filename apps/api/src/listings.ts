@@ -1,4 +1,4 @@
-import {identityVerified,publicationPolicy,wordCount} from './tutor-publication.js';
+import {identityVerified,publicationPolicy,requirePublicationPhoto,wordCount} from './tutor-publication.js';
 import {requireTutorMode,publicPresence} from './tutor-presence.js';
 import {requireSafetyClear} from './safety-permissions.js';
 import {randomUUID} from 'node:crypto';
@@ -14,7 +14,7 @@ import {ApiProblem} from './errors.js';
 const noContact=(value:string)=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(value);
 const text=(min:number,max:number)=>z.string().trim().min(min).max(max).refine(noContact,'Keep contact details and links out of public offers.');
 export const offerInput=z.strictObject({
-  title:text(10,160),description:text(40,1500),
+  title:text(10,160),description:text(1,1500),
   domain_id:selectionInput.shape.domain_id,subject_id:selectionInput.shape.subject_id,level_id:selectionInput.shape.level_id,
   curriculum_id:selectionInput.shape.curriculum_id,exam_id:selectionInput.shape.exam_id,
   language_ids:z.array(selectionInput.shape.language_id).min(1).max(3).refine(ids=>new Set(ids).size===ids.length),
@@ -69,8 +69,10 @@ export class ListingsService {
     if(Number((await client.query('SELECT count(*) FROM teaching_listings WHERE user_id=$1',[user.id])).rows[0].count)>=20)throw fail('LISTING_LIMIT','At most twenty offers per Tutor.',429);
     const id=randomUUID();await client.query("INSERT INTO teaching_listings(id,user_id,payload,profile_revision,created_at,updated_at,publication_policy) VALUES($1,$2,$3,$4,$5,$5,'direct-ads-v1')",[id,user.id,offer,qualified.profile_revision,this.now()]);await this.audit(client,user.id,id,'LISTING_CREATED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
+  // Descriptions carry no word minimum: any non-empty text may be published.
+  // The title keeps its minimum because a searchable ad needs a usable title.
   private publishable(offer:Offer){
-    const errors:Record<string,string[]>={};if(wordCount(offer.title)<12)errors.title=['Use at least 12 words in your ad title.'];if(wordCount(offer.description)<40)errors.description=['Use at least 40 words about your class.'];
+    const errors:Record<string,string[]>={};if(wordCount(offer.title)<12)errors.title=['Use at least 12 words in your ad title.'];if(!offer.description.trim())errors.description=['Write something about your class.'];
     if(Object.keys(errors).length)throw new ApiProblem(400,'VALIDATION_ERROR','Complete the ad before publishing.',errors);
   }
   async edit(token:string|undefined,id:string,input:z.infer<typeof editOfferInput>,correlation:string){return this.database.transaction(async client=>{
@@ -99,7 +101,8 @@ export class ListingsService {
         if(!['DRAFT','REVIEW','CHANGES_REQUESTED','PAUSED'].includes(row.status))throw fail('INVALID_LISTING_STATE','Only a private or paused ad can be published.');
         if(row.status==='CHANGES_REQUESTED')throw fail('REVISION_REQUIRED','Revise the ad to address the recorded feedback before publishing.');
       }
-      this.publishable(row.payload);
+      if(!(action==='RESUME'&&row.approved&&row.publication_policy==='review-v1'))this.publishable(row.payload);
+      await requirePublicationPhoto(client,user.id,this.tutors.productionMode());
       await this.tutors.publishProfile(client,user.id,action!=='RESUME'||!row.approved);
       await client.query("UPDATE teaching_listings SET status='PUBLISHED',publication_policy='direct-ads-v1',revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);
     }
@@ -115,7 +118,7 @@ export class ListingsService {
   async inspect(account:string|undefined,token:string|undefined,id:string,reason:string,correlation:string){return this.database.transaction(async client=>{const {actor,row}=await this.staffTarget(client,account,token,id);await this.audit(client,actor.id,id,'LISTING_INSPECTED',correlation,reason);return {listing:await this.view(client,row)};});}
   async review(account:string|undefined,token:string|undefined,id:string,input:z.infer<typeof listingReviewInput>,correlation:string){return this.database.transaction(async client=>{
     const {actor,row}=await this.staffTarget(client,account,token,id);this.version(row,input.revision);if(row.status!=='REVIEW'||row.safety_suspended)throw fail('INVALID_LISTING_STATE','Only an unrestricted submitted offer can be reviewed.');
-    if(input.outcome==='APPROVE'){const current=await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);if(current.profile_revision!==row.profile_revision)throw fail('PROFILE_CHANGED','The Tutor profile changed. Request a corrected offer.');await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}
+    if(input.outcome==='APPROVE'){this.publishable(row.payload);await requirePublicationPhoto(client,row.user_id,this.tutors.productionMode());const current=await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);if(current.profile_revision!==row.profile_revision)throw fail('PROFILE_CHANGED','The Tutor profile changed. Request a corrected offer.');await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}
     await client.query('UPDATE teaching_listings SET status=$2,approved=$3,revision=revision+1,review_reason=$4,reviewed_by=$5,reviewed_at=$6,updated_at=$6 WHERE id=$1',[id,input.outcome==='APPROVE'?'PUBLISHED':'CHANGES_REQUESTED',input.outcome==='APPROVE',input.reason,actor.id,this.now()]);await this.decision(client,actor.id,row,input.outcome,input.reason,correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
   private async decision(client:PoolClient,actor:string,row:Record<string,any>,outcome:string,reason:string,correlation:string){await client.query('INSERT INTO listing_decisions(id,listing_id,actor_id,revision,outcome,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)',[randomUUID(),row.id,actor,row.revision,outcome,reason,this.now()]);await this.audit(client,actor,row.id,'LISTING_'+outcome,correlation,reason);}

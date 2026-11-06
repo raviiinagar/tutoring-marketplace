@@ -172,8 +172,22 @@ it("does not request private Tutor data for an account without the Tutor role", 
   });
   mount();
   await screen.findByText("Start teaching");
+  // The invitation leads into the unified flow instead of asking the owner to
+  // pick a role first. No role has to be chosen before teaching.
+  expect(screen.getByRole("link", { name: "Start your teaching introduction" })).toHaveAttribute(
+    "href",
+    "/tutor",
+  );
+  expect(screen.queryByRole("link", { name: "Choose your account roles" })).not.toBeInTheDocument();
   expect(api.listings).not.toHaveBeenCalled();
   expect(api.tutor).not.toHaveBeenCalled();
+});
+it("separates having a teaching workspace from having a published ad", async () => {
+  mount();
+  // Workspace access alone must never read as public visibility.
+  expect(
+    await screen.findByText(/Nothing is published yet, so learners cannot see your ads/),
+  ).toBeVisible();
 });
 it("ignores old private listings after the authoritative account changes", async () => {
   let finish!: (value: Awaited<ReturnType<typeof api.listings>>) => void;

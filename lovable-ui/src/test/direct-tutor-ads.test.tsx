@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import type { Catalogue, TeachingListing } from "@/lib/api";
+import type { Catalogue, TeachingListing, TutorPhoto } from "@/lib/api";
 import { TutorAdManager } from "@/components/tutor-ad-manager";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -47,13 +47,22 @@ const catalogue: Catalogue = {
     },
   ],
 };
-function mount(item = ad, disabled = false) {
+const portrait: TutorPhoto = {
+  id: "portrait",
+  status: "PENDING",
+  self_published: true,
+  scan_status: "CLEAN",
+  test_only: true,
+  review_reason: null,
+};
+function mount(item = ad, disabled = false, photo: TutorPhoto | null = portrait) {
   const onAction = vi.fn(),
     onEdit = vi.fn(),
     onCreate = vi.fn();
   render(
     <TutorAdManager
       ads={[item]}
+      photo={photo}
       catalogue={catalogue}
       subjects={["physics"]}
       disabled={disabled}
@@ -196,3 +205,39 @@ it.each([{ publication_restricted: true }, { requires_profile_review: true }])(
     expect(onAction).not.toHaveBeenCalled();
   },
 );
+
+it.each([
+  ["no photo", null],
+  ["a pending photo without public consent", { ...portrait, self_published: false }],
+  [
+    "a pending photo without a self-publication flag",
+    { id: "photo", status: "PENDING", scan_status: "CLEAN", test_only: true, review_reason: null },
+  ],
+  ["an unscanned approved photo", { ...portrait, status: "APPROVED", scan_status: "ERROR" }],
+  ["a rejected photo", { ...portrait, status: "REJECTED" }],
+] as const)(
+  "requires a usable portrait before publishing or resuming with %s",
+  (_reason, photo) => {
+    const publish = mount(ad, false, photo);
+    expect(screen.getByRole("button", { name: "Publish my ad" })).toBeDisabled();
+    expect(screen.getByText(/Add a profile photo before/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Modify courses taught" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Publish my ad" }));
+    expect(publish.onAction).not.toHaveBeenCalled();
+    cleanup();
+    const resume = mount({ ...ad, status: "PAUSED" }, false, photo);
+    expect(screen.getByRole("switch")).toBeDisabled();
+    fireEvent.click(screen.getByRole("switch"));
+    expect(resume.onAction).not.toHaveBeenCalled();
+  },
+);
+
+it("keeps an existing online ad manageable without requiring a new portrait", () => {
+  const online = { ...ad, status: "PUBLISHED" as const, eligible: true };
+  const { onAction } = mount(online, false, null);
+  expect(screen.getByRole("switch")).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Modify courses taught" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("switch"));
+  fireEvent.click(screen.getByRole("button", { name: "Deactivate this ad" }));
+  expect(onAction).toHaveBeenCalledExactlyOnceWith(online, "PAUSE");
+});

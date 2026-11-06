@@ -186,9 +186,9 @@ export function SiteHeader({
   const teacherPath = user
     ? user.roles.includes("TUTOR")
       ? "/tutor/dashboard"
-      : "/account/settings"
+      : "/tutor"
     : "/auth/signup";
-  const teacherHash = user && !user.roles.includes("TUTOR") ? "roles" : "";
+  const teacherHash = "";
   const showSearch = !homepage || scrolled;
   const accountLinks = (
     <>
@@ -207,7 +207,9 @@ export function SiteHeader({
   const searchTrigger = (mobile: boolean) => (
     <button
       type="button"
-      aria-label={mobile ? "Search for a teacher" : "What would you like to learn? Search for a teacher"}
+      aria-label={
+        mobile ? "Search for a teacher" : "What would you like to learn? Search for a teacher"
+      }
       className={
         mobile
           ? "header-search-trigger header-search-mobile inline-flex size-10 items-center justify-center rounded-full lg:hidden"
@@ -253,7 +255,8 @@ export function SiteHeader({
               </Link>
             ) : (
               <Link
-                to={teacherPath} hash={teacherHash}
+                to={teacherPath}
+                hash={teacherHash}
                 className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
               >
                 Give private classes
@@ -286,10 +289,14 @@ export function SiteHeader({
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-48 rounded-xl p-2" onCloseAutoFocus={(event) => {
-                  // Preserve the explicit destination after same-page start-teaching navigation.
-                  if (document.activeElement?.closest("#roles")) event.preventDefault();
-                }}>
+                <DropdownMenuContent
+                  align="end"
+                  className="min-w-48 rounded-xl p-2"
+                  onCloseAutoFocus={(event) => {
+                    // Preserve the explicit destination after same-page start-teaching navigation.
+                    if (document.activeElement?.closest("#roles")) event.preventDefault();
+                  }}
+                >
                   {workspaceLinks.map((item) => (
                     <DropdownMenuItem key={item.to} asChild>
                       <Link to={item.to}>{item.label}</Link>
@@ -302,7 +309,9 @@ export function SiteHeader({
                     <Link to="/requests">My enquiries</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={teacherPath} hash={teacherHash}>Give private classes</Link>
+                    <Link to={teacherPath} hash={teacherHash}>
+                      Give private classes
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -360,7 +369,9 @@ export function SiteHeader({
             <Link to="/tutors">Find Tutors</Link>
             <a href="/#subjects">Explore subjects</a>
             <a href="/#how-it-works">Help</a>
-            <Link to={teacherPath} hash={teacherHash}>Give private classes</Link>
+            <Link to={teacherPath} hash={teacherHash}>
+              Give private classes
+            </Link>
             {pending ? (
               <span role="status">Checking account...</span>
             ) : user ? (
@@ -406,7 +417,9 @@ export function AuthShell({
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
-  const tutorWorkspace = ready && (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/"));
+  const tutorWorkspace =
+    ready &&
+    (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/"));
   const referenceLayout = reference || tutorWorkspace;
   if (ready && window.location.pathname.startsWith("/staff"))
     return (
@@ -421,14 +434,16 @@ export function AuthShell({
       <div className={referenceLayout ? "reference-account min-h-screen" : "min-h-screen"}>
         {referenceLayout ? (
           <div className="reference-header-group">
-          <SiteHeader accountStyle />
-          <div className="reference-workspace-bar">
-            <div className="mx-auto max-w-[1200px] px-5">
-              {tutorWorkspace ? <TutorWorkspaceNavigation /> : <WorkspaceNavigation />}
+            <SiteHeader accountStyle />
+            <div className="reference-workspace-bar">
+              <div className="mx-auto max-w-[1200px] px-5">
+                {tutorWorkspace ? <TutorWorkspaceNavigation /> : <WorkspaceNavigation />}
+              </div>
             </div>
           </div>
-          </div>
-        ) : <SiteHeader />}
+        ) : (
+          <SiteHeader />
+        )}
         <main
           id="main-content"
           tabIndex={-1}

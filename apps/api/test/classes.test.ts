@@ -210,7 +210,7 @@ async function connection(state: "ACTIVE" | "MATCHING" = "ACTIVE") {
     trial_kind: "NONE",
   };
   await grantTutorProFixture(database,config,teacher.email,clock);
-  const listing = await publicationFixtures(post, offer).publish(teacher);
+  const listing = await publicationFixtures(post, offer, undefined, get).publish(teacher);
 
 
   await grantContactFixture(database, config, owner.email, state, clock);

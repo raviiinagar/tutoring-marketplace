@@ -154,6 +154,13 @@ beforeEach(() => {
       },
     },
   });
+  // Editing now runs through the unified wizard, which reads any private
+  // working draft before seeding itself from the saved profile.
+  vi.spyOn(api, "tutorOnboardingDraft").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { draft: null },
+  });
   vi.spyOn(api, "me").mockResolvedValue({
     ok: false,
     error: { kind: "http", status: 401, code: "UNAUTHENTICATED", message: "Sign in." },
@@ -218,12 +225,24 @@ it("approved identity has a public-profile link while Tutor Pro stays a separate
   expect(screen.getByText(/Your profile is public/)).toBeVisible();
   expect(screen.getByLabelText("Tutor Pro coupon (optional)")).toBeEnabled();
 });
-it("profile editing names the public email consent and avoids a compulsory portrait or qualification document", async () => {
+it("profile editing uses the unified wizard, names the public email consent and avoids a compulsory portrait or qualification document", async () => {
   mount();
   fireEvent.click(await screen.findByRole("button", { name: "Edit profile" }));
+  // A complete introduction resumes on Review: there is no incomplete step to
+  // land on. Every earlier step stays reachable through Go back.
+  expect(await screen.findByRole("heading", { name: "Review your introduction" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+  expect(
+    await screen.findByRole("heading", { name: "Ready to share your teaching?" }),
+  ).toBeVisible();
   expect(screen.getByLabelText(/Show my verified email publicly to everyone/)).not.toBeChecked();
-  expect(screen.getByRole("group", { name: "Subjects you teach" })).toBeInTheDocument();
   expect(screen.queryByLabelText("Date of birth")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Go back" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Go back" }));
+  expect(
+    await screen.findByRole("heading", { name: "Which subjects do you teach?" }),
+  ).toBeVisible();
   expect(screen.getByText("Public profile photo · optional")).toBeVisible();
   expect(screen.getByText(/No qualification document required/)).toBeVisible();
 });

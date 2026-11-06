@@ -4,7 +4,8 @@ import { auditAccount, auditSupply } from "./audit-ui-fixtures";
 
 test("QA01: visible labels remain in accessible names on home and search at desktop and mobile widths", async ({ page, request, baseURL }, info) => {
   test.setTimeout(180000);
-  await auditSupply(request, baseURL!);
+  const retireSupply = await auditSupply(request, baseURL!);
+  try {
   const checks = [];
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 960 });
@@ -24,10 +25,12 @@ test("QA01: visible labels remain in accessible names on home and search at desk
     }
   }
   await info.attach("QA01 axe results", { body: JSON.stringify(checks, null, 2), contentType: "application/json" });
+  } finally { await retireSupply(); }
 });
 test("QA01: repeat the twelve audit accessibility combinations", async ({ page, request, baseURL }, info) => {
   test.setTimeout(240000);
-  await auditSupply(request, baseURL!);
+  const retireSupply = await auditSupply(request, baseURL!);
+  try {
   const checks = [];
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 960 });
@@ -48,9 +51,10 @@ test("QA01: repeat the twelve audit accessibility combinations", async ({ page, 
     }
   }
   await info.attach("Twelve audit accessibility combinations", { body: JSON.stringify(checks, null, 2), contentType: "application/json" });
+  } finally { await retireSupply(); }
 });
 
-test("QA05: keyboard start-teaching opens and focuses the Tutor choice without granting it", async ({ page, baseURL }, info) => {
+test("QA05: keyboard start-teaching opens the private wizard without granting a role", async ({ page, baseURL }, info) => {
   test.setTimeout(120000);
   await auditAccount(page.request, baseURL!);
   let roleWrites = 0;
@@ -69,31 +73,25 @@ test("QA05: keyboard start-teaching opens and focuses the Tutor choice without g
       const start = width < 1024
         ? page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Give private classes", exact: true })
         : page.getByRole("menuitem", { name: "Give private classes", exact: true });
-      await expect(start).toHaveAttribute("href", "/account/settings#roles");
+      await expect(start).toHaveAttribute("href", "/tutor");
       await start.focus();
       await page.keyboard.press("Enter");
-      await expect(page).toHaveURL(/\/account\/settings#roles$/);
-      const summary = page.locator("#roles > summary");
-      await expect(summary).toBeFocused();
-      await expect(summary).toHaveAccessibleDescription("To start teaching, select Tutor below to enable teaching tools. Your Learner role can stay enabled.");
-      const tutor = page.getByRole("checkbox", { name: "Tutor", exact: true });
-      await expect(tutor).toBeVisible();
-      await expect(tutor).not.toBeChecked();
-      await page.keyboard.press("Tab");
-      await expect(tutor).toBeFocused();
-      // Observe the application's smooth scroll settling; do not scroll the target from the test.
-      await expect.poll(async () => {
-        const bounds = await tutor.boundingBox();
-        const header = await page.locator(".reference-header-group").boundingBox();
-        return !!bounds && !!header && bounds.y >= header.y + header.height && bounds.y + bounds.height <= 844;
-      }).toBe(true);
+      await expect(page).toHaveURL(/\/tutor$/);
+      await expect(page.getByRole("main")).toBeFocused();
+      const subject = page.getByRole("checkbox", { name: "Physics", exact: true });
+      await expect(subject).toBeEnabled();
+      await expect(subject).not.toBeChecked();
+      await subject.focus();
+      await page.keyboard.press("Space");
+      await expect(subject).toBeChecked();
+      await expect(page.getByRole("button", { name: "Save private draft", exact: true })).toBeEnabled();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      const result = await new AxeBuilder({ page }).include("#roles").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"]).analyze();
+      const result = await new AxeBuilder({ page }).include("main").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"]).analyze();
       expect(result.violations).toEqual([]);
       const me = await (await page.request.get("/v1/me")).json();
       expect(me.user.roles).toEqual(["LEARNER"]);
       expect(roleWrites).toBe(0);
-      checks.push({ width, source, destination: "/account/settings#roles", expanded: true, focus: "Tutor checkbox after Tab from summary", roleWrites, violations: result.violations.length });
+      checks.push({ width, source, destination: "/tutor", focus: "Main on navigation, subject usable with keyboard", roleWrites, violations: result.violations.length });
     }
   }
   await info.attach("QA05 keyboard and mobile results", { body: JSON.stringify(checks, null, 2), contentType: "application/json" });

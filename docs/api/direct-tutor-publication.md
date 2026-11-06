@@ -2,6 +2,18 @@
 
 Policy `direct-ads-v1` implements [ADR0014](../adr/0014-free-direct-ad-publication-and-optional-identity.md). It supersedes the prior identity-review and Tutor Pro requirements for ads; Learner Access authorization and the separate consented-public-email rule remain unchanged.
 
+## One onboarding journey, and who may open it
+
+There is a single teaching onboarding flow. Legacy version 1 profiles and current version 2 profiles are edited through the same wizard; the separate legacy editor has been removed.
+
+**No role is chosen at sign-up.** Any signed-in account may open the teaching workspace and read its own (absent) draft. `GET /v1/me/tutor/onboarding-draft` therefore returns `{draft: null}` rather than `403` for an account that has never taught. The `TUTOR` role is recorded the first time the owner saves a private draft (`POST`) or an introduction, audited as `TUTOR_ROLE_SELECTED`. The account keeps `LEARNER`, so one account both learns and teaches.
+
+**Workspace access is not publication.** Holding the role, a profile or a draft means only that the owner has started; none of it is visible to learners. Visibility requires an explicit publication action, and the workspace states plainly when nothing is published.
+
+**Legacy profiles keep their data.** Saving through the unified introduction records `onboarding_version = 2` in place and preserves `encrypted_birth_date`, `public_id` and `created_at`; the stored adult declaration is carried across rather than re-asked. An ad that is already online is never unpublished by that upgrade. Covered by `apps/api/test/listings.test.ts`.
+
+**Resuming.** A private draft wins over the saved profile, because it is the newer working copy. Otherwise the saved profile seeds the same fields. The wizard opens at the draft's stored step, or at the first step whose details are still missing; a complete introduction opens on Review, which only saves.
+
 ## Profile facts and actions
 
 `GET /v1/tutor-policy` exposes `publication_policy`, `identity_optional: true`, and `free_publication: true`. `GET /v1/me/tutor` preserves identity review `profile.status` and adds:
@@ -12,7 +24,7 @@ Policy `direct-ads-v1` implements [ADR0014](../adr/0014-free-direct-ad-publicati
 - `identity_verified` and `identity_label`: derived only from an actual current approved adult-identity claim and clean eligible evidence.
 - `eligible`: current public publication, account/safety, adult declaration and subject eligibility; optional identity approval does not control this value.
 
-Saving an introduction remains separate from publication. `POST /v1/me/tutor/publication` accepts `{expected_public_revision, action: "PUBLISH" | "PAUSE"}`. Publication requires a complete adult introduction with active declared Subjects and at least 40 words about the Tutor's experience. It never changes identity status to `APPROVED`.
+Saving an introduction remains separate from publication. `POST /v1/me/tutor/publication` accepts `{expected_public_revision, action: "PUBLISH" | "PAUSE"}`. Publication requires a complete adult introduction with active declared Subjects and a non-empty description of the Tutor's experience. There is no word minimum on that text. It never changes identity status to `APPROVED`.
 
 `POST /v1/staff/tutors/:id/publication-restrictions` accepts `{action: "SUSPEND" | "LIFT", reason}`. Existing Trust scope, staff elevation, target authorization, reviewer independence and auditing apply. Suspension pauses visibility. A lift clears the hold but does not publish automatically. Current adverse identity rejection/revocation places a hold; pending optional review alone does not pause an already published free profile.
 
@@ -22,9 +34,17 @@ Saving an introduction remains separate from publication. `POST /v1/me/tutor/pub
 
 Creating an ad saves a private draft without Pro or identity approval. `POST /v1/me/listings/:id/actions/:action` accepts an exact `{revision}` and:
 
-- `PUBLISH`: validates at least 12 title words and 40 class-description words, publishes the ad and its complete introduction atomically. `SUBMIT` is a compatibility alias for this explicit owner publication action; it no longer creates a new review queue item.
-- `PAUSE` and `RESUME`: hide or restore an eligible ad. Previously staff-approved legacy ads can resume without rewriting their old text; new publication/live edits use the new word minima.
+- `PUBLISH`: validates at least 12 title words and a non-empty class description, requires a usable profile photo, then publishes the ad and its complete introduction atomically. `SUBMIT` is a compatibility alias for this explicit owner publication action; it no longer creates a new review queue item.
+- `PAUSE` and `RESUME`: hide or restore an eligible ad. `RESUME` is a publication transition, so it also requires a usable photo. Previously staff-approved legacy ads can resume without rewriting their old text.
 - `ARCHIVE`: soft-removes the ad and advances its revision. The history, requests and established safe Connections remain. Archived ads cannot be edited, resumed or republished by owner endpoints.
+
+## Profile photo and publication
+
+A usable profile photo is required to put an ad online and is never required to keep a private draft. "Usable" means an approved photo, or a self-published pending one, whose scan status is `CLEAN` — the same predicate the public portrait uses. Staff approval is not required, so this adds no review queue and does not weaken ADR0014's free direct publication.
+
+Uploading a photo never publishes anything. It changes no listing status, and an ad stays `DRAFT` until an explicit `PUBLISH`. Both halves of that rule are covered by `apps/api/test/listings.test.ts`.
+
+The requirement applies to transitions that put an ad in front of learners (`PUBLISH`, `SUBMIT`, `RESUME`). It is deliberately **not** applied when editing an ad that is already online, so existing live ads are never blocked or unpublished by this rule.
 
 Online ad edits take effect immediately after validation, retaining the online state. They do not undo a profile pause. Staff safety holds remain authoritative. Historical `CHANGES_REQUESTED` ads require an owner revision before publication. Private drafts stay private until an explicit publication action. Title maximum is 160 characters; the existing class description maximum remains 1,500 characters.
 

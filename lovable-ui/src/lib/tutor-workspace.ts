@@ -1,4 +1,11 @@
-import type { TeachingListing } from "./api";
+import type { TeachingListing, TutorPhoto } from "./api";
+export function hasPublicationPhoto(photo: TutorPhoto | null | undefined) {
+  return (
+    !!photo &&
+    photo.scan_status === "CLEAN" &&
+    (photo.status === "APPROVED" || (photo.status === "PENDING" && photo.self_published === true))
+  );
+}
 export const offerStatusLabels: Record<TeachingListing["status"], string> = {
   DRAFT: "Draft",
   REVIEW: "Saved ad",

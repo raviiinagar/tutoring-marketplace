@@ -12,6 +12,14 @@ export function publicTutorSql(profile='p',user='u'){
 export function publicPhotoSql(photo='photo'){
  return `(${photo}.status='APPROVED' OR (${photo}.status='PENDING' AND ${photo}.self_published))`;
 }
+// A portrait is required to put an ad online, but never to keep a private
+// draft. Scanning and consent still gate the image itself: an unscanned or
+// rejected upload does not satisfy this, and staff review is not required
+// because ADR0014 publishes complete adult ads without a review queue.
+export async function requirePublicationPhoto(c:PoolClient,userId:string,production:boolean){
+ const usable=(await c.query(`SELECT 1 FROM tutor_photos WHERE user_id=$1 AND ${publicPhotoSql('tutor_photos')} AND scan_status='CLEAN' AND encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT test_only)`,[userId,production])).rowCount;
+ if(!usable)throw new ApiProblem(409,'PHOTO_REQUIRED','Add a profile photo before publishing this ad. Your draft stays private until you publish it.');
+}
 export function assertDeclaredProfile(p:Record<string,any>){
  if(p.publication_restricted)throw new ApiProblem(403,'PUBLICATION_RESTRICTED','Staff must lift the existing publication restriction.');
  if(!p.adult_declared_at)throw new ApiProblem(403,'ADULT_DECLARATION_REQUIRED','Confirm that you are at least 18 before publishing.');

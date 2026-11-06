@@ -13,6 +13,7 @@ import {
   offerStatusLabels,
   canPublishAd,
   canResumeOffer,
+  hasPublicationPhoto,
 } from "@/lib/tutor-workspace";
 import { Button } from "./ui/button";
 import {
@@ -73,7 +74,9 @@ export function TutorAdManager({
           <span className="sr-only">Modify {title.toLowerCase()}</span>
         </Button>
       </div>
-      <div className="rounded-3xl border bg-card p-5 break-words text-sm leading-relaxed text-muted-foreground">{body}</div>
+      <div className="rounded-3xl border bg-card p-5 break-words text-sm leading-relaxed text-muted-foreground">
+        {body}
+      </div>
     </section>
   );
   return (
@@ -251,7 +254,10 @@ export function TutorAdManager({
                 role="switch"
                 aria-label="Ad is online"
                 aria-checked={online}
-                disabled={disabled || (!online && !canResumeOffer(ad, true, subjects))}
+                disabled={
+                  disabled ||
+                  (!online && (!canResumeOffer(ad, true, subjects) || !hasPublicationPhoto(photo)))
+                }
                 onClick={() => (online ? setConfirm("PAUSE") : onAction(ad, "RESUME"))}
                 className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border p-3 text-sm"
               >
@@ -270,11 +276,20 @@ export function TutorAdManager({
             {["DRAFT", "REVIEW", "CHANGES_REQUESTED"].includes(ad.status) && (
               <Button
                 className="w-full rounded-full"
-                disabled={disabled || !canPublishAd(ad, subjects)}
+                disabled={disabled || !canPublishAd(ad, subjects) || !hasPublicationPhoto(photo)}
                 onClick={() => onAction(ad, "PUBLISH")}
               >
                 Publish my ad
               </Button>
+            )}
+            {!online && !hasPublicationPhoto(photo) && (
+              <p className="text-sm text-muted-foreground">
+                Add a profile photo before publishing or resuming this ad. You can keep editing your
+                private draft.{" "}
+                <Link to="/tutor" className="link">
+                  Add your photo
+                </Link>
+              </p>
             )}
             {ad.review_reason && (
               <p className="text-xs text-muted-foreground">Previous feedback: {ad.review_reason}</p>

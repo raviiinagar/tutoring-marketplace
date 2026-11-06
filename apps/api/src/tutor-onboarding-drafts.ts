@@ -38,10 +38,12 @@ export class TutorOnboardingDrafts {
       data: decrypt<z.infer<typeof onboardingDraftData>>(row.encrypted_payload, this.config.authSecret),
       updated_at: new Date(row.updated_at).toISOString() };
   }
+  // Reading a private working copy never requires the Tutor role: any signed-in
+  // account may open the teaching workspace, and a reader without a draft simply
+  // has none. The role is recorded when the owner first saves (see save()).
   async own(token?: string) {
     return this.db.transaction(async c => {
       const { user } = await this.auth.authenticated(c, token);
-      if (!user.roles.includes('TUTOR')) throw new ApiProblem(403, 'TUTOR_ROLE_REQUIRED', 'Choose the Tutor role before saving a teaching draft.');
       const row = (await c.query('SELECT * FROM tutor_onboarding_drafts WHERE user_id=$1', [user.id])).rows[0];
       return { draft: row ? this.project(row) : null };
     });
@@ -49,9 +51,16 @@ export class TutorOnboardingDrafts {
   async save(token: string | undefined, input: z.infer<typeof onboardingDraftInput>, correlation: string) {
     return this.db.transaction(async c => {
       // authenticated() locks the owner before the draft, serialising initial
-      // creation as well as updates without granting or modifying any role.
+      // creation as well as updates and the first recorded Tutor role selection.
       const { user } = await this.auth.authenticated(c, token);
-      if (!user.roles.includes('TUTOR')) throw new ApiProblem(403, 'TUTOR_ROLE_REQUIRED', 'Choose the Tutor role before saving a teaching draft.');
+      // Starting a teaching draft records the Tutor role, exactly as saving an
+      // introduction does. The account keeps its Learner role, and nothing is
+      // published: the draft stays private until an explicit publication action.
+      if (!user.roles.includes('TUTOR')) {
+        await c.query("UPDATE users SET roles=array_append(roles,'TUTOR') WHERE id=$1", [user.id]);
+        await c.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,$3,$4,$5,$6)',
+          [randomUUID(), user.id, 'TUTOR_ROLE_SELECTED', correlation, this.now(), { via: 'onboarding-draft' }]);
+      }
       const previous = (await c.query('SELECT revision FROM tutor_onboarding_drafts WHERE user_id=$1 FOR UPDATE', [user.id])).rows[0];
       if ((previous?.revision ?? 0) !== input.revision) throw conflict();
       const at = this.now();
@@ -67,7 +76,6 @@ export class TutorOnboardingDrafts {
   async clear(token: string | undefined, revision: number, correlation: string) {
     return this.db.transaction(async c => {
       const { user } = await this.auth.authenticated(c, token);
-      if (!user.roles.includes('TUTOR')) throw new ApiProblem(403, 'TUTOR_ROLE_REQUIRED', 'Choose the Tutor role before changing a teaching draft.');
       const row = (await c.query('SELECT revision FROM tutor_onboarding_drafts WHERE user_id=$1 FOR UPDATE', [user.id])).rows[0];
       if (!row || row.revision !== revision) throw conflict();
       await c.query('DELETE FROM tutor_onboarding_drafts WHERE user_id=$1', [user.id]);

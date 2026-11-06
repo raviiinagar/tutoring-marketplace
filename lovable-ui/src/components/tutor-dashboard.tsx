@@ -57,14 +57,18 @@ export function TutorDashboard() {
         )}
       </AuthShell>
     );
+  // Workspace access is not a published ad, and it is not a role the owner has
+  // to pick first. An account with no teaching draft yet is simply invited to
+  // start one; the Tutor role is recorded when that first private draft saves.
   if (!data.user.roles.includes("TUTOR"))
     return (
       <AuthShell title="Start teaching">
         <p className="text-muted-foreground">
-          Enable the Tutor role in your account settings to open your teaching workspace.
+          You have not started a teaching introduction yet. Nothing is published while you work on
+          it, and you keep using the same account to learn.
         </p>
-        <Link to="/account/settings" hash="roles" className="link mt-5 inline-block">
-          Choose your account roles
+        <Link to="/tutor" className="link mt-5 inline-block">
+          Start your teaching introduction
         </Link>
       </AuthShell>
     );
@@ -88,6 +92,21 @@ export function TutorDashboard() {
           Refresh workspace
         </Button>
       </div>
+      {/* Having this workspace is not the same as being visible to learners.
+          State it plainly, so an owner is never left guessing whether their
+          work is public. */}
+      <Data query={data.offers} label="Publication state">
+        {(result) => {
+          const live = result.listings.filter((l) => l.status === "PUBLISHED" && l.eligible).length;
+          return (
+            <p className="mb-6 rounded-2xl border bg-muted/30 p-4 text-sm" role="status">
+              {live
+                ? `Your teaching workspace is open and ${live} ${live === 1 ? "ad is" : "ads are"} published and visible to learners.`
+                : "Your teaching workspace is open. Nothing is published yet, so learners cannot see your ads. You publish each ad yourself when it is ready."}
+            </p>
+          );
+        }}
+      </Data>
       <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside aria-label="Tutor profile and access" className="min-w-0 space-y-5">
           <TutorProgressionPanel id={data.user.id} compact />

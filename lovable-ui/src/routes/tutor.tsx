@@ -1,7 +1,7 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
 import { TutorOnboarding } from "@/components/tutor-onboarding";
 import { useEffect } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 import { AuthShell, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
@@ -24,15 +24,9 @@ function TutorProfileRoute() {
         )}
       </AuthShell>
     );
-  if (!account.user.roles.includes("TUTOR"))
-    return (
-      <AuthShell title="Start teaching">
-        <p>Choose the Tutor role in your account settings to create a teaching profile.</p>
-        <Link className="link" to="/account/settings" hash="roles">
-          Choose your account roles
-        </Link>
-      </AuthShell>
-    );
+  // No role has to be chosen before teaching. Any signed-in account can open
+  // the teaching workspace; the Tutor role is recorded when the first private
+  // draft is saved, and nothing becomes public until an explicit publication.
   return <TutorOnboarding key={account.user.id} />;
 }
 export const Route = createFileRoute("/tutor")({

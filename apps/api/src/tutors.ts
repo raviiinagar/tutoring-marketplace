@@ -1,4 +1,4 @@
-import {assertDeclaredProfile,identityVerified,publicationPolicy,wordCount} from './tutor-publication.js';
+import {assertDeclaredProfile,identityVerified,publicationPolicy} from './tutor-publication.js';
 import {currentTutorPro} from './tutor-pro-access.js';
 import {randomUUID} from 'node:crypto';
 import {requireSafetyClear} from './safety-permissions.js';
@@ -13,7 +13,7 @@ import {encrypt,decrypt,randomToken,tokenHash} from './security.js';
 import type {EvidenceScanner,ScanOutcome} from './evidence-scanner.js';
 export const tutorProfileInput=z.strictObject({display_name:z.string().trim().min(2).max(80),biography:z.string().trim().min(40).max(1000),birth_date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),adult_confirmed:z.literal(true)});
 const publicText=(min:number,max:number)=>z.string().trim().min(min).max(max).refine(value=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(value),'Keep contact details out of your public introduction.');
-export const tutorIntroInput=z.strictObject({display_name:publicText(2,80),biography:publicText(40,1000),subject_ids:z.array(z.string().regex(/^[a-z][a-z0-9-]{1,79}$/)).min(1).max(10).refine(v=>new Set(v).size===v.length),hourly_rate_paise:z.number().int().min(100).max(10000000),identity_country:z.enum(['IN','OTHER']),identity_document:z.enum(['AADHAAR','GOVERNMENT_ID','PASSPORT']),adult_confirmed:z.literal(true),public_email_consent:z.boolean().default(false),replace_identity:z.boolean().default(false),expected_public_revision:z.number().int().positive().optional()}).refine(v=>v.identity_country==='IN'||v.identity_document==='PASSPORT',{message:'A passport is required for a non-Indian identity document.'});
+export const tutorIntroInput=z.strictObject({display_name:publicText(2,80),biography:publicText(1,1000),subject_ids:z.array(z.string().regex(/^[a-z][a-z0-9-]{1,79}$/)).min(1).max(10).refine(v=>new Set(v).size===v.length),hourly_rate_paise:z.number().int().min(100).max(10000000),identity_country:z.enum(['IN','OTHER']),identity_document:z.enum(['AADHAAR','GOVERNMENT_ID','PASSPORT']),adult_confirmed:z.literal(true),public_email_consent:z.boolean().default(false),replace_identity:z.boolean().default(false),expected_public_revision:z.number().int().positive().optional()}).refine(v=>v.identity_country==='IN'||v.identity_document==='PASSPORT',{message:'A passport is required for a non-Indian identity document.'});
 export const evidenceInput=z.strictObject({media_type:z.enum(['application/pdf','image/png','image/jpeg']),data:z.string().min(4).max(1398104)});
 export const claimInput=z.strictObject({kind:z.enum(['IDENTITY','QUALIFICATION','EXPERIENCE']),subject_id:z.string().regex(/^[a-z][a-z0-9-]{1,79}$/).optional(),description:z.string().trim().min(10).max(300),evidence_id:z.uuid()});
 export const reviewInput=z.strictObject({outcome:z.enum(['APPROVE','CHANGES_REQUESTED','REJECT','REVOKE']),checked_item:z.string().trim().min(10).max(160),reason:z.string().trim().min(10).max(240),adult_identity_confirmed:z.boolean(),expires_at:z.iso.datetime().optional()});
@@ -56,7 +56,8 @@ export class TutorsService {
   async publishProfile(client:PoolClient,userId:string,requireQuality=true){
     await this.activeOwner(client,userId);const p=await this.profile(client,userId);assertDeclaredProfile(p);
     if(!await this.eligible(client,userId,p,undefined,false))throw problem('TUTOR_INELIGIBLE','Complete your adult declaration and active Subjects before publishing.',403);
-    if(requireQuality&&wordCount(p.biography)<40)throw problem('PROFILE_INCOMPLETE','Write at least 40 words about your experience before publishing.');
+    // Any non-empty introduction may be published; there is no word minimum.
+    if(requireQuality&&!p.biography?.trim())throw problem('PROFILE_INCOMPLETE','Write something about your experience before publishing.');
     if(p.publication_status!=='PUBLISHED')await client.query("UPDATE tutor_profiles SET publication_status='PUBLISHED',public_revision=public_revision+1,updated_at=$2 WHERE user_id=$1",[userId,this.now()]);
     return p;
   }
@@ -76,7 +77,7 @@ export class TutorsService {
     const found=(await client.query("SELECT id FROM catalogue_terms WHERE id=ANY($1::text[]) AND kind='SUBJECT' AND active",[input.subject_ids])).rows;if(found.length!==input.subject_ids.length)throw problem('INVALID_SUBJECT','Choose active Subjects.');
     const old=(await client.query('SELECT * FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];
     if(old&&input.expected_public_revision!==old.public_revision)throw problem('PROFILE_CHANGED','Your profile changed. Refresh before saving again.',409);
-    if(old?.publication_status==='PUBLISHED'&&wordCount(input.biography)<40)throw problem('PROFILE_INCOMPLETE','Write at least 40 words about your experience before saving a published introduction.');
+    if(old?.publication_status==='PUBLISHED'&&!input.biography.trim())throw problem('PROFILE_INCOMPLETE','Write something about your experience before saving a published introduction.');
     const identityChanged=!!old&&(input.replace_identity||old.display_name!==input.display_name||old.identity_country!==input.identity_country||old.identity_document!==input.identity_document);
     const row=(await client.query(`INSERT INTO tutor_profiles(user_id,display_name,biography,encrypted_birth_date,onboarding_version,subject_ids,hourly_rate_paise,identity_country,identity_document,public_email_consent_at,public_email_consent_version,created_at,updated_at) VALUES($1,$2,$3,$4,2,$5,$6,$7,$8,$9,$10,$11,$11) ON CONFLICT(user_id) DO UPDATE SET display_name=excluded.display_name,biography=excluded.biography,onboarding_version=2,subject_ids=excluded.subject_ids,hourly_rate_paise=excluded.hourly_rate_paise,identity_country=excluded.identity_country,identity_document=excluded.identity_document,public_email_consent_at=excluded.public_email_consent_at,public_email_consent_version=excluded.public_email_consent_version,revision=tutor_profiles.revision+CASE WHEN $12 THEN 1 ELSE 0 END,public_revision=tutor_profiles.public_revision+1,status=CASE WHEN $12 THEN 'DRAFT' ELSE tutor_profiles.status END,updated_at=$11 RETURNING *`,[user.id,input.display_name,input.biography,encrypt({birth_date:null},this.config.authSecret),input.subject_ids,input.hourly_rate_paise,input.identity_country,input.identity_document,input.public_email_consent?(old?.public_email_consent_at||this.now()):null,input.public_email_consent?'public-tutor-email-v1':null,this.now(),identityChanged])).rows[0];
     await client.query('UPDATE tutor_profiles SET adult_declared_at=$2 WHERE user_id=$1',[user.id,this.now()]);

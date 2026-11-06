@@ -1,5 +1,6 @@
 import { expect, type APIRequestContext } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
 
 /** Fictional accounts on the isolated loopback browser stack only. */
 export async function auditAccount(client: APIRequestContext, origin: string) {
@@ -40,6 +41,9 @@ export async function auditSupply(client: APIRequestContext, origin: string) {
     hourly_rate_paise: 65000, identity_country: "IN", identity_document: "AADHAAR",
     adult_confirmed: true, public_email_consent: false,
   });
+  const portrait = await sharp({ create: { width: 128, height: 160, channels: 3, background: "#abcdef" } })
+    .png().toBuffer();
+  const { photo } = await post("/v1/me/tutor/photo", { media_type: "image/png", data: Buffer.concat([portrait, Buffer.from("FICTIONAL-TUTOR-EVIDENCE")]).toString("base64"), public_consent: true });
   const { listing } = await post("/v1/me/listings", {
     title: "Fictional Physics lessons with patient guided practice and clear examples for curious school learners",
     description: biography, domain_id: "school", subject_id: "subject-physics",
@@ -47,4 +51,13 @@ export async function auditSupply(client: APIRequestContext, origin: string) {
     currency: "INR", teaching_mode: "ONLINE", rate_paise: 65000, rate_unit: "HOUR", trial_kind: "NONE",
   });
   await post("/v1/me/listings/" + listing.id + "/actions/PUBLISH", { revision: listing.revision });
+  return async () => {
+    const state = await (await client.get("/v1/me/listings")).json();
+    const current = state.listings.find((row: { id: string }) => row.id === listing.id);
+    if (current) await post("/v1/me/listings/" + current.id + "/actions/ARCHIVE", { revision: current.revision });
+    const tutor = await (await client.get("/v1/me/tutor")).json();
+    await post("/v1/me/tutor/publication", { expected_public_revision: tutor.profile.public_revision, action: "PAUSE" });
+    expect((await client.delete("/v1/me/tutor/photo/" + photo.id, { headers: { Origin: origin }, data: {} })).status()).toBe(204);
+  };
+
 }

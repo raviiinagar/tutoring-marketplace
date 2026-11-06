@@ -77,11 +77,12 @@ test('concurrent writes and stale clears cannot overwrite a newer private draft'
   await remove(2, owner.cookie).expect(204);
   assert.equal((await get(path, owner.cookie).expect(200)).body.draft, null);
 });
-test('draft endpoints enforce current verified Tutor identity, strict bounds and CSRF origin', async () => {
+test('draft endpoints enforce authentication, strict bounds and CSRF origin', async () => {
   const learner = await account(false), owner = await account();
   await get(path).expect(401);
-  await get(path, learner.cookie).expect(403);
-  await post(path, { revision: 0, step: 0, data: {} }, learner.cookie).expect(403);
+  // Any signed-in account may open the teaching workspace; it simply has no
+  // draft yet. Choosing a role up front is not required.
+  assert.equal((await get(path, learner.cookie).expect(200)).body.draft, null);
   await post(path, { revision: 0, step: 0, data: { user_id: learner.id } }, owner.cookie).expect(400);
   await post(path, { revision: 0, step: 5, data: {} }, owner.cookie).expect(400);
   await post(path, { revision: 0, step: 0, data: { biography: 'x'.repeat(1001) } }, owner.cookie).expect(400);
@@ -89,6 +90,19 @@ test('draft endpoints enforce current verified Tutor identity, strict bounds and
   await post(path, { revision: 0, step: 0, data: { data: 'upload-blob', status: 'APPROVED' } }, owner.cookie).expect(400);
   await request(app.getHttpServer()).post(path).set('Origin', 'https://other.invalid').set('Cookie', owner.cookie)
     .send({ revision: 0, step: 0, data: {} }).expect(403);
+  // A saved draft stays readable after the account drops back to Learner only.
+  // Nothing about it is public, so there is nothing to withdraw.
   await post('/v1/me/roles', { roles: ['LEARNER'] }, owner.cookie).expect(200);
-  await get(path, owner.cookie).expect(403);
+  await get(path, owner.cookie).expect(200);
+});
+test('starting a teaching draft records the Tutor role without publishing anything', async () => {
+  const learner = await account(false);
+  assert.ok(!(await get('/v1/me', learner.cookie).expect(200)).body.user.roles.includes('TUTOR'));
+  const saved = await post(path, { revision: 0, step: 1, data: { biography: 'A private working copy.' } }, learner.cookie).expect(200);
+  assert.equal(saved.body.draft.step, 1);
+  const roles = (await get('/v1/me', learner.cookie).expect(200)).body.user.roles;
+  assert.ok(roles.includes('TUTOR') && roles.includes('LEARNER'));
+  // The workspace is open, but no profile and no ad exist yet.
+  assert.equal((await get('/v1/me/tutor', learner.cookie).expect(200)).body.profile, null);
+  assert.deepEqual((await get('/v1/me/listings', learner.cookie).expect(200)).body.listings, []);
 });

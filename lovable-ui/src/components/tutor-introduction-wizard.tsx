@@ -6,6 +6,7 @@ import {
   type Catalogue,
   type TutorIntroduction,
   type TutorOnboardingDraft,
+  type TutorProfile,
   type TutorState,
 } from "@/lib/api";
 import { Field, Notice } from "./account/ui";
@@ -30,11 +31,41 @@ const initial: TutorIntroduction = {
   public_email_consent: false,
   replace_identity: false,
 };
+// A saved profile seeds the same wizard, so legacy (version 1) and current
+// (version 2) Tutors edit through one journey. Every stored field is carried
+// across; nothing is discarded by opening the editor. Saving records the
+// current onboarding version server-side without publishing anything.
+export const introductionFromProfile = (p: TutorProfile): TutorIntroduction => ({
+  display_name: p.display_name || "",
+  biography: p.biography || "",
+  subject_ids: p.subject_ids || [],
+  hourly_rate_paise: p.hourly_rate_paise || 50000,
+  identity_country: p.identity_country || "IN",
+  identity_document: p.identity_document || "AADHAAR",
+  // An existing profile already carries an adult declaration, recorded either
+  // as a birth date (version 1) or as an explicit confirmation (version 2).
+  adult_confirmed: true,
+  public_email_consent: !!p.public_email_consent,
+  replace_identity: false,
+  expected_public_revision: p.public_revision,
+});
+// The first step whose details are still missing, so a returning owner lands
+// on real work instead of re-reading steps they already completed. A complete
+// introduction opens on Review, which still only saves.
+function firstIncompleteStep(f: TutorIntroduction) {
+  if (!f.subject_ids.length) return 0;
+  if (f.display_name.trim().length < 2 || !f.biography.trim()) return 1;
+  if (!Number.isInteger(f.hourly_rate_paise) || f.hourly_rate_paise < 100) return 2;
+  if (!f.adult_confirmed) return 3;
+  return 4;
+}
 export function TutorIntroductionWizard({
   catalogue,
+  profile,
   onCompleted,
 }: {
   catalogue: Catalogue;
+  profile?: TutorProfile | null | undefined;
   onCompleted: (state: TutorState, notice?: string) => void;
 }) {
   const [form, setForm] = useState(initial),
@@ -62,31 +93,37 @@ export function TutorIntroductionWizard({
     if (!alive.current) return;
     if (r.ok) {
       setDraft(r.data.draft);
-      setForm({ ...initial, ...r.data.draft?.data });
-      setStep(r.data.draft?.step ?? 0);
+      // A private draft wins over the saved profile, because it is the newer
+      // working copy. Otherwise an existing profile seeds the same fields.
+      const seeded = profile ? introductionFromProfile(profile) : initial;
+      const next = r.data.draft ? { ...seeded, ...r.data.draft.data } : seeded;
+      setForm(next);
+      // Resume where the owner left off: a stored step if there is one, else
+      // the first step that is still incomplete.
+      setStep(r.data.draft?.step ?? firstIncompleteStep(next));
       setReady(true);
       if (r.data.draft) setNotice("Your private saved draft is ready to continue.");
+      else if (profile)
+        setNotice("Your saved introduction is ready to edit. It stays as it is until you save.");
     } else setError(describeFailure(r.error));
   }
   const change = <K extends keyof TutorIntroduction>(key: K, value: TutorIntroduction[K]) => {
     setForm((old) => ({ ...old, [key]: value }));
     setNotice(undefined);
   };
-  function validate(at: number) {
-    if (at === 0 && !form.subject_ids.length) return "Choose at least one subject.";
-    if (
-      at === 1 &&
-      (form.display_name.trim().length < 2 || form.biography.trim().split(/\s+/).length < 40)
-    )
-      return "Enter your name and at least 40 words about your teaching.";
+  function validate(at: number, f: TutorIntroduction = form) {
+    if (at === 0 && !f.subject_ids.length) return "Choose at least one subject.";
+    // No word minimum on the introduction; any non-empty text is accepted.
+    if (at === 1 && (f.display_name.trim().length < 2 || !f.biography.trim()))
+      return "Enter your name and something about your teaching.";
     if (
       at === 2 &&
-      (!Number.isInteger(form.hourly_rate_paise) ||
-        form.hourly_rate_paise < 100 ||
-        form.hourly_rate_paise > 10000000)
+      (!Number.isInteger(f.hourly_rate_paise) ||
+        f.hourly_rate_paise < 100 ||
+        f.hourly_rate_paise > 10000000)
     )
       return "Enter an hourly rate between ₹1 and ₹100,000.";
-    if (at === 3 && !form.adult_confirmed)
+    if (at === 3 && !f.adult_confirmed)
       return "Confirm that you are at least 18 and will provide your own teaching services.";
     return undefined;
   }
@@ -181,7 +218,9 @@ export function TutorIntroductionWizard({
             aria-current={step === i ? "step" : undefined}
             className={
               "rounded-full px-3 py-2 text-sm " +
-              (step === i ? "bg-[#ffe7e8] text-[#cf3e50] font-semibold" : "bg-white text-muted-foreground")
+              (step === i
+                ? "bg-[#ffe7e8] text-[#b93044] font-semibold"
+                : "bg-white text-muted-foreground")
             }
           >
             {i + 1}. {label}
@@ -236,6 +275,10 @@ export function TutorIntroductionWizard({
                 <p className="text-sm">
                   {form.subject_ids.length}/10 selected · self-declared expertise
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  No qualification document required. Identity verification is optional and separate
+                  from publishing your ad.
+                </p>
                 <div className="grid max-h-80 gap-2 overflow-auto sm:grid-cols-2">
                   {catalogue.terms
                     .filter(
@@ -287,14 +330,12 @@ export function TutorIntroductionWizard({
                     aria-label="About you, skills and experience"
                     className="input min-h-48 font-normal"
                     required
-                    minLength={40}
                     maxLength={1000}
                     value={form.biography}
                     onChange={(e) => change("biography", e.target.value)}
                   />
                   <span className="block text-xs font-normal text-muted-foreground">
-                    {form.biography.trim() ? form.biography.trim().split(/\s+/).length : 0}/40 words
-                    minimum · {form.biography.length}/1,000 characters
+                    {form.biography.length}/1,000 characters. There is no minimum length.
                   </span>
                 </label>
               </>
@@ -325,6 +366,79 @@ export function TutorIntroductionWizard({
                   />
                   I am at least 18 and will provide my own teaching services.
                 </label>
+                {/* Identity details and contact consent belong to an existing
+                    introduction. A first-time Tutor is never asked for them:
+                    publication is free and identity verification is optional. */}
+                {profile && (
+                  <>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="text-sm font-semibold">
+                        Identity country
+                        <select
+                          className="input mt-2"
+                          value={form.identity_country}
+                          onChange={(e) => {
+                            const country = e.target.value as "IN" | "OTHER";
+                            setForm((old) => ({
+                              ...old,
+                              identity_country: country,
+                              identity_document: country === "IN" ? "AADHAAR" : "PASSPORT",
+                            }));
+                            setNotice(undefined);
+                          }}
+                        >
+                          <option value="IN">India</option>
+                          <option value="OTHER">Other country</option>
+                        </select>
+                      </label>
+                      <label className="text-sm font-semibold">
+                        Identity document
+                        <select
+                          className="input mt-2"
+                          value={form.identity_document}
+                          onChange={(e) =>
+                            change(
+                              "identity_document",
+                              e.target.value as TutorIntroduction["identity_document"],
+                            )
+                          }
+                        >
+                          {form.identity_country === "IN" && (
+                            <>
+                              <option value="AADHAAR">Aadhaar</option>
+                              <option value="GOVERNMENT_ID">Other government photo ID</option>
+                            </>
+                          )}
+                          <option value="PASSPORT">Passport</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label className="flex items-start gap-3 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.public_email_consent}
+                        onChange={(e) => change("public_email_consent", e.target.checked)}
+                      />
+                      <span>
+                        Show my verified email publicly to everyone when my Tutor Pro pass is active
+                        and a teaching offer is published. I can withdraw this consent here.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.replace_identity}
+                        onChange={(e) => change("replace_identity", e.target.checked)}
+                      />
+                      Replace my identity document and start a new review.
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Changing your identity name, country or document type also starts a new
+                      review. About, Subject, rate and contact-consent edits retain your current
+                      identity approval.
+                    </p>
+                  </>
+                )}
                 <Notice tone="info">
                   Your ad can go online without identity verification. You can verify your identity
                   later; verification status is shown separately.

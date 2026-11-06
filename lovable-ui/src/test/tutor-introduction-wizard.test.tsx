@@ -344,3 +344,66 @@ it("reports successful profile saving while retaining a concurrently newer draft
   expect(api.clearTutorOnboardingDraft).toHaveBeenCalledExactlyOnceWith(4);
   expect(api.saveTutorIntroduction).toHaveBeenCalledOnce();
 });
+
+// Legacy and current profiles share this one wizard. These cover the two ways
+// an owner returns to it: a private draft, and a saved profile.
+const legacyProfile = {
+  display_name: "Fictional Legacy Tutor",
+  biography: "I have taught school Physics for several years.",
+  birth_date: "1990-01-01",
+  public_id: "55555555-5555-4555-8555-555555555555",
+  public_revision: 4,
+  onboarding_version: 1,
+  subject_ids: ["subject-physics"],
+  hourly_rate_paise: 72550,
+  identity_country: "IN" as const,
+  identity_document: "AADHAAR" as const,
+  public_email_consent: false,
+  revision: 2,
+  status: "DRAFT",
+  eligible: false,
+};
+it("resumes a saved private draft at the step it was left on", async () => {
+  saved = {
+    revision: 3,
+    step: 2,
+    data: {
+      subject_ids: ["subject-physics"],
+      display_name: "Half done",
+      biography: "Partly written.",
+    },
+    updated_at: "2026-11-04T00:00:00Z",
+  };
+  mount();
+  expect(await screen.findByRole("heading", { name: "Set your hourly rate" })).toBeVisible();
+  expect(screen.getByText(/private saved draft is ready to continue/)).toBeVisible();
+});
+it("seeds a legacy version 1 profile into the same wizard without publishing it", async () => {
+  render(
+    <TutorIntroductionWizard
+      catalogue={catalogue}
+      profile={legacyProfile}
+      onCompleted={onCompleted}
+    />,
+  );
+  // Every stored field is carried across, and a complete profile opens on
+  // Review because no earlier step is missing anything.
+  expect(await screen.findByRole("heading", { name: "Review your introduction" })).toBeVisible();
+  expect(screen.getByText("Fictional Legacy Tutor")).toBeVisible();
+  expect(screen.getByText(/725.5\/hour/)).toBeVisible();
+  // Opening the editor publishes nothing and saves nothing on its own.
+  expect(api.saveTutorIntroduction).not.toHaveBeenCalled();
+  expect(api.saveTutorOnboardingDraft).not.toHaveBeenCalled();
+});
+it("resumes a legacy profile at the first step whose details are missing", async () => {
+  render(
+    <TutorIntroductionWizard
+      catalogue={catalogue}
+      profile={{ ...legacyProfile, subject_ids: [] }}
+      onCompleted={onCompleted}
+    />,
+  );
+  expect(
+    await screen.findByRole("heading", { name: "Which subjects do you teach?" }),
+  ).toBeVisible();
+});

@@ -1,61 +1,29 @@
 import { TutorIntroductionWizard } from "./tutor-introduction-wizard";
 import { TutorPresenceEditor } from "./tutor-presence-editor";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileCheck, ShieldCheck } from "lucide-react";
-import {
-  api,
-  describeFailure,
-  type TutorState,
-  type TutorPolicy,
-  type Catalogue,
-  type TutorIntroduction,
-} from "@/lib/api";
-import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "./account/ui";
+import { api, describeFailure, type TutorState, type TutorPolicy, type Catalogue } from "@/lib/api";
+import { AuthShell, Notice, useSingleFlight } from "./account/ui";
 import { Button } from "./ui/button";
 import { TutorPhotoEditor } from "./tutor-photo-editor";
 import { TutorPro } from "./tutor-pro";
-const initial: TutorIntroduction = {
-  display_name: "",
-  biography: "",
-  subject_ids: [],
-  hourly_rate_paise: 50000,
-  identity_country: "IN",
-  identity_document: "AADHAAR",
-  adult_confirmed: false,
-  public_email_consent: false,
-  replace_identity: false,
-};
 export function TutorOnboarding() {
   const [state, setState] = useState<TutorState>(),
     [policy, setPolicy] = useState<TutorPolicy>(),
     [catalogue, setCatalogue] = useState<Catalogue>(),
-    [form, setForm] = useState(initial),
     [file, setFile] = useState<File>(),
     [error, setError] = useState<string>(),
     [notice, setNotice] = useState<string>(),
-    [errors, setErrors] = useState<Record<string, string[]>>({}),
     [editing, setEditing] = useState(true);
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
   const apply = (next: TutorState) => {
     setState(next);
-    const p = next.profile;
-    if (p) {
-      setForm({
-        display_name: p.display_name,
-        biography: p.biography,
-        subject_ids: p.subject_ids || [],
-        hourly_rate_paise: p.hourly_rate_paise || 50000,
-        identity_country: p.identity_country || "IN",
-        identity_document: p.identity_document || "AADHAAR",
-        adult_confirmed: true,
-        public_email_consent: !!p.public_email_consent,
-        replace_identity: false,
-        expected_public_revision: p.public_revision,
-      });
-      setEditing(p.onboarding_version !== 2);
-    }
+    // A legacy (version 1) profile opens straight in the unified editor so its
+    // owner can finish the current introduction; a current profile shows its
+    // summary first. Either way the same wizard does the editing.
+    if (next.profile) setEditing(next.profile.onboarding_version !== 2);
   };
   const load = async () => {
     const [a, b, c] = await Promise.all([api.tutor(), api.tutorPolicy(), api.catalogue()]);
@@ -71,29 +39,6 @@ export function TutorOnboarding() {
   useEffect(() => {
     void load();
   }, []);
-  const change = <K extends keyof TutorIntroduction>(k: K, v: TutorIntroduction[K]) =>
-    setForm((p) => ({ ...p, [k]: v }));
-  const save = (e: FormEvent) => {
-    e.preventDefault();
-    void run(async () => {
-      setError(undefined);
-      setNotice(undefined);
-      setErrors({});
-      const r = await api.saveTutorIntroduction(form);
-      if (r.ok) {
-        apply(r.data);
-        setNotice(
-          "Profile saved. " +
-            (r.data.profile?.eligible
-              ? "Your public profile is updated."
-              : "Your introduction is saved. Create your ad and publish for free."),
-        );
-      } else {
-        setError(describeFailure(r.error));
-        setErrors(("field_errors" in r.error ? r.error.field_errors : undefined) || {});
-      }
-    });
-  };
   const upload = (sample = false) =>
     void run(async () => {
       setError(undefined);
@@ -139,7 +84,11 @@ export function TutorOnboarding() {
     <AuthShell
       wide
       title={p ? "Your Tutor profile" : "Create your teaching ad"}
-      intro={p ? "Manage your introduction and teaching details. Identity verification is optional." : "Start with what you teach. Save your progress and publish when you are ready."}
+      intro={
+        p
+          ? "Manage your introduction and teaching details. Identity verification is optional."
+          : "Start with what you teach. Save your progress and publish when you are ready."
+      }
     >
       {error && <Notice tone="error">{error}</Notice>}
       {notice && <Notice tone="success">{notice}</Notice>}
@@ -147,26 +96,28 @@ export function TutorOnboarding() {
         <p role="status">Loading your profile…</p>
       ) : (
         <div className="space-y-6">
-          {p && <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
-            {[
-              ["Profile saved", !!p],
-              ["Ready to create an ad", !!p?.subject_ids?.length],
-              ["Profile public", profilePublic],
-            ].map(([label, done]) => (
-              <li
-                key={String(label)}
-                className="flex items-center gap-2 rounded-xl border bg-muted/30 p-4 text-sm"
-              >
-                <CheckCircle2
-                  aria-hidden
-                  className={done ? "size-5 text-success" : "size-5 text-muted-foreground"}
-                />
-                <span>
-                  {label}: <strong>{done ? "Done" : "Pending"}</strong>
-                </span>
-              </li>
-            ))}
-          </ol>}
+          {p && (
+            <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
+              {[
+                ["Profile saved", !!p],
+                ["Ready to create an ad", !!p?.subject_ids?.length],
+                ["Profile public", profilePublic],
+              ].map(([label, done]) => (
+                <li
+                  key={String(label)}
+                  className="flex items-center gap-2 rounded-xl border bg-muted/30 p-4 text-sm"
+                >
+                  <CheckCircle2
+                    aria-hidden
+                    className={done ? "size-5 text-success" : "size-5 text-muted-foreground"}
+                  />
+                  <span>
+                    {label}: <strong>{done ? "Done" : "Pending"}</strong>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
           <section className={p ? "onboarding-section space-y-4" : "space-y-4"}>
             <div className="flex items-center justify-between gap-3">
               {p && <h2 className="text-lg font-semibold">1. About you</h2>}
@@ -197,180 +148,26 @@ export function TutorOnboarding() {
                   </Button>
                 )}
               </>
-            ) : !p && catalogue ? (
+            ) : catalogue ? (
+              // One journey for everyone: new Tutors, legacy version 1 profiles
+              // and current ones all edit through this wizard, seeded from any
+              // saved profile. Saving never publishes.
               <TutorIntroductionWizard
                 catalogue={catalogue}
+                profile={p}
                 onCompleted={(next, cleanupNotice) => {
                   apply(next);
+                  setEditing(false);
                   setNotice(
-                    cleanupNotice || "Introduction saved. Create your ad and publish it for free.",
+                    cleanupNotice ||
+                      (p
+                        ? "Introduction saved. Your ad publication is unchanged."
+                        : "Introduction saved. Create your ad and publish it for free."),
                   );
                 }}
               />
             ) : (
-              <form onSubmit={save} className="space-y-5">
-                <Field
-                  label="Your public name"
-                  required
-                  minLength={2}
-                  maxLength={80}
-                  value={form.display_name}
-                  error={errors["display_name"]?.join(" ")}
-                  onChange={(e) => change("display_name", e.target.value)}
-                />
-                <fieldset>
-                  <legend className="text-sm font-semibold">Subjects you teach</legend>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Select up to 10. No qualification document required.
-                  </p>
-                  <div className="mt-3 grid max-h-64 gap-2 overflow-auto sm:grid-cols-2">
-                    {catalogue?.terms
-                      .filter((t) => t.kind === "SUBJECT" && t.active)
-                      .map((t) => (
-                        <label className="flex gap-2 rounded-lg border p-3 text-sm" key={t.id}>
-                          <input
-                            type="checkbox"
-                            checked={form.subject_ids.includes(t.id)}
-                            disabled={
-                              !form.subject_ids.includes(t.id) && form.subject_ids.length >= 10
-                            }
-                            onChange={(e) =>
-                              change(
-                                "subject_ids",
-                                e.target.checked
-                                  ? [...form.subject_ids, t.id]
-                                  : form.subject_ids.filter((id) => id !== t.id),
-                              )
-                            }
-                          />
-                          {t.label}
-                        </label>
-                      ))}
-                  </div>
-                  {errors["subject_ids"] && (
-                    <p role="alert" className="mt-2 text-sm text-destructive">
-                      Choose at least one Subject.
-                    </p>
-                  )}
-                </fieldset>
-                <Field
-                  label="Hourly tuition rate (INR)"
-                  type="number"
-                  required
-                  min={1}
-                  max={100000}
-                  step="0.01"
-                  value={form.hourly_rate_paise / 100}
-                  onChange={(e) =>
-                    change("hourly_rate_paise", Math.round(Number(e.target.value) * 100))
-                  }
-                  error={errors["hourly_rate_paise"]?.join(" ")}
-                  hint="An indicative rate for your profile. Tuition is paid directly to you."
-                />
-                <label className="block space-y-2 text-sm font-semibold">
-                  About you, skills and experience
-                  <textarea
-                    className="input min-h-32 font-normal"
-                    required
-                    minLength={40}
-                    maxLength={1000}
-                    value={form.biography}
-                    onChange={(e) => change("biography", e.target.value)}
-                  />
-                  <span className="block text-xs font-normal text-muted-foreground">
-                    {form.biography.length}/1,000 characters · minimum 40. Keep phone numbers,
-                    emails and links out.
-                  </span>
-                  {errors["biography"] && (
-                    <span className="text-destructive">{errors["biography"].join(" ")}</span>
-                  )}
-                </label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="text-sm font-semibold">
-                    Identity country
-                    <select
-                      className="input mt-2"
-                      value={form.identity_country}
-                      onChange={(e) => {
-                        change("identity_country", e.target.value as "IN" | "OTHER");
-                        change(
-                          "identity_document",
-                          e.target.value === "IN" ? "AADHAAR" : "PASSPORT",
-                        );
-                      }}
-                    >
-                      <option value="IN">India</option>
-                      <option value="OTHER">Other country</option>
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold">
-                    Identity document
-                    <select
-                      className="input mt-2"
-                      value={form.identity_document}
-                      onChange={(e) =>
-                        change(
-                          "identity_document",
-                          e.target.value as TutorIntroduction["identity_document"],
-                        )
-                      }
-                    >
-                      {form.identity_country === "IN" && (
-                        <>
-                          <option value="AADHAAR">Aadhaar</option>
-                          <option value="GOVERNMENT_ID">Other government photo ID</option>
-                        </>
-                      )}
-                      <option value="PASSPORT">Passport</option>
-                    </select>
-                  </label>
-                </div>
-                <label className="flex items-start gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={form.adult_confirmed}
-                    onChange={(e) => change("adult_confirmed", e.target.checked)}
-                  />
-                  I am at least 18 and will provide my own teaching services.
-                </label>
-                <label className="flex items-start gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={form.public_email_consent}
-                    onChange={(e) => change("public_email_consent", e.target.checked)}
-                  />
-                  <span>
-                    Show my verified email publicly to everyone when my Tutor Pro pass is active and
-                    a teaching offer is published. I can withdraw this consent here.
-                  </span>
-                </label>
-                {p && (
-                  <>
-                    <label className="flex items-start gap-3 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={form.replace_identity}
-                        onChange={(e) => change("replace_identity", e.target.checked)}
-                      />
-                      Replace my identity document and start a new review.
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      Changing your identity name, country or document type also starts a new
-                      review. About, Subject, rate and contact-consent edits retain your current
-                      identity approval.
-                    </p>
-                  </>
-                )}
-                <SubmitButton loading={loading} disabled={!catalogue} loadingText="Saving…">
-                  {p ? "Save profile changes" : "Save profile and continue"}
-                </SubmitButton>
-                {p && (
-                  <Button type="button" variant="outline" onClick={() => apply(state)}>
-                    Cancel editing
-                  </Button>
-                )}
-              </form>
+              <p role="status">Loading subjects…</p>
             )}
           </section>
           {p && (

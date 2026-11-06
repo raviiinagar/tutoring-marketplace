@@ -1,4 +1,4 @@
-import { completeFixtureOffer, publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
+import { completeFixtureOffer, publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures, ensurePublicationPhoto } from "./helpers/publication.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +10,7 @@ import type {INestApplication} from '@nestjs/common';
 import {createApplication} from '../src/app.js';
 import {loadConfig,type Config} from '../src/config.js';
 import {Database,migrate} from '../src/database.js';
-import {decrypt,tokenHash} from '../src/security.js';
+import {decrypt,encrypt,tokenHash} from '../src/security.js';
 import {assignStaff,type StaffScope} from '../src/staff.js';
 import {base32,totp} from '../src/totp.js';
 import {ClamAvScanner,TestEvidenceScanner} from '../src/evidence-scanner.js';
@@ -49,12 +49,12 @@ async function enroll(cookie:string){
 }
 const profile={display_name:'Fictional Tutor',biography:fixtureBiography,birth_date:'1990-01-01',adult_confirmed:true};
 const offer={title:fixtureTitle,description:fixtureDescription,domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse',language_ids:['language-english'],currency:'INR',teaching_mode:'ONLINE',rate_paise:50000,rate_unit:'HOUR',trial_kind:'NONE'};
-async function tutor(approved=true,subjects=['subject-physics']){
- const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await saveTutorIntroduction(post, user, profile, subjects);
+async function tutor(approved=true,subjects=['subject-physics'],withPortrait=true){
+ const user=await fixture(null);await post('/v1/me/roles',{roles:['TUTOR']},user.cookie).expect(200);await saveTutorIntroduction(post, user, profile, subjects);if(withPortrait)await ensurePublicationPhoto(post,get,user);
  if(approved){const reviewer=await fixture(['TRUST']);const mfa=await enroll(reviewer.cookie);for(const [kind,subjectId] of [['IDENTITY',''],...subjects.map(subject=>['QUALIFICATION',subject])]){const file=(await post('/v1/me/tutor/evidence',{media_type:'application/pdf',data:Buffer.from('%PDF-1.4\n% FICTIONAL-TUTOR-EVIDENCE\n%%EOF\n').toString('base64')},user.cookie).expect(201)).body.evidence.id;await post('/v1/me/tutor/claims',{kind,description:'Fictional evidence for '+kind,evidence_id:file,...(kind==='IDENTITY'?{}:{subject_id:subjectId})},user.cookie).expect(201);}await post('/v1/me/tutor/submissions',{},user.cookie).expect(200);const claims = await fixtureClaims(get, user.cookie);for(const claim of claims)await post('/v1/staff/tutor-claims/'+claim.id+'/reviews',{outcome:'APPROVE',checked_item:'Fictional document and claim checked',reason:'Approve fictional Tutor evidence',adult_identity_confirmed:true,expires_at:new Date(clock.getTime()+86400000).toISOString()},mfa.cookie).expect(200);await grantTutorProFixture(database,config,user.email,clock);await publishProfileFixture(post, get, user); return { ...user, reviewer: mfa };}
  return {...user,reviewer:undefined};
 }
-const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database);
+const { draft, submitted, publish, publishOffer } = publicationFixtures(post, offer, () => database, get);
 
 
 test('new offer eligibility follows active declared Subjects independently of optional evidence, including a Commerce-only Tutor',async()=>{
@@ -164,4 +164,68 @@ test('all eight Learning Domains can publish explicit offers without crossing su
  const combinations=[{domain_id:'school',subject_id:'subject-physics',level_id:'level-class-10',curriculum_id:'curriculum-cbse'}, {domain_id:'entrance',subject_id:'subject-physics',level_id:'level-repeater',exam_id:'exam-jee'}, {domain_id:'higher',subject_id:'subject-physics',level_id:'level-undergraduate'}, {domain_id:'competitive',subject_id:'subject-mathematics',level_id:'level-exam-preparation',exam_id:'exam-ssc'}, {domain_id:'professional',subject_id:'subject-accounting',level_id:'level-exam-preparation',exam_id:'exam-ca'}, {domain_id:'career',subject_id:'subject-programming',level_id:'level-beginner'}, {domain_id:'languages',subject_id:'subject-french',level_id:'level-beginner'}, {domain_id:'arts',subject_id:'subject-music',level_id:'level-beginner'}];
  const user=await tutor(true,[...new Set(combinations.map(c=>c.subject_id))]);
  for(const combination of combinations){const row=await publishOffer(user,{...offer,curriculum_id:undefined,...combination});const publicOffer=await get('/v1/listings/'+row.id).expect(200);assert.equal(publicOffer.body.listing.subject_id,combination.subject_id);assert.equal(publicOffer.body.listing.exam_id,combination.exam_id);}
+});
+
+
+test('photo-less drafts and short descriptions stay private until an explicit publish with a clean portrait',async()=>{
+ const user=await tutor(false,['subject-physics'],false);
+ const state=(await get('/v1/me/tutor',user.cookie)).body.profile;
+ await post('/v1/me/tutor/introduction',{display_name:profile.display_name,biography:'Patient teaching.',subject_ids:['subject-physics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false,expected_public_revision:state.public_revision},user.cookie).expect(200);
+ const row=(await post('/v1/me/listings',{...offer,description:'Short.'},user.cookie).expect(201)).body.listing;
+ for(const action of ['PUBLISH','SUBMIT']){
+  const result=await post('/v1/me/listings/'+row.id+'/actions/'+action,{revision:row.revision},user.cookie).expect(409);
+  assert.equal(result.body.code,'PHOTO_REQUIRED');
+ }
+ assert.equal((await get('/v1/me/tutor',user.cookie)).body.profile.publication_status,'DRAFT');
+ await get('/v1/listings/'+row.id).expect(404);
+ const photo=await ensurePublicationPhoto(post,get,user);assert.equal(photo.status,'PENDING');assert.equal(photo.self_published,true);assert.equal(photo.scan_status,'CLEAN');
+ assert.equal((await get('/v1/me/listings',user.cookie)).body.listings[0].status,'DRAFT');
+ assert.equal((await get('/v1/me/tutor',user.cookie)).body.profile.publication_status,'DRAFT');
+ const live=(await post('/v1/me/listings/'+row.id+'/actions/PUBLISH',{revision:row.revision},user.cookie).expect(200)).body.listing;
+ assert.equal(live.status,'PUBLISHED');assert.equal(live.identity_verified,false);
+ await post('/v1/me/listings',{...offer,description:'   '},user.cookie).expect(400);
+});
+
+test('existing online ads remain live and editable without a portrait while resume still requires one',async()=>{
+ const user=await tutor(false);let row=await publish(user);
+ const photo=(await get('/v1/me/tutor/photo',user.cookie)).body.photo;
+ await del('/v1/me/tutor/photo/'+photo.id,user.cookie).expect(204);
+ await get('/v1/listings/'+row.id).expect(200);
+ row=(await post('/v1/me/listings/'+row.id,{revision:row.revision,offer:{...offer,description:'Revised.',rate_paise:55000}},user.cookie).expect(200)).body.listing;
+ assert.equal(row.status,'PUBLISHED');assert.equal(row.eligible,true);
+ row=(await post('/v1/me/listings/'+row.id+'/actions/PAUSE',{revision:row.revision},user.cookie).expect(200)).body.listing;
+ const refused=await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision},user.cookie).expect(409);assert.equal(refused.body.code,'PHOTO_REQUIRED');
+ assert.equal((await get('/v1/me/listings',user.cookie)).body.listings[0].status,'PAUSED');
+ await post('/v1/me/listings/'+row.id+'/actions/ARCHIVE',{revision:row.revision},user.cookie).expect(200);
+ assert.deepEqual((await get('/v1/me/listings',user.cookie)).body.listings,[]);await get('/v1/listings/'+row.id).expect(404);
+ await post('/v1/me/listings/'+row.id+'/actions/RESUME',{revision:row.revision+1},user.cookie).expect(404);
+});
+
+test('legacy review publication requires the same portrait and title boundary as owner publication',async()=>{
+ const user=await tutor(false,['subject-physics'],false);await publishProfileFixture(post,get,user);
+ const reviewer=await fixture(['TRUST']),mfa=await enroll(reviewer.cookie);
+ let row=await draft(user);await database.pool.query("UPDATE teaching_listings SET status='REVIEW' WHERE id=$1",[row.id]);
+ const result=await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Review retained fictional legacy submission'},mfa.cookie).expect(409);assert.equal(result.body.code,'PHOTO_REQUIRED');
+ await ensurePublicationPhoto(post,get,user);
+ row=(await post('/v1/me/listings/'+row.id,{revision:row.revision,offer:{...offer,title:'Short private draft title'}},user.cookie).expect(200)).body.listing;
+ const invalid=await post('/v1/staff/listings/'+row.id+'/reviews',{revision:row.revision,outcome:'APPROVE',reason:'Reject short historical review content'},mfa.cookie).expect(400);assert.equal(invalid.body.code,'VALIDATION_ERROR');
+});
+
+test('legacy profile upgrade preserves encrypted birth date, public ID, creation time and an existing live ad',async()=>{
+ const user=await tutor(true);
+ // Synthetic pre-unified history in this isolated database; actual reviews above used the normal API.
+ await database.pool.query("UPDATE tutor_profiles SET onboarding_version=1,encrypted_birth_date=$2 WHERE user_id=$1",[user.id,encrypt({birth_date:'1990-01-01'},config.authSecret)]);
+ const before=(await database.pool.query('SELECT * FROM tutor_profiles WHERE user_id=$1',[user.id])).rows[0];
+ const id=randomUUID();const legacyOffer={...offer,title:'Legacy Physics teaching offer',description:'Legacy description.'};
+ await database.pool.query("INSERT INTO teaching_listings(id,user_id,payload,profile_revision,status,approved,publication_policy,created_at,updated_at) VALUES($1,$2,$3,$4,'PUBLISHED',true,'review-v1',$5,$5)",[id,user.id,legacyOffer,before.revision,clock]);
+ await get('/v1/listings/'+id).expect(200);
+ await post('/v1/me/tutor/introduction',{display_name:profile.display_name,biography:'Updated teaching.',subject_ids:['subject-physics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false,expected_public_revision:before.public_revision},user.cookie).expect(200);
+ const after=(await database.pool.query('SELECT * FROM tutor_profiles WHERE user_id=$1',[user.id])).rows[0];assert.equal(after.onboarding_version,2);assert.deepEqual(after.encrypted_birth_date,before.encrypted_birth_date);assert.equal(after.public_id,before.public_id);assert.deepEqual(after.created_at,before.created_at);assert.equal(after.publication_status,'PUBLISHED');
+ await get('/v1/listings/'+id).expect(200);
+ let row=(await get('/v1/me/listings',user.cookie)).body.listings.find((item:{id:string})=>item.id===id);
+ row=(await post('/v1/me/listings/'+id+'/actions/PAUSE',{revision:row.revision},user.cookie).expect(200)).body.listing;
+ row=(await post('/v1/me/listings/'+id+'/actions/RESUME',{revision:row.revision},user.cookie).expect(200)).body.listing;
+ row=(await post('/v1/me/listings/'+id+'/actions/PAUSE',{revision:row.revision},user.cookie).expect(200)).body.listing;
+ row=(await post('/v1/me/listings/'+id,{revision:row.revision,offer:legacyOffer},user.cookie).expect(200)).body.listing;
+ await post('/v1/me/listings/'+id+'/actions/RESUME',{revision:row.revision},user.cookie).expect(400);
 });

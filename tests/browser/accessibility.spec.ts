@@ -138,6 +138,9 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
       // Wait for the authoritative response, rather than auditing a temporary loading shell.
       if (path === "/tutor") {
         await page.getByRole("button", { name: "Edit profile", exact: true }).click();
+        // A complete introduction resumes at Review. Reach the editable name step.
+        for (let n = 0; n < 3; n++)
+          await page.getByRole("button", { name: "Go back", exact: true }).click();
         await expect(page.getByLabel("Your public name", { exact: true })).toBeEnabled();
       }
       if (path === "/privacy")

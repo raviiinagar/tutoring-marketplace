@@ -1,0 +1,88 @@
+{
+  "api": {
+    "passed": 240,
+    "failed": 0,
+    "skipped": 0,
+    "postgres_major": 16
+  },
+  "ui": {
+    "passed": 206,
+    "failed": 0,
+    "files": 41
+  },
+  "browser": {
+    "expected": 23,
+    "unexpected": 0,
+    "skipped": 1,
+    "flaky": 0
+  },
+  "axe": [
+    {
+      "name": "QA01 axe results",
+      "combinations": 6,
+      "violation_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Twelve audit accessibility combinations",
+      "combinations": 12,
+      "violation_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "script_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "types": "passed",
+  "builds": [
+    "contracts",
+    "api",
+    "node-ui",
+    "cloudflare"
+  ],
+  "compiled_cloudflare_smoke": {
+    "widths": [
+      1440,
+      390
+    ],
+    "page_errors": 0
+  },
+  "lint": {
+    "base_commit": "ddf8763",
+    "base": {
+      "errors": 31186,
+      "warnings": 39
+    },
+    "feature": {
+      "errors": 1724,
+      "warnings": 41
+    },
+    "all_error_files_unchanged_from_base": true
+  },
+  "root_preservation": {
+    "root_head_unchanged": true,
+    "recorded_root_files_unchanged": true,
+    "recorded_file_count": 15,
+    "root_status_unchanged": true,
+    "changed_recorded_files": []
+  }
+}
