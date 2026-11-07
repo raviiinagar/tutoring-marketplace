@@ -130,12 +130,13 @@ expect((await page.request.get('/v1/listings/'+listingId)).status()).toBe(200);
     await visitor.goto('/requests');await expect(visitor.getByRole('article').filter({hasText:title})).toContainText('Status: ACCEPTED');await visitor.getByRole('link',{name:'View Connection',exact:true}).click();await expect(visitor.getByRole('heading',{name:'Your Connection',exact:true})).toBeVisible();expect(await visitor.locator('body').innerText()).not.toContain(tutorEmail);await visitor.getByRole('button',{name:'Show verified contact',exact:true}).click();await expect(visitor.getByRole('link',{name:tutorEmail,exact:true})).toBeVisible();await visitor.screenshot({path:'.local/task11-mobile-connection.png',fullPage:true});expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     await page.getByRole('link',{name:'View Connection',exact:true}).click();await page.getByRole('button',{name:'Show verified contact',exact:true}).click();await expect(page.getByRole('link',{name:learnerEmail,exact:true})).toBeVisible();
     // Durable chat through both adult browsers, including an acknowledgement lost in transit.
-    await visitor.getByRole('link',{name:'Open chat',exact:true}).click();
-    await expect(visitor.getByRole('heading',{name:'Private chat',exact:true})).toBeVisible();
+    // Chat now opens inside the My messages inbox through its Messages section.
+    await visitor.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Messages',exact:true}).click();
+    await expect(visitor.getByRole('log',{name:'Conversation messages',exact:true})).toBeVisible();
     await visitor.getByLabel('Message',{exact:true}).fill('Please explain momentum with a worked example.');
     await visitor.getByRole('button',{name:'Send message',exact:true}).click();
     await expect(visitor.getByRole('log')).toContainText('Please explain momentum with a worked example.');
-    await page.getByRole('link',{name:'Open chat',exact:true}).click();
+    await page.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Messages',exact:true}).click();
     await expect(page.getByRole('log')).toContainText('Please explain momentum with a worked example.');
     await page.getByLabel('Message',{exact:true}).fill('Let us start with two colliding balls.');
     await page.getByRole('button',{name:'Send message',exact:true}).click();
@@ -152,8 +153,8 @@ expect((await page.request.get('/v1/listings/'+listingId)).status()).toBe(200);
     await expect.poll(async()=>{const r=await visitor.request.get('/v1/me/connections/'+connectionId+'/messages');return (await r.json()).unread_count;}).toBe(0);
     await visitor.goto('/connections');
     await page.getByLabel('Message',{exact:true}).fill('Unread until the learner opens chat.');await page.getByRole('button',{name:'Send message',exact:true}).click();await expect(page.getByRole('log')).toContainText('Unread until the learner opens chat.');
-    await visitor.getByRole('button',{name:'Refresh Connections',exact:true}).click();await expect(visitor.getByRole('complementary',{name:'Contacts',exact:true}).getByRole('link',{name:new RegExp('^'+title+' [0-9]+ unread messages$')})).toContainText('1 unread');
-    await visitor.getByRole('complementary',{name:'Contacts',exact:true}).getByRole('link',{name:new RegExp('^'+title+' [0-9]+ unread messages$')}).click();await expect(visitor.getByRole('log')).toContainText('Unread until the learner opens chat.');await visitor.emulateMedia({reducedMotion:'reduce'});await auditAccessibility(visitor,testInfo,'connected-mobile-chat');
+    await visitor.getByRole('button',{name:'Refresh Connections',exact:true}).click();await expect(visitor.getByRole('complementary',{name:'Conversations',exact:true}).getByRole('link',{name:new RegExp('^Fictional Physics Tutor '+title+' [0-9]+ unread messages$')})).toContainText('1 unread');
+    await visitor.getByRole('complementary',{name:'Conversations',exact:true}).getByRole('link',{name:new RegExp('^Fictional Physics Tutor '+title+' [0-9]+ unread messages$')}).click();await expect(visitor.getByRole('log')).toContainText('Unread until the learner opens chat.');await visitor.emulateMedia({reducedMotion:'reduce'});await auditAccessibility(visitor,testInfo,'connected-mobile-chat');
     await visitor.screenshot({path:'.local/task12-mobile-chat.png',fullPage:true});expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     // An isolated fixture ages only this fictional Connection; HTTP tests cover the exact boundary.
     await execute(process.execPath,['--env-file=.local/browser-tests.env','node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','tests/browser/review-fixture.ts',connectionId],{timeout:30_000});

@@ -1,4 +1,5 @@
 import { TutorIntroductionWizard } from "./tutor-introduction-wizard";
+import { useQueryClient } from "@tanstack/react-query";
 import { TutorPresenceEditor } from "./tutor-presence-editor";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -18,6 +19,7 @@ export function TutorOnboarding() {
     [editing, setEditing] = useState(true);
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
+  const client = useQueryClient();
   const apply = (next: TutorState) => {
     setState(next);
     // A legacy (version 1) profile opens straight in the unified editor so its
@@ -157,6 +159,10 @@ export function TutorOnboarding() {
                 profile={p}
                 onCompleted={(next, cleanupNotice) => {
                   apply(next);
+                  // Before this save the photo endpoint answered "create a Tutor
+                  // profile first", which is cached as no photo state; reload it so
+                  // the photo section does not stay on "Loading photo status".
+                  void client.refetchQueries({ queryKey: ["account-photo"] });
                   setEditing(false);
                   setNotice(
                     cleanupNotice ||
