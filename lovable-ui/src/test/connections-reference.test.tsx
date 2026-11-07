@@ -71,6 +71,11 @@ const connection = (id: string, title: string, available = true): ConnectionSumm
   test_only: false,
 });
 beforeEach(() => {
+  vi.spyOn(api, "tutorRequests").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { requests: [], next_cursor: null },
+  });
   vi.spyOn(api, "contactRequests").mockResolvedValue({
     ok: true,
     status: 200,
@@ -91,6 +96,11 @@ it("shows the honest empty inbox with a working teacher-search destination", asy
   });
   render(<Connections />);
   expect(await screen.findByRole("heading", { name: "No message" })).toBeTruthy();
+  expect(
+    screen.getByText(
+      "You haven't found a teacher yet. Search for a teacher to start your learning journey.",
+    ),
+  ).toBeVisible();
   expect(screen.getByText("No results", { exact: true })).toBeTruthy();
   expect(
     within(screen.getByRole("region", { name: "Messages" }))
@@ -154,4 +164,23 @@ it("redirects an expired account session to sign in", async () => {
   });
   render(<Connections />);
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
+});
+
+it("gives an empty Tutor inbox its own copy and a focused link to Requests", async () => {
+  vi.spyOn(api, "connections").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { connections: [], next_cursor: null },
+  });
+  render(<Connections teachingWorkspace />);
+  const pane = screen.getByRole("region", { name: "Messages" });
+  expect(
+    await within(pane).findByText("No conversations yet. Accepted enquiries appear here."),
+  ).toBeVisible();
+  expect(within(pane).queryByText(/You haven't found a teacher yet/)).toBeNull();
+  const link = within(pane).getByRole("link", { name: "View pending requests" });
+  expect(link).toHaveAttribute("href", "#inbox-requests");
+  fireEvent.click(link);
+  expect(screen.getByText("Requests", { exact: true })).toHaveFocus();
+  expect(screen.getByRole("region", { name: "Incoming requests" })).toBeVisible();
 });

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type TimedRequest = { status: string; server_time: string; expires_at: string };
+export const requestTimeRemaining = (request: TimedRequest, elapsed: number) =>
+  new Date(request.expires_at).getTime() - new Date(request.server_time).getTime() - elapsed;
 export function RequestDeadline({
   request,
   children,
@@ -17,8 +19,7 @@ export function RequestDeadline({
     const timer = setInterval(() => setElapsed(performance.now() - anchor.current.start), 1000);
     return () => clearInterval(timer);
   }, [request.server_time]);
-  const remaining =
-    new Date(request.expires_at).getTime() - new Date(request.server_time).getTime() - elapsed;
+  const remaining = requestTimeRemaining(request, elapsed);
   const status = request.status === "PENDING" && remaining <= 0 ? "EXPIRED" : request.status;
   return (
     <>

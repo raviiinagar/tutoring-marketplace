@@ -20,9 +20,13 @@ const request = {
 };
 async function openRequests(page: Page) {
   const summary = page.locator(".inbox-requests > summary");
-  await expect(summary).toContainText("on this page");
+  await expect(summary).toHaveText("Requests (1 pending)");
+  await expect(page.locator(".inbox-requests")).toHaveAttribute("open", "");
   await summary.focus();
   await summary.press("Enter");
+  await expect(page.locator(".inbox-requests")).not.toHaveAttribute("open");
+  await summary.press("Enter");
+  await expect(page.locator(".inbox-requests")).toHaveAttribute("open", "");
 }
 for (const viewport of [
   { width: 1366, height: 650 },
@@ -203,11 +207,9 @@ test("server deadline equality and stale decisions never open a chat", async ({
   await page.goto("/connections");
   await openRequests(page);
   const section = page.getByRole("region", { name: "Incoming requests" });
-  const equal = section
-    .getByRole("article")
-    .filter({
-      has: page.getByRole("heading", { name: "Equal deadline request" }),
-    });
+  const equal = section.getByRole("article").filter({
+    has: page.getByRole("heading", { name: "Equal deadline request" }),
+  });
   await expect(
     equal.getByText("Status: EXPIRED", { exact: true }),
   ).toBeVisible();

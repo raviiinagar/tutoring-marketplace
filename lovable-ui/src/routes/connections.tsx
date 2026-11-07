@@ -318,8 +318,26 @@ export function Connections({
                   <p>
                     {rows.length
                       ? "Choose a conversation to read messages and arrange your next class."
-                      : "You haven't found a teacher yet. Search for a teacher to start your learning journey."}
+                      : teachingWorkspace
+                        ? "No conversations yet. Accepted enquiries appear here."
+                        : "You haven't found a teacher yet. Search for a teacher to start your learning journey."}
                   </p>
+                  {!rows.length && teachingWorkspace && (
+                    <a
+                      href="#inbox-requests"
+                      className="link mt-3 inline-block"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        const requests = document.getElementById("inbox-requests");
+                        if (requests instanceof HTMLDetailsElement) {
+                          requests.open = true;
+                          requests.querySelector("summary")?.focus();
+                        }
+                      }}
+                    >
+                      View pending requests
+                    </a>
+                  )}
                 </div>
               )}
               <Button asChild className="reference-inbox-cta">

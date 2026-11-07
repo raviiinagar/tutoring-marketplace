@@ -1,0 +1,28 @@
+{
+  "base": "d03de1377b600d2f622313fe1ea8a3c5992f9f7a",
+  "ui_before": {
+    "passed": 242,
+    "failed": 0
+  },
+  "ui_after": {
+    "passed": 249,
+    "failed": 0
+  },
+  "typecheck_exit": 0,
+  "new_browser_case_before": {
+    "passed": 0,
+    "failed": 1
+  },
+  "browser_after": {
+    "expected": 18,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "not_run": [
+    "Full API suite",
+    "Repository-wide lint",
+    "Production build",
+    "Hosted or physical mobile-device checks"
+  ]
+}

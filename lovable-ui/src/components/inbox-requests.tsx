@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { api, describeFailure, type ContactRequest, type IncomingRequest } from "@/lib/api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
-import { RequestDeadline } from "@/components/request-deadline";
+import { RequestDeadline, requestTimeRemaining } from "@/components/request-deadline";
 import { connectionReason } from "@/components/connection-reason";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +21,9 @@ export function InboxRequests({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  const [expanded, setExpanded] = useState<boolean>();
+  const [elapsed, setElapsed] = useState(0);
+  const receivedAt = useRef(performance.now());
   const generation = useRef(0);
   const active = useRef(true);
   const summary = useRef<HTMLElement>(null);
@@ -31,6 +34,8 @@ export function InboxRequests({
     const result = await (tutor ? api.tutorRequests(cursor) : api.contactRequests(cursor));
     if (attempt !== generation.current) return;
     if (result.ok) {
+      receivedAt.current = performance.now();
+      setElapsed(0);
       setRows(result.data.requests);
       setNext(result.data.next_cursor || undefined);
       setError(undefined);
@@ -50,12 +55,14 @@ export function InboxRequests({
       if (document.visibilityState === "visible") void load();
     };
     const timer = setInterval(refresh, 15000);
+    const clock = setInterval(() => setElapsed(performance.now() - receivedAt.current), 1000);
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       active.current = false;
       generation.current++;
       clearInterval(timer);
+      clearInterval(clock);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
     };
@@ -63,6 +70,7 @@ export function InboxRequests({
   const decide = (row: IncomingRequest, decision: "ACCEPT" | "DECLINE") => {
     if (!tutor || loading || !(decision === "ACCEPT" ? row.can_accept : row.can_decline)) return;
     void action.run(async () => {
+      setExpanded(true);
       setNotice(undefined);
       const result = await api.decideRequest(row.id, decision);
       if (!active.current) return;
@@ -78,10 +86,24 @@ export function InboxRequests({
       summary.current?.focus();
     });
   };
+  const pendingCount = tutor
+    ? rows.filter(
+        (row) =>
+          "can_accept" in row &&
+          (row.can_accept || row.can_decline) &&
+          row.status === "PENDING" &&
+          requestTimeRemaining(row, elapsed) > 0,
+      ).length
+    : 0;
   return (
-    <details className="inbox-requests mb-4 border-b pb-4">
+    <details
+      id="inbox-requests"
+      className="inbox-requests mb-4 border-b pb-4"
+      open={expanded ?? pendingCount > 0}
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+    >
       <summary ref={summary} className="cursor-pointer text-sm font-semibold">
-        Requests{!loading && !error ? ` (${rows.length} on this page)` : ""}
+        Requests{pendingCount ? ` (${pendingCount} pending)` : ""}
       </summary>
       <section
         aria-label={tutor ? "Incoming requests" : "Sent requests"}
@@ -91,6 +113,7 @@ export function InboxRequests({
           {tutor ? "Incoming enquiries" : "Your sent enquiries"}. A pending request does not open a
           chat or share contacts.
         </p>
+        <p className="text-xs text-muted-foreground">Pending counts cover only the loaded page.</p>
         {notice && <Notice tone="success">{notice}</Notice>}
         {error && <Notice tone="error">{error}</Notice>}
         {loading && !rows.length ? (
@@ -188,13 +211,23 @@ export function InboxRequests({
               size="sm"
               variant="outline"
               disabled={loading || action.loading}
-              onClick={() => setCursor(undefined)}
+              onClick={() => {
+                setExpanded(undefined);
+                setCursor(undefined);
+              }}
             >
               First requests
             </Button>
           )}
           {next && (
-            <Button size="sm" disabled={loading || action.loading} onClick={() => setCursor(next)}>
+            <Button
+              size="sm"
+              disabled={loading || action.loading}
+              onClick={() => {
+                setExpanded(undefined);
+                setCursor(next);
+              }}
+            >
               Next requests
             </Button>
           )}
