@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Connections } from "@/routes/connections";
 import { api, type ConnectionSummary, type ApiResult } from "@/lib/api";
 
@@ -70,6 +70,13 @@ const connection = (id: string, title: string, available = true): ConnectionSumm
   created_at: "2026-11-05T00:00:00Z",
   test_only: false,
 });
+beforeEach(() => {
+  vi.spyOn(api, "contactRequests").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { requests: [], next_cursor: null },
+  });
+});
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -103,7 +110,7 @@ it("does not present loading or failed API reads as an empty successful inbox", 
     }),
   );
   render(<Connections />);
-  expect(screen.getByRole("status")).toBeTruthy();
+  expect(screen.getByText(/Loading Connections/)).toHaveAttribute("role", "status");
   expect(screen.queryByRole("heading", { name: "No message" })).toBeNull();
   await act(async () => {
     resolve({ ok: false, error: { kind: "unavailable" } });

@@ -8,6 +8,7 @@ import { connectionReason } from "@/components/connection-reason";
 import { ChatRoom } from "@/components/chat-room";
 import { ConnectionDetails } from "@/components/connection-details";
 import { ClassInvitations } from "@/components/class-invitations";
+import { InboxRequests } from "@/components/inbox-requests";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 
 export type InboxView = "messages" | "details" | "classes";
@@ -113,6 +114,14 @@ export function Connections({
       previous.map((row) => (row.id === id ? { ...row, unread_count: unread } : row)),
     );
   }, []);
+  const openAccepted = (connectionId: string) => {
+    void load(true);
+    void navigate({
+      to: "/connections",
+      search: { conversation: connectionId },
+      resetScroll: false,
+    });
+  };
   const [loadedTitle, setLoadedTitle] = useState<{ id: string; title: string }>();
   const updateTitle = useCallback((id: string, title: string) => {
     setLoadedTitle((previous) =>
@@ -151,6 +160,11 @@ export function Connections({
     >
       <div className="reference-inbox messaging-inbox" data-selected={Boolean(conversation)}>
         <aside ref={contacts} className="reference-inbox-sidebar" aria-label="Conversations">
+          <InboxRequests
+            key={String(teachingWorkspace)}
+            tutor={teachingWorkspace}
+            onAccepted={openAccepted}
+          />
           <label htmlFor="contacts-search" className="text-sm font-semibold">
             All my contacts
           </label>

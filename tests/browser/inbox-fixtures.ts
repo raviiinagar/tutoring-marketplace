@@ -121,6 +121,10 @@ export async function inboxFixtures(
         },
       };
     else if (path === "/v1/me/tutor/photo") body = { photo: null };
+    else if (
+      ["/v1/me/tutor-requests", "/v1/me/contact-requests"].includes(path)
+    )
+      body = { requests: [], next_cursor: null };
     else if (path === "/v1/me/connections")
       body = {
         connections: rows.map((row) => ({

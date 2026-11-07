@@ -112,6 +112,11 @@ function Harness({ initial }: { initial?: { conversation?: string; view?: InboxV
   return <Connections {...selection} />;
 }
 beforeEach(() => {
+  vi.spyOn(api, "contactRequests").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { requests: [], next_cursor: null },
+  });
   active = new Set();
   maximum = 0;
   vi.spyOn(api, "connections").mockResolvedValue({

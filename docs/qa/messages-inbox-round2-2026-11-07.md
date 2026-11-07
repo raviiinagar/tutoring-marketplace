@@ -43,3 +43,68 @@ All values are CSS pixels, actual Playwright bounding boxes at normal browser zo
 Changed source/test files: `lovable-ui/src/components/chat-room.tsx`, `lovable-ui/src/routes/connections.tsx`, `lovable-ui/src/styles.css`, `tests/browser/inbox.spec.ts`, `tests/browser/inbox-fixtures.ts`, `tests/browser/inbox-layout.spec.ts`. The fixture extraction preserves the four existing browser journeys. This report and seven evidence files are also added. No existing tests were skipped, deleted or weakened.
 
 Policy questions: none. Physical mobile keyboard occlusion is UNKNOWN; CSS viewport/mobile flow is measured above. Superprof layout is not inspected or claimed as observed.
+
+## Phase 2: requests inside the inbox
+
+Started only after Phase 1 was green and committed as `636765a1e1172ffca05c40e4e7c7e80223d65b14`.
+
+A separate native, keyboard-accessible Requests disclosure sits above the conversation list. Tutors get incoming enquiries; Learners get sent history. Mixed-role accounts default to incoming enquiries in this group and retain the existing My class requests link to their sent history. Counts explicitly mean records on the current API page, not a fabricated global/pending total. Pagination uses the supplied cursor. The server has no global aggregate in these existing responses.
+
+The component reuses `api.tutorRequests`, `api.contactRequests`, `api.decideRequest`, `RequestDeadline` and `useSingleFlight`. No API client/contract/server change was necessary. Pending entries are request cards, never chat links. Only an accepted request with a returned Connection ID opens/selects a conversation. Acceptance selects the returned ID (never the request ID), refreshes the Connection list, and preserves the server's active/pending-grant access checks. Decline and stale failures refresh authoritative state without claiming a Connection; focus returns to the Requests disclosure. Leaving the component suppresses late decision navigation.
+
+Tutor buttons require Tutor context AND the matching server capability AND an unexpired pending state from the existing server-anchored deadline component. Equality is expired. No fresh 72-hour period is calculated. Sent history uses only the server's usable learner alias and hides private text/alias for unusable learners; incoming responses contain no learner name field, so none is invented. There is no default email/phone fetch or disclosure. Safety/report links and both existing request-history routes remain available. `/tutor/requests` itself is unchanged and is checked in the browser journeys.
+
+### Final checks
+
+| Required check | Fresh base | Phase 1 | Phase 2 / final |
+| --- | --- | --- | --- |
+| `npx tsc -p lovable-ui --noEmit` | NOT RUN fresh before edits | Passed | Passed |
+| `npm --prefix lovable-ui test` | 233 passed / 0 failed | 233 passed / 0 failed | 242 passed / 0 failed, 45 files |
+| Inbox browser (original + new layout/requests specs) | New geometry: 0 passed / 6 failed; original four NOT RUN fresh before edits | 13 passed / 0 failed | 17 passed / 0 failed |
+| Additional real-API avatar/onboarding browser | NOT RUN fresh before edits | 4 passed / 0 failed | NOT RUN again after request-only integration |
+
+Nine new UI cases cover server capability gating, returned Connection ID, decline, stale decisions, deadline equality, learner alias/privacy, error/empty recovery, cursor/count semantics and late acceptance after unmount. Four new browser cases cover keyboard acceptance at 1366/390px, retained Tutor request route, safe sent history/error/empty states, deadline equality and stale decisions. Existing four inbox cases and all nine new Phase 1 layout/composer/short-screen cases remain intact.
+
+During the red/green cycle the new checks caught a request heading-level gap and learner buttons rendered from unexpected extra capability fields; both were fixed without changing server rules or relaxing assertions. One original UI assertion now targets the actual Loading Connections status text instead of assuming the inbox has only one status element; all its original loading/error/empty checks remain. Existing fixtures now return an empty request page for the added read. No test was skipped or deleted.
+
+Full API suite, repository-wide lint, production/Cloudflare build, hosted smoke tests and physical mobile keyboard testing: **NOT RUN** for this frontend-only task. No deployment is authorized or attempted. No policy question arose. Global request totals and physical-keyboard occlusion remain UNKNOWN; only page-local counts and measured CSS viewports are claimed.
+
+Final browser evidence: [sanitized checks](evidence/2026-11-07/inbox-round2/checks.json), expanded Requests [desktop](evidence/2026-11-07/inbox-round2/requests-1366.png) / [mobile](evidence/2026-11-07/inbox-round2/requests-390.png). The after screenshots above now show the final Requests group; all six geometry measurements are identical to green Phase 1.
+
+## Files per commit
+
+Phase 1, `636765a`:
+
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-1366x650.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-1920x950.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-390x700.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/before-1366x650.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/before-1920x950.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/before-390x700.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/measurements.json`
+- `docs/qa/messages-inbox-round2-2026-11-07.md`
+- `lovable-ui/src/components/chat-room.tsx`
+- `lovable-ui/src/routes/connections.tsx`
+- `lovable-ui/src/styles.css`
+- `tests/browser/inbox-fixtures.ts`
+- `tests/browser/inbox-layout.spec.ts`
+- `tests/browser/inbox.spec.ts`
+
+Phase 2, the separate commit containing this section:
+
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-1366x650.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-1920x950.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/after-390x700.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/checks.json`
+- `docs/qa/evidence/2026-11-07/inbox-round2/requests-1366.png`
+- `docs/qa/evidence/2026-11-07/inbox-round2/requests-390.png`
+- `docs/qa/messages-inbox-round2-2026-11-07.md`
+- `lovable-ui/src/components/inbox-requests.tsx`
+- `lovable-ui/src/routes/connections.tsx`
+- `lovable-ui/src/test/connections-reference.test.tsx`
+- `lovable-ui/src/test/inbox-requests.test.tsx`
+- `lovable-ui/src/test/inbox.test.tsx`
+- `tests/browser/inbox-fixtures.ts`
+- `tests/browser/inbox-requests.spec.ts`
+
+Preservation check: main remains clean on `feature/messages-inbox` at `a284a9b`; the source port remains at `94f86b7`. API, contracts, migrations and tracked configuration are unchanged. The local PostgreSQL test data is retained.

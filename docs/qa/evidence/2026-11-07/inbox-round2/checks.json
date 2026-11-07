@@ -1,0 +1,48 @@
+{
+  "base": "94f86b7",
+  "phase1_commit": "636765a1e1172ffca05c40e4e7c7e80223d65b14",
+  "ui": {
+    "base": {
+      "passed": 233,
+      "failed": 0
+    },
+    "phase1": {
+      "passed": 233,
+      "failed": 0
+    },
+    "final": {
+      "passed": 242,
+      "failed": 0
+    }
+  },
+  "geometry_before": {
+    "passed": 0,
+    "failed": 6
+  },
+  "browser_phase1": {
+    "passed": 13,
+    "failed": 0
+  },
+  "browser_final": {
+    "expected": 17,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "release_browser_phase1": {
+    "passed": 4,
+    "failed": 0
+  },
+  "typecheck": {
+    "phase1_exit": 0,
+    "final_exit": 0
+  },
+  "axe": "Zero inbox violations in six final geometry cases, four original journeys, and two expanded request states.",
+  "not_run": [
+    "Full API suite",
+    "Repository-wide lint",
+    "Production/Cloudflare build",
+    "Hosted smoke",
+    "Physical mobile keyboard"
+  ]
+}
