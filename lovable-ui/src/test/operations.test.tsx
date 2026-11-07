@@ -120,6 +120,10 @@ it("keeps checkout blocked until Finance explicitly reviews recovery evidence", 
   });
   fireEvent.click(screen.getByRole("button", { name: "Inspect operations" }));
   const release = await screen.findByRole("button", { name: "Record recovery review" });
+  // inspect() clears its busy flag a moment after the report renders; filling the form or clicking before that settles loses the click under load.
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Inspect operations" })).not.toBeDisabled(),
+  );
   expect(screen.getByRole("button", { name: "Resume new checkout" })).toBeDisabled();
   expect(release).toBeDisabled();
   fireEvent.change(screen.getByLabelText("Completed reconciliation IDs"), {

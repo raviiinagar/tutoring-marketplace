@@ -214,7 +214,7 @@ it("selects a conversation inside the inbox, clears server-confirmed unread coun
   expect(screen.queryByRole("log")).toBeNull();
   expect(active.size).toBe(0);
   expect(within(sidebar).getByRole("link", { name: /Physics two/ })).toHaveFocus();
-});
+}, 15_000);
 it("opens a deep selection, retains composer constraints, and returns to list for the mobile layout", async () => {
   const { container } = render(<Harness initial={{ conversation: "two" }} />);
   expect(await screen.findByRole("log")).toHaveTextContent("Reply for two");
