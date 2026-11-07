@@ -1,3 +1,4 @@
+import { PeerAvatar } from "@/components/peer-avatar";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -133,8 +134,11 @@ export function Connections({
   const title =
     selected?.offer.title ??
     (loadedTitle && loadedTitle.id === conversation ? loadedTitle.title : "Conversation");
-  const filtered = rows.filter((row) =>
-    row.offer.title.toLowerCase().includes(search.trim().toLowerCase()),
+  const needle = search.trim().toLowerCase();
+  const filtered = rows.filter(
+    (row) =>
+      row.offer.title.toLowerCase().includes(needle) ||
+      (row.peer?.display_name.toLowerCase().includes(needle) ?? false),
   );
   const pane = useRef<HTMLElement>(null);
   const contacts = useRef<HTMLElement>(null);
@@ -192,16 +196,20 @@ export function Connections({
                   resetScroll={false}
                   data-connection={row.id}
                   aria-current={conversation === row.id ? "true" : undefined}
-                  className="reference-contact-row"
+                  className={`reference-contact-row${row.peer ? " reference-contact-row-peer" : ""}`}
                 >
-                  <strong>{row.offer.title}</strong>
-                  <small>
-                    {row.available
-                      ? row.unread_count === null
-                        ? "Open messages"
-                        : `${row.unread_count} unread messages`
-                      : connectionReason(row.unavailable_reason)}
-                  </small>
+                  {row.peer && <PeerAvatar peer={row.peer} className="size-11 text-base" />}
+                  <span className="reference-contact-text">
+                    <strong>{row.peer ? row.peer.display_name : row.offer.title}</strong>
+                    {row.peer && <small>{row.offer.title}</small>}
+                    <small>
+                      {row.available
+                        ? row.unread_count === null
+                          ? "Open messages"
+                          : `${row.unread_count} unread messages`
+                        : connectionReason(row.unavailable_reason)}
+                    </small>
+                  </span>
                 </Link>
               </li>
             ))}

@@ -19,9 +19,11 @@ All endpoints use authoritative HttpOnly account sessions and no-store responses
 | --- | --- |
 | `GET /v1/me/tutor-requests?cursor=<uuid>` | Target Tutor inbox, bounded 20-item UUID pagination. Private goals/times appear only for currently eligible pending requests. Ineligible/closed entries retain safe status/offer metadata. |
 | `POST /v1/me/tutor-requests/:id/decisions` | Strict `{decision: ACCEPT|DECLINE}`; records one immutable decision and returns request status, optional Connection ID/state and replay flag. |
-| `GET /v1/me/connections?cursor=<uuid>` | Adult participant's bounded Connection list, with current availability/reason and safe offer metadata. No contacts. |
+| `GET /v1/me/connections?cursor=<uuid>` | Adult participant's bounded Connection list, with current availability/reason, safe offer metadata and a `peer` summary (below). No contacts. |
 | `GET /v1/me/connections/:id` | Authorised active Connection detail and original enquiry; no email contacts. |
-| `GET /v1/me/connections/:id/contacts` | Authorised peer account email plus precise ownership-verification/role label. Each successful read is audited without logging the email. |
+| `GET /v1/me/connections/:id/contacts` | Authorised peer account email plus precise ownership-verification/role label. Each successful read is audited without logging the email. |
+
+**`peer` in the list.** `peer` is `{role,display_name,photo_url}` for the other participant, or `null` while the Connection is unavailable (a block, restriction or revoked grant), so nothing about the peer is shown when access is denied. A Learner sees the Tutor's public profile name and, only when a public clean photo exists, `photo_url` (`/v1/discovery/:listingId/photos/:photoId`, which re-authorises every delivery and 404s if the offer is not currently available; the UI then falls back to an initial). A Tutor sees the paying account's display name (a Guardian's name for a child Learner, never the child's alias) with `photo_url: null`. Owner decision, 2026-11-08: the account display name is shown in the list before **Show verified contact**; email stays behind that audited action. The list never includes email, phone or account IDs.
 
 Unrelated actors receive 404; unauthenticated actors receive 401. Current safety/access denial returns 403, and a stale offer, expired deadline or conflicting decision returns 409 as appropriate. A request ID is not a Connection/contact authority. Client-paid flags, recipient changes, grant IDs and decision timestamps are rejected.
 

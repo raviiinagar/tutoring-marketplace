@@ -58,6 +58,13 @@ const row = (id: string, available = true): ConnectionSummary => ({
   id,
   request_id: "request-" + id,
   listing_id: "listing-" + id,
+  peer: available
+    ? {
+        role: "TUTOR",
+        display_name: "Tutor " + id,
+        photo_url: id === "one" ? "/v1/discovery/listing-one/photos/photo-one" : null,
+      }
+    : null,
   offer: {
     title: "Physics " + id,
     description: "Fictional class",
@@ -215,6 +222,26 @@ it("selects a conversation inside the inbox, clears server-confirmed unread coun
   expect(active.size).toBe(0);
   expect(within(sidebar).getByRole("link", { name: /Physics two/ })).toHaveFocus();
 }, 15_000);
+it("names the other participant in each row, shows their photo or an initial, and searches by name", async () => {
+  const { container } = render(<Harness />);
+  const sidebar = await screen.findByRole("complementary", { name: "Conversations" });
+  const one = await within(sidebar).findByRole("link", { name: /Tutor one/ });
+  expect(one).toHaveTextContent("Physics one");
+  const photo = one.querySelector("img");
+  expect(photo?.getAttribute("src")).toContain("/v1/discovery/listing-one/photos/photo-one");
+  fireEvent.error(photo as HTMLImageElement);
+  expect(one.querySelector("img")).toBeNull();
+  expect(one).toHaveTextContent("T");
+  const two = within(sidebar).getByRole("link", { name: /Tutor two/ });
+  expect(two.querySelector("img")).toBeNull();
+  const held = within(sidebar).getByRole("link", { name: /Physics held/ });
+  expect(held).not.toHaveTextContent("Tutor held");
+  expect(held.querySelector("span[aria-hidden]")).toBeNull();
+  fireEvent.change(within(sidebar).getByRole("searchbox"), { target: { value: "tutor two" } });
+  expect(within(sidebar).queryByRole("link", { name: /Tutor one/ })).toBeNull();
+  expect(within(sidebar).getByRole("link", { name: /Tutor two/ })).toBeVisible();
+  expect(container.querySelectorAll("[data-connection]").length).toBe(1);
+});
 it("opens a deep selection, retains composer constraints, and returns to list for the mobile layout", async () => {
   const { container } = render(<Harness initial={{ conversation: "two" }} />);
   expect(await screen.findByRole("log")).toHaveTextContent("Reply for two");
