@@ -19,7 +19,7 @@ export function TeachingCard() {
           Open your teaching dashboard <ArrowUpRight aria-hidden className="inline size-4" />
         </Link>
       </div>
-      <div className="space-y-3 p-6 text-sm">
+      <div className="reference-teaching-body space-y-3 text-sm">
         {loading ? (
           <p role="status" className="text-muted-foreground">
             Loading your ads…
