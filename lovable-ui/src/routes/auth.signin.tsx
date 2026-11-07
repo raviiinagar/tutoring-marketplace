@@ -12,6 +12,7 @@ import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/compo
 import { useQueryClient } from "@tanstack/react-query";
 import { accountSessionKey } from "@/lib/session";
 import { enquiryTarget } from "@/lib/enquiry";
+import { landingAfterSignIn } from "@/lib/teaching-presence";
 
 export const Route = createFileRoute("/auth/signin")({
   validateSearch: (search: Record<string, unknown>): { enquire?: string } => {
@@ -54,7 +55,7 @@ function SignIn() {
         queryClient.setQueryData(accountSessionKey, res);
         if (enquire)
           navigate({ to: "/teachers/$slug", params: { slug: enquire }, hash: "contact" });
-        else navigate({ to: "/account" });
+        else navigate({ to: await landingAfterSignIn(res.data.user) });
         return;
       }
       const err = res.error;

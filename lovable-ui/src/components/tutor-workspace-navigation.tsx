@@ -8,10 +8,7 @@ const links = [
 ] as const;
 export function TutorWorkspaceNavigation() {
   return (
-    <nav
-      aria-label="Teaching workspace navigation"
-      className="reference-workspace-nav"
-    >
+    <nav aria-label="Teaching workspace navigation" className="reference-workspace-nav">
       {links.map((item) => (
         <Link
           key={item.to}
@@ -26,6 +23,9 @@ export function TutorWorkspaceNavigation() {
           {item.label}
         </Link>
       ))}
+      <Link to="/account" className="reference-workspace-link reference-workspace-switch">
+        Switch to learning
+      </Link>
     </nav>
   );
 }

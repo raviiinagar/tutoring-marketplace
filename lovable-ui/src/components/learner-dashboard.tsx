@@ -2,7 +2,8 @@ import { accountInitial } from "@/lib/account-photo";
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { ArrowUpRight, MessageCircle, Check, X } from "lucide-react";
+import { MessageCircle, Check, X } from "lucide-react";
+import { TeachingCard } from "./teaching-card";
 import { AuthShell, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { useLearnerDashboard } from "@/lib/learner-dashboard";
@@ -124,11 +125,7 @@ export function LearnerDashboard() {
               }
             </DashboardData>
           </section>
-          {user.roles.includes("TUTOR") && (
-            <Link to="/tutor/dashboard" className="reference-teaching-link">
-              Open your teaching dashboard <ArrowUpRight aria-hidden className="size-4" />
-            </Link>
-          )}
+          <TeachingCard />
         </div>
       </div>
       <details className="reference-account-tools">
