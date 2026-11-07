@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Connections } from "@/routes/connections";
 import { api, type ConnectionSummary, type ApiResult } from "@/lib/api";
@@ -11,13 +11,23 @@ vi.mock("@tanstack/react-router", () => ({
     to,
     params,
     children,
+    search,
+    resetScroll: _scroll,
     ...props
   }: {
     to: string;
     params?: { connectionId?: string };
     children: React.ReactNode;
+    search?: Record<string, string>;
+    resetScroll?: boolean;
   }) => (
-    <a {...props} href={to.replace("$connectionId", params?.connectionId ?? "")}>
+    <a
+      {...props}
+      href={
+        to.replace("$connectionId", params?.connectionId ?? "") +
+        (search ? "?" + new URLSearchParams(search) : "")
+      }
+    >
       {children}
     </a>
   ),
@@ -76,7 +86,9 @@ it("shows the honest empty inbox with a working teacher-search destination", asy
   expect(await screen.findByRole("heading", { name: "No message" })).toBeTruthy();
   expect(screen.getByText("No results", { exact: true })).toBeTruthy();
   expect(
-    screen.getByRole("link", { name: "Search for a teacher" }).getAttribute("href"),
+    within(screen.getByRole("region", { name: "Messages" }))
+      .getByRole("link", { name: "Search for a teacher" })
+      .getAttribute("href"),
   ).toBe("/tutors");
   expect(screen.queryByRole("heading", { name: "Your conversations" })).toBeNull();
 });
@@ -101,7 +113,7 @@ it("does not present loading or failed API reads as an empty successful inbox", 
   expect(screen.queryByText("No results", { exact: true })).toBeNull();
 });
 
-it("filters actual conversations and preserves authorized chat versus unavailable detail destinations", async () => {
+it("filters actual conversations and preserves selectable active and unavailable inbox destinations", async () => {
   vi.spyOn(api, "connections").mockResolvedValue({
     ok: true,
     status: 200,
@@ -115,9 +127,9 @@ it("filters actual conversations and preserves authorized chat versus unavailabl
   });
   render(<Connections />);
   const active = await screen.findByRole("link", { name: /Fictional Physics teacher/ });
-  expect(active.getAttribute("href")).toBe("/chat/active-id");
+  expect(active.getAttribute("href")).toBe("/connections?conversation=active-id");
   expect(screen.getByRole("link", { name: /Fictional Guitar teacher/ }).getAttribute("href")).toBe(
-    "/connections/held-id",
+    "/connections?conversation=held-id",
   );
   fireEvent.change(screen.getByRole("searchbox"), { target: { value: "  PHYsics  " } });
   expect(screen.getByRole("link", { name: /Fictional Physics teacher/ })).toBeTruthy();

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 const links = [
   { to: "/tutor/dashboard", label: "Dashboard" },
-  { to: "/tutor/requests", label: "My messages" },
+  { to: "/connections", label: "My messages" },
   { to: "/tutor/listings", label: "My ads" },
   { to: "/tutor/evaluations", label: "Evaluations" },
   { to: "/account/settings", label: "My account" },

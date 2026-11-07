@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "@tanstack/react-router";
 import { CalendarDays, ExternalLink } from "lucide-react";
 import {
   api,
@@ -352,29 +351,5 @@ export function ClassInvitations({ connectionId }: { connectionId: string }) {
         Refresh class status
       </Button>
     </section>
-  );
-}
-
-export function UpcomingClass({ connectionId }: { connectionId: string }) {
-  const { state } = useClasses(connectionId);
-  const upcoming = state?.classes
-    .filter((c) => c.status === "SCHEDULED" && new Date(c.ends_at) >= new Date(state.server_time))
-    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
-  return (
-    <div className="mt-3 rounded-xl border bg-muted/20 px-4 py-3 text-sm">
-      <Link
-        to="/connections/$connectionId"
-        params={{ connectionId }}
-        hash="classes"
-        className="link font-semibold"
-      >
-        {upcoming ? "View class & join Google Meet" : "Classes & Google Meet"}
-      </Link>
-      {upcoming && (
-        <p className="mt-1 text-xs text-muted-foreground">
-          {upcoming.title} · {dateTime(upcoming.starts_at)}
-        </p>
-      )}
-    </div>
   );
 }

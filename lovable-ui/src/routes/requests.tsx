@@ -93,8 +93,8 @@ function Requests() {
               )}
               {row.connection_id && (
                 <Link
-                  to="/connections/$connectionId"
-                  params={{ connectionId: row.connection_id }}
+                  to="/connections"
+                  search={{ conversation: row.connection_id, view: "details" }}
                   className="link mt-4 mr-4 inline-block"
                 >
                   View Connection

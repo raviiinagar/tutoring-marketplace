@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, MessageCircle, Send, ShieldCheck, WifiOff } from "lucide-react";
+import { ArrowDown, MessageCircle, Send, ShieldCheck, WifiOff } from "lucide-react";
 import {
   api,
   describeFailure,
@@ -9,9 +9,8 @@ import {
   type ChatMessage,
   type ChatState,
 } from "@/lib/api";
-import { SiteHeader, Notice } from "@/components/account/ui";
+import { Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
-import {UpcomingClass} from '@/components/class-invitations';
 
 type Pending = { id: string; text: string; retry: boolean };
 type Commands = {
@@ -25,7 +24,13 @@ const merge = (old: ChatMessage[], incoming: ChatMessage[]) =>
     (a, b) => a.sequence - b.sequence,
   );
 
-export function ChatRoom({ connectionId }: { connectionId: string }) {
+export function ChatRoom({
+  connectionId,
+  onUnreadChange,
+}: {
+  connectionId: string;
+  onUnreadChange?: (id: string, unread: number) => void;
+}) {
   const [state, setState] = useState<ChatState>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -107,6 +112,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
           }
         }
       } else earliest = frame.messages[0]?.sequence ?? earliest;
+      const currentReadCount = frame.read_sequence >= ownRead;
       ownRead = Math.max(ownRead, frame.read_sequence);
       peerRead = Math.max(peerRead, frame.peer_read_sequence);
       current = {
@@ -116,6 +122,8 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
         has_older: earliest > 1,
       };
       setState(current);
+      if (frame.last_sequence <= ownRead) onUnreadChange?.(connectionId, 0);
+      else if (currentReadCount) onUnreadChange?.(connectionId, current.unread_count);
       setMessages((old) => (kind === "initial" ? frame.messages : merge(old, frame.messages)));
     };
     const schedule = () => {
@@ -188,6 +196,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
         const response = await api.readChat(connectionId, through);
         if (!alive || denied) return;
         if (response.ok) {
+          onUnreadChange?.(connectionId, response.data.unread_count);
           ownRead = Math.max(ownRead, response.data.read_sequence);
           peerRead = Math.max(peerRead, response.data.peer_read_sequence);
           setState((previous) =>
@@ -293,7 +302,7 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
     };
-  }, [connectionId]);
+  }, [connectionId, onUnreadChange]);
   useEffect(() => {
     rendered.current = messages.at(-1)?.sequence ?? 0;
     if (atBottom.current && log.current) {
@@ -323,211 +332,205 @@ export function ChatRoom({ connectionId }: { connectionId: string }) {
         ? "Guardian"
         : "Learner";
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-secondary/30">
-      <SiteHeader />
-      <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
-        <Link
-          to="/connections"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft size={16} />
-          Your Connections
-        </Link>
-        {state&&<UpcomingClass key={connectionId} connectionId={connectionId}/>}
-        <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border bg-background shadow-sm">
-          <header className="flex items-start gap-3 border-b px-5 py-5 sm:px-7">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-coral-soft text-coral-strong">
-              <MessageCircle size={22} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-semibold tracking-tight">Private chat</h1><Link to="/safety/$kind/$targetId" params={{kind:"connection",targetId:connectionId}} className="link mt-1 inline-block text-xs">Report or block</Link>
-              <p className="mt-1 break-words text-sm text-muted-foreground">
-                {state?.offer_title ?? "Checking your Connection"}
-              </p>
-              <p
-                role="status"
-                className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"
-              >
-                {status === "Connected" ? (
-                  <span className="size-1.5 rounded-full bg-success" />
-                ) : (
-                  <WifiOff size={12} />
-                )}{" "}
-                {status}
-              </p>
-            </div>
-            {state && (
-              <Link
-                className="link text-xs"
-                to="/connections/$connectionId"
-                params={{ connectionId }}
-              >
-                Details
-              </Link>
+    <section className="messaging-chat flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+      <header className="flex items-start gap-3 border-b px-5 py-5 sm:px-7">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-coral-soft text-coral-strong">
+          <MessageCircle size={22} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-xl font-semibold tracking-tight">Private chat</h3>
+          <Link
+            to="/safety/$kind/$targetId"
+            params={{ kind: "connection", targetId: connectionId }}
+            className="link mt-1 inline-block text-xs"
+          >
+            Report or block
+          </Link>
+          <p className="mt-1 break-words text-sm text-muted-foreground">
+            {state?.offer_title ?? "Checking your Connection"}
+          </p>
+          <p role="status" className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            {status === "Connected" ? (
+              <span className="size-1.5 rounded-full bg-success" />
+            ) : (
+              <WifiOff size={12} />
+            )}{" "}
+            {status}
+          </p>
+        </div>
+      </header>
+      <div className="flex items-start gap-2 bg-secondary/50 px-5 py-3 text-xs text-muted-foreground sm:px-7">
+        <ShieldCheck size={15} className="shrink-0" />
+        <p>
+          Adult participants only. Discuss learning here; pay Tuition Fees directly to the Tutor.
+          Text messages only.
+        </p>
+      </div>
+      {error && (
+        <div className="px-5 pt-4">
+          <Notice tone="error">{error}</Notice>
+        </div>
+      )}
+      {revoked ? (
+        <div className="space-y-3 px-5 py-12 text-center">
+          <p>Messages are hidden while access is unavailable.</p>
+          <Link
+            to="/safety/$kind/$targetId"
+            params={{ kind: "connection", targetId: connectionId }}
+            className="link mb-3 block"
+          >
+            Report or block this account
+          </Link>
+          <Link to="/auth/signin" className="link">
+            Sign in again
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div
+            ref={log}
+            onScroll={scroll}
+            role="log"
+            aria-label="Conversation messages"
+            aria-live="polite"
+            aria-relevant="additions"
+            tabIndex={0}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7"
+          >
+            {state?.has_older && (
+              <div className="mb-5 text-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={olderBusy}
+                  onClick={() => commands.current?.older()}
+                >
+                  {olderBusy ? "Loading earlier messages" : "Load earlier messages"}
+                </Button>
+              </div>
             )}
-          </header>
-          <div className="flex items-start gap-2 bg-secondary/50 px-5 py-3 text-xs text-muted-foreground sm:px-7">
-            <ShieldCheck size={15} className="shrink-0" />
-            <p>
-              Adult participants only. Discuss learning here; pay Tuition Fees directly to the
-              Tutor. Text messages only.
-            </p>
+            {!messages.length && (
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <MessageCircle className="mb-4 text-coral-strong" size={32} />
+                <p className="font-medium">
+                  {state ? "Start the conversation" : "Loading conversation"}
+                </p>
+                <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+                  Ask about learning goals, teaching approach or suitable times.
+                </p>
+              </div>
+            )}
+            <ol className="space-y-4">
+              {messages.map((message) => (
+                <li
+                  key={message.sequence}
+                  className={`flex ${message.your_message ? "justify-end" : "justify-start"}`}
+                >
+                  <div className="max-w-[88%] sm:max-w-[75%]">
+                    <p
+                      className={`mb-1 text-xs text-muted-foreground ${message.your_message ? "text-right" : ""}`}
+                    >
+                      {message.your_message ? "You" : peer}
+                    </p>
+                    <div
+                      className={`rounded-2xl px-4 py-3 ${message.your_message ? "rounded-br-md bg-coral-soft" : "rounded-bl-md bg-secondary"}`}
+                    >
+                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]">
+                        {message.text}
+                      </p>
+                    </div>
+                    <p
+                      className={`mt-1 text-[11px] text-muted-foreground ${message.your_message ? "text-right" : ""}`}
+                    >
+                      <a
+                        className="link mr-2"
+                        href={
+                          "/safety/connection/" +
+                          encodeURIComponent(connectionId) +
+                          "?message=" +
+                          message.sequence
+                        }
+                        aria-label={"Report message " + message.sequence}
+                      >
+                        Report message {message.sequence}
+                      </a>
+                      <time dateTime={message.created_at}>
+                        {new Date(message.created_at).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                      {message.your_message && (
+                        <>
+                          {" "}
+                          · {message.sequence <= (state?.peer_read_sequence ?? 0) ? "Read" : "Sent"}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
-          {error && (
-            <div className="px-5 pt-4">
-              <Notice tone="error">{error}</Notice>
+          {below && (
+            <div className="mb-3 text-center">
+              <Button variant="outline" size="sm" onClick={jump}>
+                <ArrowDown size={14} />
+                Latest messages
+              </Button>
             </div>
           )}
-          {revoked ? (
-            <div className="space-y-3 px-5 py-12 text-center">
-              <p>Messages are hidden while access is unavailable.</p>
-              <Link to="/safety/$kind/$targetId" params={{kind:"connection",targetId:connectionId}} className="link mb-3 block">Report or block this account</Link><Link to="/auth/signin" className="link">
-                Sign in again
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div
-                ref={log}
-                onScroll={scroll}
-                role="log"
-                aria-label="Conversation messages"
-                aria-live="polite"
-                aria-relevant="additions"
-                tabIndex={0}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7"
-              >
-                {state?.has_older && (
-                  <div className="mb-5 text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={olderBusy}
-                      onClick={() => commands.current?.older()}
-                    >
-                      {olderBusy ? "Loading earlier messages" : "Load earlier messages"}
-                    </Button>
-                  </div>
-                )}
-                {!messages.length && (
-                  <div className="flex h-full flex-col items-center justify-center text-center">
-                    <MessageCircle className="mb-4 text-coral-strong" size={32} />
-                    <p className="font-medium">
-                      {state ? "Start the conversation" : "Loading conversation"}
-                    </p>
-                    <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                      Ask about learning goals, teaching approach or suitable times.
-                    </p>
-                  </div>
-                )}
-                <ol className="space-y-4">
-                  {messages.map((message) => (
-                    <li
-                      key={message.sequence}
-                      className={`flex ${message.your_message ? "justify-end" : "justify-start"}`}
-                    >
-                      <div className="max-w-[88%] sm:max-w-[75%]">
-                        <p
-                          className={`mb-1 text-xs text-muted-foreground ${message.your_message ? "text-right" : ""}`}
-                        >
-                          {message.your_message ? "You" : peer}
-                        </p>
-                        <div
-                          className={`rounded-2xl px-4 py-3 ${message.your_message ? "rounded-br-md bg-coral-soft" : "rounded-bl-md bg-secondary"}`}
-                        >
-                          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]">
-                            {message.text}
-                          </p>
-                        </div>
-                        <p
-                          className={`mt-1 text-[11px] text-muted-foreground ${message.your_message ? "text-right" : ""}`}
-                        >
-                          <a className="link mr-2" href={"/safety/connection/"+encodeURIComponent(connectionId)+"?message="+message.sequence} aria-label={"Report message "+message.sequence}>Report message {message.sequence}</a><time dateTime={message.created_at}>
-                            {new Date(message.created_at).toLocaleString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </time>
-                          {message.your_message && (
-                            <>
-                              {" "}
-                              ·{" "}
-                              {message.sequence <= (state?.peer_read_sequence ?? 0)
-                                ? "Read"
-                                : "Sent"}
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-              {below && (
-                <div className="mb-3 text-center">
-                  <Button variant="outline" size="sm" onClick={jump}>
-                    <ArrowDown size={14} />
-                    Latest messages
-                  </Button>
-                </div>
-              )}
-              <form
-                className="shrink-0 border-t bg-background px-5 py-4 sm:px-7"
-                onSubmit={(event) => {
+          <form
+            className="shrink-0 border-t bg-background px-5 py-4 sm:px-7"
+            onSubmit={(event) => {
+              event.preventDefault();
+              commands.current?.send(draft);
+            }}
+          >
+            <label htmlFor="chat-message" className="text-sm font-medium">
+              Message
+            </label>
+            <textarea
+              id="chat-message"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              maxLength={2000}
+              rows={3}
+              disabled={!state || Boolean(pending)}
+              placeholder="Write a message about your learning…"
+              aria-describedby="chat-hint"
+              className="input mt-2 w-full resize-none"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                   event.preventDefault();
                   commands.current?.send(draft);
-                }}
-              >
-                <label htmlFor="chat-message" className="text-sm font-medium">
-                  Message
-                </label>
-                <textarea
-                  id="chat-message"
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  maxLength={2000}
-                  rows={3}
-                  disabled={!state || Boolean(pending)}
-                  placeholder="Write a message about your learning…"
-                  aria-describedby="chat-hint"
-                  className="input mt-2 w-full resize-none"
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === "Enter" &&
-                      !event.shiftKey &&
-                      !event.nativeEvent.isComposing
-                    ) {
-                      event.preventDefault();
-                      commands.current?.send(draft);
-                    }
-                  }}
-                />
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                  <p id="chat-hint" className="text-xs text-muted-foreground">
-                    {draft.length}/2000 · Shift + Enter for a new line
-                  </p>
-                  {pending?.retry ? (
-                    <Button type="button" onClick={() => commands.current?.retry()}>
-                      Retry message
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={!state || !draft.trim() || Boolean(pending)}
-                      className="rounded-full px-5"
-                    >
-                      <Send size={15} />
-                      {pending ? "Sending…" : "Send message"}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </>
-          )}
-        </section>
-      </main>
-    </div>
+                }
+              }}
+            />
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <p id="chat-hint" className="text-xs text-muted-foreground">
+                {draft.length}/2000 · Shift + Enter for a new line
+              </p>
+              {pending?.retry ? (
+                <Button type="button" onClick={() => commands.current?.retry()}>
+                  Retry message
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={!state || !draft.trim() || Boolean(pending)}
+                  className="rounded-full px-5"
+                >
+                  <Send size={15} />
+                  {pending ? "Sending…" : "Send message"}
+                </Button>
+              )}
+            </div>
+          </form>
+        </>
+      )}
+    </section>
   );
 }

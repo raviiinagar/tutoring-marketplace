@@ -1,6 +1,6 @@
 # Durable private text chat
 
-Task 12 adds adult participant chat at `/chat/<connectionId>`. Open **Your Connections → Open chat**, or use the link on a Connection's detail page. Messages discuss teaching arrangements; they do not book a lesson or collect Tuition Fees.
+Adult participant chat lives in **My messages** at `/connections`. Selecting a conversation opens it within the same workspace at `/connections?conversation=<connectionId>`; browser Back and refresh preserve navigation. **Details** and **Classes & Google Meet** are sections in that pane (`view=details` / `view=classes`). Legacy `/chat/<connectionId>` and `/connections/<connectionId>` links redirect into the selected inbox; the latter preserves `#classes`. Messages discuss teaching arrangements; they do not book a lesson or collect Tuition Fees.
 
 ## Local testing
 
@@ -8,7 +8,7 @@ Run `npm run setup:local` with the local stack stopped after pulling migrations,
 
 An approved Tutor profile/Listing alone does not authorize chat. This currently requires task 11's active Connection and independent access grant. Use the [isolated fictional coverage workflow](contact-requests.md#isolated-testing-before-payments), or `npm run test:browser -- --grep "fictional Tutor evidence"` for the complete two-browser journey. Fixture grants are forbidden in the ordinary development database and production. Fictional MATCHING/PENDING_GRANT Connections cannot chat. [Verified paid acceptance](paid-access.md) now establishes ACTIVE Connections with separate grants; current permission checks apply equally to those paid conversations.
 
-The UI supports text up to 2,000 characters, keyboard send (Shift + Enter for a newline), earlier history, live replies, read receipts and unread counts in the Connection list. Refresh Connections to update that list. Unknown send outcomes offer **Retry message** using the same message ID/text. Drafts and retry state remain in memory; refreshing discards unsent drafts. Message attachments are disabled.
+The UI supports text up to 2,000 characters, keyboard send (Shift + Enter for a newline), earlier history, live replies, read receipts and unread counts in the Connection list. The list refreshes while visible every 15 seconds and on focus; confirmed chat read responses update its unread count immediately. Fetching history alone does not mark a conversation read. Unknown send outcomes offer **Retry message** using the same message ID/text. Drafts and retry state remain in the mounted chat only; switching conversations/sections or refreshing discards unsent drafts, as earlier navigation away from chat did. Message attachments are disabled.
 
 ## HTTP interface
 

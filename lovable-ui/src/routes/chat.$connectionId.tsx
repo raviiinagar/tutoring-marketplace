@@ -1,17 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ChatRoom } from "@/components/chat-room";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+
+// Notification/email URLs remain valid; there is only one messaging UI.
 export const Route = createFileRoute("/chat/$connectionId")({
   ssr: false,
-  component: Chat,
-  head: () => ({
-    meta: [
-      { title: "Private chat — Tutor Marketplace" },
-      { name: "robots", content: "noindex" },
-      { name: "referrer", content: "no-referrer" },
-    ],
-  }),
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/connections",
+      search: { conversation: params.connectionId },
+      replace: true,
+    });
+  },
 });
-function Chat() {
-  const { connectionId } = Route.useParams();
-  return <ChatRoom key={connectionId} connectionId={connectionId} />;
-}

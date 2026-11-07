@@ -1,0 +1,173 @@
+{
+  "branch": "feature/messages-inbox",
+  "base_commit": "64de3e8932e123e0c9bee64c02eb041c29a0e881",
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "superprof_accessed": false,
+  "api_source_changed": false,
+  "migration_added": false,
+  "ui": {
+    "before": {
+      "passed": 197,
+      "failed": 0
+    },
+    "after": {
+      "passed": 210,
+      "failed": 0
+    }
+  },
+  "ui_typecheck": {
+    "before": "passed",
+    "after": "passed"
+  },
+  "frontend_build": "passed",
+  "browser": {
+    "before": {
+      "startTime": "2026-11-07T09:50:23.460Z",
+      "duration": 849269.6220000001,
+      "expected": 4,
+      "skipped": 1,
+      "unexpected": 14,
+      "flaky": 0
+    },
+    "after": {
+      "startTime": "2026-11-07T10:17:31.998Z",
+      "duration": 951493.395,
+      "expected": 8,
+      "skipped": 1,
+      "unexpected": 14,
+      "flaky": 0
+    },
+    "final_inbox_only": {
+      "startTime": "2026-11-07T10:34:04.381Z",
+      "duration": 93627.447,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "original_outcomes_unchanged": true,
+    "fixtures": "Inbox browser tests use controlled fictional API/SSE responses; they are not an end-to-end proof of real server authorization."
+  },
+  "lint": {
+    "exact_full_command": "NOT COMPLETED before/after; stopped prolonged runs. Stall cause UNKNOWN; generated hosting artifact processing suspected.",
+    "repeatable_source_config_command": "npm --prefix lovable-ui run lint -- --ignore-pattern .netlify --ignore-pattern .wrangler --format json",
+    "before": {
+      "errors": 6618,
+      "warnings": 41
+    },
+    "after": {
+      "errors": 5933,
+      "warnings": 43
+    },
+    "configuration_or_rules_changed": false
+  },
+  "preservation": {
+    "original_files_unchanged": 994,
+    "original_files_changed": [
+      "lovable-ui/src/components/class-invitations.tsx",
+      "lovable-ui/src/components/tutor-workspace-navigation.tsx",
+      "lovable-ui/src/test/connections-reference.test.tsx",
+      "docs/api/chat.md",
+      "lovable-ui/src/components/account/ui.tsx",
+      "lovable-ui/src/components/chat-room.tsx",
+      "lovable-ui/src/components/contact-request-form.tsx",
+      "lovable-ui/src/routes/chat.$connectionId.tsx",
+      "lovable-ui/src/routes/connections.tsx",
+      "lovable-ui/src/routes/connections_.$connectionId.tsx",
+      "lovable-ui/src/routes/requests.tsx",
+      "lovable-ui/src/routes/tutor_.requests.tsx",
+      "lovable-ui/src/styles.css"
+    ],
+    "existing_files_deleted": 0,
+    "snapshot_head_unchanged": true,
+    "index_empty": true
+  },
+  "existing_browser_failures": [
+    {
+      "file": "accessibility.spec.ts",
+      "test": "keyboard users skip navigation and recover focus after mobile menu and route changes",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "test": "discovery and authentication expose labelled forms, contrast and announced errors",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "accessibility.spec.ts",
+      "test": "signed-in mobile and desktop checkout, Tutor, support and privacy forms are accessible",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "account.spec.ts",
+      "test": "Lovable account journey from http://localhost:3100",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "account.spec.ts",
+      "test": "Lovable account journey from http://127.0.0.1:3100",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "catalogue.spec.ts",
+      "test": "public catalogue aliases and Trust maintenance stay consistent",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "discovery.spec.ts",
+      "test": "mobile public search has honest empty results across eight families and unavailable detail",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "learners.spec.ts",
+      "test": "private adult profile and fictional Guardian approval, child consent withdrawal and revocation",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "operations.spec.ts",
+      "test": "operations console records scoped health, pauses checkout and keeps mobile recovery controls private",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "payments.spec.ts",
+      "test": "mobile Access Pass page shows the real server price and keeps unconfigured payments disabled",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "privacy.spec.ts",
+      "test": "verified export and deletion complete with a read-only receipt on mobile",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "staff.spec.ts",
+      "test": "staff MFA enrollment, scoped console, audit and authenticator recovery",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "support.spec.ts",
+      "test": "owner and scoped staff exchange a support case while private notes stay staff-only",
+      "before": "failed",
+      "after": "failed"
+    },
+    {
+      "file": "tutors.spec.ts",
+      "test": "fictional Tutor evidence, private reviewer download, approvals and revocation",
+      "before": "failed",
+      "after": "failed"
+    }
+  ]
+}

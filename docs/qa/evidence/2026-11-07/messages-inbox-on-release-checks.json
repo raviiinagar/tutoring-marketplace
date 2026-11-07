@@ -1,0 +1,46 @@
+{
+  "release_base": "9dfc5c12c0580f1725f3483b1af0c5c977cabe6f",
+  "inbox_source": "a284a9b",
+  "branch": "feature/messages-inbox-on-release",
+  "phase_a": {
+    "baseline_ui": {
+      "passed": 219,
+      "failed": 0,
+      "files": 42
+    },
+    "ui": {
+      "passed": 232,
+      "failed": 0,
+      "files": 44
+    },
+    "ui_typecheck": "passed",
+    "browser": {
+      "startTime": "2026-11-07T11:33:04.481Z",
+      "duration": 157029.103,
+      "expected": 13,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "inbox_browser": {
+      "passed": 4,
+      "failed": 0
+    },
+    "browser_regressions": {
+      "avatar": 2,
+      "unified_onboarding_explicit_publication": 2,
+      "accessibility": 5
+    },
+    "textual_conflicts": [
+      "lovable-ui/src/components/account/ui.tsx"
+    ],
+    "overlapping_files_reviewed": 10,
+    "api_contract_migration_changes": false
+  },
+  "phase_b": {
+    "status": "not started"
+  },
+  "deployed": false,
+  "pushed": false,
+  "superprof_accessed": false
+}

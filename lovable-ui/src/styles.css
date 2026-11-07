@@ -603,3 +603,26 @@ main { scroll-margin-top: 90px; }
  .reference-inbox-main { padding:24px 20px; min-height:50vh; }
  .reference-inbox-cta { margin-top:40px; }
 }
+
+/* The inbox is one workspace: only the selected pane replaces the list on mobile. */
+.messaging-inbox { height:calc(100dvh - 190px); min-height:420px; }
+.messaging-inbox .reference-inbox-sidebar { min-width:0; overflow-y:auto; }
+.messaging-inbox .reference-contact-row[aria-current="true"],.messaging-inbox .reference-contact-row[aria-current="page"] { background:var(--secondary); color:var(--foreground); border-radius:10px; padding-inline:10px; }
+.messaging-inbox .reference-contact-row small { color:var(--muted-foreground); }
+.messaging-inbox .reference-inbox-notice h2 { color:var(--foreground); }
+.messaging-inbox .reference-inbox-cta { background:var(--primary); color:var(--primary-foreground); }
+.messaging-inbox .messaging-pane { min-height:0; padding:0; overflow:hidden; }
+.messaging-pane-header { flex-shrink:0; border-bottom:1px solid var(--border); padding:16px 20px; }
+.messaging-pane-header nav [aria-current="page"] { font-weight:700; text-decoration:underline; text-underline-offset:6px; }
+.messaging-pane-body { display:flex; flex:1; min-height:0; min-width:0; overflow:hidden; }
+.messaging-section { width:100%; min-width:0; padding:20px; overflow-y:auto; overflow-wrap:anywhere; }
+.messaging-inbox:not([data-selected="true"]) .messaging-pane { padding:28px; }
+.messaging-inbox .messaging-chat { min-width:0; }
+@media(max-width:767px) {
+ .messaging-inbox { grid-template-columns:minmax(0,1fr); height:calc(100dvh - 170px); min-height:380px; }
+ .messaging-inbox[data-selected="true"] .reference-inbox-sidebar { display:none; }
+ .messaging-inbox[data-selected="false"] .messaging-pane { display:none; }
+ .messaging-pane-header { padding:12px 16px; }
+ .messaging-inbox .messaging-chat header { padding:12px 16px; }
+ .messaging-inbox .messaging-chat form { padding:12px 16px; }
+}

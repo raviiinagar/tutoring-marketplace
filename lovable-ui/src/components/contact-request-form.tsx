@@ -243,8 +243,8 @@ export function ContactRequestForm({
           </p>
           {sent.connection_id && (
             <Link
-              to="/connections/$connectionId"
-              params={{ connectionId: sent.connection_id }}
+              to="/connections"
+              search={{ conversation: sent.connection_id, view: "details" }}
               className="link block"
             >
               Open your Connection

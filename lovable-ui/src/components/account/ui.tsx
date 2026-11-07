@@ -426,6 +426,7 @@ export function AuthShell({
   dashboard = false,
   reference = false,
   fullWidth = false,
+  teachingWorkspace = false,
 }: {
   title: string;
   intro?: ReactNode;
@@ -435,12 +436,14 @@ export function AuthShell({
   dashboard?: boolean;
   reference?: boolean;
   fullWidth?: boolean;
+  teachingWorkspace?: boolean;
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   const tutorWorkspace =
-    ready &&
-    (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/"));
+    teachingWorkspace ||
+    (ready &&
+      (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/")));
   const referenceLayout = reference || tutorWorkspace;
   if (ready && window.location.pathname.startsWith("/staff"))
     return (
