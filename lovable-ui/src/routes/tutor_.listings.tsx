@@ -149,9 +149,12 @@ function TutorListingsPage() {
   if (!account.user.roles.includes("TUTOR"))
     return (
       <AuthShell title="Start teaching">
-        <p>Enable the Tutor role before managing teaching offers.</p>
-        <Link to="/account/settings" hash="roles" className="link mt-4 inline-block">
-          Choose your account roles
+        <p className="text-muted-foreground">
+          You have not started a teaching introduction yet. Nothing is published while you work on
+          it, and you keep using the same account to learn.
+        </p>
+        <Link to="/tutor" className="link mt-5 inline-block">
+          Start your teaching introduction
         </Link>
       </AuthShell>
     );

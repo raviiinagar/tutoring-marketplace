@@ -158,8 +158,8 @@ function Index() {
                 Your knowledge. Someone’s new beginning.
               </h2>
               <p className="mt-3 text-sm text-muted-foreground">
-                Share the subjects you love. Create your free profile with one identity document.
-                Tutor Pro unlocks teaching offers after identity approval.
+                Share the subjects you love. Create your free profile and publish your ad for free.
+                Identity verification is optional.
               </p>
             </div>
             <Button asChild className="shrink-0 rounded-full px-6">

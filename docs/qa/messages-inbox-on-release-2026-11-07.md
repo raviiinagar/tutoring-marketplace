@@ -38,8 +38,68 @@ Phase A screenshots from the release-line worktree: [desktop 1440](evidence/2026
 
 ## Phase B preflight
 
-Both requested issues exist on the release base: the homepage still claims mandatory identity/Pro publication, and /tutor/listings still directs non-Tutors to account role settings. Phase B has not started; its changes will be a separate commit after Phase A is green.
+Both requested issues exist on the release base: the homepage still claims mandatory identity/Pro publication, and /tutor/listings still directs non-Tutors to account role settings. Phase B started only after the green Phase A commit `73ed7a9` and is recorded separately below.
 
 ## Assumptions / unknowns
 
 Superprof's inbox visual layout remains **UNKNOWN**; this is the original inbox design assumption, not newly observed reference behavior. Existing draft/retry state remains scoped to the mounted chat, as documented in the original inbox report. No new contact, payment, authorization or publication policy decision was made. No policy question blocks the port. No hosted behavior was verified or changed for this local task.
+
+## Phase B results
+
+Neither fix was skipped: both issues were reproduced on the release base before editing.
+
+- The homepage For teachers paragraph now reads exactly: "Share the subjects you love. Create your free profile and publish your ad for free. Identity verification is optional."
+- The non-Tutor teaching-offers gate now uses the same Start your teaching introduction invitation and /tutor destination as the teaching dashboard. It does not assign a role or publish anything. All Tutor ad management and explicit Publish controls remain unchanged.
+- No existing test asserted the old listings-gate wording. Added one route-level UI regression proving a Learner gets the /tutor invitation without private Tutor/listings reads. Extended the two existing real-API onboarding browser journeys to check the homepage copy and enter through the listings invitation; all original draft/photo/publication/removal assertions remain.
+
+| Check | Release baseline | Phase A | Phase B / final |
+| --- | --- | --- | --- |
+| Full UI suite | 219 passed / 0 failed | 232 passed / 0 failed | **233 passed / 0 failed**, 44 files |
+| UI typecheck | NOT RUN fresh before port | Passed | Passed |
+| Inbox browser | Absent before port | 4 passed / 0 failed | Unchanged by Phase B; NOT RUN again |
+| Release regression browser | NOT RUN fresh before port | 9 passed / 0 failed | 2 updated onboarding journeys passed / 0 failed, 1440/390px |
+
+Phase A commit: `73ed7a9dc39baa9b9a8b127515d73805426c7c6f`. Phase B is the separate commit containing this section. Both final commit SHAs are supplied in the task response; no release-branch history was rewritten.
+
+## Changed files per commit
+
+Phase A (25 files, including the inherited inbox study and new release-line evidence):
+
+- `docs/api/chat.md`
+- `docs/qa/evidence/2026-11-07/inbox-1440.png`
+- `docs/qa/evidence/2026-11-07/inbox-390.png`
+- `docs/qa/evidence/2026-11-07/inbox-on-release-1440.png`
+- `docs/qa/evidence/2026-11-07/inbox-on-release-390.png`
+- `docs/qa/evidence/2026-11-07/messages-inbox-checks.json`
+- `docs/qa/evidence/2026-11-07/messages-inbox-on-release-checks.json`
+- `docs/qa/messages-inbox-2026-11-07.md`
+- `docs/qa/messages-inbox-on-release-2026-11-07.md`
+- `lovable-ui/src/components/account/ui.tsx`
+- `lovable-ui/src/components/chat-room.tsx`
+- `lovable-ui/src/components/class-invitations.tsx`
+- `lovable-ui/src/components/connection-details.tsx`
+- `lovable-ui/src/components/contact-request-form.tsx`
+- `lovable-ui/src/components/tutor-workspace-navigation.tsx`
+- `lovable-ui/src/routes/chat.$connectionId.tsx`
+- `lovable-ui/src/routes/connections.tsx`
+- `lovable-ui/src/routes/connections_.$connectionId.tsx`
+- `lovable-ui/src/routes/requests.tsx`
+- `lovable-ui/src/routes/tutor_.requests.tsx`
+- `lovable-ui/src/styles.css`
+- `lovable-ui/src/test/connections-reference.test.tsx`
+- `lovable-ui/src/test/inbox-routing.test.ts`
+- `lovable-ui/src/test/inbox.test.tsx`
+- `tests/browser/inbox.spec.ts`
+
+Phase B (6 files):
+
+- `lovable-ui/src/routes/index.tsx`
+- `lovable-ui/src/routes/tutor_.listings.tsx`
+- `lovable-ui/src/test/tutor-workspace.test.tsx`
+- `tests/browser/unified-tutor-onboarding.spec.ts`
+- `docs/qa/messages-inbox-on-release-2026-11-07.md`
+- `docs/qa/evidence/2026-11-07/messages-inbox-on-release-checks.json`
+
+## Final preservation check
+
+The main checkout remains clean on `feature/messages-inbox` at `a284a9b`; the release branch/worktree remains clean at `9dfc5c1`. The new branch descends directly from that release tip. No API, contract, migration, package or tracked deployment configuration changed. The test stack was local only; its PostgreSQL data is retained. Nothing was pushed, deployed or inspected on Superprof.

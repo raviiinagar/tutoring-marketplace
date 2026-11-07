@@ -8,7 +8,12 @@ for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await auditAccount(page.request, baseURL!);
     const headers = { Origin: baseURL! };
-    await page.goto('/tutor');
+    await page.goto('/');
+    await expect(page.getByText('Share the subjects you love. Create your free profile and publish your ad for free. Identity verification is optional.', { exact: true })).toBeVisible();
+    await page.goto('/tutor/listings');
+    const invitation = page.getByRole('link', { name: 'Start your teaching introduction', exact: true });
+    await expect(invitation).toHaveAttribute('href', '/tutor');
+    await invitation.click();
     await page.getByRole('checkbox', { name: 'Physics', exact: true }).check();
     await page.getByRole('button', { name: 'Next', exact: true }).click();
     await expect(page.getByLabel('Your public name', { exact: true })).toBeEnabled();

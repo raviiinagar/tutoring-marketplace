@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TutorDashboard } from "@/components/tutor-dashboard";
+import { Route as ListingsRoute } from "@/routes/tutor_.listings";
 import { api, type TeachingListing, type User } from "@/lib/api";
 import {
   canResumeOffer,
@@ -14,6 +15,7 @@ import { reputationApi } from "@/lib/tutor-reputation-api";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigate,
+  createFileRoute: () => (options: unknown) => ({ options }),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
     <a href={to}>{children}</a>
   ),
@@ -64,16 +66,12 @@ const listing: TeachingListing = {
   },
 };
 const clients: QueryClient[] = [];
-function mount() {
+function mount(content = <TutorDashboard />) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
   clients.push(client);
-  render(
-    <QueryClientProvider client={client}>
-      <TutorDashboard />
-    </QueryClientProvider>,
-  );
+  render(<QueryClientProvider client={client}>{content}</QueryClientProvider>);
   return client;
 }
 beforeEach(() => {
@@ -253,4 +251,21 @@ it("counts paused ads as offline without claiming unavailable published ads are 
     "1Offline",
   );
   expect(screen.getByText("Available").parentElement).toHaveTextContent("0Available");
+});
+
+it("invites a Learner from teaching offers into the introduction without reading private Tutor data", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER"] } },
+  });
+  const ListingsPage = ListingsRoute.options.component!;
+  mount(<ListingsPage />);
+  expect(
+    await screen.findByRole("link", { name: "Start your teaching introduction" }),
+  ).toHaveAttribute("href", "/tutor");
+  expect(screen.queryByText("Enable the Tutor role before managing teaching offers.")).toBeNull();
+  expect(screen.queryByRole("link", { name: "Choose your account roles" })).toBeNull();
+  expect(api.tutor).not.toHaveBeenCalled();
+  expect(api.listings).not.toHaveBeenCalled();
 });

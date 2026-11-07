@@ -35,12 +35,77 @@
       "lovable-ui/src/components/account/ui.tsx"
     ],
     "overlapping_files_reviewed": 10,
-    "api_contract_migration_changes": false
+    "api_contract_migration_changes": false,
+    "commit": "73ed7a9dc39baa9b9a8b127515d73805426c7c6f"
   },
   "phase_b": {
-    "status": "not started"
+    "status": "verified",
+    "homepage_issue_existed": true,
+    "listings_gate_issue_existed": true,
+    "skipped_fixes": 0,
+    "ui": {
+      "passed": 233,
+      "failed": 0,
+      "files": 44
+    },
+    "ui_typecheck": "passed",
+    "browser": {
+      "startTime": "2026-11-07T11:38:11.643Z",
+      "duration": 44762.511,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "new_ui_tests": 1,
+    "tests_removed_or_skipped": 0
   },
   "deployed": false,
   "pushed": false,
-  "superprof_accessed": false
+  "superprof_accessed": false,
+  "preservation": {
+    "main_checkout_branch": "feature/messages-inbox",
+    "main_checkout_head": "a284a9b7779dd0bdcd97823ff674adbf2b63b87c",
+    "main_checkout_clean": true,
+    "release_branch_head": "9dfc5c12c0580f1725f3483b1af0c5c977cabe6f",
+    "release_worktree_clean": true,
+    "api_contract_migration_changes": false
+  },
+  "changed_files": {
+    "phase_a": [
+      "docs/api/chat.md",
+      "docs/qa/evidence/2026-11-07/inbox-1440.png",
+      "docs/qa/evidence/2026-11-07/inbox-390.png",
+      "docs/qa/evidence/2026-11-07/inbox-on-release-1440.png",
+      "docs/qa/evidence/2026-11-07/inbox-on-release-390.png",
+      "docs/qa/evidence/2026-11-07/messages-inbox-checks.json",
+      "docs/qa/evidence/2026-11-07/messages-inbox-on-release-checks.json",
+      "docs/qa/messages-inbox-2026-11-07.md",
+      "docs/qa/messages-inbox-on-release-2026-11-07.md",
+      "lovable-ui/src/components/account/ui.tsx",
+      "lovable-ui/src/components/chat-room.tsx",
+      "lovable-ui/src/components/class-invitations.tsx",
+      "lovable-ui/src/components/connection-details.tsx",
+      "lovable-ui/src/components/contact-request-form.tsx",
+      "lovable-ui/src/components/tutor-workspace-navigation.tsx",
+      "lovable-ui/src/routes/chat.$connectionId.tsx",
+      "lovable-ui/src/routes/connections.tsx",
+      "lovable-ui/src/routes/connections_.$connectionId.tsx",
+      "lovable-ui/src/routes/requests.tsx",
+      "lovable-ui/src/routes/tutor_.requests.tsx",
+      "lovable-ui/src/styles.css",
+      "lovable-ui/src/test/connections-reference.test.tsx",
+      "lovable-ui/src/test/inbox-routing.test.ts",
+      "lovable-ui/src/test/inbox.test.tsx",
+      "tests/browser/inbox.spec.ts"
+    ],
+    "phase_b": [
+      "lovable-ui/src/routes/index.tsx",
+      "lovable-ui/src/routes/tutor_.listings.tsx",
+      "lovable-ui/src/test/tutor-workspace.test.tsx",
+      "tests/browser/unified-tutor-onboarding.spec.ts",
+      "docs/qa/messages-inbox-on-release-2026-11-07.md",
+      "docs/qa/evidence/2026-11-07/messages-inbox-on-release-checks.json"
+    ]
+  }
 }
