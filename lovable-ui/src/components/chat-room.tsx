@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, MessageCircle, Send, ShieldCheck, WifiOff } from "lucide-react";
 import {
@@ -24,12 +24,30 @@ const merge = (old: ChatMessage[], incoming: ChatMessage[]) =>
     (a, b) => a.sequence - b.sequence,
   );
 
+function resizeComposer(element: HTMLTextAreaElement) {
+  const style = getComputedStyle(element);
+  const line = parseFloat(style.lineHeight) || 18;
+  const padding = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+  const border =
+    (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+  element.style.height = "0px";
+  const maximum = line * 5 + padding + border;
+  const height = Math.min(
+    maximum,
+    Math.max(line * 2 + padding + border, element.scrollHeight + border),
+  );
+  element.style.height = height + "px";
+  element.style.overflowY = element.scrollHeight + border > maximum ? "auto" : "hidden";
+}
+
 export function ChatRoom({
   connectionId,
   onUnreadChange,
+  onTitleChange,
 }: {
   connectionId: string;
   onUnreadChange?: (id: string, unread: number) => void;
+  onTitleChange?: (id: string, title: string) => void;
 }) {
   const [state, setState] = useState<ChatState>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -40,10 +58,33 @@ export function ChatRoom({
   const [revoked, setRevoked] = useState(false);
   const [olderBusy, setOlderBusy] = useState(false);
   const log = useRef<HTMLDivElement>(null);
+  const editor = useRef<HTMLTextAreaElement>(null);
   const atBottom = useRef(true);
   const rendered = useRef(0);
   const [below, setBelow] = useState(false);
   const commands = useRef<Commands | undefined>(undefined);
+  const offerTitle = state?.offer_title;
+  useEffect(() => {
+    if (offerTitle) onTitleChange?.(connectionId, offerTitle);
+  }, [connectionId, offerTitle, onTitleChange]);
+  useLayoutEffect(() => {
+    if (editor.current) resizeComposer(editor.current);
+  }, [draft]);
+  useEffect(() => {
+    const element = editor.current;
+    if (!element || typeof ResizeObserver === "undefined") return;
+    let width = element.getBoundingClientRect().width;
+    const observer = new ResizeObserver((entries) => {
+      const next = entries[0]?.contentRect.width;
+      if (next !== undefined && next !== width) {
+        width = next;
+        resizeComposer(element);
+      }
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [revoked]);
+
   useEffect(() => {
     let alive = true,
       denied = false,
@@ -333,38 +374,27 @@ export function ChatRoom({
         : "Learner";
   return (
     <section className="messaging-chat flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <header className="flex items-start gap-3 border-b px-5 py-5 sm:px-7">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-coral-soft text-coral-strong">
-          <MessageCircle size={22} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xl font-semibold tracking-tight">Private chat</h3>
-          <Link
-            to="/safety/$kind/$targetId"
-            params={{ kind: "connection", targetId: connectionId }}
-            className="link mt-1 inline-block text-xs"
-          >
-            Report or block
-          </Link>
-          <p className="mt-1 break-words text-sm text-muted-foreground">
-            {state?.offer_title ?? "Checking your Connection"}
-          </p>
-          <p role="status" className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-            {status === "Connected" ? (
-              <span className="size-1.5 rounded-full bg-success" />
-            ) : (
-              <WifiOff size={12} />
-            )}{" "}
-            {status}
-          </p>
-        </div>
-      </header>
-      <div className="flex items-start gap-2 bg-secondary/50 px-5 py-3 text-xs text-muted-foreground sm:px-7">
-        <ShieldCheck size={15} className="shrink-0" />
-        <p>
+      <div className="messaging-chat-strip">
+        <p role="status" className="messaging-status">
+          {status === "Connected" ? (
+            <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
+          ) : (
+            <WifiOff size={12} aria-hidden="true" />
+          )}
+          {status}
+        </p>
+        <p className="messaging-notice">
+          <ShieldCheck size={14} aria-hidden="true" />
           Adult participants only. Discuss learning here; pay Tuition Fees directly to the Tutor.
           Text messages only.
         </p>
+        <Link
+          to="/safety/$kind/$targetId"
+          params={{ kind: "connection", targetId: connectionId }}
+          className="link messaging-report"
+        >
+          Report or block
+        </Link>
       </div>
       {error && (
         <div className="px-5 pt-4">
@@ -483,25 +513,26 @@ export function ChatRoom({
             </div>
           )}
           <form
-            className="shrink-0 border-t bg-background px-5 py-4 sm:px-7"
+            className="messaging-composer"
             onSubmit={(event) => {
               event.preventDefault();
               commands.current?.send(draft);
             }}
           >
-            <label htmlFor="chat-message" className="text-sm font-medium">
+            <label htmlFor="chat-message" className="sr-only">
               Message
             </label>
             <textarea
+              ref={editor}
               id="chat-message"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               maxLength={2000}
-              rows={3}
+              rows={2}
               disabled={!state || Boolean(pending)}
               placeholder="Write a message about your learning…"
               aria-describedby="chat-hint"
-              className="input mt-2 w-full resize-none"
+              className="input messaging-input"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                   event.preventDefault();
@@ -509,8 +540,8 @@ export function ChatRoom({
                 }
               }}
             />
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <p id="chat-hint" className="text-xs text-muted-foreground">
+            <div className="messaging-composer-actions">
+              <p id="chat-hint" className="messaging-hint text-muted-foreground">
                 {draft.length}/2000 · Shift + Enter for a new line
               </p>
               {pending?.retry ? (
@@ -521,7 +552,7 @@ export function ChatRoom({
                 <Button
                   type="submit"
                   disabled={!state || !draft.trim() || Boolean(pending)}
-                  className="rounded-full px-5"
+                  className="rounded-full px-4"
                 >
                   <Send size={15} />
                   {pending ? "Sending…" : "Send message"}

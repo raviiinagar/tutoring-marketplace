@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { api, describeFailure, type ConnectionSummary } from "@/lib/api";
 import { AuthShell, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
@@ -112,8 +113,17 @@ export function Connections({
       previous.map((row) => (row.id === id ? { ...row, unread_count: unread } : row)),
     );
   }, []);
+  const [loadedTitle, setLoadedTitle] = useState<{ id: string; title: string }>();
+  const updateTitle = useCallback((id: string, title: string) => {
+    setLoadedTitle((previous) =>
+      previous?.id === id && previous.title === title ? previous : { id, title },
+    );
+  }, []);
   const [search, setSearch] = useState("");
   const selected = rows.find((row) => row.id === conversation);
+  const title =
+    selected?.offer.title ??
+    (loadedTitle && loadedTitle.id === conversation ? loadedTitle.title : "Conversation");
   const filtered = rows.filter((row) =>
     row.offer.title.toLowerCase().includes(search.trim().toLowerCase()),
   );
@@ -225,16 +235,19 @@ export function Connections({
           {conversation ? (
             <>
               <header className="messaging-pane-header">
-                <Link to="/connections" search={{}} resetScroll={false} className="link text-sm">
-                  Back to conversations
-                </Link>
-                <h2 className="mt-2 break-words text-lg font-semibold">
-                  {selected?.offer.title ?? "Conversation"}
-                </h2>
-                <nav
-                  aria-label="Conversation sections"
-                  className="mt-3 flex flex-wrap gap-4 text-sm"
+                <Link
+                  to="/connections"
+                  search={{}}
+                  resetScroll={false}
+                  className="messaging-back link"
+                  aria-label="Back to conversations"
                 >
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </Link>
+                <h2 className="messaging-title" title={title} tabIndex={0}>
+                  {title}
+                </h2>
+                <nav aria-label="Conversation sections" className="messaging-sections">
                   {(
                     [
                       ["messages", "Messages"],
@@ -275,7 +288,11 @@ export function Connections({
                     </Link>
                   </div>
                 ) : (
-                  <ChatRoom connectionId={conversation} onUnreadChange={updateUnread} />
+                  <ChatRoom
+                    connectionId={conversation}
+                    onUnreadChange={updateUnread}
+                    onTitleChange={updateTitle}
+                  />
                 )}
               </div>
             </>
