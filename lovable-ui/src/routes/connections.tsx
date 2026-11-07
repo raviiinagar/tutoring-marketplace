@@ -201,7 +201,7 @@ export function Connections({
                   {row.peer && <PeerAvatar peer={row.peer} className="size-11 text-base" />}
                   <span className="reference-contact-text">
                     <strong>{row.peer ? row.peer.display_name : row.offer.title}</strong>
-                    {row.peer && <small>{row.offer.title}</small>}
+                    {row.peer && <small className="reference-contact-ad">{row.offer.title}</small>}
                     <small>
                       {row.available
                         ? row.unread_count === null

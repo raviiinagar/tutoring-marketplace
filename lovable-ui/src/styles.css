@@ -595,6 +595,7 @@ main { scroll-margin-top: 90px; }
 .reference-contact-row-peer { display:flex; align-items:center; gap:12px; }
 .reference-contact-text { min-width:0; flex:1; }
 .reference-contact-row-peer small { margin-top:3px; }
+.messaging-inbox .reference-contact-row .reference-contact-ad { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; }
 @media(max-width:700px) {
  .reference-dashboard-grid { grid-template-columns:minmax(0,1fr); }
  .reference-profile-card { padding:32px 26px 24px; }
