@@ -23,7 +23,12 @@ export async function mobileSupply(origin: string) {
     status = 200,
   ) => {
     const response = await client.post(path, { data: body });
-    expect(response.status(), path).toBe(status);
+    // Include the API problem body so a fixture drift names its cause.
+    if (response.status() !== status)
+      expect(
+        response.status(),
+        path + " " + (await response.text()).slice(0, 300),
+      ).toBe(status);
     return response.json();
   };
   const actor = async () => {
@@ -136,6 +141,20 @@ export async function mobileSupply(origin: string) {
             expires_at: new Date(Date.now() + 86400000).toISOString(),
           },
         );
+      // Publishing needs the current introduction (subjects and hourly rate) saved.
+      const reviewed = await (await teacher.client.get("/v1/me/tutor")).json();
+      await post(teacher.client, "/v1/me/tutor/introduction", {
+        display_name: "Fictional mobile Tutor " + n,
+        biography:
+          "Patient Physics explanations with structured worked examples for school learners.",
+        subject_ids: ["subject-physics"],
+        hourly_rate_paise: 50000,
+        identity_country: "IN",
+        identity_document: "AADHAAR",
+        adult_confirmed: true,
+        public_email_consent: false,
+        expected_public_revision: reviewed.profile.public_revision,
+      });
       // Deterministic textured fictional image, not a real adult or identity document.
       const pixels = Buffer.alloc(320 * 400 * 3);
       let seed = n + 1;
@@ -179,7 +198,11 @@ export async function mobileSupply(origin: string) {
             teacher.client,
             "/v1/me/listings",
             {
-              title: "Fictional Physics practice " + level + " " + n,
+              title:
+                "Fictional Physics practice with clear worked examples and patient guided feedback for " +
+                level +
+                " learners " +
+                n,
               description:
                 "Clear school Physics explanations with structured practice and worked examples.",
               domain_id: "school",
@@ -196,22 +219,12 @@ export async function mobileSupply(origin: string) {
             201,
           )
         ).listing;
+        // ADR 0014: the Tutor publishes the ad directly; there is no staff review step.
         listing = (
           await post(
             teacher.client,
-            "/v1/me/listings/" + listing.id + "/actions/SUBMIT",
+            "/v1/me/listings/" + listing.id + "/actions/PUBLISH",
             { revision: listing.revision },
-          )
-        ).listing;
-        listing = (
-          await post(
-            reviewer.client,
-            "/v1/staff/listings/" + listing.id + "/reviews",
-            {
-              revision: listing.revision,
-              outcome: "APPROVE",
-              reason: "Exact fictional mobile Physics offer checked",
-            },
           )
         ).listing;
         ids.push(listing.id);
