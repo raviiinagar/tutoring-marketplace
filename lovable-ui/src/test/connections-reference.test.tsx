@@ -178,6 +178,7 @@ it("gives an empty Tutor inbox its own copy and a focused link to Requests", asy
     await within(pane).findByText("No conversations yet. Accepted enquiries appear here."),
   ).toBeVisible();
   expect(within(pane).queryByText(/You haven't found a teacher yet/)).toBeNull();
+  expect(screen.queryByRole("link", { name: "Search for a teacher" })).toBeNull();
   const link = within(pane).getByRole("link", { name: "View pending requests" });
   expect(link).toHaveAttribute("href", "#inbox-requests");
   fireEvent.click(link);
