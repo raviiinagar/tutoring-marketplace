@@ -657,3 +657,10 @@ main { scroll-margin-top: 90px; }
  .messaging-hint { font-size:10px; line-height:12px; }
  .messaging-composer-actions button { font-size:12px; padding-inline:10px; }
 }
+/* Ad wizard: one question per step with a "Good to know" panel, as on Superprof. */
+.ad-wizard-step { display:flex; flex-direction:column; gap:20px; }
+.ad-wizard-tip { border-radius:16px; background:var(--secondary); padding:18px; }
+.ad-wizard-choice { display:flex; align-items:flex-start; gap:12px; border:1px solid var(--border); border-radius:14px; padding:14px 16px; cursor:pointer; }
+.ad-wizard-choice input { margin-top:4px; }
+.ad-wizard-choice-on { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary); }
+@media (min-width: 768px) { .ad-wizard-step { flex-direction:row; } .ad-wizard-tip { width:260px; flex-shrink:0; align-self:flex-start; } }
