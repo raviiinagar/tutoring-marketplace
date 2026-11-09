@@ -29,9 +29,6 @@ export type StaffEnrollment={secret:string;otpauth_uri:string;expires_at:string}
 export type StaffWorkspace={scope:StaffScope;events:{id:string;actor_id:string;event:string;created_at:string;target:string;reason:string}[]};
 export type LearnerProfile={id:string;kind:'ADULT'|'CHILD';alias:string;age_band:'ADULT'|'UNDER_13'|'13_15'|'16_17';learning_requirements:string;status:'ACTIVE'|'WITHDRAWN';usable:boolean;created_at:string;updated_at:string};
 export type LearnerPolicy={child_profiles_enabled:boolean;test_only:boolean;policy:{id:string;notice_version:string;consent_version:string;notice:string;consent:string}|null};
-export type GuardianCase={id:string;status:'PENDING'|'APPROVED'|'REJECTED'|'REVOKED';policy_id?:string;notice_version?:string;consent_version?:string;created_at?:string;review_reason?:string|null;user_id?:string};
-export type GuardianInspection={id:string;user_id:string;status:GuardianCase['status'];policy_id:string;notice_version:string;consent_version:string;evidence:{adult_reference:string;authority_reference:string}};
-export type LearnerConsent={accepted:true;notice_version:string;consent_version:string};
 export type CatalogueKind='SUBJECT'|'LEVEL'|'CURRICULUM'|'EXAM'|'LANGUAGE';
 export type CatalogueTerm={id:string;kind:CatalogueKind;label:string;aliases:string[];domain_ids:string[];active:boolean};
 export type Catalogue={domains:{id:string;label:string}[];terms:CatalogueTerm[]};
@@ -425,15 +422,8 @@ export const api = {
   learnerPolicy: () => request<LearnerPolicy>('GET','/v1/learner-policy'),
   learners: () => request<{profiles:LearnerProfile[]}>('GET','/v1/me/learners'),
   adultLearner: (alias:string,learning_requirements:string,adult_confirmed:boolean) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/adult',{alias,learning_requirements,adult_confirmed}),
-  childLearner: (alias:string,learning_requirements:string,age_band:string,consent:LearnerConsent) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/children',{alias,learning_requirements,age_band,consent}),
   editLearner: (id:string,alias:string,learning_requirements:string) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/'+encodeURIComponent(id),{alias,learning_requirements}),
   withdrawLearnerConsent: (id:string) => request<CodeMessage>('POST','/v1/me/learners/'+encodeURIComponent(id)+'/consent-withdrawals'),
-  renewLearnerConsent: (id:string,consent:LearnerConsent) => request<CodeMessage>('POST','/v1/me/learners/'+encodeURIComponent(id)+'/consents',consent),
-  guardianCases: () => request<{verifications:GuardianCase[]}>('GET','/v1/me/guardian-verifications'),
-  submitGuardian: (adult_reference:string,authority_reference:string,adult_confirmed:boolean,consent:LearnerConsent) => request<{id:string;status:'PENDING'}>('POST','/v1/me/guardian-verifications',{adult_reference,authority_reference,adult_confirmed,consent}),
-  guardianQueue: () => request<{verifications:GuardianCase[]}>('GET','/v1/staff/guardian-verifications'),
-  inspectGuardian: (id:string,reason:string) => request<{verification:GuardianInspection}>('POST','/v1/staff/guardian-verifications/'+encodeURIComponent(id)+'/inspections',{reason}),
-  reviewGuardian: (id:string,decision:'APPROVE'|'REJECT'|'REVOKE',identifiable_adult_reviewed:boolean,authority_reviewed:boolean,reason:string) => request<{id:string;status:GuardianCase['status']}>('POST','/v1/staff/guardian-verifications/'+encodeURIComponent(id)+'/reviews',{decision,identifiable_adult_reviewed,authority_reviewed,reason}),
   signOut: () => request<void>("DELETE", "/v1/auth/sessions/current", {}),
 };
 

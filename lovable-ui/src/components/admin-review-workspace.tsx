@@ -4,7 +4,6 @@ import {
   BookOpen,
   ShieldCheck,
   Image,
-  Users,
   ClipboardCheck,
   MessagesSquare,
   LockKeyhole,
@@ -28,12 +27,6 @@ const tools = [
     title: "Portrait reviews",
     description: "Review Tutor photos before public display.",
     icon: Image,
-  },
-  {
-    to: "/staff/guardians",
-    title: "Guardian reviews",
-    description: "Check submitted adult and Guardian evidence.",
-    icon: Users,
   },
   {
     to: "/staff/safety",

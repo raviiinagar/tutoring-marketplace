@@ -1,4 +1,5 @@
 import { publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
+import {historicalChild} from './helpers/historical-child.js';
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import {after,before,beforeEach,test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -154,8 +155,10 @@ test('blocks in either direction, revoked coverage and a missing adult declarati
  await database.pool.query("UPDATE access_entitlements SET status='REVOKED' WHERE id=$1",[coverage]);await submit(body,owner.cookie).expect(403).expect(r=>assert.equal(r.body.code,'ACCESS_REQUIRED'));await grant(owner.email);await database.pool.query('UPDATE tutor_profiles SET adult_declared_at=NULL WHERE user_id=$1',[teacher.id]);await submit(body,owner.cookie).expect(404);
 });
 
-test('Guardian current approval and consent authorize the child beneficiary; withdrawal hides stored private enquiry and prevents reuse',async()=>{
- const owner=await fixture(null);const teacher=await tutor();const listing=await publish(teacher);const staff=teacher.reviewer!;const consent={accepted:true,notice_version:'test-notice-v1',consent_version:'test-consent-v1'};const applied=await post('/v1/me/guardian-verifications',{adult_reference:'test-adult-confirmed',authority_reference:'test-authority-confirmed',adult_confirmed:true,consent},owner.cookie).expect(201);await post('/v1/staff/guardian-verifications/'+applied.body.id+'/reviews',{decision:'APPROVE',identifiable_adult_reviewed:true,authority_reviewed:true,reason:'Fictional Guardian authority checked'},staff.cookie).expect(200);const child=(await post('/v1/me/learners/children',{alias:'Fictional child',age_band:'13_15',learning_requirements:'Practice school Physics through examples',consent},owner.cookie).expect(201)).body.profile;await grant(owner.email);const body=enquiry(child.id,listing);const sent=(await submit(body,owner.cookie).expect(200)).body.request;await post('/v1/me/learners/'+child.id+'/consent-withdrawals',{},owner.cookie).expect(200);const detail=(await get('/v1/me/contact-requests/'+sent.id,owner.cookie).expect(200)).body.request;assert.equal(detail.learner_usable,false);assert.equal(detail.learner_alias,null);assert.equal(detail.learning_requirements,null);assert.equal(detail.preferred_times,null);await submit({...body,request_key:randomUUID()},owner.cookie).expect(403);assert.equal((await submit(body,owner.cookie).expect(200)).body.request.learning_requirements,null);
+test('a historical child profile cannot be used for a new enquiry, even with an approved Guardian and consent (ADR 0015)',async()=>{
+ const owner=await fixture(null);const teacher=await tutor();const listing=await publish(teacher);const child=await historicalChild(database,owner.id,clock);await grant(owner.email);
+ await submit(enquiry(child.profileId,listing),owner.cookie).expect(403).expect(r=>assert.equal(r.body.code,'LEARNER_UNAVAILABLE'));
+ assert.equal(Number((await database.pool.query('SELECT count(*) FROM contact_requests WHERE learner_id=$1',[child.profileId])).rows[0].count),0);
 });
 
 test('production rejects fixture coverage and fixture replays, has no grant endpoint and isolated grant helper rejects ordinary databases',async()=>{

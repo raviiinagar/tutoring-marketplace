@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   LayoutDashboard,
   ShieldCheck,
-  Users,
   BookOpen,
   Image,
   MessagesSquare,
@@ -57,13 +56,6 @@ const items = [
     label: "Portrait reviews",
     to: "/staff/photos",
     icon: Image,
-    scope: "TRUST",
-  },
-  {
-    group: "Trust & safety",
-    label: "Guardian reviews",
-    to: "/staff/guardians",
-    icon: Users,
     scope: "TRUST",
   },
   {
