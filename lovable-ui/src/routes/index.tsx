@@ -193,6 +193,7 @@ function Index() {
             <Link to="/tutors">Find Tutors</Link>
             <a href="#how-it-works">How it works</a>
             <a href="#tutors">For teachers</a>
+            <Link to="/community">Community</Link>
             <Link to="/feedback">Beta feedback</Link>
             <Link to="/auth/signin">Sign in</Link>
           </nav>

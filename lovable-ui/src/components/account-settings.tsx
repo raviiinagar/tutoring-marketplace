@@ -546,6 +546,9 @@ export function AccountSettings() {
                 <Link to="/feedback" className="min-h-10 underline">
                   Beta feedback and suggestions
                 </Link>
+                <Link to="/community" className="min-h-10 underline">
+                  Community chat
+                </Link>
                 <Link to="/safety" className="min-h-10 underline">
                   Safety and reports
                 </Link>

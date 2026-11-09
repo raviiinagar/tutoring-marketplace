@@ -335,9 +335,18 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   const strangerSuggestion=(await post('/v1/me/feedback',{request_key:randomUUID(),category:'FEATURE_REQUEST',title:'Fictional stranger request',description:'Please add a fictional dark theme.'},stranger.cookie).expect(201)).body.feedback.id;
   await post('/v1/feedback/board/'+strangerSuggestion+'/votes',{},owner.cookie).expect(200);
   await post('/v1/feedback/board/'+ownSuggestion+'/votes',{},stranger.cookie).expect(200);
+  const generalChannel='3a7c9a3e-6d1b-4c55-9a0e-0f5d2b1c0002';
+  await post('/v1/community/membership',{nickname:'Owner Nick',adult_confirmed:true,rules_accepted:true},owner.cookie).expect(200);
+  await post('/v1/community/membership',{nickname:'Stranger Nick',adult_confirmed:true,rules_accepted:true},stranger.cookie).expect(200);
+  const ownerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional community message to erase.'},owner.cookie).expect(201)).body.message.id;
+  const strangerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional reply target.'},stranger.cookie).expect(201)).body.message.id;
+  await post('/v1/community/messages/'+strangerPost+'/reactions',{emoji:'HEART'},owner.cookie).expect(200);
   const exported=await database.transaction(async client=>{const {personalExport}=await import('../src/privacy-inventory.js');return personalExport(client,(await client.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock);});
   assert.deepEqual(exported.feedback.map((f:any)=>[f.id,f.title]),[[ownSuggestion,'Fictional owner suggestion']]);
   assert.deepEqual(exported.feedback_votes.map((v:any)=>v.item_id),[strangerSuggestion]);
+  assert.equal(exported.community.membership.nickname,'Owner Nick');
+  assert.deepEqual(exported.community.messages.map((m:any)=>m.body),['A fictional community message to erase.']);
+  assert.deepEqual(exported.community.reactions.map((r:any)=>[r.message_id,r.emoji]),[[strangerPost,'HEART']]);
   const identity = await post(
     "/v1/me/privacy/verifications",
     { password, purpose: "DELETE" },
@@ -366,6 +375,13 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM tutor_presence WHERE user_id=$1',[owner.id])).rows[0].count,0);
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM feedback_votes WHERE user_id=$1',[owner.id])).rows[0].count,0);
   assert.equal((await database.pool.query('SELECT vote_count FROM feedback_items WHERE id=$1',[strangerSuggestion])).rows[0].vote_count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_members WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_reactions WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  const erasedMessage=(await database.pool.query('SELECT status,encrypted_body FROM community_messages WHERE id=$1',[ownerPost])).rows[0];
+  assert.equal(erasedMessage.status,'DELETED_BY_AUTHOR');
+  assert.equal(decrypt<{body:string}>(erasedMessage.encrypted_body,config.authSecret).body,'[erased]');
+  const seenByStranger=(await get('/v1/community/channels/'+generalChannel+'/messages',stranger.cookie).expect(200)).body.messages.find((m:any)=>m.id===ownerPost);
+  assert.deepEqual([seenByStranger.author.nickname,seenByStranger.body],['Former member',null]);
   const erasedFeedback=(await database.pool.query('SELECT hidden,encrypted_body FROM feedback_items WHERE id=$1',[ownSuggestion])).rows[0];
   assert.equal(erasedFeedback.hidden,true);
   assert.equal(decrypt<{description:string}>(erasedFeedback.encrypted_body,config.authSecret).description,'[erased]');

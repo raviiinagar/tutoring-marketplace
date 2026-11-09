@@ -22,6 +22,8 @@ export interface Config {
   clamav?:{host:string;port:number};
   /** Beta feedback switch (ADR0016); off in production unless BETA_FEEDBACK_ENABLED=true. */
   betaFeedback?: boolean;
+  /** Beta community chat switch (ADR0017); off in production unless BETA_COMMUNITY_ENABLED=true. */
+  betaCommunity?: boolean;
   payments?: {dailyReconciliation?:boolean;accountId?:string;mode:'test'|'live';keyId:string;keySecret:string;webhookSecret:string;disclosures:{merchant:string;invoice_notice:string;base_paise:number;tax_paise:number;test_only:boolean}};
   smtp?: { host: string; port: number; user: string; password: string; from: string };
   sms?:{accountSid:string;authToken:string;messagingSid:string;contentSid:string;operationsContentSid?:string;ownerPhone:string;dailyLimit:number};
@@ -110,7 +112,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const betaFeedbackFlag=env.BETA_FEEDBACK_ENABLED;
   if(betaFeedbackFlag!==undefined&&!['true','false'].includes(betaFeedbackFlag))throw new Error('BETA_FEEDBACK_ENABLED must be true or false');
   const betaFeedback=betaFeedbackFlag===undefined?mode!=='production':betaFeedbackFlag==='true';
-  return { betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  const betaCommunityFlag=env.BETA_COMMUNITY_ENABLED;
+  if(betaCommunityFlag!==undefined&&!['true','false'].includes(betaCommunityFlag))throw new Error('BETA_COMMUNITY_ENABLED must be true or false');
+  const betaCommunity=betaCommunityFlag===undefined?mode!=='production':betaCommunityFlag==='true';
+  return { betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

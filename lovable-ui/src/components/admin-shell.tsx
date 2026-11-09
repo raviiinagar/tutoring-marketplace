@@ -74,6 +74,13 @@ const items = [
   },
   {
     group: "Trust & safety",
+    label: "Community",
+    to: "/staff/community",
+    icon: MessagesSquare,
+    scope: "TRUST",
+  },
+  {
+    group: "Trust & safety",
     label: "Recommendations",
     to: "/staff/recommendations",
     icon: ClipboardCheck,

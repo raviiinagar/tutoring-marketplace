@@ -27,6 +27,7 @@ export async function personalExport(
   const draftTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_drafts') AS present")).rows[0].present;
   const recommendationsTable=(await client.query("SELECT to_regclass('public.tutor_recommendations') AS present")).rows[0].present;
   const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
+  const communityTable=(await client.query("SELECT to_regclass('public.community_members') AS present")).rows[0].present;
   const feedbackTable=(await client.query("SELECT to_regclass('public.feedback_items') AS present")).rows[0].present;
   const profile = (
     await rows(
@@ -199,6 +200,13 @@ export async function personalExport(
       ...(encrypted_screenshot ? { screenshot_base64: read(encrypted_screenshot)?.data, screenshot_media_type: "image/jpeg" } : {}),
       events: (await rows("SELECT outcome,encrypted_payload,created_at FROM feedback_events WHERE item_id=$1 AND visibility='USER' ORDER BY sequence", [item.id])).map((e) => ({ outcome: e.outcome, status: read(e.encrypted_payload)?.status, message: read(e.encrypted_payload)?.message, created_at: e.created_at })),
     }))) : [],
+    community: communityTable ? {
+      membership: (await rows("SELECT nickname,adult_confirmed_at,rules_accepted_at,rules_version,left_at,created_at FROM community_members WHERE user_id=$1"))[0] ?? null,
+      messages: (await rows("SELECT m.id,c.name AS channel,m.reply_to,m.status,m.pinned,m.encrypted_body,m.created_at FROM community_messages m JOIN community_channels c ON c.id=m.channel_id WHERE m.author_id=$1 ORDER BY m.created_at,m.id")).map(({encrypted_body,...m}) => ({ ...m, body: read(encrypted_body)?.body })),
+      reactions: await rows("SELECT message_id,emoji,created_at FROM community_reactions WHERE user_id=$1 ORDER BY created_at"),
+      reports_filed: (await rows("SELECT message_id,category,status,encrypted_note,created_at FROM community_reports WHERE reporter_id=$1 ORDER BY created_at")).map(({encrypted_note,...r}) => ({ ...r, note: read(encrypted_note)?.note || null })),
+      mute: (await rows("SELECT muted_until,reason,created_at FROM community_mutes WHERE user_id=$1"))[0] ?? null,
+    } : null,
     feedback_votes: feedbackTable ? await rows("SELECT item_id,created_at FROM feedback_votes WHERE user_id=$1 ORDER BY created_at,item_id") : [],
     saved_tutors:savedTable?await rows("SELECT profile_id,created_at FROM saved_tutors WHERE owner_id=$1 ORDER BY created_at DESC,profile_id"):[],
     tutor_presence:presenceTable?await rows("SELECT location,teaching_modes,accepting_students,weekly_slots,timezone,revision,updated_at FROM tutor_presence WHERE user_id=$1"):[],
