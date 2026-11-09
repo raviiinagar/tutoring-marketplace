@@ -78,6 +78,16 @@ test('public card portraits are smaller, metadata-free and still denied immediat
  const portrait=await get(path+'?variant=portrait').expect(200).expect('Content-Type',/image\/webp/);
  assert.equal((await sharp(portrait.body).metadata()).width,640);
  await get(path+'?variant=unbounded').expect(400);
+ // The Tutor directory serves the same resized derivatives as the offer cards.
+ const profileId=(await get('/v1/me/tutor',user.cookie).expect(200)).body.profile.public_id;
+ const directoryPath='/v1/tutor-profiles/'+profileId+'/photos/'+photo.id;
+ const directoryOriginal=await get(directoryPath).expect(200).expect('Content-Type',/image\/jpeg/);
+ const directoryCard=await get(directoryPath+'?variant=card').expect(200).expect('Content-Type',/image\/webp/);
+ const directoryMeta=await sharp(directoryCard.body).metadata();
+ assert.equal(directoryMeta.width,384);assert.equal(directoryMeta.height,480);assert.equal(directoryMeta.exif,undefined);
+ assert(directoryCard.body.length<directoryOriginal.body.length/2,'directory card transfer is materially smaller than the full portrait');
+ assert.equal((await sharp((await get(directoryPath+'?variant=portrait').expect(200).expect('Content-Type',/image\/webp/)).body).metadata()).width,640);
+ await get(directoryPath+'?variant=unbounded').expect(400);
  const otherListing=await publish(user);const otherPath='/v1/discovery/'+otherListing.id+'/photos/'+photo.id;
  await post('/v1/staff/listings/'+listing.id+'/safety',{revision:listing.revision,action:'SUSPEND',reason:'Fictional public portrait permission verification'},user.reviewer!.cookie).expect(200);
  await get(path+'?variant=card').expect(404);await get(path+'?variant=portrait').expect(404);
