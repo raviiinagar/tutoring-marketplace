@@ -12,7 +12,13 @@ import { PublicOfferCard } from "@/components/public-offer";
 import { api, describeFailure, type Catalogue, type PublicOffer } from "@/lib/api";
 import { Reveal } from "@/components/reveal";
 export const Route = createFileRoute("/")({
-  loader: async () => requirePublic(await api.publicHome()),
+  // The Tutor directory's first page loads with the page, so its first portrait
+  // starts downloading straight away (it is often the largest paint on mobile).
+  // A directory failure never blocks the homepage; the directory then loads itself.
+  loader: async () => {
+    const [home, tutors] = await Promise.all([api.publicHome(), api.publicTutors()]);
+    return { ...requirePublic(home), tutors: tutors.ok ? tutors.data : null };
+  },
   staleTime: 0,
   preloadStaleTime: 0,
   component: Index,
@@ -62,7 +68,10 @@ function Index() {
           </div>
         </section>
         <div className="market-content pt-10">
-          <PublicTutorDirectory />
+          <PublicTutorDirectory
+            initial={initial.tutors ?? undefined}
+            initialCatalogue={catalogue}
+          />
         </div>
         {(offers.length > 0 || loading || error) && (
           <section aria-labelledby="available-title" className="market-content py-10 sm:py-14">
@@ -95,14 +104,11 @@ function Index() {
               </div>
             ) : offers.length ? (
               <div className="grid gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+                {/* The Tutor directory above holds the first, high-priority portrait;
+                    these offers sit below it, so none of them competes for bandwidth. */}
                 {offers.map((listing, i) =>
                   i === 0 ? (
-                    <PublicOfferCard
-                      key={listing.id}
-                      priority
-                      listing={listing}
-                      catalogue={catalogue}
-                    />
+                    <PublicOfferCard key={listing.id} listing={listing} catalogue={catalogue} />
                   ) : (
                     <Reveal key={listing.id} delay={(i % 3) * 70}>
                       <PublicOfferCard listing={listing} catalogue={catalogue} />
