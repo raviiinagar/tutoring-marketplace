@@ -342,6 +342,8 @@ export function TutorListingsManager() {
     void run(async () => {
       setError(undefined);
       setNotice(undefined);
+      // "Save changes" on an earlier step still checks and saves that step first.
+      if (step < REVIEW && !(await leaveStep())) return;
       if (!directMode || !approvalsReady || !ready) {
         setError("Refresh your ads before saving. Direct publication must be available.");
         return;
@@ -537,7 +539,9 @@ export function TutorListingsManager() {
     return true;
   };
   const editorSubmit = (event: FormEvent) => {
-    if (step < REVIEW) {
+    const saveNow =
+      (event.nativeEvent as SubmitEvent).submitter?.getAttribute("data-save-now") === "true";
+    if (step < REVIEW && !saveNow) {
       event.preventDefault();
       void run(async () => {
         setError(undefined);
@@ -958,6 +962,17 @@ export function TutorListingsManager() {
                     onClick={() => setStep((value) => value - 1)}
                   >
                     Back
+                  </Button>
+                )}
+                {editing && step < REVIEW && (
+                  <Button
+                    type="submit"
+                    name="intent"
+                    value={editing.status === "PUBLISHED" ? "publish" : "draft"}
+                    data-save-now="true"
+                    variant="outline"
+                  >
+                    Save changes
                   </Button>
                 )}
                 {step < REVIEW ? (
