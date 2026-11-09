@@ -59,7 +59,10 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
         // subject cards), so count only the six fictional offers in their section.
         const offers = page
           .getByRole("region", {
-            name: path === "/" ? "Meet your next teacher" : "Available teaching offers",
+            name:
+              path === "/"
+                ? "Meet your next teacher"
+                : "Available teaching offers",
           })
           .getByRole("article");
         await expect(offers).toHaveCount(6);
