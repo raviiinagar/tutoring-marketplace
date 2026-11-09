@@ -55,14 +55,13 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
         });
         await page.goto(path, { waitUntil: "networkidle" });
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        // The homepage also shows steps, a Tutor directory and subject cards, so
-        // count only the six fictional offers in "Meet your next teacher".
-        const offers =
-          path === "/"
-            ? page
-                .getByRole("region", { name: "Meet your next teacher" })
-                .getByRole("article")
-            : page.getByRole("article");
+        // Both pages also show the Tutor directory (and the homepage steps and
+        // subject cards), so count only the six fictional offers in their section.
+        const offers = page
+          .getByRole("region", {
+            name: path === "/" ? "Meet your next teacher" : "Available teaching offers",
+          })
+          .getByRole("article");
         await expect(offers).toHaveCount(6);
         if (path === "/") {
           const portrait = offers.first().getByRole("img").first();
