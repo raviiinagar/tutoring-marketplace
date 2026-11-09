@@ -125,7 +125,9 @@ export function PublicTutorDirectory({
     [subject, setSubject] = useState(""),
     [cursor, setCursor] = useState<string | null>(initial?.next_cursor ?? null),
     [error, setError] = useState<string>();
-  const useInitial = useRef(!!initial);
+  // The page these props were loaded for. Matching by filters (not a one-shot flag)
+  // keeps StrictMode's second effect run from refetching what the route supplied.
+  const suppliedFor = useRef(initial ? JSON.stringify(["", filterKey]) : undefined);
   useEffect(() => {
     if (initialCatalogue) {
       setCatalogue(initialCatalogue);
@@ -151,11 +153,9 @@ export function PublicTutorDirectory({
     } else setError(describeFailure(r.error));
   };
   useEffect(() => {
-    // The route already supplied the unfiltered first page; skip only that first load.
-    if (useInitial.current) {
-      useInitial.current = false;
-      return;
-    }
+    // The route already supplied this first page; any later change loads normally.
+    if (JSON.stringify([subject, filterKey]) === suppliedFor.current) return;
+    suppliedFor.current = undefined;
     setProfiles(undefined);
     void load();
     return () => {
