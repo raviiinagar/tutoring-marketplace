@@ -21,6 +21,14 @@ export type SupportPolicy={hours:string;timezone:string;open_now:boolean;next_op
 export type SupportEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;message?:string;reason?:string;actor_id?:string;source_result?:{refund_case_id?:string;cycle_id?:string;outcome?:string}};
 export type SupportCase={id:string;category:string;required_scope:StaffScope;status:string;revision:number;assigned:boolean;assigned_to?:string|null;source_id:string|null;related_id:string|null;source_revision:number|null;created_at:string;updated_at:string;subject?:string;description?:string;events?:SupportEvent[]};
 export type SupportOperation='CLAIM'|'RELEASE'|'NOTE'|'REPLY'|'RESOLVE'|'UPHOLD'|'SUPERSEDED'|'REOPEN_REVIEW'|'LIFT_ACCOUNT'|'LIFT_LISTING'|'LIFT_CONNECTION'|'RECONSIDER_REFUND';
+export type FeedbackCategory='BUG'|'SUGGESTION'|'FEATURE_REQUEST'|'UI_UX';
+export type FeedbackStatus='NEW'|'REVIEWING'|'IN_PROGRESS'|'RESOLVED';
+export type FeedbackPriority='LOW'|'MEDIUM'|'HIGH'|'CRITICAL';
+export type FeedbackPolicy={enabled:boolean;screenshots_enabled:boolean;categories:FeedbackCategory[];public_categories:FeedbackCategory[];statuses:FeedbackStatus[];max_screenshot_bytes:number;notice:string};
+export type FeedbackEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;status?:FeedbackStatus;message?:string;reason?:string;priority?:FeedbackPriority;actor_id?:string};
+export type FeedbackItem={id:string;category:FeedbackCategory;title:string;status:FeedbackStatus;public:boolean;hidden:boolean;vote_count:number;has_screenshot:boolean;revision:number;created_at:string;updated_at:string;description?:string;priority?:FeedbackPriority|null;owner_id?:string;screenshot_status?:string;events?:FeedbackEvent[]};
+export type FeedbackSuggestion={id:string;category:'SUGGESTION'|'FEATURE_REQUEST';title:string;description:string;status:FeedbackStatus;vote_count:number;voted:boolean;own:boolean;created_at:string};
+export type FeedbackOperation='SET_STATUS'|'SET_PRIORITY'|'REPLY'|'NOTE'|'HIDE'|'UNHIDE';
 export type StaffScope='SUPPORT'|'TRUST'|'FINANCE';
 export type StaffAccess={role?:'SUPER_ADMIN'|'ADMIN'|'OPERATOR';scopes:StaffScope[];mfa_enrolled:boolean;mfa_required?:boolean;testing_mfa_bypass_until?:string|null;authenticated:boolean;expires_at:string|null};
 export type AdminMember={id:string;display_name:string;email:string;status:string;enabled:boolean;role:'SUPER_ADMIN'|'ADMIN'|'OPERATOR';scopes:StaffScope[];updated_at:string};
@@ -358,6 +366,17 @@ export const api = {
   supportQueue:(scope:StaffScope,reason:string)=>request<{cases:SupportCase[]}>('GET','/v1/staff/support-cases?scope='+scope+'&reason='+encodeURIComponent(reason)),
   inspectSupportCase:(id:string,reason:string)=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/inspections',{reason}),
   actSupportCase:(id:string,input:{revision:number;operation:SupportOperation;reason:string;message?:string})=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/actions',input),
+  feedbackPolicy:()=>request<FeedbackPolicy>('GET','/v1/feedback-policy'),
+  myFeedback:()=>request<{feedback:FeedbackItem[];policy:FeedbackPolicy}>('GET','/v1/me/feedback'),
+  feedbackItem:(id:string)=>request<{feedback:FeedbackItem}>('GET','/v1/me/feedback/'+encodeURIComponent(id)),
+  feedbackScreenshot:(id:string)=>request<Blob>('GET','/v1/me/feedback/'+encodeURIComponent(id)+'/screenshot',undefined,true),
+  createFeedback:(input:{request_key:string;category:FeedbackCategory;title:string;description:string;screenshot?:{media_type:'image/jpeg'|'image/png';data:string}})=>request<{feedback:FeedbackItem;replayed:boolean}>('POST','/v1/me/feedback',input),
+  feedbackBoard:(sort:'top'|'new')=>request<{suggestions:FeedbackSuggestion[]}>('GET','/v1/feedback/board?sort='+sort),
+  voteFeedback:(id:string,voted:boolean)=>request<{vote_count:number;voted:boolean}>(voted?'POST':'DELETE','/v1/feedback/board/'+encodeURIComponent(id)+'/votes'),
+  feedbackQueue:(reason:string,filters:{status?:FeedbackStatus;category?:FeedbackCategory;priority?:FeedbackPriority}={})=>request<{feedback:FeedbackItem[]}>('GET','/v1/staff/feedback?'+new URLSearchParams({reason,...Object.fromEntries(Object.entries(filters).filter(([,v])=>v))}).toString()),
+  inspectFeedback:(id:string,reason:string)=>request<{feedback:FeedbackItem}>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/inspections',{reason}),
+  inspectFeedbackScreenshot:(id:string,reason:string)=>request<Blob>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/screenshot-inspections',{reason},true),
+  actFeedback:(id:string,input:{revision:number;operation:FeedbackOperation;reason:string;status?:FeedbackStatus;priority?:FeedbackPriority;message?:string})=>request<{feedback:FeedbackItem}>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/actions',input),
   ownReviews:()=>request<{reviews:ReviewRow[]}>('GET','/v1/me/reviews'),
   withdrawReview:(id:string,revision:number)=>request<{review:ReviewRow}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/withdrawals',{revision}),
   appealReview:(id:string,input:{request_key:string;revision:number;description:string})=>request<{appeal:{id:string;status:string}}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/appeals',input),

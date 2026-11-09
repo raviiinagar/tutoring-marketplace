@@ -331,6 +331,13 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   ).expect(201);
   await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$2',[stranger.id,owner.id]);
   await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$1',[owner.id]);
+  const ownSuggestion=(await post('/v1/me/feedback',{request_key:randomUUID(),category:'SUGGESTION',title:'Fictional owner suggestion',description:'Please add a fictional calendar export.'},owner.cookie).expect(201)).body.feedback.id;
+  const strangerSuggestion=(await post('/v1/me/feedback',{request_key:randomUUID(),category:'FEATURE_REQUEST',title:'Fictional stranger request',description:'Please add a fictional dark theme.'},stranger.cookie).expect(201)).body.feedback.id;
+  await post('/v1/feedback/board/'+strangerSuggestion+'/votes',{},owner.cookie).expect(200);
+  await post('/v1/feedback/board/'+ownSuggestion+'/votes',{},stranger.cookie).expect(200);
+  const exported=await database.transaction(async client=>{const {personalExport}=await import('../src/privacy-inventory.js');return personalExport(client,(await client.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock);});
+  assert.deepEqual(exported.feedback.map((f:any)=>[f.id,f.title]),[[ownSuggestion,'Fictional owner suggestion']]);
+  assert.deepEqual(exported.feedback_votes.map((v:any)=>v.item_id),[strangerSuggestion]);
   const identity = await post(
     "/v1/me/privacy/verifications",
     { password, purpose: "DELETE" },
@@ -357,6 +364,12 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   assert.equal(state.authenticated, false);
   assert.equal(result.status, "COMPLETED");
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM tutor_presence WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM feedback_votes WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT vote_count FROM feedback_items WHERE id=$1',[strangerSuggestion])).rows[0].vote_count,0);
+  const erasedFeedback=(await database.pool.query('SELECT hidden,encrypted_body FROM feedback_items WHERE id=$1',[ownSuggestion])).rows[0];
+  assert.equal(erasedFeedback.hidden,true);
+  assert.equal(decrypt<{description:string}>(erasedFeedback.encrypted_body,config.authSecret).description,'[erased]');
+  assert.ok(!(await get('/v1/feedback/board',stranger.cookie).expect(200)).body.suggestions.some((f:any)=>f.id===ownSuggestion));
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM saved_tutors WHERE owner_id=$1 OR profile_id IN (SELECT public_id FROM tutor_profiles WHERE user_id=$1)',[owner.id])).rows[0].count,0);
   assert.ok(result.result.retained.some((r: any) => r.class === "EVIDENCE"));
   assert.ok(!JSON.stringify(state).includes(owner.email));

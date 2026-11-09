@@ -171,6 +171,9 @@ export function LearnerDashboard() {
               <Link to="/support" className="reference-subtle-link">
                 Help
               </Link>
+              <Link to="/feedback" className="reference-subtle-link">
+                Send feedback
+              </Link>
             </div>
           </section>
         </div>

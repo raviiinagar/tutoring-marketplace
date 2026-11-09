@@ -27,6 +27,7 @@ export async function personalExport(
   const draftTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_drafts') AS present")).rows[0].present;
   const recommendationsTable=(await client.query("SELECT to_regclass('public.tutor_recommendations') AS present")).rows[0].present;
   const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
+  const feedbackTable=(await client.query("SELECT to_regclass('public.feedback_items') AS present")).rows[0].present;
   const profile = (
     await rows(
       "SELECT * FROM tutor_profiles WHERE user_id=$1",
@@ -192,6 +193,13 @@ export async function personalExport(
       return { ...m, ...read(encrypted_description) };
     }),
     support_cases: support,
+    feedback: feedbackTable ? await Promise.all((await rows("SELECT id,category,status,public,hidden,vote_count,screenshot_status,encrypted_body,encrypted_screenshot,created_at FROM feedback_items WHERE owner_id=$1 ORDER BY created_at,id")).map(async ({encrypted_body,encrypted_screenshot,...item}) => ({
+      ...item,
+      ...read(encrypted_body),
+      ...(encrypted_screenshot ? { screenshot_base64: read(encrypted_screenshot)?.data, screenshot_media_type: "image/jpeg" } : {}),
+      events: (await rows("SELECT outcome,encrypted_payload,created_at FROM feedback_events WHERE item_id=$1 AND visibility='USER' ORDER BY sequence", [item.id])).map((e) => ({ outcome: e.outcome, status: read(e.encrypted_payload)?.status, message: read(e.encrypted_payload)?.message, created_at: e.created_at })),
+    }))) : [],
+    feedback_votes: feedbackTable ? await rows("SELECT item_id,created_at FROM feedback_votes WHERE user_id=$1 ORDER BY created_at,item_id") : [],
     saved_tutors:savedTable?await rows("SELECT profile_id,created_at FROM saved_tutors WHERE owner_id=$1 ORDER BY created_at DESC,profile_id"):[],
     tutor_presence:presenceTable?await rows("SELECT location,teaching_modes,accepting_students,weekly_slots,timezone,revision,updated_at FROM tutor_presence WHERE user_id=$1"):[],
     tutor_pro_grants:proTable?await rows("SELECT id,source,cycle_id,coupon_redemption_id,status,test_only,starts_at,ends_at,created_at FROM tutor_pro_grants WHERE payer_id=$1"):[],
