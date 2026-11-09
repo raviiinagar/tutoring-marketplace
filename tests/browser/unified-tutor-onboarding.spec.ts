@@ -34,11 +34,24 @@ for (const width of [1440, 390]) {
     expect((await (await page.request.get('/v1/me/tutor')).json()).profile.publication_status).toBe('DRAFT');
     await page.goto('/tutor/listings');
     await page.getByRole('button', { name: 'Create an ad', exact: true }).click();
-    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    // Superprof-order wizard; each Continue waits for the next step's question.
+    const step = async (heading: string) => {
+      await page.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+    };
+    await step('Title of your ad');
     await page.getByLabel('Ad title', { exact: true }).fill('Patient Physics lessons with clear explanations and guided practice for curious school learners');
+    await step('About the class');
+    // No minimum length for the class description.
     await page.getByLabel('About the class', { exact: true }).fill('Practical Physics examples.');
-    await page.getByRole('button', { name: 'Continue', exact: true }).click();
-    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await step('About you');
+    await step('Location of the class');
+    await page.getByLabel('Your city', { exact: true }).fill('Kota');
+    await step('Languages you teach in');
+    await step('Hourly fee');
+    await step('Adjust your fees');
+    await step('Profile picture');
+    await step('Check your ad before publishing');
     await expect(page.getByRole('button', { name: 'Publish my ad', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Save as draft', exact: true }).click();
     const publication = page.getByRole('complementary', { name: 'Ad publication', exact: true });

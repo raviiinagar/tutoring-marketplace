@@ -9,6 +9,7 @@ import {
   type TeachingListing,
   type TutorProfile,
   type TutorPhoto,
+  type TutorPresence,
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { accountSessionKey } from "@/lib/session";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 import { TutorAdManager } from "@/components/tutor-ad-manager";
 import { hasPublicationPhoto } from "@/lib/tutor-workspace";
+import { TutorPhotoEditor } from "@/components/tutor-photo-editor";
+import { introductionFromProfile } from "@/components/tutor-introduction-wizard";
 export const Route = createFileRoute("/tutor_/listings")({
   ssr: false,
   component: TutorListingsPage,
@@ -39,8 +42,50 @@ const initial: TeachingOffer = {
   teaching_mode: "ONLINE",
   rate_paise: 50000,
   rate_unit: "HOUR",
-  trial_kind: "NONE",
+  // Like Superprof, a new ad starts with a free first class of one hour; the
+  // Tutor can switch it off on the "Adjust your fees" step.
+  trial_kind: "FREE",
+  trial_minutes: 60,
 };
+// The ad wizard follows Superprof's order. Superprof's phone step is not here
+// yet (we do not send SMS); publishing stays an explicit choice on Review.
+const adSteps = [
+  "Subjects",
+  "Title of your ad",
+  "About the class",
+  "About you",
+  "Location of the class",
+  "Languages",
+  "Hourly fee",
+  "Adjust your fees",
+  "Profile picture",
+  "Review & publish",
+] as const;
+const REVIEW = adSteps.length - 1;
+const stepQuestions = [
+  "Which subject do you teach?",
+  "Title of your ad",
+  "About the class",
+  "About you",
+  "Location of the class",
+  "Languages you teach in",
+  "Hourly fee",
+  "Adjust your fees",
+  "Profile picture",
+  "Check your ad before publishing",
+] as const;
+const goodToKnow: Record<number, string> = {
+  0: "Choose the subject, level and curriculum learners search for. Create another ad for each further subject.",
+  1: "A clear title helps learners find you. Use at least 12 words: your subject, how you teach and who you teach.",
+  2: "Describe your methods, how a class runs and who it suits. Around 40 words or more works well. Keep contact details and links out of your text.",
+  3: "Tell learners about your experience and what makes your teaching work. This text is shared by all your ads. Keep contact details and links out of it.",
+  4: "Only your city and area appear publicly, never a house address.",
+  5: "Choose up to three languages you teach in.",
+  6: "You are free to choose your fee and to change it at any time. Tuition is paid directly to you.",
+  7: "A free first class helps learners decide. You can switch it off.",
+  8: "Your photo is shared by all your ads. You need one to publish; you can still save a draft without it.",
+};
+const wordCount = (text: string) => (text.trim() ? text.trim().split(/\s+/).length : 0);
 function approvedDraft(catalogue: Catalogue | undefined, subjects: string[]): TeachingOffer {
   const subject =
     catalogue?.terms.find(
@@ -185,6 +230,9 @@ export function TutorListingsManager() {
   const [directMode, setDirectMode] = useState(false);
   const [profile, setProfile] = useState<TutorProfile>();
   const [photo, setPhoto] = useState<TutorPhoto | null>(null);
+  const [presence, setPresence] = useState<TutorPresence>();
+  const [biography, setBiography] = useState("");
+  const [place, setPlace] = useState({ city: "", area: "" });
   // A photo is needed to put an ad online, never to keep a private draft.
   // This mirrors requirePublicationPhoto on the server, which stays authoritative.
   const canPublishPhoto = hasPublicationPhoto(photo);
@@ -233,11 +281,23 @@ export function TutorListingsManager() {
     alive.current = true;
     void load();
     void loadCatalogue();
-    void Promise.all([api.tutor(), api.tutorPhoto()]).then(([p, image]) => {
-      if (!alive.current) return;
-      if (p.ok) setProfile(p.data.profile ?? undefined);
-      if (image.ok) setPhoto(image.data.photo);
-    });
+    void Promise.all([api.tutor(), api.tutorPhoto(), api.tutorPresence()]).then(
+      ([p, image, where]) => {
+        if (!alive.current) return;
+        if (p.ok) {
+          setProfile(p.data.profile ?? undefined);
+          setBiography(p.data.profile?.biography ?? "");
+        }
+        if (image.ok) setPhoto(image.data.photo);
+        if (where.ok) {
+          setPresence(where.data.presence);
+          setPlace({
+            city: where.data.presence.location?.city ?? "",
+            area: where.data.presence.location?.area ?? "",
+          });
+        }
+      },
+    );
     return () => {
       alive.current = false;
       loadVersion.current++;
@@ -282,6 +342,8 @@ export function TutorListingsManager() {
     void run(async () => {
       setError(undefined);
       setNotice(undefined);
+      // "Save changes" on an earlier step still checks and saves that step first.
+      if (step < REVIEW && !(await leaveStep())) return;
       if (!directMode || !approvalsReady || !ready) {
         setError("Refresh your ads before saving. Direct publication must be available.");
         return;
@@ -403,23 +465,88 @@ export function TutorListingsManager() {
     setError(undefined);
     setNotice(undefined);
   };
+  // Saves what a step owns outside the ad (biography, public place) and checks
+  // the step, then moves on. Returns false to stay on the step.
+  const leaveStep = async (): Promise<boolean> => {
+    if (step === 1 && wordCount(offer.title) < 12) {
+      setError("Write at least 12 words in your ad title.");
+      return false;
+    }
+    if (step === 2 && !offer.description.trim()) {
+      setError("Write something about your class.");
+      return false;
+    }
+    if (step === 3 && profile && biography.trim() !== profile.biography.trim()) {
+      const r = await api.saveTutorIntroduction({
+        ...introductionFromProfile(profile),
+        biography: biography.trim(),
+      });
+      if (!alive.current) return false;
+      if (!r.ok) {
+        setError(describeFailure(r.error));
+        expired(r.error);
+        return false;
+      }
+      if (r.data.profile) setProfile(r.data.profile);
+    }
+    if (step === 4) {
+      if (!place.city.trim()) {
+        setError("Add the city where you teach. Only your city and area appear publicly.");
+        return false;
+      }
+      if (!presence) {
+        setError("Your teaching location could not be loaded. Refresh the page and try again.");
+        return false;
+      }
+      const modes = presence.teaching_modes.includes(offer.teaching_mode)
+        ? presence.teaching_modes
+        : [...presence.teaching_modes, offer.teaching_mode];
+      const changed =
+        modes.length !== presence.teaching_modes.length ||
+        place.city.trim() !== (presence.location?.city ?? "") ||
+        place.area.trim() !== (presence.location?.area ?? "");
+      if (changed) {
+        const r = await api.saveTutorPresence({
+          expected_revision: presence.revision,
+          location: {
+            city: place.city.trim(),
+            country: presence.location?.country || "India",
+            ...(place.area.trim() ? { area: place.area.trim() } : {}),
+            ...(presence.location?.state ? { state: presence.location.state } : {}),
+          },
+          teaching_modes: modes,
+          accepting_students: presence.accepting_students ?? true,
+          weekly_slots: presence.weekly_slots,
+          timezone: presence.timezone,
+        });
+        if (!alive.current) return false;
+        if (!r.ok) {
+          setError(describeFailure(r.error));
+          expired(r.error);
+          return false;
+        }
+        setPresence(r.data.presence);
+      }
+    }
+    if (step === 5 && (offer.language_ids.length < 1 || offer.language_ids.length > 3)) {
+      setError("Choose between one and three teaching languages.");
+      return false;
+    }
+    if (step === 8) {
+      const image = await api.tutorPhoto();
+      if (alive.current && image.ok) setPhoto(image.data.photo);
+    }
+    return true;
+  };
   const editorSubmit = (event: FormEvent) => {
-    if (step < 3) {
+    const saveNow =
+      (event.nativeEvent as SubmitEvent).submitter?.getAttribute("data-save-now") === "true";
+    if (step < REVIEW && !saveNow) {
       event.preventDefault();
-      if (step === 0 && (offer.language_ids.length < 1 || offer.language_ids.length > 3)) {
-        setError("Choose between one and three teaching languages.");
-        return;
-      }
-      // The description carries no word minimum; any non-empty text is valid.
-      if (
-        step === 1 &&
-        (offer.title.trim().split(/\s+/).length < 12 || !offer.description.trim())
-      ) {
-        setError("Write an ad title of at least 12 words and a description of your class.");
-        return;
-      }
-      setError(undefined);
-      setStep((value) => value + 1);
+      void run(async () => {
+        setError(undefined);
+        if (await leaveStep()) setStep((value) => value + 1);
+      });
     } else save(event);
   };
   return (
@@ -487,243 +614,346 @@ export function TutorListingsManager() {
           <h2 ref={editorHeading} tabIndex={-1} className="text-xl font-semibold outline-none">
             {editing ? "Edit teaching offer" : "Create teaching offer"}
           </h2>
-          <ol aria-label="Offer editing progress" className="my-5 flex flex-wrap gap-3 text-sm">
-            {["Subject & format", "About the class", "Rates & trial", "Review & save"].map(
-              (label, index) => (
-                <li
-                  key={label}
-                  aria-current={step === index ? "step" : undefined}
-                  className={
-                    step === index ? "font-semibold text-primary" : "text-muted-foreground"
-                  }
-                >
-                  {index + 1}. {label}
-                </li>
-              ),
-            )}
+          <ol aria-label="Offer editing progress" className="sr-only">
+            {adSteps.map((label, index) => (
+              <li key={label} aria-current={step === index ? "step" : undefined}>
+                {index + 1}. {label}
+              </li>
+            ))}
           </ol>
-          <form onSubmit={editorSubmit} className="space-y-5">
+          <p className="mt-4 text-sm text-muted-foreground" aria-hidden="true">
+            Step {step + 1} of {adSteps.length}
+          </p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${((step + 1) / adSteps.length) * 100}%` }}
+            />
+          </div>
+          <form onSubmit={editorSubmit} className="mt-5 space-y-5">
             <fieldset
               disabled={loading || !directMode || !approvalsReady || !ready}
               className="space-y-5"
             >
-              {step === 0 && (
-                <div className="space-y-5">
-                  {" "}
-                  <label className="block">
-                    Learning Domain
-                    <select
-                      aria-label="Learning Domain"
-                      className="input mt-2"
-                      value={offer.domain_id}
-                      onChange={(e) =>
-                        setOffer((v) => ({
-                          ...v,
-                          domain_id: e.target.value,
-                          subject_id: "",
-                          level_id: "",
-                          curriculum_id: undefined,
-                          exam_id: undefined,
-                        }))
-                      }
-                    >
-                      {catalogue?.domains.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="block text-sm font-medium">
-                    Class mode
-                    <select
-                      className="input mt-2"
-                      value={offer.teaching_mode}
-                      onChange={(e) =>
-                        change("teaching_mode", e.target.value as TeachingOffer["teaching_mode"])
-                      }
-                    >
-                      <option value="ONLINE">Online</option>
-                      <option value="IN_PERSON">In person</option>
-                    </select>
-                  </label>
-                  {select("Subject", "SUBJECT", "subject_id")}
-                  {select("Learner Level", "LEVEL", "level_id")}
-                  {select(
-                    "Curriculum",
-                    "CURRICULUM",
-                    "curriculum_id",
-                    offer.domain_id !== "school",
+              <div className="ad-wizard-step">
+                {step < REVIEW && (
+                  <aside className="ad-wizard-tip" aria-label="Good to know">
+                    <p className="font-semibold">Good to know</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{goodToKnow[step]}</p>
+                  </aside>
+                )}
+                <div className="min-w-0 flex-1 space-y-5">
+                  <h3 className="text-lg font-semibold">{stepQuestions[step]}</h3>
+                  {step === 0 && (
+                    <div className="space-y-5">
+                      <label className="block">
+                        Learning Domain
+                        <select
+                          aria-label="Learning Domain"
+                          className="input mt-2"
+                          value={offer.domain_id}
+                          onChange={(e) =>
+                            setOffer((v) => ({
+                              ...v,
+                              domain_id: e.target.value,
+                              subject_id: "",
+                              level_id: "",
+                              curriculum_id: undefined,
+                              exam_id: undefined,
+                            }))
+                          }
+                        >
+                          {catalogue?.domains.map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {select("Subject", "SUBJECT", "subject_id")}
+                      {select("Learner Level", "LEVEL", "level_id")}
+                      {select(
+                        "Curriculum",
+                        "CURRICULUM",
+                        "curriculum_id",
+                        offer.domain_id !== "school",
+                      )}
+                      {select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
+                    </div>
                   )}
-                  {select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
-                  <fieldset className="space-y-2">
-                    <legend className="font-medium">Teaching languages (choose 1–3)</legend>
-                    {terms("LANGUAGE").map((t) => (
-                      <label key={t.id} className="flex items-center gap-2">
+                  {step === 1 && (
+                    <Field
+                      label="Ad title"
+                      hint={`${wordCount(offer.title)}/12 words. Describe your subject, how you teach and the learner level.`}
+                      required
+                      value={offer.title}
+                      maxLength={160}
+                      onChange={(e) => change("title", e.target.value)}
+                    />
+                  )}
+                  {step === 2 && (
+                    <label className="block">
+                      About the class
+                      <textarea
+                        aria-label="About the class"
+                        className="input mt-2 min-h-40"
+                        value={offer.description}
+                        maxLength={1500}
+                        aria-describedby="offer-description-hint"
+                        onChange={(e) => change("description", e.target.value)}
+                        required
+                      />
+                      <span
+                        id="offer-description-hint"
+                        className="mt-2 block text-sm text-muted-foreground"
+                      >
+                        {wordCount(offer.description)} words · around 40 or more is a good length.
+                        Methods, how a class runs and who it suits.
+                      </span>
+                    </label>
+                  )}
+                  {step === 3 &&
+                    (profile ? (
+                      <label className="block">
+                        About you
+                        <textarea
+                          aria-label="About you"
+                          className="input mt-2 min-h-40"
+                          value={biography}
+                          maxLength={1000}
+                          aria-describedby="offer-about-you-hint"
+                          onChange={(e) => setBiography(e.target.value)}
+                        />
+                        <span
+                          id="offer-about-you-hint"
+                          className="mt-2 block text-sm text-muted-foreground"
+                        >
+                          {wordCount(biography)} words · around 40 or more is a good length. This is
+                          shared by all your ads.
+                        </span>
+                      </label>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Your introduction could not be loaded. You can continue and edit it later
+                        from your Tutor profile.
+                      </p>
+                    ))}
+                  {step === 4 && (
+                    <div className="space-y-5">
+                      <fieldset className="grid gap-3 sm:grid-cols-2">
+                        <legend className="mb-2 font-medium">
+                          Where do your classes take place?
+                        </legend>
+                        {(
+                          [
+                            ["ONLINE", "Online", "Classes by video call"],
+                            ["IN_PERSON", "In person", "At your place or the learner's"],
+                          ] as const
+                        ).map(([mode, label, help]) => (
+                          <label
+                            key={mode}
+                            className={`ad-wizard-choice${offer.teaching_mode === mode ? " ad-wizard-choice-on" : ""}`}
+                          >
+                            <input
+                              type="radio"
+                              name="teaching_mode"
+                              value={mode}
+                              checked={offer.teaching_mode === mode}
+                              onChange={() => change("teaching_mode", mode)}
+                            />
+                            <span>
+                              <span className="block font-semibold">{label}</span>
+                              <span className="block text-sm text-muted-foreground">{help}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </fieldset>
+                      <Field
+                        label="Your city"
+                        required
+                        value={place.city}
+                        maxLength={80}
+                        hint="Mention your city. Your address never appears on the site."
+                        onChange={(e) => setPlace((v) => ({ ...v, city: e.target.value }))}
+                      />
+                      <Field
+                        label="Area / locality (optional)"
+                        value={place.area}
+                        maxLength={80}
+                        onChange={(e) => setPlace((v) => ({ ...v, area: e.target.value }))}
+                      />
+                    </div>
+                  )}
+                  {step === 5 && (
+                    <fieldset className="space-y-2">
+                      <legend className="font-medium">Teaching languages (choose 1–3)</legend>
+                      {terms("LANGUAGE").map((t) => (
+                        <label key={t.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={offer.language_ids.includes(t.id)}
+                            onChange={(e) =>
+                              change(
+                                "language_ids",
+                                e.target.checked
+                                  ? [...offer.language_ids, t.id]
+                                  : offer.language_ids.filter((id) => id !== t.id),
+                              )
+                            }
+                          />
+                          {t.label}
+                        </label>
+                      ))}
+                    </fieldset>
+                  )}
+                  {step === 6 && (
+                    <div className="space-y-5">
+                      <Field
+                        label="Tuition rate (INR)"
+                        type="number"
+                        min={1}
+                        max={100000}
+                        step="0.01"
+                        value={offer.rate_paise / 100}
+                        onChange={(e) =>
+                          change("rate_paise", Math.round(Number(e.target.value) * 100))
+                        }
+                      />
+                      <label className="block">
+                        Rate unit
+                        <select
+                          aria-label="Rate unit"
+                          className="input mt-2"
+                          value={offer.rate_unit}
+                          onChange={(e) =>
+                            setOffer((v) => ({
+                              ...v,
+                              rate_unit: e.target.value as "HOUR" | "LESSON",
+                              lesson_minutes: e.target.value === "LESSON" ? 60 : undefined,
+                            }))
+                          }
+                        >
+                          <option value="HOUR">Per hour</option>
+                          <option value="LESSON">Per lesson</option>
+                        </select>
+                      </label>
+                      {offer.rate_unit === "LESSON" && (
+                        <Field
+                          label="Lesson duration (minutes)"
+                          type="number"
+                          min={30}
+                          max={180}
+                          value={offer.lesson_minutes || 60}
+                          onChange={(e) => change("lesson_minutes", Number(e.target.value))}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {step === 7 && (
+                    <div className="space-y-5">
+                      <label className="ad-wizard-choice">
                         <input
                           type="checkbox"
-                          checked={offer.language_ids.includes(t.id)}
+                          checked={offer.trial_kind === "FREE"}
                           onChange={(e) =>
-                            change(
-                              "language_ids",
-                              e.target.checked
-                                ? [...offer.language_ids, t.id]
-                                : offer.language_ids.filter((id) => id !== t.id),
-                            )
+                            setOffer((v) => ({
+                              ...v,
+                              trial_kind: e.target.checked ? "FREE" : "NONE",
+                              trial_minutes: e.target.checked ? 60 : undefined,
+                              trial_price_paise: undefined,
+                            }))
                           }
                         />
-                        {t.label}
+                        <span>
+                          <span className="block font-semibold">
+                            Offer your first class for free
+                          </span>
+                          <span className="block text-sm text-muted-foreground">
+                            One free class so a learner can try your teaching.
+                          </span>
+                        </span>
                       </label>
-                    ))}
-                  </fieldset>
-                </div>
-              )}
-              {step === 1 && (
-                <div className="space-y-5">
-                  {" "}
-                  <Field
-                    label="Ad title"
-                    hint={`${offer.title.trim() ? offer.title.trim().split(/\s+/).length : 0}/12 words minimum. Describe your subject, approach and learner level.`}
-                    required
-                    minLength={10}
-                    value={offer.title}
-                    maxLength={160}
-                    onChange={(e) => change("title", e.target.value)}
-                  />
-                  <label className="block">
-                    About the class
-                    <textarea
-                      aria-label="About the class"
-                      className="input mt-2 min-h-28"
-                      value={offer.description}
-                      maxLength={1500}
-                      aria-describedby="offer-description-hint"
-                      onChange={(e) => change("description", e.target.value)}
-                      required
-                    />
-                    <span
-                      id="offer-description-hint"
-                      className="mt-2 block text-sm text-muted-foreground"
-                    >
-                      {offer.description.length}/1,500 characters. Explain what learners will learn
-                      and how you teach. There is no minimum length.
-                    </span>
-                  </label>
-                </div>
-              )}
-              {step === 2 && (
-                <div className="space-y-5">
-                  {" "}
-                  <Field
-                    label="Tuition rate (INR)"
-                    type="number"
-                    min={1}
-                    max={100000}
-                    step="0.01"
-                    value={offer.rate_paise / 100}
-                    onChange={(e) => change("rate_paise", Math.round(Number(e.target.value) * 100))}
-                  />
-                  <label className="block">
-                    Rate unit
-                    <select
-                      aria-label="Rate unit"
-                      className="input mt-2"
-                      value={offer.rate_unit}
-                      onChange={(e) =>
-                        setOffer((v) => ({
-                          ...v,
-                          rate_unit: e.target.value as "HOUR" | "LESSON",
-                          lesson_minutes: e.target.value === "LESSON" ? 60 : undefined,
-                        }))
-                      }
-                    >
-                      <option value="HOUR">Per hour</option>
-                      <option value="LESSON">Per lesson</option>
-                    </select>
-                  </label>
-                  {offer.rate_unit === "LESSON" && (
-                    <Field
-                      label="Lesson duration (minutes)"
-                      type="number"
-                      min={30}
-                      max={180}
-                      value={offer.lesson_minutes || 60}
-                      onChange={(e) => change("lesson_minutes", Number(e.target.value))}
-                    />
+                      {offer.trial_kind === "FREE" && (
+                        <Field
+                          label="Free class duration (minutes)"
+                          type="number"
+                          min={15}
+                          max={90}
+                          value={offer.trial_minutes || 60}
+                          onChange={(e) => change("trial_minutes", Number(e.target.value))}
+                        />
+                      )}
+                      {offer.trial_kind !== "FREE" && (
+                        <label className="ad-wizard-choice">
+                          <input
+                            type="checkbox"
+                            checked={offer.trial_kind === "PAID"}
+                            onChange={(e) =>
+                              setOffer((v) => ({
+                                ...v,
+                                trial_kind: e.target.checked ? "PAID" : "NONE",
+                                trial_minutes: e.target.checked ? 30 : undefined,
+                                trial_price_paise: e.target.checked ? 10000 : undefined,
+                              }))
+                            }
+                          />
+                          <span>
+                            <span className="block font-semibold">Offer a paid trial class</span>
+                            <span className="block text-sm text-muted-foreground">
+                              A shorter first class at a price you choose.
+                            </span>
+                          </span>
+                        </label>
+                      )}
+                      {offer.trial_kind === "PAID" && (
+                        <>
+                          <Field
+                            label="Trial duration (minutes)"
+                            type="number"
+                            min={15}
+                            max={90}
+                            value={offer.trial_minutes || 30}
+                            onChange={(e) => change("trial_minutes", Number(e.target.value))}
+                          />
+                          <Field
+                            label="Trial price (INR)"
+                            type="number"
+                            min={1}
+                            max={100000}
+                            step="0.01"
+                            value={(offer.trial_price_paise || 100) / 100}
+                            onChange={(e) =>
+                              change("trial_price_paise", Math.round(Number(e.target.value) * 100))
+                            }
+                          />
+                        </>
+                      )}
+                    </div>
                   )}
-                  <label className="block">
-                    Trial type
-                    <select
-                      aria-label="Trial type"
-                      className="input mt-2"
-                      value={offer.trial_kind}
-                      onChange={(e) =>
-                        setOffer((v) => ({
-                          ...v,
-                          trial_kind: e.target.value as TeachingOffer["trial_kind"],
-                          trial_minutes: e.target.value === "NONE" ? undefined : 30,
-                          trial_price_paise: e.target.value === "PAID" ? 10000 : undefined,
-                        }))
-                      }
-                    >
-                      <option value="NONE">No trial</option>
-                      <option value="FREE">Free trial</option>
-                      <option value="PAID">Paid trial</option>
-                    </select>
-                  </label>
-                  {offer.trial_kind !== "NONE" && (
-                    <Field
-                      label="Trial duration (minutes)"
-                      type="number"
-                      min={15}
-                      max={90}
-                      value={offer.trial_minutes || 30}
-                      onChange={(e) => change("trial_minutes", Number(e.target.value))}
-                    />
-                  )}
-                  {offer.trial_kind === "PAID" && (
-                    <Field
-                      label="Trial price (INR)"
-                      type="number"
-                      min={1}
-                      max={100000}
-                      step="0.01"
-                      value={(offer.trial_price_paise || 100) / 100}
-                      onChange={(e) =>
-                        change("trial_price_paise", Math.round(Number(e.target.value) * 100))
-                      }
-                    />
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    Tuition and trial fees are paid directly to you. In-person offers use the public
-                    city saved in your Tutor profile.
-                  </p>
-                </div>
-              )}
-              {step === 3 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Check your ad before saving</h3>
-                  <p className="break-words text-lg font-semibold">{offer.title}</p>
-                  <OfferSummary offer={offer} catalogue={catalogue} />
-                  <Notice tone="info">
-                    {editing?.status === "PUBLISHED"
-                      ? "Saving changes updates your online ad immediately."
-                      : "Choose Publish my ad to go online now, or save a private draft for later."}{" "}
-                    Keep contact details and links out of public offer text. Staff restrictions
-                    remain until staff lift them.
-                  </Notice>
-                  {editing?.status !== "PUBLISHED" && !canPublishPhoto && (
-                    <Notice tone="info">
-                      Add a profile photo before you can publish this ad. You can still save it as a
-                      private draft now and publish once your photo is in place.{" "}
-                      <Link to="/tutor" className="underline">
-                        Add your photo
-                      </Link>
-                      . Adding a photo never publishes an ad on its own.
-                    </Notice>
+                  {step === 8 && <TutorPhotoEditor />}
+                  {step === REVIEW && (
+                    <div className="space-y-4">
+                      <p className="break-words text-lg font-semibold">{offer.title}</p>
+                      <OfferSummary offer={offer} catalogue={catalogue} />
+                      <Notice tone="info">
+                        {editing?.status === "PUBLISHED"
+                          ? "Saving changes updates your online ad immediately."
+                          : "Choose Publish my ad to go online now, or save a private draft for later."}{" "}
+                        Keep contact details and links out of public offer text. Staff restrictions
+                        remain until staff lift them.
+                      </Notice>
+                      {editing?.status !== "PUBLISHED" && !canPublishPhoto && (
+                        <Notice tone="info">
+                          Add a profile photo before you can publish this ad. You can still save it
+                          as a private draft now and publish once your photo is in place. Go back to
+                          the Profile picture step to add one. Adding a photo never publishes an ad
+                          on its own.
+                        </Notice>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
               <div className="flex flex-wrap gap-3">
                 {step > 0 && (
                   <Button
@@ -734,7 +964,18 @@ export function TutorListingsManager() {
                     Back
                   </Button>
                 )}
-                {step < 3 ? (
+                {editing && step < REVIEW && (
+                  <Button
+                    type="submit"
+                    name="intent"
+                    value={editing.status === "PUBLISHED" ? "publish" : "draft"}
+                    data-save-now="true"
+                    variant="outline"
+                  >
+                    Save changes
+                  </Button>
+                )}
+                {step < REVIEW ? (
                   <Button type="submit">Continue</Button>
                 ) : (
                   <Button
@@ -750,7 +991,7 @@ export function TutorListingsManager() {
                     {editing?.status === "PUBLISHED" ? "Save changes" : "Publish my ad"}
                   </Button>
                 )}
-                {step === 3 && editing?.status !== "PUBLISHED" && (
+                {step === REVIEW && editing?.status !== "PUBLISHED" && (
                   <Button
                     type="submit"
                     name="intent"

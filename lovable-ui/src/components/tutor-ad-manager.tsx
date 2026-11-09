@@ -144,7 +144,7 @@ export function TutorAdManager({
                 : ["In person", ad.class_location?.area, ad.class_location?.city]
                     .filter(Boolean)
                     .join(" · "),
-              0,
+              4,
             )}
             {section(
               "Levels",
@@ -154,7 +154,7 @@ export function TutorAdManager({
                 .join(" · "),
               0,
             )}
-            {section("Languages", ad.offer.language_ids.map(label).join(", "), 0)}
+            {section("Languages", ad.offer.language_ids.map(label).join(", "), 5)}
             <section className="py-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h3 className="font-semibold">About you</h3>
@@ -169,7 +169,7 @@ export function TutorAdManager({
             {section(
               "About the class",
               <p className="whitespace-pre-wrap">{ad.offer.description}</p>,
-              1,
+              2,
             )}
             {section(
               "Price",
@@ -183,14 +183,14 @@ export function TutorAdManager({
                     : `${ad.offer.lesson_minutes} minute lesson`}
                 </span>
               </p>,
-              2,
+              6,
             )}
             {section(
               "First class",
               ad.offer.trial_kind === "NONE"
                 ? "No trial class"
                 : `${ad.offer.trial_kind === "FREE" ? "Free" : `₹${(ad.offer.trial_price_paise || 0) / 100}`} · ${ad.offer.trial_minutes} minutes`,
-              2,
+              7,
             )}
             <section className="py-6">
               <h3 className="font-semibold">Recommendations</h3>

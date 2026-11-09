@@ -214,7 +214,7 @@ export function Connections({
               </li>
             ))}
           </ul>
-          {!loading && !error && !rows.length && (
+          {!loading && !error && !rows.length && !teachingWorkspace && (
             <Button asChild className="mt-4 w-full md:hidden">
               <Link to="/tutors">Search for a teacher</Link>
             </Button>
@@ -348,9 +348,11 @@ export function Connections({
                   )}
                 </div>
               )}
-              <Button asChild className="reference-inbox-cta">
-                <Link to="/tutors">Search for a teacher</Link>
-              </Button>
+              {!teachingWorkspace && (
+                <Button asChild className="reference-inbox-cta">
+                  <Link to="/tutors">Search for a teacher</Link>
+                </Button>
+              )}
             </>
           )}
         </section>

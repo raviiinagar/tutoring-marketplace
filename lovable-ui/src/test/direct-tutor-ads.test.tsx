@@ -160,15 +160,17 @@ it("archives only after confirmation and explains that established history is re
   expect(onAction).toHaveBeenCalledExactlyOnceWith(ad, "ARCHIVE");
 });
 
+// Steps follow the Superprof-style ad wizard: 0 Subjects, 1 Title, 2 About the
+// class, 3 About you, 4 Location, 5 Languages, 6 Hourly fee, 7 Adjust your fees.
 it.each([
   ["courses taught", 0],
   ["ad title", 1],
-  ["venue", 0],
+  ["venue", 4],
   ["levels", 0],
-  ["languages", 0],
-  ["about the class", 1],
-  ["price", 2],
-  ["first class", 2],
+  ["languages", 5],
+  ["about the class", 2],
+  ["price", 6],
+  ["first class", 7],
 ])("opens the correct editor step for %s", (section, step) => {
   const { onEdit } = mount();
   fireEvent.click(screen.getByRole("button", { name: `Modify ${section}` }));
