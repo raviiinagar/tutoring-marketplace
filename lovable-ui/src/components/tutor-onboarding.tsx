@@ -20,12 +20,18 @@ export function TutorOnboarding() {
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
   const client = useQueryClient();
+  const editingChosen = useRef(false);
   const apply = (next: TutorState) => {
     setState(next);
     // A legacy (version 1) profile opens straight in the unified editor so its
     // owner can finish the current introduction; a current profile shows its
     // summary first. Either way the same wizard does the editing.
-    if (next.profile) setEditing(next.profile.onboarding_version !== 2);
+    // Choose this only once: a later reload (a refresh, or StrictMode's second
+    // effect run in development) must not close an editor the Tutor opened.
+    if (next.profile && !editingChosen.current) {
+      editingChosen.current = true;
+      setEditing(next.profile.onboarding_version !== 2);
+    }
   };
   const load = async () => {
     const [a, b, c] = await Promise.all([api.tutor(), api.tutorPolicy(), api.catalogue()]);
