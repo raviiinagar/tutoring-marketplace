@@ -22,9 +22,13 @@ import {
   EyeOff,
   Heart,
   Menu,
+  MessageSquarePlus,
+  MessagesSquare,
   Search,
   X,
 } from "lucide-react";
+import { AnnouncementTicker } from "@/components/beta-announcements";
+import { useBetaFeatures } from "@/lib/beta-features";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { api, describeFailure, type Catalogue } from "@/lib/api";
@@ -185,6 +189,7 @@ export function SiteHeader({
   });
   const user = session.data?.ok ? session.data.data.user : null;
   const pending = !mounted || session.isPending;
+  const beta = useBetaFeatures();
   const teacherPath = user
     ? user.roles.includes("TUTOR")
       ? "/tutor/dashboard"
@@ -244,6 +249,18 @@ export function SiteHeader({
             aria-label="Main navigation"
             className="hidden shrink-0 items-center gap-4 text-sm font-semibold lg:flex"
           >
+            {beta.community && (
+              <Link to="/community" className="header-beta-link">
+                <MessagesSquare aria-hidden className="size-4" />
+                Community
+              </Link>
+            )}
+            {beta.feedback && (
+              <Link to="/feedback" className="header-beta-link">
+                <MessageSquarePlus aria-hidden className="size-4" />
+                Feedback
+              </Link>
+            )}
             <a
               href="/#how-it-works"
               className="header-help inline-flex size-11 items-center justify-center rounded-full"
@@ -389,6 +406,8 @@ export function SiteHeader({
             )}
             <Link to="/tutors">Find Tutors</Link>
             <a href="/#subjects">Explore subjects</a>
+            {beta.community && <Link to="/community">Community</Link>}
+            {beta.feedback && <Link to="/feedback">Beta feedback</Link>}
             <a href="/#how-it-works">Help</a>
             <Link to={teacherPath} hash={teacherHash}>
               Give private classes
@@ -405,6 +424,7 @@ export function SiteHeader({
           </nav>
         )}
       </header>
+      <AnnouncementTicker />
       {searchOpen && (
         <HeaderSearchDialog
           onClose={() => setSearchOpen(false)}
