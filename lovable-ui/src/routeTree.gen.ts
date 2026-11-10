@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ConnectionsRouteImport } from './routes/connections'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as LearnersRouteImport } from './routes/learners'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PaymentsRouteImport } from './routes/payments'
@@ -43,6 +45,8 @@ import { Route as RecommendationsProfileIdRouteImport } from './routes/recommend
 import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
 import { Route as StaffAdminsRouteImport } from './routes/staff_.admins'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
+import { Route as StaffCommunityRouteImport } from './routes/staff_.community'
+import { Route as StaffFeedbackRouteImport } from './routes/staff_.feedback'
 import { Route as StaffFinanceRouteImport } from './routes/staff_.finance'
 import { Route as StaffGuardiansRouteImport } from './routes/staff_.guardians'
 import { Route as StaffListingsRouteImport } from './routes/staff_.listings'
@@ -75,9 +79,19 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnectionsRoute = ConnectionsRouteImport.update({
   id: '/connections',
   path: '/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LearnersRoute = LearnersRouteImport.update({
@@ -236,6 +250,16 @@ const StaffCatalogueRoute = StaffCatalogueRouteImport.update({
   path: '/staff/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffCommunityRoute = StaffCommunityRouteImport.update({
+  id: '/staff_/community',
+  path: '/staff/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffFeedbackRoute = StaffFeedbackRouteImport.update({
+  id: '/staff_/feedback',
+  path: '/staff/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffFinanceRoute = StaffFinanceRouteImport.update({
   id: '/staff_/finance',
   path: '/staff/finance',
@@ -345,7 +369,9 @@ const SafetyKindTargetIdRoute = SafetyKindTargetIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/community': typeof CommunityRoute
   '/connections': typeof ConnectionsRoute
+  '/feedback': typeof FeedbackRoute
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -377,6 +403,8 @@ export interface FileRoutesByFullPath {
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
+  '/staff/community': typeof StaffCommunityRoute
+  '/staff/feedback': typeof StaffFeedbackRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
@@ -402,7 +430,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/community': typeof CommunityRoute
   '/connections': typeof ConnectionsRoute
+  '/feedback': typeof FeedbackRoute
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -434,6 +464,8 @@ export interface FileRoutesByTo {
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
+  '/staff/community': typeof StaffCommunityRoute
+  '/staff/feedback': typeof StaffFeedbackRoute
   '/staff/finance': typeof StaffFinanceRoute
   '/staff/guardians': typeof StaffGuardiansRoute
   '/staff/listings': typeof StaffListingsRoute
@@ -460,7 +492,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/community': typeof CommunityRoute
   '/connections': typeof ConnectionsRoute
+  '/feedback': typeof FeedbackRoute
   '/learners': typeof LearnersRoute
   '/notifications': typeof NotificationsRoute
   '/payments': typeof PaymentsRoute
@@ -492,6 +526,8 @@ export interface FileRoutesById {
   '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff_/admins': typeof StaffAdminsRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
+  '/staff_/community': typeof StaffCommunityRoute
+  '/staff_/feedback': typeof StaffFeedbackRoute
   '/staff_/finance': typeof StaffFinanceRoute
   '/staff_/guardians': typeof StaffGuardiansRoute
   '/staff_/listings': typeof StaffListingsRoute
@@ -519,7 +555,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/community'
     | '/connections'
+    | '/feedback'
     | '/learners'
     | '/notifications'
     | '/payments'
@@ -551,6 +589,8 @@ export interface FileRouteTypes {
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
+    | '/staff/community'
+    | '/staff/feedback'
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
@@ -576,7 +616,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/community'
     | '/connections'
+    | '/feedback'
     | '/learners'
     | '/notifications'
     | '/payments'
@@ -608,6 +650,8 @@ export interface FileRouteTypes {
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
+    | '/staff/community'
+    | '/staff/feedback'
     | '/staff/finance'
     | '/staff/guardians'
     | '/staff/listings'
@@ -633,7 +677,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/community'
     | '/connections'
+    | '/feedback'
     | '/learners'
     | '/notifications'
     | '/payments'
@@ -665,6 +711,8 @@ export interface FileRouteTypes {
     | '/reviews_/$connectionId'
     | '/staff_/admins'
     | '/staff_/catalogue'
+    | '/staff_/community'
+    | '/staff_/feedback'
     | '/staff_/finance'
     | '/staff_/guardians'
     | '/staff_/listings'
@@ -691,7 +739,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  CommunityRoute: typeof CommunityRoute
   ConnectionsRoute: typeof ConnectionsRoute
+  FeedbackRoute: typeof FeedbackRoute
   LearnersRoute: typeof LearnersRoute
   NotificationsRoute: typeof NotificationsRoute
   PaymentsRoute: typeof PaymentsRoute
@@ -723,6 +773,8 @@ export interface RootRouteChildren {
   ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
   StaffAdminsRoute: typeof StaffAdminsRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
+  StaffCommunityRoute: typeof StaffCommunityRoute
+  StaffFeedbackRoute: typeof StaffFeedbackRoute
   StaffFinanceRoute: typeof StaffFinanceRoute
   StaffGuardiansRoute: typeof StaffGuardiansRoute
   StaffListingsRoute: typeof StaffListingsRoute
@@ -762,11 +814,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connections': {
       id: '/connections'
       path: '/connections'
       fullPath: '/connections'
       preLoaderRoute: typeof ConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/learners': {
@@ -986,6 +1052,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffCatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/community': {
+      id: '/staff_/community'
+      path: '/staff/community'
+      fullPath: '/staff/community'
+      preLoaderRoute: typeof StaffCommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff_/feedback': {
+      id: '/staff_/feedback'
+      path: '/staff/feedback'
+      fullPath: '/staff/feedback'
+      preLoaderRoute: typeof StaffFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/finance': {
       id: '/staff_/finance'
       path: '/staff/finance'
@@ -1139,7 +1219,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  CommunityRoute: CommunityRoute,
   ConnectionsRoute: ConnectionsRoute,
+  FeedbackRoute: FeedbackRoute,
   LearnersRoute: LearnersRoute,
   NotificationsRoute: NotificationsRoute,
   PaymentsRoute: PaymentsRoute,
@@ -1171,6 +1253,8 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
   StaffAdminsRoute: StaffAdminsRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,
+  StaffCommunityRoute: StaffCommunityRoute,
+  StaffFeedbackRoute: StaffFeedbackRoute,
   StaffFinanceRoute: StaffFinanceRoute,
   StaffGuardiansRoute: StaffGuardiansRoute,
   StaffListingsRoute: StaffListingsRoute,

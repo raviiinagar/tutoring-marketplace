@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   LayoutDashboard,
   ShieldCheck,
-  Users,
   BookOpen,
   Image,
   MessagesSquare,
@@ -61,13 +60,6 @@ const items = [
   },
   {
     group: "Trust & safety",
-    label: "Guardian reviews",
-    to: "/staff/guardians",
-    icon: Users,
-    scope: "TRUST",
-  },
-  {
-    group: "Trust & safety",
     label: "Safety & reports",
     to: "/staff/safety",
     icon: ShieldCheck,
@@ -82,12 +74,20 @@ const items = [
   },
   {
     group: "Trust & safety",
+    label: "Community",
+    to: "/staff/community",
+    icon: MessagesSquare,
+    scope: "TRUST",
+  },
+  {
+    group: "Trust & safety",
     label: "Recommendations",
     to: "/staff/recommendations",
     icon: ClipboardCheck,
     scope: "TRUST",
   },
   { group: "Service", label: "Support & appeals", to: "/staff/support", icon: MessagesSquare },
+  { group: "Service", label: "Beta feedback", to: "/staff/feedback", icon: MessagesSquare, scope: "SUPPORT" },
   { group: "Service", label: "Privacy requests", to: "/staff/privacy", icon: LockKeyhole },
   {
     group: "Finance & growth",

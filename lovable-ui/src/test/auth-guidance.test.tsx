@@ -7,13 +7,23 @@ import { PASSWORD_LENGTH_GUIDANCE } from "@/lib/validation";
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({ options }),
   useNavigate: () => vi.fn(),
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 vi.mock("@/components/account/ui", async () => ({
-  ...await vi.importActual<typeof import("@/components/account/ui")>("@/components/account/ui"),
-  AuthShell: ({ children, intro }: { children: React.ReactNode; intro?: React.ReactNode }) => <main>{intro}{children}</main>,
+  ...(await vi.importActual<typeof import("@/components/account/ui")>("@/components/account/ui")),
+  AuthShell: ({ children, intro }: { children: React.ReactNode; intro?: React.ReactNode }) => (
+    <main>
+      {intro}
+      {children}
+    </main>
+  ),
 }));
-afterEach(() => { cleanup(); window.history.replaceState(null, "", "/"); });
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, "", "/");
+});
 it("signup and reset show the same password-length rule", async () => {
   const Signup = SignupRoute.options.component!;
   const Reset = ResetRoute.options.component!;
@@ -22,12 +32,22 @@ it("signup and reset show the same password-length rule", async () => {
   cleanup();
   window.history.replaceState(null, "", "/auth/reset-password#token=" + "a".repeat(43));
   render(<Reset />);
-  expect(await screen.findByText((_, element) => element?.tagName === "P" && element.textContent === PASSWORD_LENGTH_GUIDANCE + " Resetting signs out every device.")).toBeTruthy();
+  expect(
+    await screen.findByText(
+      (_, element) =>
+        element?.tagName === "P" &&
+        element.textContent === PASSWORD_LENGTH_GUIDANCE + " Resetting signs out every device.",
+    ),
+  ).toBeTruthy();
 });
 
-it("describes the actual Guardian policy, verification and consent gates", () => {
+it("tells parents to use their own account, with no separate child profile", () => {
   const Signup = SignupRoute.options.component!;
   render(<Signup />);
-  expect(screen.getByText("This creates your own account. To manage a child learner, verify your email and enable the Learner role. Child profiles require a configured Guardian verification policy, approved Guardian verification and acceptance of the current notice and consent.")).toBeTruthy();
+  expect(
+    screen.getByText(
+      "This creates your own account. Parents booking classes for a child use their own account; no separate child profile is needed.",
+    ),
+  ).toBeInTheDocument();
   expect(screen.queryByText(/later update/i)).toBeNull();
 });

@@ -63,6 +63,66 @@ beforeEach(() => {
   Object.defineProperty(window, "scrollY", { configurable: true, value: 0, writable: true });
   Object.defineProperty(window, "innerWidth", { configurable: true, value: 390, writable: true });
   vi.spyOn(api, "me").mockResolvedValue(anonymous);
+  vi.spyOn(api, "communityPolicy").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      enabled: true,
+      rules_version: "test",
+      reactions: [],
+      max_message_length: 1000,
+      rules: [],
+    },
+  });
+  vi.spyOn(api, "feedbackPolicy").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      enabled: true,
+      screenshots_enabled: false,
+      categories: [],
+      public_categories: [],
+      statuses: [],
+      max_screenshot_bytes: 0,
+      notice: "",
+    },
+  });
+});
+it("header links to the beta Community and Feedback pages on desktop and mobile", async () => {
+  mount(true);
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  expect(within(nav).getByRole("link", { name: "Community" })).toHaveAttribute(
+    "href",
+    "/community",
+  );
+  expect(within(nav).getByRole("link", { name: "Feedback" })).toHaveAttribute("href", "/feedback");
+  fireEvent.click(await screen.findByRole("button", { name: "Open menu" }));
+  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+  expect(within(mobile).getByRole("link", { name: "Community" })).toHaveAttribute(
+    "href",
+    "/community",
+  );
+  expect(within(mobile).getByRole("link", { name: "Beta feedback" })).toHaveAttribute(
+    "href",
+    "/feedback",
+  );
+});
+it("a beta feature switched off on the API disappears from the header", async () => {
+  vi.mocked(api.communityPolicy).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      enabled: false,
+      rules_version: "test",
+      reactions: [],
+      max_message_length: 1000,
+      rules: [],
+    },
+  });
+  mount();
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await waitFor(() => expect(within(nav).queryByRole("link", { name: "Community" })).toBeNull());
+  expect(within(nav).getByRole("link", { name: "Feedback" })).toBeVisible();
 });
 afterEach(() => {
   cleanup();

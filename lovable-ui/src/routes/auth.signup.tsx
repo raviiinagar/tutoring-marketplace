@@ -1,7 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { api, describeFailure } from "@/lib/api";
-import { PASSWORD_LENGTH_GUIDANCE, hasErrors, mergeServerFieldErrors, validateDisplayName, validateEmail, validateNewPassword, type FieldErrors } from "@/lib/validation";
+import {
+  PASSWORD_LENGTH_GUIDANCE,
+  hasErrors,
+  mergeServerFieldErrors,
+  validateDisplayName,
+  validateEmail,
+  validateNewPassword,
+  type FieldErrors,
+} from "@/lib/validation";
 import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
 
 export const Route = createFileRoute("/auth/signup")({
@@ -31,7 +39,11 @@ function SignUp() {
     e.preventDefault();
     run(async () => {
       setFormError(undefined);
-      const next = { display_name: validateDisplayName(name), email: validateEmail(email), password: validateNewPassword(password) };
+      const next = {
+        display_name: validateDisplayName(name),
+        email: validateEmail(email),
+        password: validateNewPassword(password),
+      };
       setErrors(next);
       if (hasErrors(next)) return;
       const res = await api.register({ display_name: name.trim(), email: email.trim(), password });
@@ -40,7 +52,8 @@ function SignUp() {
         return;
       }
       if (!res.ok) {
-        if (res.error.kind === "http" && res.error.field_errors) setErrors(mergeServerFieldErrors(res.error.field_errors));
+        if (res.error.kind === "http" && res.error.field_errors)
+          setErrors(mergeServerFieldErrors(res.error.field_errors));
         setFormError(describeFailure(res.error));
       } else setFormError("Unexpected response. Please try again.");
     });
@@ -49,15 +62,52 @@ function SignUp() {
   return (
     <AuthShell
       title="Create your account"
-      intro={<p>This creates your own account. To manage a child learner, verify your email and enable the Learner role. Child profiles require a configured Guardian verification policy, approved Guardian verification and acceptance of the current notice and consent.</p>}
-      footer={<>Already have an account? <Link to="/auth/signin" className="link">Sign in</Link></>}
+      intro={
+        <p>
+          This creates your own account. Parents booking classes for a child use their own account;
+          no separate child profile is needed.
+        </p>
+      }
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/auth/signin" className="link">
+            Sign in
+          </Link>
+        </>
+      }
     >
       <form noValidate onSubmit={onSubmit} className="space-y-5">
         {formError && <Notice tone="error">{formError}</Notice>}
-        <Field label="Your name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} error={errors.display_name} maxLength={200} />
-        <Field label="Email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} error={errors.email} />
-        <Field label="Password" type="password" autoComplete="new-password" hint={PASSWORD_LENGTH_GUIDANCE} value={password} onChange={(e) => setPassword(e.target.value)} error={errors.password} />
-        <SubmitButton loading={loading} loadingText="Creating account…">Create account</SubmitButton>
+        <Field
+          label="Your name"
+          autoComplete="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={errors.display_name}
+          maxLength={200}
+        />
+        <Field
+          label="Email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={errors.email}
+        />
+        <Field
+          label="Password"
+          type="password"
+          autoComplete="new-password"
+          hint={PASSWORD_LENGTH_GUIDANCE}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={errors.password}
+        />
+        <SubmitButton loading={loading} loadingText="Creating account…">
+          Create account
+        </SubmitButton>
       </form>
     </AuthShell>
   );

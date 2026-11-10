@@ -1,12 +1,6 @@
 import { openLearningTools } from "./navigation";
-import { openAdminArea } from "./navigation";
-import { openAdminConsole } from "./navigation";
 import {test,expect,type Page} from '@playwright/test';
-import {execFile} from 'node:child_process';
-import {promisify} from 'node:util';
-import {totp} from '../../apps/api/src/totp';
-const execute=promisify(execFile);const password='Fictional-profile-password-321!';
-async function operator(command:'grant'|'revoke',email:string){await execute(process.execPath,['--env-file=.local/browser-tests.env','node_modules/tsx/dist/cli.mjs','--tsconfig','apps/api/tsconfig.json','apps/api/src/staff-operator.ts',command,'--email',email,'--environment','development','--reason','Fictional Guardian browser fixture',...(command==='grant'?['--scopes','TRUST']:[])],{timeout:30_000});}
+const password='Fictional-profile-password-321!';
 async function signup(page:Page,email:string){
   await page.goto('/auth/signup');await page.getByLabel('Your name', { exact: true }).fill('Fictional adult');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
   const registered=page.waitForResponse(r=>r.url().endsWith('/v1/auth/registrations')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create account',exact:true}).click();expect((await registered).status()).toBe(202);
@@ -14,24 +8,19 @@ async function signup(page:Page,email:string){
   await page.goto('/auth/signin');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
   const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);await expect(page.getByRole('heading',{name: 'Dashboard',exact:true})).toBeVisible();
 }
-test('private adult profile and fictional Guardian approval, child consent withdrawal and revocation',async({page,browser})=>{
-  test.setTimeout(240_000);const ownerEmail=`guardian-${Date.now()}@example.test`;const staffEmail=`guardian-reviewer-${Date.now()}@example.test`;const other=await browser.newContext({baseURL:process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100'});const reviewer=await other.newPage();let granted=false;
-  try{
-    await signup(page,ownerEmail);await openLearningTools(page);await page.getByRole('link',{name:'Learner profiles',exact:true}).click();await expect(page.getByRole('heading',{name:'Create Learner profile',exact:true})).toBeVisible();
-    await page.getByLabel('Learner alias', { exact: true }).fill('Fictional adult profile');await page.getByLabel('Learning requirements', { exact: true }).fill('Learn mathematics for an entrance exam');await page.getByRole('checkbox',{name:'I confirm this is my own profile and I am aged 18 or older',exact:true}).check();
-    const adultCreated=page.waitForResponse(r=>r.url().endsWith('/v1/me/learners/adult')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create profile',exact:true}).click();expect((await adultCreated).status()).toBe(201);await expect(page.getByRole('listitem').filter({hasText:'Fictional adult profile'})).toContainText('Ready for tutoring');
-    await page.getByRole('checkbox',{name:'I confirm I am an adult Guardian',exact:true}).check();await page.getByRole('checkbox',{name:'I accept the Guardian notice and consent',exact:true}).check();
-    const applied=page.waitForResponse(r=>r.url().endsWith('/v1/me/guardian-verifications')&&r.request().method()==='POST');await page.getByRole('button',{name:'Submit Guardian verification',exact:true}).click();const result=await applied;expect(result.status()).toBe(201);const caseId=(await result.json()).id;
-    await expect(page.getByText('Verification: PENDING',{exact:true})).toBeVisible();await expect(page.getByRole('checkbox',{name:'Create a child profile under my Guardian account',exact:true})).toBeDisabled();
-    await signup(reviewer,staffEmail);await operator('grant',staffEmail);granted=true;await reviewer.reload();await openAdminConsole(reviewer);await reviewer.getByLabel('Account password', { exact: true }).fill(password);await reviewer.getByRole('button',{name:'Create authenticator setup',exact:true}).click();
-    const secret=await reviewer.getByLabel('Authenticator setup key', { exact: true }).textContent();await reviewer.getByLabel('Authenticator code', { exact: true }).fill(totp(secret!.trim(),new Date()));await reviewer.getByRole('button',{name:'Confirm MFA',exact:true}).click();await expect(reviewer.getByRole('heading',{name:'Save your recovery codes',exact:true})).toBeVisible();await reviewer.getByRole('button',{name:'I saved my recovery codes',exact:true}).click();await openAdminArea(reviewer, "Guardian reviews");
-    await reviewer.getByRole('listitem').filter({hasText:caseId}).getByRole('button',{name:'Select verification',exact:true}).click();await reviewer.getByLabel('Inspection reason', { exact: true }).fill('Review fictional Guardian authority');await reviewer.getByRole('button',{name:'Inspect private evidence',exact:true}).click();await expect(reviewer.getByRole('heading',{name:'Private evidence review',exact:true})).toBeVisible();
-    await reviewer.getByRole('checkbox',{name:'Identifiable-adult evidence reviewed',exact:true}).check();await reviewer.getByRole('checkbox',{name:'Lawful-authority evidence reviewed',exact:true}).check();
-    const approved=reviewer.waitForResponse(r=>r.url().endsWith('/reviews')&&r.request().method()==='POST');await reviewer.getByRole('button',{name:'Record review decision',exact:true}).click();expect((await approved).status()).toBe(200);
-    await page.getByRole('button',{name:'Refresh profiles',exact:true}).click();await expect(page.getByText('Verification: APPROVED',{exact:false})).toBeVisible();await page.getByRole('checkbox',{name:'Create a child profile under my Guardian account',exact:true}).check();await page.getByLabel('Learner alias', { exact: true }).fill('Fictional child');await page.getByLabel('Learning requirements', { exact: true }).fill('Practice class eight mathematics');await page.getByRole('checkbox',{name:'I accept the notice and consent for this child profile',exact:true}).check();
-    const childCreated=page.waitForResponse(r=>r.url().endsWith('/v1/me/learners/children')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create profile',exact:true}).click();expect((await childCreated).status()).toBe(201);const child=page.getByRole('listitem').filter({hasText:'Fictional child'});await expect(child).toContainText('Ready for tutoring');
-    await child.getByRole('button',{name:'Withdraw consent',exact:true}).click();await expect(child).toContainText('Not available for tutoring');await child.getByRole('checkbox',{name:'I accept current consent for this profile',exact:true}).check();await child.getByRole('button',{name:'Record new consent',exact:true}).click();await expect(child).toContainText('Ready for tutoring');
-    await reviewer.getByRole('listitem').filter({hasText:caseId}).getByRole('button',{name:'Select verification',exact:true}).click();await reviewer.getByLabel('Inspection reason', { exact: true }).fill('Review fictional approval revocation');await reviewer.getByRole('button',{name:'Inspect private evidence',exact:true}).click();await expect(reviewer.getByRole('heading',{name:'Private evidence review',exact:true})).toBeVisible();
-    const revoked=reviewer.waitForResponse(r=>r.url().endsWith('/reviews')&&r.request().method()==='POST');await reviewer.getByRole('button',{name:'Record review decision',exact:true}).click();expect((await revoked).status()).toBe(200);await page.getByRole('button',{name:'Refresh profiles',exact:true}).click();await expect(child).toContainText('Not available for tutoring');
-  }finally{if(granted)await operator('revoke',staffEmail);await other.close();}
+// ADR 0015: one adult Learner profile per account; a parent books for their child
+// from it. Child profiles and Guardian reviews are retired.
+test('a parent uses their own adult profile; child profiles and Guardian reviews are retired',async({page})=>{
+  test.setTimeout(180_000);const ownerEmail=`parent-${Date.now()}@example.test`;
+  await signup(page,ownerEmail);await openLearningTools(page);await page.getByRole('link',{name:'Learner profiles',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Create your Learner profile',exact:true})).toBeVisible();
+  await expect(page.getByText(/Booking classes for your child\? Use your own profile/)).toBeVisible();
+  await expect(page.getByRole('checkbox',{name:/child profile/i})).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'Guardian verification'})).toHaveCount(0);
+  await page.getByLabel('Learner alias', { exact: true }).fill('Fictional parent');await page.getByLabel('Learning requirements', { exact: true }).fill('Class 9 Mathematics practice for my child');await page.getByRole('checkbox',{name:'I confirm this is my own profile and I am aged 18 or older',exact:true}).check();
+  const adultCreated=page.waitForResponse(r=>r.url().endsWith('/v1/me/learners/adult')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create profile',exact:true}).click();expect((await adultCreated).status()).toBe(201);
+  await expect(page.getByRole('heading',{name:'Fictional parent',exact:true})).toBeVisible();await expect(page.getByText('Ready for tutoring',{exact:true})).toBeVisible();
+  const origin=process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100';
+  expect((await page.request.post('/v1/me/learners/children',{headers:{Origin:origin},data:{}})).status()).toBe(410);
+  await page.goto('/staff/guardians');await expect(page.getByText(/Child profiles and Guardian verification are no longer offered/)).toBeVisible();
 });

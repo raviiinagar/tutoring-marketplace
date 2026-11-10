@@ -23,7 +23,12 @@ export function TutorSearchFilters({
 }) {
   const [panel, setPanel] = useState<Panel>(),
     [draft, setDraft] = useState<DiscoveryFilters>(filters),
-    [error, setError] = useState<string>();
+    [error, setError] = useState<string>(),
+    // Server-rendered controls stay disabled until React is attached, so an early
+    // tap is never silently lost (the same pattern as the teacher search bar).
+    [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+  const busy = loading || !ready;
   const trigger = useRef<HTMLButtonElement | null>(null);
   const key = JSON.stringify(filters);
   useEffect(() => {
@@ -234,7 +239,7 @@ export function TutorSearchFilters({
             variant="outline"
             className="rounded-full"
             onClick={(event) => open(id, event.currentTarget)}
-            disabled={loading}
+            disabled={busy}
           >
             {id === "all" && <SlidersHorizontal aria-hidden className="size-4" />}
             {label}
@@ -247,7 +252,7 @@ export function TutorSearchFilters({
             className="input w-auto"
             aria-label="Sort teaching offers"
             value={filters.sort || ""}
-            disabled={loading}
+            disabled={busy}
             onChange={(e) =>
               onApply(
                 cleanDiscoveryFilters({
@@ -279,7 +284,7 @@ export function TutorSearchFilters({
               type="button"
               className="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1.5 text-xs"
               aria-label={"Remove " + chip.label}
-              disabled={loading}
+              disabled={busy}
               onClick={() => onApply(removeDiscoveryFilter(filters, chip.key))}
             >
               {chip.label}
@@ -289,7 +294,7 @@ export function TutorSearchFilters({
           <button
             type="button"
             className="px-2 py-1 text-sm underline"
-            disabled={loading}
+            disabled={busy}
             onClick={() => onApply({})}
           >
             Clear all
@@ -436,7 +441,7 @@ export function TutorSearchFilters({
               <Button variant="outline" type="button" onClick={() => setPanel(undefined)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={busy}>
                 Apply filters
               </Button>
             </div>

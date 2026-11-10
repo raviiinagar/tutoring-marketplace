@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { StrictMode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { api, type TutorState, type TutorClaim } from "@/lib/api";
 import { TutorOnboarding } from "@/components/tutor-onboarding";
@@ -257,4 +258,26 @@ it("does not infer verified identity from a public eligible profile", async () =
   expect(await screen.findByRole("link", { name: "View your public profile" })).toBeVisible();
   expect(screen.getByText(/Identity not verified/)).toBeVisible();
   expect(screen.queryByText(/Your identity verification is current/)).not.toBeInTheDocument();
+});
+it("keeps the editor open when a slower duplicate profile load finishes after Edit profile", async () => {
+  // React StrictMode (on in development) runs the load effect twice. Whichever
+  // load finishes last must not close an editor the Tutor has already opened.
+  const answers: ((value: Awaited<ReturnType<typeof api.tutor>>) => void)[] = [];
+  vi.spyOn(api, "tutor").mockImplementation(() => new Promise((resolve) => answers.push(resolve)));
+  render(
+    <StrictMode>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <TutorOnboarding />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+  await waitFor(() => expect(answers).toHaveLength(2));
+  const answer = () => ({ ok: true as const, status: 200, data: structuredClone(saved) });
+  await act(async () => answers[0]!(answer()));
+  fireEvent.click(await screen.findByRole("button", { name: "Edit profile" }));
+  expect(screen.queryByRole("button", { name: "Edit profile" })).toBeNull();
+  await act(async () => answers[1]!(answer()));
+  expect(screen.queryByRole("button", { name: "Edit profile" })).toBeNull();
 });

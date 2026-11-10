@@ -187,7 +187,7 @@ export class AdminService {
       if (scopes.includes("TRUST")) {
         const trust = (
           await query(
-            `SELECT (SELECT count(*) FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision WHERE c.status='PENDING' AND p.status='SUBMITTED' AND e.scan_status='CLEAN' AND e.test_only=$1) AS claims,(SELECT count(*) FROM teaching_listings WHERE status='REVIEW') AS listings,(SELECT count(*) FROM tutor_photos WHERE status='PENDING' AND scan_status='CLEAN' AND test_only=$1) AS photos,(SELECT count(*) FROM guardian_verifications WHERE status='PENDING') AS guardians`,
+            `SELECT (SELECT count(*) FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision WHERE c.status='PENDING' AND p.status='SUBMITTED' AND e.scan_status='CLEAN' AND e.test_only=$1) AS claims,(SELECT count(*) FROM teaching_listings WHERE status='REVIEW') AS listings,(SELECT count(*) FROM tutor_photos WHERE status='PENDING' AND scan_status='CLEAN' AND test_only=$1) AS photos`,
             [test],
           )
         )[0];
@@ -195,7 +195,6 @@ export class AdminService {
           ["claims", "Tutor evidence", "/staff/tutors"],
           ["listings", "Teaching offers", "/staff/listings"],
           ["photos", "Tutor photos", "/staff/photos"],
-          ["guardians", "Guardian reviews", "/staff/guardians"],
         ])
           queues.push({ key, label, count: Number(trust[key]), href });
       }

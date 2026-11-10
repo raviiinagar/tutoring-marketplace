@@ -664,3 +664,29 @@ main { scroll-margin-top: 90px; }
 .ad-wizard-choice input { margin-top:4px; }
 .ad-wizard-choice-on { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary); }
 @media (min-width: 768px) { .ad-wizard-step { flex-direction:row; } .ad-wizard-tip { width:260px; flex-shrink:0; align-self:flex-start; } }
+
+/* Beta links in the header and the announcement ticker under it. */
+.header-beta-link { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding-inline:6px; border-radius:999px; color:var(--foreground); white-space:nowrap; }
+.header-beta-link:hover { color:var(--primary); }
+.header-beta-link:focus-visible,.announcement-link:focus-visible,.announcement-control:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+.announcement-bar { position:relative; z-index:10; background:#fff8dc; border-bottom:1px solid #f4e7b5; color:#3a2c12; font-size:13px; }
+.announcement-inner { min-height:40px; }
+.announcement-badge { display:inline-flex; flex-shrink:0; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; background:#3a2c12; color:#fff; font-weight:700; font-size:12px; }
+.announcement-viewport { position:relative; flex:1; min-width:0; overflow:hidden; mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent); }
+.announcement-track { display:flex; width:max-content; animation:announcement-scroll 38s linear infinite; }
+.announcement-bar:hover .announcement-track,.announcement-bar:focus-within .announcement-track,.announcement-bar[data-paused] .announcement-track { animation-play-state:paused; }
+.announcement-list { display:flex; flex-shrink:0; margin:0; padding:0; list-style:none; }
+.announcement-item { padding-inline:28px; white-space:nowrap; }
+.announcement-item + .announcement-item { border-left:1px solid #e9d690; }
+.announcement-link { font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.announcement-control { display:inline-flex; flex-shrink:0; align-items:center; justify-content:center; width:32px; height:32px; border-radius:999px; }
+.announcement-control:hover { background:#fff0b3; }
+.announcement-pause[aria-pressed="true"] { background:#3a2c12; color:#fff; }
+@keyframes announcement-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media(prefers-reduced-motion:reduce) {
+  .announcement-track { animation:none; }
+  .announcement-viewport { overflow-x:auto; mask-image:none; }
+  .announcement-list[aria-hidden] { display:none; }
+  .announcement-pause { display:none; }
+}
+@media(max-width:640px) { .announcement-item { padding-inline:18px; } }

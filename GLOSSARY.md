@@ -53,11 +53,11 @@ The academic stage or skill proficiency for which tutoring is sought, such as a 
 _Avoid_: School board, exam track.
 
 **Learner**:
-The person receiving tutoring, who may be an adult or a child represented by a guardian.
+The adult account holder receiving tutoring, or a parent booking tutoring for their child from their own adult account (ADR0015). No separate child profile exists.
 _Avoid_: Customer when referring specifically to the lesson beneficiary.
 
 **Guardian**:
-The adult responsible for a child learner's platform access, payments and communication.
+Historical (retired by ADR0015). An adult who controlled a child Learner profile under ADR0002/0006. New Guardian accounts and child profiles cannot be created; a parent now books from their own adult Learner profile.
 _Avoid_: Child account owner when referring to the child.
 
 **Tutor**:

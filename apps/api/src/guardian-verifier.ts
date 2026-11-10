@@ -11,8 +11,7 @@ export interface GuardianVerifier {
   readonly policy:GuardianVerificationPolicy;
   assess(evidence:GuardianEvidence):{identifiable_adult:boolean;lawful_authority:boolean};
 }
-export class TestGuardianVerifier implements GuardianVerifier {
-  readonly policy={id:'test-guardian-v1',notice_version:'test-notice-v1',consent_version:'test-consent-v1',test_only:true,approved_for_production:false,approval_reference:'NONPRODUCTION-FIXTURES-ONLY',notice:'Fictional testing only. Do not enter real child information or real identity documents.',consent:'I am testing with fictional data and accept this test-only Guardian and Learner profile workflow.'};
-  assess(evidence:GuardianEvidence){return {identifiable_adult:evidence.adult_reference==='test-adult-confirmed',lawful_authority:evidence.authority_reference==='test-authority-confirmed'};}
-}
-export function guardianVerifier(config:Config):GuardianVerifier|undefined {return config.guardianMode==='test'&&config.mode!=='production'?new TestGuardianVerifier():undefined;}
+// ADR 0015 retired child profiles and Guardian verification. No verifier is ever
+// configured, so no child profile can become eligible again; the types remain for
+// the historical rows that privacy export and erasure still read.
+export function guardianVerifier(_config:Config):GuardianVerifier|undefined {return undefined;}

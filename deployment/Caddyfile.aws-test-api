@@ -5,9 +5,9 @@
 }
 
 ravii-tutoring-test.duckdns.org {
-	# Exclude persistent chat events from compression buffering.
+	# Exclude persistent chat and community event streams from compression buffering.
     @compressible {
-        not path /v1/me/connections/*/events /payment-sandbox/v1/me/connections/*/events
+        not path /v1/me/connections/*/events /payment-sandbox/v1/me/connections/*/events /v1/community/channels/*/events /payment-sandbox/v1/community/channels/*/events
     }
     encode @compressible zstd gzip
 	header Strict-Transport-Security "max-age=31536000"

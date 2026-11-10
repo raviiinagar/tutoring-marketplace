@@ -21,6 +21,23 @@ export type SupportPolicy={hours:string;timezone:string;open_now:boolean;next_op
 export type SupportEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;message?:string;reason?:string;actor_id?:string;source_result?:{refund_case_id?:string;cycle_id?:string;outcome?:string}};
 export type SupportCase={id:string;category:string;required_scope:StaffScope;status:string;revision:number;assigned:boolean;assigned_to?:string|null;source_id:string|null;related_id:string|null;source_revision:number|null;created_at:string;updated_at:string;subject?:string;description?:string;events?:SupportEvent[]};
 export type SupportOperation='CLAIM'|'RELEASE'|'NOTE'|'REPLY'|'RESOLVE'|'UPHOLD'|'SUPERSEDED'|'REOPEN_REVIEW'|'LIFT_ACCOUNT'|'LIFT_LISTING'|'LIFT_CONNECTION'|'RECONSIDER_REFUND';
+export type FeedbackCategory='BUG'|'SUGGESTION'|'FEATURE_REQUEST'|'UI_UX';
+export type FeedbackStatus='NEW'|'REVIEWING'|'IN_PROGRESS'|'RESOLVED';
+export type FeedbackPriority='LOW'|'MEDIUM'|'HIGH'|'CRITICAL';
+export type FeedbackPolicy={enabled:boolean;screenshots_enabled:boolean;categories:FeedbackCategory[];public_categories:FeedbackCategory[];statuses:FeedbackStatus[];max_screenshot_bytes:number;notice:string};
+export type FeedbackEvent={id:string;outcome:string;visibility:'USER'|'INTERNAL';created_at:string;status?:FeedbackStatus;message?:string;reason?:string;priority?:FeedbackPriority;actor_id?:string};
+export type FeedbackItem={id:string;category:FeedbackCategory;title:string;status:FeedbackStatus;public:boolean;hidden:boolean;vote_count:number;has_screenshot:boolean;revision:number;created_at:string;updated_at:string;description?:string;priority?:FeedbackPriority|null;owner_id?:string;screenshot_status?:string;events?:FeedbackEvent[]};
+export type FeedbackSuggestion={id:string;category:'SUGGESTION'|'FEATURE_REQUEST';title:string;description:string;status:FeedbackStatus;vote_count:number;voted:boolean;own:boolean;created_at:string};
+export type FeedbackOperation='SET_STATUS'|'SET_PRIORITY'|'REPLY'|'NOTE'|'HIDE'|'UNHIDE';
+export type CommunityReaction='THUMBS_UP'|'HEART'|'LAUGH'|'CELEBRATE'|'THINKING'|'EYES';
+export type CommunityPolicy={enabled:boolean;rules_version:string;reactions:CommunityReaction[];max_message_length:number;rules:string[]};
+export type CommunityChannel={id:string;slug:string;name:string;description:string;staff_only_posting:boolean;can_post:boolean;last_message_at:string|null};
+export type CommunityOverview={policy:CommunityPolicy;member:{nickname:string;team:boolean;muted_until:string|null}|null;channels:CommunityChannel[]};
+export type CommunityMessage={id:string;channel_id:string;author:{nickname:string;team:boolean;own:boolean};body:string|null;status:'VISIBLE'|'DELETED_BY_AUTHOR'|'REMOVED_BY_STAFF';pinned:boolean;reply_to:{id:string;nickname:string;excerpt:string|null}|null;reactions:{emoji:CommunityReaction;count:number;mine:boolean}[];change_seq:number;created_at:string};
+export type CommunityPage={messages:CommunityMessage[];cursor:number;has_older?:boolean;has_more?:boolean};
+export type CommunityReportCategory='SPAM'|'HARASSMENT'|'CONTACT_DETAILS'|'INAPPROPRIATE'|'OTHER';
+export type CommunityReported={message:CommunityMessage&{body:string;author_id:string};channel_name:string;reports:{id:string;category:CommunityReportCategory;note:string|null;created_at:string}[]};
+export type CommunityStaffChannel={id:string;slug:string;name:string;description:string;staff_only_posting:boolean;archived:boolean;position:number;updated_at:string};
 export type StaffScope='SUPPORT'|'TRUST'|'FINANCE';
 export type StaffAccess={role?:'SUPER_ADMIN'|'ADMIN'|'OPERATOR';scopes:StaffScope[];mfa_enrolled:boolean;mfa_required?:boolean;testing_mfa_bypass_until?:string|null;authenticated:boolean;expires_at:string|null};
 export type AdminMember={id:string;display_name:string;email:string;status:string;enabled:boolean;role:'SUPER_ADMIN'|'ADMIN'|'OPERATOR';scopes:StaffScope[];updated_at:string};
@@ -29,9 +46,6 @@ export type StaffEnrollment={secret:string;otpauth_uri:string;expires_at:string}
 export type StaffWorkspace={scope:StaffScope;events:{id:string;actor_id:string;event:string;created_at:string;target:string;reason:string}[]};
 export type LearnerProfile={id:string;kind:'ADULT'|'CHILD';alias:string;age_band:'ADULT'|'UNDER_13'|'13_15'|'16_17';learning_requirements:string;status:'ACTIVE'|'WITHDRAWN';usable:boolean;created_at:string;updated_at:string};
 export type LearnerPolicy={child_profiles_enabled:boolean;test_only:boolean;policy:{id:string;notice_version:string;consent_version:string;notice:string;consent:string}|null};
-export type GuardianCase={id:string;status:'PENDING'|'APPROVED'|'REJECTED'|'REVOKED';policy_id?:string;notice_version?:string;consent_version?:string;created_at?:string;review_reason?:string|null;user_id?:string};
-export type GuardianInspection={id:string;user_id:string;status:GuardianCase['status'];policy_id:string;notice_version:string;consent_version:string;evidence:{adult_reference:string;authority_reference:string}};
-export type LearnerConsent={accepted:true;notice_version:string;consent_version:string};
 export type CatalogueKind='SUBJECT'|'LEVEL'|'CURRICULUM'|'EXAM'|'LANGUAGE';
 export type CatalogueTerm={id:string;kind:CatalogueKind;label:string;aliases:string[];domain_ids:string[];active:boolean};
 export type Catalogue={domains:{id:string;label:string}[];terms:CatalogueTerm[]};
@@ -181,6 +195,34 @@ export async function request<T>(
 
 export const assetUrl=(path:string)=>apiBaseUrl()+path;
 export const publicPortraitUrl=(path:string,variant:'card'|'portrait')=>assetUrl(path+'?variant='+variant);
+/** Live channel updates; falls back to polling the same authorized endpoint if a proxy buffers the stream. */
+export function subscribeCommunity(channel:string,after:number,onPage:(page:CommunityPage)=>void,onDisconnect:(revoked:boolean)=>void){
+ const path='/v1/community/channels/'+encodeURIComponent(channel);
+ const source=new EventSource(apiBaseUrl()+path+'/events?after='+after,{withCredentials:true});
+ let active=true,polling=false,cursor=after;
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ const stop=()=>{active=false;clearTimeout(timer);source.close();};
+ const disconnect=(revoked:boolean)=>{if(!active)return;stop();onDisconnect(revoked);};
+ const poll=async()=>{
+   if(!active||!polling)return;
+   const result=await request<CommunityPage>('GET',path+'/messages?after='+cursor);
+   if(!active)return;
+   if(!result.ok){disconnect(result.error.kind==='http'&&[401,403,404].includes(result.error.status));return;}
+   cursor=Math.max(cursor,result.data.cursor);
+   if(result.data.messages.length)onPage(result.data);
+   if(active)timer=setTimeout(()=>void poll(),result.data.has_more?0:3000);
+ };
+ timer=setTimeout(()=>{if(!active)return;polling=true;source.close();void poll();},4000);
+ source.addEventListener('changes',event=>{
+   if(!active||polling)return;
+   clearTimeout(timer);
+   try{const page=JSON.parse((event as MessageEvent).data) as CommunityPage;cursor=Math.max(cursor,page.cursor);if(page.messages.length)onPage(page);}catch{disconnect(false);}
+ });
+ source.addEventListener('access-revoked',()=>disconnect(true));
+ source.addEventListener('reconnect',()=>{if(!polling)disconnect(false);});
+ source.onerror=()=>{if(!polling)disconnect(false);};
+ return stop;
+}
 export function subscribeChat(id:string,after:number,onState:(state:ChatState)=>void,onDisconnect:(revoked:boolean)=>void){
  const path='/v1/me/connections/'+encodeURIComponent(id);
  const source=new EventSource(apiBaseUrl()+path+'/events?after='+after,{withCredentials:true});
@@ -361,6 +403,35 @@ export const api = {
   supportQueue:(scope:StaffScope,reason:string)=>request<{cases:SupportCase[]}>('GET','/v1/staff/support-cases?scope='+scope+'&reason='+encodeURIComponent(reason)),
   inspectSupportCase:(id:string,reason:string)=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/inspections',{reason}),
   actSupportCase:(id:string,input:{revision:number;operation:SupportOperation;reason:string;message?:string})=>request<{case:SupportCase}>('POST','/v1/staff/support-cases/'+encodeURIComponent(id)+'/actions',input),
+  communityPolicy:()=>request<CommunityPolicy>('GET','/v1/community-policy'),
+  community:()=>request<CommunityOverview>('GET','/v1/community'),
+  joinCommunity:(nickname:string)=>request<{member:{nickname:string}}>('POST','/v1/community/membership',{nickname,adult_confirmed:true,rules_accepted:true}),
+  renameCommunity:(nickname:string)=>request<{member:{nickname:string}}>('POST','/v1/community/membership/nickname',{nickname}),
+  leaveCommunity:()=>request<{member:null}>('DELETE','/v1/community/membership'),
+  communityMessages:(channel:string,cursor:{before?:string;after?:number}={})=>request<CommunityPage>('GET','/v1/community/channels/'+encodeURIComponent(channel)+'/messages'+(cursor.before?'?before='+encodeURIComponent(cursor.before):cursor.after!==undefined?'?after='+cursor.after:'')),
+  communityPins:(channel:string)=>request<{messages:CommunityMessage[]}>('GET','/v1/community/channels/'+encodeURIComponent(channel)+'/pins'),
+  postCommunity:(channel:string,input:{request_key:string;body:string;reply_to?:string})=>request<{message:CommunityMessage;replayed:boolean}>('POST','/v1/community/channels/'+encodeURIComponent(channel)+'/messages',input),
+  deleteCommunityMessage:(id:string)=>request<{deleted:true}>('DELETE','/v1/community/messages/'+encodeURIComponent(id)),
+  reactCommunity:(id:string,emoji:CommunityReaction,on:boolean)=>request<{message:CommunityMessage}>(on?'POST':'DELETE','/v1/community/messages/'+encodeURIComponent(id)+'/reactions',{emoji}),
+  reportCommunity:(id:string,category:CommunityReportCategory,note?:string)=>request<{reported:true}>('POST','/v1/community/messages/'+encodeURIComponent(id)+'/reports',note?{category,note}:{category}),
+  communityReports:(reason:string)=>request<{reported:CommunityReported[]}>('GET','/v1/staff/community/reports?reason='+encodeURIComponent(reason)),
+  moderateCommunity:(id:string,operation:'REMOVE'|'RESTORE'|'PIN'|'UNPIN'|'DISMISS_REPORTS',reason:string)=>request<{done:true}>('POST','/v1/staff/community/messages/'+encodeURIComponent(id)+'/actions',{operation,reason}),
+  communityMutes:()=>request<{mutes:{user_id:string;nickname:string|null;muted_until:string;reason:string;created_at:string}[]}>('GET','/v1/staff/community/mutes'),
+  muteCommunity:(user_id:string,hours:number,reason:string)=>request<{muted_until:string|null}>('POST','/v1/staff/community/mutes',{user_id,hours,reason}),
+  communityChannels:()=>request<{channels:CommunityStaffChannel[]}>('GET','/v1/staff/community/channels'),
+  createCommunityChannel:(input:{name:string;description:string;staff_only_posting:boolean;position:number;reason:string})=>request<{channel:CommunityStaffChannel}>('POST','/v1/staff/community/channels',input),
+  updateCommunityChannel:(id:string,input:{name?:string;description?:string;staff_only_posting?:boolean;position?:number;archived?:boolean;reason:string})=>request<{channel:CommunityStaffChannel}>('POST','/v1/staff/community/channels/'+encodeURIComponent(id),input),
+  feedbackPolicy:()=>request<FeedbackPolicy>('GET','/v1/feedback-policy'),
+  myFeedback:()=>request<{feedback:FeedbackItem[];policy:FeedbackPolicy}>('GET','/v1/me/feedback'),
+  feedbackItem:(id:string)=>request<{feedback:FeedbackItem}>('GET','/v1/me/feedback/'+encodeURIComponent(id)),
+  feedbackScreenshot:(id:string)=>request<Blob>('GET','/v1/me/feedback/'+encodeURIComponent(id)+'/screenshot',undefined,true),
+  createFeedback:(input:{request_key:string;category:FeedbackCategory;title:string;description:string;screenshot?:{media_type:'image/jpeg'|'image/png';data:string}})=>request<{feedback:FeedbackItem;replayed:boolean}>('POST','/v1/me/feedback',input),
+  feedbackBoard:(sort:'top'|'new')=>request<{suggestions:FeedbackSuggestion[]}>('GET','/v1/feedback/board?sort='+sort),
+  voteFeedback:(id:string,voted:boolean)=>request<{vote_count:number;voted:boolean}>(voted?'POST':'DELETE','/v1/feedback/board/'+encodeURIComponent(id)+'/votes'),
+  feedbackQueue:(reason:string,filters:{status?:FeedbackStatus;category?:FeedbackCategory;priority?:FeedbackPriority}={})=>request<{feedback:FeedbackItem[]}>('GET','/v1/staff/feedback?'+new URLSearchParams({reason,...Object.fromEntries(Object.entries(filters).filter(([,v])=>v))}).toString()),
+  inspectFeedback:(id:string,reason:string)=>request<{feedback:FeedbackItem}>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/inspections',{reason}),
+  inspectFeedbackScreenshot:(id:string,reason:string)=>request<Blob>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/screenshot-inspections',{reason},true),
+  actFeedback:(id:string,input:{revision:number;operation:FeedbackOperation;reason:string;status?:FeedbackStatus;priority?:FeedbackPriority;message?:string})=>request<{feedback:FeedbackItem}>('POST','/v1/staff/feedback/'+encodeURIComponent(id)+'/actions',input),
   ownReviews:()=>request<{reviews:ReviewRow[]}>('GET','/v1/me/reviews'),
   withdrawReview:(id:string,revision:number)=>request<{review:ReviewRow}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/withdrawals',{revision}),
   appealReview:(id:string,input:{request_key:string;revision:number;description:string})=>request<{appeal:{id:string;status:string}}>('POST','/v1/me/reviews/'+encodeURIComponent(id)+'/appeals',input),
@@ -425,15 +496,8 @@ export const api = {
   learnerPolicy: () => request<LearnerPolicy>('GET','/v1/learner-policy'),
   learners: () => request<{profiles:LearnerProfile[]}>('GET','/v1/me/learners'),
   adultLearner: (alias:string,learning_requirements:string,adult_confirmed:boolean) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/adult',{alias,learning_requirements,adult_confirmed}),
-  childLearner: (alias:string,learning_requirements:string,age_band:string,consent:LearnerConsent) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/children',{alias,learning_requirements,age_band,consent}),
   editLearner: (id:string,alias:string,learning_requirements:string) => request<{profile:LearnerProfile}>('POST','/v1/me/learners/'+encodeURIComponent(id),{alias,learning_requirements}),
   withdrawLearnerConsent: (id:string) => request<CodeMessage>('POST','/v1/me/learners/'+encodeURIComponent(id)+'/consent-withdrawals'),
-  renewLearnerConsent: (id:string,consent:LearnerConsent) => request<CodeMessage>('POST','/v1/me/learners/'+encodeURIComponent(id)+'/consents',consent),
-  guardianCases: () => request<{verifications:GuardianCase[]}>('GET','/v1/me/guardian-verifications'),
-  submitGuardian: (adult_reference:string,authority_reference:string,adult_confirmed:boolean,consent:LearnerConsent) => request<{id:string;status:'PENDING'}>('POST','/v1/me/guardian-verifications',{adult_reference,authority_reference,adult_confirmed,consent}),
-  guardianQueue: () => request<{verifications:GuardianCase[]}>('GET','/v1/staff/guardian-verifications'),
-  inspectGuardian: (id:string,reason:string) => request<{verification:GuardianInspection}>('POST','/v1/staff/guardian-verifications/'+encodeURIComponent(id)+'/inspections',{reason}),
-  reviewGuardian: (id:string,decision:'APPROVE'|'REJECT'|'REVOKE',identifiable_adult_reviewed:boolean,authority_reviewed:boolean,reason:string) => request<{id:string;status:GuardianCase['status']}>('POST','/v1/staff/guardian-verifications/'+encodeURIComponent(id)+'/reviews',{decision,identifiable_adult_reviewed,authority_reviewed,reason}),
   signOut: () => request<void>("DELETE", "/v1/auth/sessions/current", {}),
 };
 

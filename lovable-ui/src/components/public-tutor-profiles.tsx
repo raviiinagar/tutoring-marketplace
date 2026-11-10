@@ -97,9 +97,14 @@ export function PublicTutorCard({
 export function PublicTutorDirectory({
   filters = {},
   showSubjectFilter = false,
+  initial,
+  initialCatalogue,
 }: {
   filters?: DiscoveryFilters;
   showSubjectFilter?: boolean;
+  /** First page already loaded with the route, so the cards render without a client fetch. */
+  initial?: { profiles: PublicTutor[]; next_cursor: string | null } | undefined;
+  initialCatalogue?: Catalogue | undefined;
 }) {
   const filterKey = JSON.stringify(filters),
     latest = useRef(0);
@@ -115,16 +120,23 @@ export function PublicTutorDirectory({
     filters.min_rate_paise !== undefined ||
     filters.max_rate_paise !== undefined
   );
-  const [profiles, setProfiles] = useState<PublicTutor[]>(),
-    [catalogue, setCatalogue] = useState<Catalogue>(),
+  const [profiles, setProfiles] = useState<PublicTutor[] | undefined>(initial?.profiles),
+    [catalogue, setCatalogue] = useState<Catalogue | undefined>(initialCatalogue),
     [subject, setSubject] = useState(""),
-    [cursor, setCursor] = useState<string | null>(null),
+    [cursor, setCursor] = useState<string | null>(initial?.next_cursor ?? null),
     [error, setError] = useState<string>();
+  // The page these props were loaded for. Matching by filters (not a one-shot flag)
+  // keeps StrictMode's second effect run from refetching what the route supplied.
+  const suppliedFor = useRef(initial ? JSON.stringify(["", filterKey]) : undefined);
   useEffect(() => {
+    if (initialCatalogue) {
+      setCatalogue(initialCatalogue);
+      return;
+    }
     void api.catalogue().then((r) => {
       if (r.ok) setCatalogue(r.data);
     });
-  }, []);
+  }, [initialCatalogue]);
   const load = async (next?: string) => {
     setError(undefined);
     const attempt = ++latest.current;
@@ -141,6 +153,9 @@ export function PublicTutorDirectory({
     } else setError(describeFailure(r.error));
   };
   useEffect(() => {
+    // The route already supplied this first page; any later change loads normally.
+    if (JSON.stringify([subject, filterKey]) === suppliedFor.current) return;
+    suppliedFor.current = undefined;
     setProfiles(undefined);
     void load();
     return () => {

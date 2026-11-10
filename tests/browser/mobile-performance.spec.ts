@@ -38,6 +38,14 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
           connectionType: "cellular4g",
         });
         await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+        // The anonymous visit counter posts with fetch keepalive, which Playwright
+        // never reports as finished, so "networkidle" would never settle. Use the
+        // product's own Global Privacy Control opt-out to turn the counter off.
+        await page.addInitScript(() => {
+          Object.defineProperty(navigator, "globalPrivacyControl", {
+            value: true,
+          });
+        });
         await page.addInitScript(() => {
           (window as any).__pilotLcp = 0;
           new PerformanceObserver((list) => {
@@ -47,9 +55,19 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
         });
         await page.goto(path, { waitUntil: "networkidle" });
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        await expect(page.getByRole("article")).toHaveCount(6);
+        // Both pages also show the Tutor directory (and the homepage steps and
+        // subject cards), so count only the six fictional offers in their section.
+        const offers = page
+          .getByRole("region", {
+            name:
+              path === "/"
+                ? "Meet your next teacher"
+                : "Available teaching offers",
+          })
+          .getByRole("article");
+        await expect(offers).toHaveCount(6);
         if (path === "/") {
-          const portrait = page.getByRole("img").first();
+          const portrait = offers.first().getByRole("img").first();
           expect(
             await portrait.evaluate(
               (img) => (img as HTMLImageElement).currentSrc,

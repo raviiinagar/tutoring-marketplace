@@ -15,6 +15,7 @@ import {
   type Catalogue,
   type DiscoveryFilters,
   type DiscoveryPage,
+  type PublicTutor,
 } from "@/lib/api";
 import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,12 @@ const filterNames = [
   "max_rate_paise",
   "cursor",
 ] as const;
+type FirstView = {
+  catalogue: Catalogue | null;
+  page: DiscoveryPage | null;
+  tutors: { profiles: PublicTutor[]; next_cursor: string | null } | null;
+};
 export const Route = createFileRoute("/tutors")({
-  ssr: false,
   validateSearch: (raw: Record<string, unknown>): DiscoveryFilters => {
     const value: Record<string, unknown> = {};
     for (const key of filterNames) {
@@ -49,6 +54,26 @@ export const Route = createFileRoute("/tutors")({
         value[key] = key.endsWith("_paise") || key === "at_time" ? Number(raw[key]) : raw[key];
     }
     return value as DiscoveryFilters;
+  },
+  loaderDeps: ({ search }) => search,
+  // Server render only, with read-only GETs: the first HTML already holds the offers and
+  // the Tutor directory, so the first portrait starts downloading at once. Nothing is
+  // recorded from the server; in the browser this returns null and the page fetches and
+  // records searches exactly as before. Any failure falls back to the browser fetch.
+  loader: async ({ deps }): Promise<FirstView | null> => {
+    if (!import.meta.env.SSR) return null;
+    const [catalogue, page, tutors] = await Promise.all([
+      api.catalogue(),
+      api.discover({ ...deps, limit: 12 }),
+      hasOfferOnlyFilters(deps)
+        ? Promise.resolve(null)
+        : api.publicTutors(deps.subject_id || undefined, undefined, deps),
+    ]);
+    return {
+      catalogue: catalogue.ok ? catalogue.data : null,
+      page: page.ok ? page.data : null,
+      tutors: tutors?.ok ? tutors.data : null,
+    };
   },
   component: TutorSearch,
   head: () => ({
@@ -65,15 +90,24 @@ export const Route = createFileRoute("/tutors")({
 });
 function TutorSearch() {
   const search = Route.useSearch();
+  const firstView = Route.useLoaderData();
   const navigate = useNavigate();
-  const [catalogue, setCatalogue] = useState<Catalogue>();
-  const [page, setPage] = useState<DiscoveryPage>();
+  const [catalogue, setCatalogue] = useState<Catalogue | undefined>(
+    firstView?.catalogue ?? undefined,
+  );
+  const [page, setPage] = useState<DiscoveryPage | undefined>(firstView?.page ?? undefined);
   const [error, setError] = useState<string>();
   const [catalogueError, setCatalogueError] = useState<string>();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!firstView?.page);
   const latest = useRef(0);
   const observation = useRef<{ filters: string; key: string } | undefined>(undefined);
   const key = JSON.stringify(search);
+  // The search the server already answered, and whether it sent the catalogue too.
+  const renderedFor = useRef(firstView?.page ? key : undefined);
+  const hadCatalogue = useRef(!!firstView?.catalogue);
+  // Server-rendered buttons stay disabled until React is attached (see TeacherSearchBar).
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const loadCatalogue = async () => {
     setCatalogueError(undefined);
     const r = await api.catalogue();
@@ -81,7 +115,7 @@ function TutorSearch() {
     else setCatalogueError(describeFailure(r.error));
   };
   useEffect(() => {
-    void loadCatalogue();
+    if (!hadCatalogue.current) void loadCatalogue();
   }, []);
   const load = async () => {
     const attempt = ++latest.current;
@@ -98,6 +132,29 @@ function TutorSearch() {
     setLoading(false);
   };
   useEffect(() => {
+    if (key === renderedFor.current) {
+      // The server fetched these results read-only. Record the search once, as the
+      // in-page search does, after the first paint so it never competes with it.
+      const filters = { ...search, limit: 12 };
+      const shape = JSON.stringify(filters);
+      if (observation.current?.filters !== shape)
+        observation.current = { filters: shape, key: crypto.randomUUID() };
+      const requestKey = observation.current.key;
+      let sent = false;
+      const send = () => {
+        if (sent) return;
+        sent = true;
+        void api.observedSearch(filters, requestKey);
+      };
+      if (document.readyState === "complete") send();
+      else window.addEventListener("load", send, { once: true });
+      return () => {
+        window.removeEventListener("load", send);
+        // Leaving or changing filters first still records the search that was shown.
+        send();
+      };
+    }
+    renderedFor.current = undefined;
     void load();
     return () => {
       latest.current++;
@@ -152,7 +209,12 @@ function TutorSearch() {
           />
         </div>
         {!hasOfferOnlyFilters(search) && (
-          <PublicTutorDirectory filters={search} showSubjectFilter={false} />
+          <PublicTutorDirectory
+            filters={search}
+            showSubjectFilter={false}
+            initial={firstView?.tutors ?? undefined}
+            initialCatalogue={catalogue}
+          />
         )}
         <h2 className="mb-5 text-2xl font-semibold">Available teaching offers</h2>
         <div>
@@ -188,6 +250,7 @@ function TutorSearch() {
                           <Button
                             type="button"
                             variant="outline"
+                            disabled={!ready}
                             onClick={() =>
                               applyFilters({ ...search, location: undefined, country: undefined })
                             }
@@ -199,12 +262,18 @@ function TutorSearch() {
                           <Button
                             type="button"
                             variant="outline"
+                            disabled={!ready}
                             onClick={() => applyFilters(profileDiscoveryFilters(search))}
                           >
                             Browse free Tutor introductions
                           </Button>
                         )}
-                        <Button type="button" variant="outline" onClick={() => applyFilters({})}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={!ready}
+                          onClick={() => applyFilters({})}
+                        >
                           Reset search filters
                         </Button>
                       </div>
@@ -227,6 +296,7 @@ function TutorSearch() {
                     {search.cursor && (
                       <Button
                         variant="outline"
+                        disabled={!ready}
                         onClick={() =>
                           void navigate({ to: "/tutors", search: { ...search, cursor: undefined } })
                         }
@@ -236,6 +306,7 @@ function TutorSearch() {
                     )}
                     {page.next_cursor && (
                       <Button
+                        disabled={!ready}
                         onClick={() =>
                           void navigate({
                             to: "/tutors",

@@ -423,6 +423,25 @@ export async function erasePrivacyData(
   );
   if((await client.query("SELECT to_regclass('saved_tutors') AS relation")).rows[0].relation){await client.query('SELECT public_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id]);await client.query('DELETE FROM saved_tutors WHERE owner_id=$1 OR profile_id IN (SELECT public_id FROM tutor_profiles WHERE user_id=$1)',[user.id]);}
   if((await client.query("SELECT to_regclass('tutor_presence') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_presence WHERE user_id=$1',[user.id]);
+  // Beta community chat (ADR0017): drop membership, reactions and mutes; redact the account's messages and report notes.
+  if((await client.query("SELECT to_regclass('community_members') AS relation")).rows[0].relation){
+    const touched=(await client.query("SELECT DISTINCT m.channel_id FROM community_messages m WHERE m.author_id=$1 OR m.id IN (SELECT message_id FROM community_reactions WHERE user_id=$1)",[user.id])).rows;
+    await client.query('SELECT 1 FROM community_channels WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE',[touched.map(row=>row.channel_id)]);
+    await client.query("UPDATE community_messages SET change_seq=nextval('community_change_seq') WHERE id IN (SELECT message_id FROM community_reactions WHERE user_id=$1)",[user.id]);
+    await client.query('DELETE FROM community_reactions WHERE user_id=$1',[user.id]);
+    await client.query("UPDATE community_messages SET encrypted_body=$2,status=CASE WHEN status='VISIBLE' THEN 'DELETED_BY_AUTHOR' ELSE status END,pinned=false,change_seq=nextval('community_change_seq') WHERE author_id=$1",[user.id,redact({body:'[erased]'})]);
+    await client.query('UPDATE community_reports SET encrypted_note=$2 WHERE reporter_id=$1',[user.id,redact({note:''})]);
+    await client.query('DELETE FROM community_mutes WHERE user_id=$1',[user.id]);
+    await client.query('DELETE FROM community_members WHERE user_id=$1',[user.id]);
+    for(const row of touched)await client.query("SELECT pg_notify('community_changed',$1)",[row.channel_id]);
+  }
+  // Beta feedback (ADR0016): remove votes, hide and redact the account's feedback and drop screenshots.
+  if((await client.query("SELECT to_regclass('feedback_items') AS relation")).rows[0].relation){
+    await client.query('UPDATE feedback_items f SET vote_count=GREATEST(f.vote_count-1,0) FROM feedback_votes v WHERE v.item_id=f.id AND v.user_id=$1',[user.id]);
+    await client.query('DELETE FROM feedback_votes WHERE user_id=$1',[user.id]);
+    await client.query("UPDATE feedback_items SET encrypted_body=$2,hidden=true,screenshot_status=CASE WHEN screenshot_status='CLEAN' THEN 'REMOVED' ELSE screenshot_status END,encrypted_screenshot=NULL,screenshot_bytes=0 WHERE owner_id=$1",[user.id,redact({title:'Deleted account feedback',description:'[erased]'})]);
+    await client.query('UPDATE feedback_events SET encrypted_payload=$2 WHERE item_id IN (SELECT id FROM feedback_items WHERE owner_id=$1)',[user.id,redact({message:'[erased]',reason:'[erased]'})]);
+  }
   if((await client.query("SELECT to_regclass('tutor_onboarding_drafts') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_onboarding_drafts WHERE user_id=$1',[user.id]);
   if((await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='tutor_profiles' AND column_name='publication_status') AS present")).rows[0].present)await client.query("UPDATE tutor_profiles SET publication_status='PAUSED',adult_declared_at=NULL WHERE user_id=$1",[user.id]);
   if((await client.query("SELECT to_regclass('tutor_recommendations') AS relation")).rows[0].relation)await client.query('DELETE FROM tutor_recommendations WHERE author_id=$1 OR tutor_id=$1',[user.id]);

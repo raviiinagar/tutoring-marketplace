@@ -1,0 +1,13 @@
+# Beta feedback and a members' suggestion board
+
+On 10 November 2026 the owner asked for a way for beta users to report bugs, suggest improvements and vote on ideas, managed from the staff console. A separate live community chat is a later decision (see the last paragraph).
+
+Signed-in members send feedback in four categories: Bug, Suggestion, Feature request and UI/UX. Bug and UI/UX reports are private to their author and staff with the `SUPPORT` scope. The owner chose to publish suggestions and feature requests on a members-only board immediately, without staff approval and without the author's name or account. Each member can upvote an item once and take the vote back. Because board text is shown to other members, it is refused if it contains emails, phone numbers, social handles or links, the same rule that enquiries follow, so the board cannot be used to bypass paid contact access. Restricted accounts can read their own feedback but cannot post or vote.
+
+A report can carry one optional screenshot. It goes through the existing evidence scanner and is re-encoded, which removes EXIF and location data. The original upload is never stored. The re-encoded copy is stored encrypted, shown only to its author and to `SUPPORT` staff who give an audited reason, and deleted when the item is resolved. Without a configured scanner, screenshots are refused and feedback can still be sent.
+
+Staff triage under the existing `SUPPORT` scope with MFA, without a new staff role. Opening the queue, opening an item, viewing a screenshot and every action record the staff member's reason. Staff set status (New, Reviewing, In progress, Resolved) and priority, reply to the member, add staff-only notes and hide or unhide board items. Changes are checked against the item's revision. Feedback is separate from Support cases: it does not create a case, an appeal or a service promise, and account or payment problems still belong in Support.
+
+Feedback, its history and votes are included in privacy export. Account deletion removes the account's votes, hides and redacts its feedback, and deletes screenshots. The feature sits behind `BETA_FEEDBACK_ENABLED`, which is on by default outside production and off in production unless it is set to `true`, so it can be closed before public launch without a code change. Migration 039 is additive.
+
+Community chat stays a separate decision. The owner has settled who can take part (signed-in adult accounts only, with no private messages, an Announcements channel restricted to staff, and no user-created channels) and that contact details are blocked. It will follow the same beta switch pattern and the minor-safety rule of ADR0015.

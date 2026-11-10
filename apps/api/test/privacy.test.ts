@@ -1,4 +1,5 @@
 import { publishProfileFixture, isolatePublicationFixture, fixtureBiography, fixtureTitle, fixtureDescription, saveTutorIntroduction, fixtureClaims, publicationFixtures } from "./helpers/publication.js";
+import { historicalChild } from "./helpers/historical-child.js";
 import {grantTutorProFixture} from '../../../scripts/tutor-pro-fixture.js';
 import { grantContactFixture } from "../../../scripts/contact-request-fixture.js";
 import sharp from "sharp";
@@ -330,6 +331,22 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   ).expect(201);
   await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$2',[stranger.id,owner.id]);
   await database.pool.query('INSERT INTO saved_tutors(owner_id,profile_id) SELECT $1,public_id FROM tutor_profiles WHERE user_id=$1',[owner.id]);
+  const ownSuggestion=(await post('/v1/me/feedback',{request_key:randomUUID(),category:'SUGGESTION',title:'Fictional owner suggestion',description:'Please add a fictional calendar export.'},owner.cookie).expect(201)).body.feedback.id;
+  const strangerSuggestion=(await post('/v1/me/feedback',{request_key:randomUUID(),category:'FEATURE_REQUEST',title:'Fictional stranger request',description:'Please add a fictional dark theme.'},stranger.cookie).expect(201)).body.feedback.id;
+  await post('/v1/feedback/board/'+strangerSuggestion+'/votes',{},owner.cookie).expect(200);
+  await post('/v1/feedback/board/'+ownSuggestion+'/votes',{},stranger.cookie).expect(200);
+  const generalChannel='3a7c9a3e-6d1b-4c55-9a0e-0f5d2b1c0002';
+  await post('/v1/community/membership',{nickname:'Owner Nick',adult_confirmed:true,rules_accepted:true},owner.cookie).expect(200);
+  await post('/v1/community/membership',{nickname:'Stranger Nick',adult_confirmed:true,rules_accepted:true},stranger.cookie).expect(200);
+  const ownerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional community message to erase.'},owner.cookie).expect(201)).body.message.id;
+  const strangerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional reply target.'},stranger.cookie).expect(201)).body.message.id;
+  await post('/v1/community/messages/'+strangerPost+'/reactions',{emoji:'HEART'},owner.cookie).expect(200);
+  const exported=await database.transaction(async client=>{const {personalExport}=await import('../src/privacy-inventory.js');return personalExport(client,(await client.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock);});
+  assert.deepEqual(exported.feedback.map((f:any)=>[f.id,f.title]),[[ownSuggestion,'Fictional owner suggestion']]);
+  assert.deepEqual(exported.feedback_votes.map((v:any)=>v.item_id),[strangerSuggestion]);
+  assert.equal(exported.community.membership.nickname,'Owner Nick');
+  assert.deepEqual(exported.community.messages.map((m:any)=>m.body),['A fictional community message to erase.']);
+  assert.deepEqual(exported.community.reactions.map((r:any)=>[r.message_id,r.emoji]),[[strangerPost,'HEART']]);
   const identity = await post(
     "/v1/me/privacy/verifications",
     { password, purpose: "DELETE" },
@@ -356,6 +373,19 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   assert.equal(state.authenticated, false);
   assert.equal(result.status, "COMPLETED");
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM tutor_presence WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM feedback_votes WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT vote_count FROM feedback_items WHERE id=$1',[strangerSuggestion])).rows[0].vote_count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_members WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_reactions WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  const erasedMessage=(await database.pool.query('SELECT status,encrypted_body FROM community_messages WHERE id=$1',[ownerPost])).rows[0];
+  assert.equal(erasedMessage.status,'DELETED_BY_AUTHOR');
+  assert.equal(decrypt<{body:string}>(erasedMessage.encrypted_body,config.authSecret).body,'[erased]');
+  const seenByStranger=(await get('/v1/community/channels/'+generalChannel+'/messages',stranger.cookie).expect(200)).body.messages.find((m:any)=>m.id===ownerPost);
+  assert.deepEqual([seenByStranger.author.nickname,seenByStranger.body],['Former member',null]);
+  const erasedFeedback=(await database.pool.query('SELECT hidden,encrypted_body FROM feedback_items WHERE id=$1',[ownSuggestion])).rows[0];
+  assert.equal(erasedFeedback.hidden,true);
+  assert.equal(decrypt<{description:string}>(erasedFeedback.encrypted_body,config.authSecret).description,'[erased]');
+  assert.ok(!(await get('/v1/feedback/board',stranger.cookie).expect(200)).body.suggestions.some((f:any)=>f.id===ownSuggestion));
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM saved_tutors WHERE owner_id=$1 OR profile_id IN (SELECT public_id FROM tutor_profiles WHERE user_id=$1)',[owner.id])).rows[0].count,0);
   assert.ok(result.result.retained.some((r: any) => r.class === "EVIDENCE"));
   assert.ok(!JSON.stringify(state).includes(owner.email));
@@ -614,172 +644,18 @@ async function mature(s: Awaited<ReturnType<typeof accepted>>, offset = week) {
 }
 const reviewPath = (id: string) => "/v1/me/connections/" + id + "/review";
 
-test("Guardian withdrawal erases the selected child context, revokes old grants and respects fresh later consent", async () => {
+test("the privacy overview still lists a historical child profile to its owner only (ADR 0015)", async () => {
   const owner = await fixture(null),
-    teacher = await tutor(),
-    listing = await publish(teacher);
-  const consent = {
-    accepted: true,
-    notice_version: "test-notice-v1",
-    consent_version: "test-consent-v1",
-  };
-  const applied = (
-    await post(
-      "/v1/me/guardian-verifications",
-      {
-        adult_reference: "test-adult-confirmed",
-        authority_reference: "test-authority-confirmed",
-        adult_confirmed: true,
-        consent,
-      },
-      owner.cookie,
-    ).expect(201)
-  ).body;
-  await post(
-    "/v1/staff/guardian-verifications/" + applied.id + "/reviews",
-    {
-      decision: "APPROVE",
-      identifiable_adult_reviewed: true,
-      authority_reviewed: true,
-      reason: "Fictional Guardian authority reviewed",
-    },
-    teacher.reviewer!.cookie,
-  ).expect(200);
-  const child = (
-    await post(
-      "/v1/me/learners/children",
-      {
-        alias: "Private child nickname",
-        learning_requirements: "Practice Physics concepts with examples",
-        age_band: "13_15",
-        consent,
-      },
-      owner.cookie,
-    ).expect(201)
-  ).body.profile;
-  const privacyChildren = (
-    await get("/v1/me/privacy", owner.cookie).expect(200)
-  ).body.child_profiles;
-  assert.deepEqual(privacyChildren, [{ id: child.id, alias: child.alias }]);
+    teacher = await tutor();
+  const child = await historicalChild(database, owner.id, clock);
   assert.deepEqual(
-    (await get("/v1/me/privacy", teacher.cookie).expect(200)).body
-      .child_profiles,
+    (await get("/v1/me/privacy", owner.cookie).expect(200)).body.child_profiles,
+    [{ id: child.profileId, alias: child.alias }],
+  );
+  assert.deepEqual(
+    (await get("/v1/me/privacy", teacher.cookie).expect(200)).body.child_profiles,
     [],
   );
-  await grant(owner.email);
-  const pending = (
-    await submit(enquiry(child.id, listing), owner.cookie).expect(200)
-  ).body.request;
-  const connection = (
-    await decide(pending.id, "ACCEPT", teacher.cookie).expect(200)
-  ).body.connection_id;
-  await post(
-    "/v1/me/connections/" + connection + "/messages",
-    {
-      client_message_id: randomUUID(),
-      text: "A fictional message about the child learning context.",
-    },
-    owner.cookie,
-  ).expect(201);
-  const verification = (
-    await post(
-      "/v1/me/privacy/verifications",
-      { password, purpose: "WITHDRAW" },
-      owner.cookie,
-    ).expect(200)
-  ).body.proof;
-  const job = (
-    await post(
-      "/v1/me/privacy/requests",
-      {
-        request_key: randomUUID(),
-        kind: "WITHDRAW",
-        profile_id: child.id,
-        verification,
-      },
-      owner.cookie,
-    ).expect(202)
-  ).body.request;
-  await get(
-    "/v1/me/connections/" + connection + "/contacts",
-    teacher.cookie,
-  ).expect(403);
-  const { PrivacyWorker, reapplyPrivacyTombstones } =
-    await import("../src/privacy-worker.js");
-  await new PrivacyWorker(database, config, now).tick();
-  const state = (await get("/v1/me/privacy", owner.cookie).expect(200)).body;
-  assert.equal(
-    state.requests.find((r: any) => r.id === job.id).status,
-    "COMPLETED",
-  );
-  let learner = (
-    await get("/v1/me/learners", owner.cookie).expect(200)
-  ).body.profiles.find((r: any) => r.id === child.id);
-  assert.equal(learner.alias, "Withdrawn learner");
-  assert.equal(learner.status, "WITHDRAWN");
-  const exportedProof = (
-    await post(
-      "/v1/me/privacy/verifications",
-      { password, purpose: "EXPORT" },
-      owner.cookie,
-    ).expect(200)
-  ).body.proof;
-  const exported = (
-    await post(
-      "/v1/me/privacy/requests",
-      {
-        request_key: randomUUID(),
-        kind: "EXPORT",
-        verification: exportedProof,
-      },
-      owner.cookie,
-    ).expect(202)
-  ).body.request;
-  await new PrivacyWorker(database, config, now).tick();
-  const proof = (
-    await post(
-      "/v1/me/privacy/verifications",
-      { password, purpose: "DOWNLOAD" },
-      owner.cookie,
-    ).expect(200)
-  ).body.proof;
-  const data = (
-    await post(
-      "/v1/me/privacy/requests/" + exported.id + "/download",
-      { verification: proof },
-      owner.cookie,
-    ).expect(200)
-  ).body;
-  assert.ok(
-    !JSON.stringify(data).includes(
-      "A fictional message about the child learning context.",
-    ),
-  );
-  // A new explicit consent may authorize new processing; it must not restore old messages/grants.
-  clock = new Date(clock.getTime() + 1000);
-  await post(
-    "/v1/me/learners/" + child.id + "/consents",
-    consent,
-    owner.cookie,
-  ).expect(200);
-  await post(
-    "/v1/me/learners/" + child.id,
-    {
-      alias: "Fresh fictional alias",
-      learning_requirements: "Newly consented learning requirements",
-    },
-    owner.cookie,
-  ).expect(200);
-  await reapplyPrivacyTombstones(database, config, now);
-  learner = (
-    await get("/v1/me/learners", owner.cookie).expect(200)
-  ).body.profiles.find((r: any) => r.id === child.id);
-  assert.equal(learner.alias, "Fresh fictional alias");
-  assert.equal(learner.usable, true);
-  await get(
-    "/v1/me/connections/" + connection + "/contacts",
-    teacher.cookie,
-  ).expect(403);
 });
 
 test("restore fails closed when the independent privacy ledger is unavailable", async () => {
