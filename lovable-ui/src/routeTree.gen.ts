@@ -59,6 +59,7 @@ import { Route as StaffRecommendationsRouteImport } from './routes/staff_.recomm
 import { Route as StaffReviewsRouteImport } from './routes/staff_.reviews'
 import { Route as StaffSafetyRouteImport } from './routes/staff_.safety'
 import { Route as StaffSupportRouteImport } from './routes/staff_.support'
+import { Route as StaffTutorOnboardingRouteImport } from './routes/staff_.tutor-onboarding'
 import { Route as StaffTutorsRouteImport } from './routes/staff_.tutors'
 import { Route as TeachersSlugRouteImport } from './routes/teachers.$slug'
 import { Route as TutorDashboardRouteImport } from './routes/tutor_.dashboard'
@@ -320,6 +321,11 @@ const StaffSupportRoute = StaffSupportRouteImport.update({
   path: '/staff/support',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffTutorOnboardingRoute = StaffTutorOnboardingRouteImport.update({
+  id: '/staff_/tutor-onboarding',
+  path: '/staff/tutor-onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffTutorsRoute = StaffTutorsRouteImport.update({
   id: '/staff_/tutors',
   path: '/staff/tutors',
@@ -417,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
+  '/staff/tutor-onboarding': typeof StaffTutorOnboardingRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/dashboard': typeof TutorDashboardRoute
@@ -478,6 +485,7 @@ export interface FileRoutesByTo {
   '/staff/reviews': typeof StaffReviewsRoute
   '/staff/safety': typeof StaffSafetyRoute
   '/staff/support': typeof StaffSupportRoute
+  '/staff/tutor-onboarding': typeof StaffTutorOnboardingRoute
   '/staff/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor/dashboard': typeof TutorDashboardRoute
@@ -540,6 +548,7 @@ export interface FileRoutesById {
   '/staff_/reviews': typeof StaffReviewsRoute
   '/staff_/safety': typeof StaffSafetyRoute
   '/staff_/support': typeof StaffSupportRoute
+  '/staff_/tutor-onboarding': typeof StaffTutorOnboardingRoute
   '/staff_/tutors': typeof StaffTutorsRoute
   '/teachers/$slug': typeof TeachersSlugRoute
   '/tutor_/dashboard': typeof TutorDashboardRoute
@@ -603,6 +612,7 @@ export interface FileRouteTypes {
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
+    | '/staff/tutor-onboarding'
     | '/staff/tutors'
     | '/teachers/$slug'
     | '/tutor/dashboard'
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/staff/reviews'
     | '/staff/safety'
     | '/staff/support'
+    | '/staff/tutor-onboarding'
     | '/staff/tutors'
     | '/teachers/$slug'
     | '/tutor/dashboard'
@@ -725,6 +736,7 @@ export interface FileRouteTypes {
     | '/staff_/reviews'
     | '/staff_/safety'
     | '/staff_/support'
+    | '/staff_/tutor-onboarding'
     | '/staff_/tutors'
     | '/teachers/$slug'
     | '/tutor_/dashboard'
@@ -787,6 +799,7 @@ export interface RootRouteChildren {
   StaffReviewsRoute: typeof StaffReviewsRoute
   StaffSafetyRoute: typeof StaffSafetyRoute
   StaffSupportRoute: typeof StaffSupportRoute
+  StaffTutorOnboardingRoute: typeof StaffTutorOnboardingRoute
   StaffTutorsRoute: typeof StaffTutorsRoute
   TeachersSlugRoute: typeof TeachersSlugRoute
   TutorDashboardRoute: typeof TutorDashboardRoute
@@ -1150,6 +1163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffSupportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff_/tutor-onboarding': {
+      id: '/staff_/tutor-onboarding'
+      path: '/staff/tutor-onboarding'
+      fullPath: '/staff/tutor-onboarding'
+      preLoaderRoute: typeof StaffTutorOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff_/tutors': {
       id: '/staff_/tutors'
       path: '/staff/tutors'
@@ -1267,6 +1287,7 @@ const rootRouteChildren: RootRouteChildren = {
   StaffReviewsRoute: StaffReviewsRoute,
   StaffSafetyRoute: StaffSafetyRoute,
   StaffSupportRoute: StaffSupportRoute,
+  StaffTutorOnboardingRoute: StaffTutorOnboardingRoute,
   StaffTutorsRoute: StaffTutorsRoute,
   TeachersSlugRoute: TeachersSlugRoute,
   TutorDashboardRoute: TutorDashboardRoute,

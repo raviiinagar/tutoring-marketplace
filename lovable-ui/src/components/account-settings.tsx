@@ -13,6 +13,7 @@ import { Check, ShieldCheck, Bell, Camera, CreditCard } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AccountAvatar } from "./account-avatar";
 import { accountSessionKey } from "@/lib/session";
+import { siteFeatures } from "@/lib/site-visibility";
 
 export function AccountSettings() {
   const navigate = useNavigate();
@@ -546,9 +547,11 @@ export function AccountSettings() {
                 <Link to="/feedback" className="min-h-10 underline">
                   Beta feedback and suggestions
                 </Link>
-                <Link to="/community" className="min-h-10 underline">
-                  Community chat
-                </Link>
+                {siteFeatures.community && (
+                  <Link to="/community" className="min-h-10 underline">
+                    Community chat
+                  </Link>
+                )}
                 <Link to="/safety" className="min-h-10 underline">
                   Safety and reports
                 </Link>

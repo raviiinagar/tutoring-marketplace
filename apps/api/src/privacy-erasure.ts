@@ -435,6 +435,11 @@ export async function erasePrivacyData(
     await client.query('DELETE FROM community_members WHERE user_id=$1',[user.id]);
     for(const row of touched)await client.query("SELECT pg_notify('community_changed',$1)",[row.channel_id]);
   }
+  // Assisted onboarding (ADR0018): withdraw any active request and erase the contact details.
+  if((await client.query("SELECT to_regclass('tutor_onboarding_requests') AS relation")).rows[0].relation){
+    await client.query("UPDATE tutor_onboarding_requests SET status='CANCELLED',cancelled_at=$2,cancelled_by='ERASURE',assigned_to=NULL,revision=revision+1,updated_at=$2 WHERE user_id=$1 AND status IN ('OPEN','IN_PROGRESS')",[user.id,at]);
+    await client.query('UPDATE tutor_onboarding_requests SET encrypted_contact=NULL,staff_note=NULL WHERE user_id=$1',[user.id]);
+  }
   // Beta feedback (ADR0016): remove votes, hide and redact the account's feedback and drop screenshots.
   if((await client.query("SELECT to_regclass('feedback_items') AS relation")).rows[0].relation){
     await client.query('UPDATE feedback_items f SET vote_count=GREATEST(f.vote_count-1,0) FROM feedback_votes v WHERE v.item_id=f.id AND v.user_id=$1',[user.id]);

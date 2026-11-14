@@ -1,7 +1,8 @@
-import { useRef, useState, type FormEvent } from "react";
-import { api, describeFailure } from "@/lib/api";
+import { useRef, useState } from "react";
+import { describeFailure } from "@/lib/api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTutorApi } from "@/lib/tutor-api";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 import { useAccountPhoto, updateAccountPhoto } from "@/lib/account-photo";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,23 @@ import { Button } from "@/components/ui/button";
 export function TutorPhotoEditor() {
   const { user } = useTutorAccount();
   const client = useQueryClient();
-  const photoQuery = useAccountPhoto(user);
+  const tutorApi = useTutorApi();
+  // On the staff onboarding page (ADR0018) the photo belongs to the Tutor, not the
+  // signed-in team member, so it is loaded through the same calls the wizard uses.
+  const assisted = tutorApi.scope !== "own";
+  const ownPhoto = useAccountPhoto(assisted ? null : user);
+  const assistedPhoto = useQuery({
+    queryKey: ["tutor-photo", tutorApi.scope],
+    enabled: assisted,
+    retry: false,
+    gcTime: 0,
+    queryFn: async () => {
+      const result = await tutorApi.tutorPhoto();
+      if (result.ok) return result.data;
+      throw new Error("Could not load the Tutor's profile photo.");
+    },
+  });
+  const photoQuery = assisted ? assistedPhoto : ownPhoto;
   const state = photoQuery.data;
   const [file, setFile] = useState<File>();
   const [consent, setConsent] = useState(false);
@@ -22,8 +39,9 @@ export function TutorPhotoEditor() {
     const result = await photoQuery.refetch();
     if (result.isError) setError("Could not load your profile photo. Please try again.");
   };
-  const upload = (event: FormEvent) => {
-    event.preventDefault();
+  // Not a <form>: the ad wizard renders this editor inside its own form, and a nested
+  // form submitted natively, reloading the page instead of uploading.
+  const upload = () => {
     void run(async () => {
       setError(undefined);
       setNotice(undefined);
@@ -40,12 +58,13 @@ export function TutorPhotoEditor() {
       let value = "";
       for (let i = 0; i < bytes.length; i += 32768)
         value += String.fromCharCode(...bytes.subarray(i, i + 32768));
-      const result = await api.uploadTutorPhoto(file.type, btoa(value));
+      const result = await tutorApi.uploadTutorPhoto(file.type, btoa(value));
       if (result.ok) {
         setConsent(false);
         setFile(undefined);
         if (input.current) input.current.value = "";
-        if (user) updateAccountPhoto(client, user.id, { ...state, photo: result.data.photo });
+        if (user && !assisted)
+          updateAccountPhoto(client, user.id, { ...state, photo: result.data.photo });
         await load();
         setNotice("Portrait uploaded. Check its scan and Trust review status below.");
       } else setError(describeFailure(result.error));
@@ -121,7 +140,7 @@ export function TutorPhotoEditor() {
               {state.photo.scan_status === "CLEAN" &&
                 ["PENDING", "APPROVED"].includes(state.photo.status) && (
                   <img
-                    src={api.photoPreviewUrl(state.photo.id)}
+                    src={tutorApi.photoPreviewUrl(state.photo.id)}
                     alt="Your submitted Tutor portrait"
                     className="aspect-[4/5] w-40 rounded-xl object-cover"
                   />
@@ -136,9 +155,10 @@ export function TutorPhotoEditor() {
                   void run(async () => {
                     setError(undefined);
                     setNotice(undefined);
-                    const result = await api.removeTutorPhoto(state.photo!.id);
+                    const result = await tutorApi.removeTutorPhoto(state.photo!.id);
                     if (result.ok) {
-                      if (user) updateAccountPhoto(client, user.id, { ...state, photo: null });
+                      if (user && !assisted)
+                        updateAccountPhoto(client, user.id, { ...state, photo: null });
                       await load();
                       setNotice("Portrait removed.");
                     } else setError(describeFailure(result.error));
@@ -149,7 +169,7 @@ export function TutorPhotoEditor() {
               </Button>
             </div>
           )}
-          <form onSubmit={upload} className="space-y-3">
+          <div className="space-y-3">
             <label className="block text-sm font-semibold">
               Portrait image
               <input
@@ -172,11 +192,13 @@ export function TutorPhotoEditor() {
                 disabled={loading}
                 onChange={(e) => setConsent(e.target.checked)}
               />
-              This is my own adult portrait, and I agree to display it publicly once scanning
-              passes.
+              {assisted
+                ? "This is the Tutor's own adult portrait, which they sent us and agreed to show publicly once scanning passes."
+                : "This is my own adult portrait, and I agree to display it publicly once scanning passes."}
             </label>
             <Button
-              type="submit"
+              type="button"
+              onClick={upload}
               disabled={loading || !file || !consent || !state.policy.uploads_enabled}
             >
               {loading
@@ -185,7 +207,7 @@ export function TutorPhotoEditor() {
                   ? "Upload photo"
                   : "Upload photo for review"}
             </Button>
-          </form>
+          </div>
           <Button variant="outline" disabled={loading} onClick={() => void load()}>
             Refresh photo status
           </Button>

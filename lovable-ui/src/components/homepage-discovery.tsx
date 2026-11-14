@@ -13,6 +13,7 @@ import {
 import { api, type Catalogue, type LocationSuggestion } from "@/lib/api";
 import { Button } from "./ui/button";
 import { subjectShortcuts } from "./subject-shortcuts";
+import { homepageSections } from "@/lib/site-visibility";
 export function PopularSubjects({ catalogue }: { catalogue: Catalogue }) {
   const track = useRef<HTMLDivElement>(null),
     [edges, setEdges] = useState({ start: true, end: true });
@@ -86,10 +87,12 @@ export function PopularSubjects({ catalogue }: { catalogue: Catalogue }) {
       >
         <ArrowRight aria-hidden />
       </button>
-      <a href="#subjects" className="subject-browse-all">
-        <BookOpen aria-hidden className="size-4" />
-        All subjects
-      </a>
+      {homepageSections.subjectExplorer && (
+        <a href="#subjects" className="subject-browse-all">
+          <BookOpen aria-hidden className="size-4" />
+          All subjects
+        </a>
+      )}
     </nav>
   );
 }

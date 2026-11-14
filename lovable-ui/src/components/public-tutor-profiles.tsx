@@ -99,12 +99,15 @@ export function PublicTutorDirectory({
   showSubjectFilter = false,
   initial,
   initialCatalogue,
+  wide = false,
 }: {
   filters?: DiscoveryFilters;
   showSubjectFilter?: boolean;
   /** First page already loaded with the route, so the cards render without a client fetch. */
   initial?: { profiles: PublicTutor[]; next_cursor: string | null } | undefined;
   initialCatalogue?: Catalogue | undefined;
+  /** Four cards per row on wide screens, for full-width pages such as the homepage. */
+  wide?: boolean;
 }) {
   const filterKey = JSON.stringify(filters),
     latest = useRef(0);
@@ -200,7 +203,11 @@ export function PublicTutorDirectory({
       ) : profiles === undefined ? (
         <p role="status">Loading Tutor profiles…</p>
       ) : profiles.length ? (
-        <div className="tutor-card-grid grid sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          className={
+            "tutor-card-grid grid sm:grid-cols-2 lg:grid-cols-3" + (wide ? " xl:grid-cols-4" : "")
+          }
+        >
           {profiles.map((p, index) => (
             <PublicTutorCard key={p.id} profile={p} catalogue={catalogue} priority={index === 0} />
           ))}

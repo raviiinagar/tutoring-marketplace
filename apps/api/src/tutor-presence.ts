@@ -1,3 +1,4 @@
+import {actingTutor,type TutorActor} from './tutor-delegation.js';
 import {Body,Controller,Get,HttpCode,Inject,Post,Req} from '@nestjs/common';
 import type {Request} from 'express';
 import type {PoolClient} from 'pg';
@@ -32,10 +33,10 @@ export async function requireTutorMode(client:PoolClient,userId:string,mode:stri
 }
 export class TutorPresenceService{
  constructor(private readonly db:Database,private readonly auth:AuthService,private readonly now:()=>Date=()=>new Date()){}
- async own(token?:string){return this.db.transaction(async c=>{const {user}=await this.auth.authenticated(c,token);return {presence:await this.snapshot(c,user.id)};});}
+ async own(token?:TutorActor){return this.db.transaction(async c=>{const {user}=await actingTutor(this.auth,c,token);return {presence:await this.snapshot(c,user.id)};});}
  private async snapshot(c:PoolClient,id:string){const p=(await c.query('SELECT *,revision AS presence_revision,updated_at AS presence_updated_at FROM tutor_presence WHERE user_id=$1',[id])).rows[0];return publicPresence(p??{});}
- async save(token:string|undefined,v:z.infer<typeof presenceInput>,correlation:string){return this.db.transaction(async c=>{
-  const {user}=await this.auth.authenticated(c,token);if(!user.roles.includes('TUTOR'))throw new ApiProblem(403,'TUTOR_ROLE_REQUIRED','Choose the Tutor role before saving teaching preferences.');const profile=(await c.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];if(!profile)throw new ApiProblem(409,'TUTOR_PROFILE_REQUIRED','Save your Tutor introduction first.');
+ async save(token:TutorActor,v:z.infer<typeof presenceInput>,correlation:string){return this.db.transaction(async c=>{
+  const {user}=await actingTutor(this.auth,c,token);if(!user.roles.includes('TUTOR'))throw new ApiProblem(403,'TUTOR_ROLE_REQUIRED','Choose the Tutor role before saving teaching preferences.');const profile=(await c.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];if(!profile)throw new ApiProblem(409,'TUTOR_PROFILE_REQUIRED','Save your Tutor introduction first.');
   const old=(await c.query('SELECT * FROM tutor_presence WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];if((old?.revision??0)!==v.expected_revision)throw new ApiProblem(409,'PRESENCE_CHANGED','Your location or hours changed. Refresh before saving.');
   const slots=[...v.weekly_slots].sort((a,b)=>weekdays.indexOf(a.day)-weekdays.indexOf(b.day)||a.start_minute-b.start_minute);
   await c.query(`INSERT INTO tutor_presence(user_id,location,teaching_modes,accepting_students,weekly_slots,timezone,updated_at) VALUES($1,$2,$3,$4,$5,'Asia/Kolkata',$6) ON CONFLICT(user_id) DO UPDATE SET location=$2,teaching_modes=$3,accepting_students=$4,weekly_slots=$5,revision=tutor_presence.revision+1,updated_at=$6`,[user.id,v.location,v.teaching_modes,v.accepting_students,JSON.stringify(slots),this.now()]);

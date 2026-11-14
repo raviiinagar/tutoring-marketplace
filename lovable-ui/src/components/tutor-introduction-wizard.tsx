@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useTutorApi } from "@/lib/tutor-api";
 import { Link } from "@tanstack/react-router";
 import {
   api,
@@ -68,6 +69,7 @@ export function TutorIntroductionWizard({
   profile?: TutorProfile | null | undefined;
   onCompleted: (state: TutorState, notice?: string) => void;
 }) {
+  const tutorApi = useTutorApi();
   const [form, setForm] = useState(initial),
     [step, setStep] = useState(0),
     [draft, setDraft] = useState<TutorOnboardingDraft | null>(null),
@@ -89,7 +91,7 @@ export function TutorIntroductionWizard({
   async function load() {
     setError(undefined);
     setReady(false);
-    const r = await api.tutorOnboardingDraft();
+    const r = await tutorApi.tutorOnboardingDraft();
     if (!alive.current) return;
     if (r.ok) {
       setDraft(r.data.draft);
@@ -129,7 +131,7 @@ export function TutorIntroductionWizard({
   }
   async function persist(next: number) {
     const { replace_identity: _, expected_public_revision: __, ...data } = form;
-    const r = await api.saveTutorOnboardingDraft({
+    const r = await tutorApi.saveTutorOnboardingDraft({
       revision: draft?.revision ?? 0,
       step: next,
       data,
@@ -180,7 +182,7 @@ export function TutorIntroductionWizard({
           return;
         }
       }
-      const result = await api.saveTutorIntroduction(form);
+      const result = await tutorApi.saveTutorIntroduction(form);
       if (!alive.current) return;
       if (!result.ok) {
         setError(describeFailure(result.error));
@@ -188,7 +190,7 @@ export function TutorIntroductionWizard({
       }
       let cleanupNotice: string | undefined;
       if (draft) {
-        const cleared = await api.clearTutorOnboardingDraft(draft.revision);
+        const cleared = await tutorApi.clearTutorOnboardingDraft(draft.revision);
         if (!cleared.ok)
           cleanupNotice =
             "Profile saved. A private working draft was retained because it could not be cleared; your saved profile is unaffected.";
