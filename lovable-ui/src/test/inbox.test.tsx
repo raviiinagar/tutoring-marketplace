@@ -256,7 +256,7 @@ it("opens a deep selection, retains composer constraints, and returns to list fo
 it("shows unavailable Connection reasons and server denial in the pane without starting chat or disclosing contacts", async () => {
   render(<Harness initial={{ conversation: "held" }} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("This Connection is restricted.");
-  expect(screen.getByRole("heading", { name: "Connection access" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Conversation access" })).toBeVisible();
   expect(screen.queryByRole("log")).toBeNull();
   expect(screen.queryByRole("button", { name: "Show verified contact" })).toBeNull();
   await waitFor(() => expect(active.size).toBe(0));

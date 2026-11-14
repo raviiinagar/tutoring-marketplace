@@ -21,8 +21,9 @@ export function PublicTutorReputation({ profileId }: { profileId: string }) {
           </p>
           <p className="text-sm text-muted-foreground">{result.meaning}</p>
           <p className="text-sm">
-            {result.recommendations} published network recommendations. These are separate from
-            reviews by connected students and do not verify teaching qualifications.
+            {result.recommendations === 1
+              ? "1 recommendation from someone who knows this Tutor."
+              : `${result.recommendations} recommendations from people who know this Tutor.`}
           </p>
           {result.published_recommendations?.map((item) => (
             <blockquote key={item.id} className="rounded-2xl border p-5">

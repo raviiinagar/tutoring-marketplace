@@ -644,9 +644,9 @@ export function TutorListingsManager({
                   {step === 0 && (
                     <div className="space-y-5">
                       <label className="block">
-                        Learning Domain
+                        Subject area
                         <select
-                          aria-label="Learning Domain"
+                          aria-label="Subject area"
                           className="input mt-2"
                           value={offer.domain_id}
                           onChange={(e) =>

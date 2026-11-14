@@ -59,8 +59,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
             Contact {name}
           </a>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Tuition and any trial fee are paid directly to the Tutor. In-app enquiries use the
-            Learner Access Pass.
+            You pay the Tutor directly for lessons. Sending an enquiry needs an Access Pass.
           </p>
         </>
       }
@@ -95,7 +94,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
         <ContactRequestForm key={listing.id + listing.revision} listing={listing} />
       </div>
       <details className="rounded-2xl border p-5">
-        <summary className="cursor-pointer font-semibold">Review & verification details</summary>
+        <summary className="cursor-pointer font-semibold">About our checks</summary>
         <ul className="mt-4 space-y-3">
           {listing.evidence_labels.map((check, i) => (
             <li key={i}>
@@ -118,7 +117,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
         params={{ domain: listing.offer.domain_id, subject: listing.offer.subject_id }}
         className="link mt-6 inline-block"
       >
-        Explore this subject and Learning Domain
+        More Tutors for this subject
       </Link>
     </TutorProfileLayout>
   );
@@ -137,9 +136,8 @@ export function CategoryPage({ page }: { page: PublicCategoryPage }) {
             Learn {page.subject.label} with an online Tutor
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Compare exact teaching combinations, Learner Levels and tuition units. Browse freely and
-            pay tuition directly to your Tutor. The platform Access Pass covers eligible
-            connections; it does not book a lesson.
+            Compare Tutors, levels and prices. Browsing is free, and you pay your Tutor directly for
+            lessons.
           </p>
         </header>
         <p className="mb-5 text-sm">{page.offers.length} currently available teaching offers.</p>

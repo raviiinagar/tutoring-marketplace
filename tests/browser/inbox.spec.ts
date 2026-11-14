@@ -22,7 +22,7 @@ for (const tutor of [false, true])
       await expect(navigation).toBeVisible();
       await expect(
         page.getByRole("link", {
-          name: "Incoming Tutor enquiries",
+          name: "Enquiries from learners",
           exact: true,
         }),
       ).toHaveCount(tutor ? 1 : 0);
@@ -172,16 +172,11 @@ for (const tutor of [false, true])
         width === 390
           ? page.getByRole("complementary", { name: "Conversations" })
           : page.getByRole("region", { name: "Messages" });
-      await expect(
-        emptySearch.getByRole("link", {
-          name: "Search for a teacher",
-          exact: true,
-        }),
-      ).toBeVisible();
-      await expect(
-        emptySearch.getByRole("link", {
-          name: "Search for a teacher",
-          exact: true,
-        }),
-      ).toHaveAttribute("href", "/tutors");
+      // Learners are pointed to search; the Tutor inbox leaves it out (da5676c).
+      const search = emptySearch.getByRole("link", { name: "Search for a teacher", exact: true });
+      if (tutor) await expect(search).toHaveCount(0);
+      else {
+        await expect(search).toBeVisible();
+        await expect(search).toHaveAttribute("href", "/tutors");
+      }
     });

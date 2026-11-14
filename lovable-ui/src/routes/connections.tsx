@@ -244,7 +244,7 @@ export function Connections({
           </Link>
           {teachingWorkspace && (
             <Link to="/tutor/requests" className="link mt-3 block">
-              Incoming Tutor enquiries
+              Enquiries from learners
             </Link>
           )}
         </aside>

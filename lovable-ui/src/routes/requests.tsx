@@ -10,7 +10,7 @@ export const Route = createFileRoute("/requests")({
   component: Requests,
   head: () => ({
     meta: [
-      { title: "Your Contact Requests — Tutor Marketplace" },
+      { title: "My enquiries — Tutor Marketplace" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -41,7 +41,7 @@ function Requests() {
     return () => window.removeEventListener("focus", focus);
   }, [load]);
   return (
-    <AuthShell title="Your Contact Requests">
+    <AuthShell title="My enquiries">
       <p className="text-sm text-muted-foreground">
         Enquiries and their response deadlines. A pending request is not an accepted lesson or
         permission to share contacts.
@@ -119,7 +119,7 @@ function Requests() {
           ))}
         </div>
       )}
-      <nav className="mt-6 flex flex-wrap gap-3" aria-label="Contact Request pages">
+      <nav className="mt-6 flex flex-wrap gap-3" aria-label="Enquiry pages">
         <Button variant="outline" disabled={loading} onClick={() => void load()}>
           Refresh requests
         </Button>

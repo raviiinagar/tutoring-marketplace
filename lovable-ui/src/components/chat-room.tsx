@@ -119,7 +119,7 @@ export function ChatRoom({
       setPending(undefined);
       setRevoked(true);
       setError(
-        "Chat access is unavailable. Your session or Connection permission may have changed.",
+        "Chat access is unavailable. You may have been signed out, or this conversation is no longer available.",
       );
       setStatus("Access unavailable");
     };

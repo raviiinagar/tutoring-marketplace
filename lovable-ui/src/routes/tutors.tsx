@@ -323,10 +323,6 @@ function TutorSearch() {
             )}
           </section>
         </div>
-        <p className="mt-10 text-sm text-muted-foreground">
-          Evidence reviews describe specific checks, not a guarantee of teaching quality or learning
-          outcomes. Availability is checked again before a Contact Request can be authorized.
-        </p>
       </main>
     </div>
   );

@@ -55,7 +55,7 @@ it("keeps lesson pricing and contact eligibility separate without inventing free
   expect(screen.getByRole("link", { name: "Contact Fictional Asha" }).getAttribute("href")).toBe(
     "#contact",
   );
-  expect(screen.getByText(/In-app enquiries use the Learner Access Pass/)).toBeTruthy();
+  expect(screen.getByText(/Sending an enquiry needs an Access Pass/)).toBeTruthy();
   expect(screen.getByRole("form", { name: "Existing enquiry form" })).toBeTruthy();
   expect(screen.getByText("Identity review does not verify teaching expertise.")).toBeTruthy();
 });

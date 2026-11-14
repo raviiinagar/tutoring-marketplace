@@ -112,7 +112,7 @@ for (const viewport of [
     await page.goto("/tutor/requests");
     await expect(
       page.getByRole("heading", {
-        name: "Incoming Tutor enquiries",
+        name: "Enquiries from learners",
         exact: true,
       }),
     ).toBeVisible();

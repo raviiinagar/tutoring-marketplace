@@ -151,14 +151,8 @@ function Profile() {
             No available teaching offers yet. Check back later to enquire about classes.
           </p>
         )}
-        {!p.contact && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Public contact details are not available.
-          </p>
-        )}
         <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-          In-app enquiries use the Learner Access Pass. Tuition is arranged and paid directly with
-          the Tutor.
+          You pay the Tutor directly for lessons. Sending an enquiry needs an Access Pass.
         </p>
       </section>
       <PublicTutorReputation profileId={p.id} />

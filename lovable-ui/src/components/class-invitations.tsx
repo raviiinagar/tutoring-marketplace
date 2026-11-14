@@ -43,7 +43,7 @@ function useClasses(connectionId: string) {
         setState(undefined);
       setError(
         result.error.kind === "http" && result.error.status === 404
-          ? "Class scheduling is unavailable for this Connection."
+          ? "Class scheduling is unavailable for this conversation."
           : describeFailure(result.error),
       );
     }
@@ -120,7 +120,7 @@ export function ClassInvitations({ connectionId }: { connectionId: string }) {
         setNotice(
           editing
             ? "Class changes saved. The Learner can see the updated time."
-            : "Class scheduled and saved. The Learner can see it in this Connection.",
+            : "Class scheduled and saved. The Learner can see it in this conversation.",
         );
         setEditing(undefined);
         setVerifiedJoin(undefined);

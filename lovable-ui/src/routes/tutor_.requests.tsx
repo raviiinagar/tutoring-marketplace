@@ -54,7 +54,7 @@ function Inbox() {
             ? "Enquiry declined."
             : r.data.connection_status === "PENDING_GRANT"
               ? "Acceptance recorded. Contacts remain private while access activation is pending."
-              : "Enquiry accepted. Your Connection is ready.",
+              : "Enquiry accepted. You can now message each other.",
         );
       } else {
         await load();
@@ -62,7 +62,7 @@ function Inbox() {
       }
     });
   return (
-    <AuthShell title="Incoming Tutor enquiries">
+    <AuthShell title="Enquiries from learners">
       <p className="text-sm text-muted-foreground">
         Review learning goals and preferred times. Accepting creates a Connection when its access
         qualifies; it does not confirm a booked lesson.
