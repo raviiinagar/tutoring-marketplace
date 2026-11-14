@@ -55,29 +55,35 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
         });
         await page.goto(path, { waitUntil: "networkidle" });
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        // Both pages also show the Tutor directory (and the homepage steps and
-        // subject cards), so count only the six fictional offers in their section.
-        const offers = page
-          .getByRole("region", {
-            name:
-              path === "/"
-                ? "Meet your next teacher"
-                : "Available teaching offers",
-          })
-          .getByRole("article");
-        await expect(offers).toHaveCount(6);
-        if (path === "/") {
-          const portrait = offers.first().getByRole("img").first();
-          expect(
-            await portrait.evaluate(
-              (img) => (img as HTMLImageElement).currentSrc,
-            ),
-          ).toContain("variant=card");
-          expect(
-            await portrait.evaluate(
-              (img) => (img as HTMLImageElement).naturalWidth,
-            ),
-          ).toBeGreaterThan(0);
+        // Count only the six fictional offers in their own section. The homepage offer
+        // section can be hidden by the owner (lovable-ui/src/lib/site-visibility.ts);
+        // this run measures the production build as it ships, so it then checks the
+        // Tutor directory, which always loads with the page.
+        const homeOffers = page.getByRole("region", { name: "Meet your next teacher" });
+        if (path === "/" && (await homeOffers.count()) === 0) {
+          await expect(
+            page.getByRole("region", { name: "Tutor profiles" }).getByRole("article").first(),
+          ).toBeVisible();
+        } else {
+          const offers = (
+            path === "/"
+              ? homeOffers
+              : page.getByRole("region", { name: "Available teaching offers" })
+          ).getByRole("article");
+          await expect(offers).toHaveCount(6);
+          if (path === "/") {
+            const portrait = offers.first().getByRole("img").first();
+            expect(
+              await portrait.evaluate(
+                (img) => (img as HTMLImageElement).currentSrc,
+              ),
+            ).toContain("variant=card");
+            expect(
+              await portrait.evaluate(
+                (img) => (img as HTMLImageElement).naturalWidth,
+              ),
+            ).toBeGreaterThan(0);
+          }
         }
         // Observe paint stability after first-party requests and hydration have completed.
         await page.waitForFunction(() => performance.now() > 5000);

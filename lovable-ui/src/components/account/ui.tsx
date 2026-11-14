@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { AnnouncementTicker } from "@/components/beta-announcements";
 import { useBetaFeatures } from "@/lib/beta-features";
+import { homepageSections } from "@/lib/site-visibility";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { api, describeFailure, type Catalogue } from "@/lib/api";
@@ -190,6 +191,8 @@ export function SiteHeader({
   const user = session.data?.ok ? session.data.data.user : null;
   const pending = !mounted || session.isPending;
   const beta = useBetaFeatures();
+  // Help explains the steps on the homepage; while those are hidden it opens Support instead.
+  const helpHref = homepageSections.howItWorks ? "/#how-it-works" : "/support";
   const teacherPath = user
     ? user.roles.includes("TUTOR")
       ? "/tutor/dashboard"
@@ -262,7 +265,7 @@ export function SiteHeader({
               </Link>
             )}
             <a
-              href="/#how-it-works"
+              href={helpHref}
               className="header-help inline-flex size-11 items-center justify-center rounded-full"
               aria-label="Help"
             >
@@ -405,10 +408,10 @@ export function SiteHeader({
               </div>
             )}
             <Link to="/tutors">Find Tutors</Link>
-            <a href="/#subjects">Explore subjects</a>
+            {homepageSections.subjectExplorer && <a href="/#subjects">Explore subjects</a>}
             {beta.community && <Link to="/community">Community</Link>}
             {beta.feedback && <Link to="/feedback">Beta feedback</Link>}
-            <a href="/#how-it-works">Help</a>
+            <a href={helpHref}>Help</a>
             <Link to={teacherPath} hash={teacherHash}>
               Give private classes
             </Link>

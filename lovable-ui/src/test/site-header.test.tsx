@@ -4,6 +4,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/account/ui";
 import { api, type Catalogue, type User } from "@/lib/api";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
+const visibility = vi.hoisted(() => ({
+  teachingOffers: true,
+  howItWorks: true,
+  subjectExplorer: true,
+}));
+vi.mock("@/lib/site-visibility", () => ({ homepageSections: visibility }));
 vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
@@ -141,6 +147,22 @@ it("anonymous desktop navigation has own brand, help, teaching and one sign-in d
   expect(within(nav).queryByRole("link", { name: "Join us" })).toBeNull();
   expect(screen.getByRole("link", { name: "Tutor Marketplace home" })).toBeVisible();
   expect(screen.queryByRole("button", { name: /Search for a teacher/ })).toBeNull();
+});
+it("while homepage steps and subjects are hidden, Help opens Support and no link points at them", async () => {
+  visibility.howItWorks = false;
+  visibility.subjectExplorer = false;
+  try {
+    mount(true);
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).getByRole("link", { name: "Help" })).toHaveAttribute("href", "/support");
+    fireEvent.click(await screen.findByRole("button", { name: "Open menu" }));
+    const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+    expect(within(mobile).getByRole("link", { name: "Help" })).toHaveAttribute("href", "/support");
+    expect(within(mobile).queryByRole("link", { name: "Explore subjects" })).toBeNull();
+  } finally {
+    visibility.howItWorks = true;
+    visibility.subjectExplorer = true;
+  }
 });
 it("pending session announces checking without a false logged-in state", () => {
   vi.mocked(api.me).mockImplementation(() => new Promise(() => {}));

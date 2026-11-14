@@ -3,6 +3,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import type { ReactNode } from "react";
 import { PopularSubjects, TutorLocations, HowItWorks } from "@/components/homepage-discovery";
 import { api, type Catalogue } from "@/lib/api";
+const visibility = vi.hoisted(() => ({
+  teachingOffers: true,
+  howItWorks: true,
+  subjectExplorer: true,
+}));
+vi.mock("@/lib/site-visibility", () => ({ homepageSections: visibility }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     to,
@@ -61,6 +67,16 @@ it("popular shortcuts use only active catalogue subjects and retain a route to a
   expect(screen.getByRole("link", { name: "Pottery" })).toBeVisible();
   expect(screen.queryByRole("link", { name: "Hindi" })).toBeNull();
   expect(screen.getByRole("link", { name: "All subjects" })).toHaveAttribute("href", "#subjects");
+});
+it("while the subject explorer is hidden, the shortcuts do not link to it", () => {
+  visibility.subjectExplorer = false;
+  try {
+    render(<PopularSubjects catalogue={catalogue} />);
+    expect(screen.getByRole("link", { name: "Maths" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "All subjects" })).toBeNull();
+  } finally {
+    visibility.subjectExplorer = true;
+  }
 });
 it("locations deduplicate cities and generate supported city and online filters", async () => {
   vi.spyOn(api, "tutorLocations").mockResolvedValue({
