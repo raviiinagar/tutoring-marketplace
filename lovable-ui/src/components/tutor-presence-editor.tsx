@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useTutorApi } from "@/lib/tutor-api";
 import { Link } from "@tanstack/react-router";
 import { MapPin, CalendarDays, Plus, Trash2 } from "lucide-react";
 import {
@@ -18,6 +19,7 @@ const minutes = (s: string, end = false) => {
   return end && h === 0 && m === 0 ? 1440 : h * 60 + m;
 };
 export function TutorPresenceEditor() {
+  const tutorApi = useTutorApi();
   const [saved, setSaved] = useState<TutorPresence>(),
     [form, setForm] = useState<PresenceWrite>(),
     [error, setError] = useState<string>(),
@@ -25,7 +27,7 @@ export function TutorPresenceEditor() {
   const { loading, run } = useSingleFlight();
   const load = async () => {
     setError(undefined);
-    const r = await api.tutorPresence();
+    const r = await tutorApi.tutorPresence();
     if (r.ok) {
       const p = r.data.presence;
       setSaved(p);
@@ -60,7 +62,7 @@ export function TutorPresenceEditor() {
             ...(form.location.state?.trim() ? { state: form.location.state.trim() } : {}),
           }
         : null;
-      const r = await api.saveTutorPresence({ ...form, location });
+      const r = await tutorApi.saveTutorPresence({ ...form, location });
       if (r.ok) {
         const p = r.data.presence;
         setSaved(p);

@@ -29,6 +29,7 @@ export async function personalExport(
   const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
   const communityTable=(await client.query("SELECT to_regclass('public.community_members') AS present")).rows[0].present;
   const feedbackTable=(await client.query("SELECT to_regclass('public.feedback_items') AS present")).rows[0].present;
+  const onboardingHelpTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_requests') AS present")).rows[0].present;
   const profile = (
     await rows(
       "SELECT * FROM tutor_profiles WHERE user_id=$1",
@@ -207,6 +208,8 @@ export async function personalExport(
       reports_filed: (await rows("SELECT message_id,category,status,encrypted_note,created_at FROM community_reports WHERE reporter_id=$1 ORDER BY created_at")).map(({encrypted_note,...r}) => ({ ...r, note: read(encrypted_note)?.note || null })),
       mute: (await rows("SELECT muted_until,reason,created_at FROM community_mutes WHERE user_id=$1"))[0] ?? null,
     } : null,
+    // Assisted onboarding requests (ADR0018): status, consent and the contact details the Tutor gave.
+    tutor_onboarding_requests: onboardingHelpTable ? (await rows("SELECT id,status,consent_version,consent_accepted_at,encrypted_contact,created_at,completed_at,cancelled_at,cancelled_by FROM tutor_onboarding_requests WHERE user_id=$1 ORDER BY created_at,id")).map(({encrypted_contact,...row}) => ({...row,contact:encrypted_contact?read(encrypted_contact):null})) : [],
     feedback_votes: feedbackTable ? await rows("SELECT item_id,created_at FROM feedback_votes WHERE user_id=$1 ORDER BY created_at,item_id") : [],
     saved_tutors:savedTable?await rows("SELECT profile_id,created_at FROM saved_tutors WHERE owner_id=$1 ORDER BY created_at DESC,profile_id"):[],
     tutor_presence:presenceTable?await rows("SELECT location,teaching_modes,accepting_students,weekly_slots,timezone,revision,updated_at FROM tutor_presence WHERE user_id=$1"):[],

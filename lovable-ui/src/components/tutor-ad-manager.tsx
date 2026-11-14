@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { useTutorApi } from "@/lib/tutor-api";
 import { Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import {
@@ -50,6 +51,7 @@ export function TutorAdManager({
   onEdit: (ad: TeachingListing, step?: number) => void;
   onAction: (ad: TeachingListing, action: "PUBLISH" | "PAUSE" | "RESUME" | "ARCHIVE") => void;
 }) {
+  const tutorApi = useTutorApi();
   const [selected, setSelected] = useState<string>(),
     [confirm, setConfirm] = useState<"PAUSE" | "ARCHIVE">();
   useEffect(() => {
@@ -215,7 +217,7 @@ export function TutorAdManager({
               (photo.status === "APPROVED" ||
                 (photo.status === "PENDING" && photo.self_published)) ? (
                 <img
-                  src={api.photoPreviewUrl(photo.id)}
+                  src={tutorApi.photoPreviewUrl(photo.id)}
                   alt="Your Tutor portrait"
                   className="h-full w-full object-cover"
                 />

@@ -18,6 +18,7 @@ import {
   GraduationCap,
   ClipboardCheck,
   UserCog,
+  UserPlus,
 } from "lucide-react";
 import { api, type StaffScope } from "@/lib/api";
 const ownerAreas = [
@@ -87,7 +88,20 @@ const items = [
     scope: "TRUST",
   },
   { group: "Service", label: "Support & appeals", to: "/staff/support", icon: MessagesSquare },
-  { group: "Service", label: "Beta feedback", to: "/staff/feedback", icon: MessagesSquare, scope: "SUPPORT" },
+  {
+    group: "Service",
+    label: "Tutor onboarding",
+    to: "/staff/tutor-onboarding",
+    icon: UserPlus,
+    scope: "SUPPORT",
+  },
+  {
+    group: "Service",
+    label: "Beta feedback",
+    to: "/staff/feedback",
+    icon: MessagesSquare,
+    scope: "SUPPORT",
+  },
   { group: "Service", label: "Privacy requests", to: "/staff/privacy", icon: LockKeyhole },
   {
     group: "Finance & growth",
