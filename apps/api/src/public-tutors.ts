@@ -18,6 +18,9 @@ const visible=`SELECT p.*,u.email,${identityVerifiedSql()} AS identity_verified,
  AND cardinality(p.subject_ids)>0 AND p.hourly_rate_paise IS NOT NULL
  AND NOT EXISTS(SELECT 1 FROM safety_restrictions s WHERE s.target_type='ACCOUNT' AND s.target_id=u.id AND s.lifted_at IS NULL)
  AND NOT EXISTS(SELECT 1 FROM unnest(p.subject_ids) s(id) WHERE NOT EXISTS(SELECT 1 FROM catalogue_terms t WHERE t.id=s.id AND t.kind='SUBJECT' AND t.active))`;
+// The directory lists only Tutors a Learner can enquire with: at least one ad that is
+// available now. Profiles without one stay reachable by link (owner decision, 14 November 2026).
+const onlyWithAvailableAds=` AND p.user_id IN (SELECT available.user_id FROM (${availableSql}) available)`;
 const filters=z.strictObject({...presenceFilters,subject_id:z.string().regex(/^[a-z][a-z0-9-]{1,79}$/).optional(),cursor:z.uuid().optional()}).refine(v=>v.at_time===undefined||!!v.day,'Choose a day for the preferred time.');
 export class PublicTutors {
  constructor(private readonly database:Database,private readonly config:Config,private readonly now:()=>Date=()=>new Date()){}
@@ -37,7 +40,7 @@ export class PublicTutors {
  }
  async search(raw:unknown){const input=filters.safeParse(raw);if(!input.success)throw new ApiProblem(400,'INVALID_FILTER','Choose a valid Subject or page.');return this.database.transaction(async client=>{
   await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
-  const values:unknown[]=[this.now(),this.config.mode==='production',input.data.subject_id||null,input.data.cursor||null];let sql=visible+" AND ($3::text IS NULL OR $3=ANY(p.subject_ids)) AND ($4::uuid IS NULL OR p.public_id>$4)";addPresenceFilters(input.data,(fragment,value)=>{values.push(value);sql+=' AND '+fragment('$'+values.length);});const rows=(await client.query(sql+' ORDER BY p.public_id LIMIT 25',values)).rows;
+  const values:unknown[]=[this.now(),this.config.mode==='production',input.data.subject_id||null,input.data.cursor||null];let sql=visible+" AND ($3::text IS NULL OR $3=ANY(p.subject_ids)) AND ($4::uuid IS NULL OR p.public_id>$4)"+onlyWithAvailableAds;addPresenceFilters(input.data,(fragment,value)=>{values.push(value);sql+=' AND '+fragment('$'+values.length);});const rows=(await client.query(sql+' ORDER BY p.public_id LIMIT 25',values)).rows;
   const page=rows.slice(0,24),profiles=[];for(const p of page)if(this.valid(p))profiles.push(await this.project(client,p));return {profiles,next_cursor:rows.length>24?page.at(-1).public_id:null};
  });}
  async locations(raw:unknown){const q=z.strictObject({q:publicPlaceText.optional()}).safeParse(raw);if(!q.success)throw new ApiProblem(400,'INVALID_LOCATION','Enter a city or area.');return this.database.transaction(async client=>{await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');const values:unknown[]=[this.now(),this.config.mode==='production'];let sql=visible+" AND tp.location IS NOT NULL AND 'IN_PERSON'=ANY(tp.teaching_modes) AND tp.accepting_students IS DISTINCT FROM FALSE";addPresenceFilters({location:q.data.q},(f,v)=>{values.push(v);sql+=' AND '+f('$'+values.length);});const rows=(await client.query(sql+' ORDER BY p.public_id LIMIT 200',values)).rows;const found=new Map<string,unknown>();for(const row of rows){if(!this.valid(row))continue;const p=row.location;for(const area of [undefined,p.area]){const label=[area,p.city,p.state,p.country].filter(Boolean).join(', '),query=[area,p.city].filter(Boolean).join(', ');if(!found.has(label.toLowerCase()))found.set(label.toLowerCase(),{...p,area,label,query});}}return {locations:[...found.values()].slice(0,10)};});}
