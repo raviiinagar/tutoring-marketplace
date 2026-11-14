@@ -16,8 +16,10 @@ export function publicPhotoSql(photo='photo'){
 // draft. Scanning and consent still gate the image itself: an unscanned or
 // rejected upload does not satisfy this, and staff review is not required
 // because ADR0014 publishes complete adult ads without a review queue.
-export async function requirePublicationPhoto(c:PoolClient,userId:string,production:boolean){
- const usable=(await c.query(`SELECT 1 FROM tutor_photos WHERE user_id=$1 AND ${publicPhotoSql('tutor_photos')} AND scan_status='CLEAN' AND encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT test_only)`,[userId,production])).rowCount;
+// With photo review on (ADR0019) a clean photo awaiting Trust review is enough to publish an ad;
+// the portrait itself stays hidden until approved and the ad shows the Tutor's initials meanwhile.
+export async function requirePublicationPhoto(c:PoolClient,userId:string,production:boolean,reviewRequired=false){
+ const usable=(await c.query(`SELECT 1 FROM tutor_photos WHERE user_id=$1 AND (${publicPhotoSql('tutor_photos')} OR ($3::boolean AND status='PENDING')) AND scan_status='CLEAN' AND encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT test_only)`,[userId,production,reviewRequired])).rowCount;
  if(!usable)throw new ApiProblem(409,'PHOTO_REQUIRED','Add a profile photo before publishing this ad. Your draft stays private until you publish it.');
 }
 export function assertDeclaredProfile(p:Record<string,any>){

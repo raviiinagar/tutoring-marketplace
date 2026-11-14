@@ -314,6 +314,7 @@ export type CatalogueTerm = {
 export type Catalogue = { domains: { id: string; label: string }[]; terms: CatalogueTerm[] };
 export type TutorPhoto = {
   self_published?: boolean;
+  publishable?: boolean;
   id: string;
   status: "PENDING" | "APPROVED" | "REJECTED" | "REMOVED";
   scan_status: "CLEAN" | "REJECTED" | "ERROR";
@@ -2608,6 +2609,7 @@ export type PublicTutor = {
   hourly_rate_paise: number;
   currency: string;
   identity_label: string;
+  identity_verified?: boolean;
   expertise_label: string;
   photo_url: string | null;
   contact: { email: string; email_verified: boolean } | null;

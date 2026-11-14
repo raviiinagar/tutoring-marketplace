@@ -103,7 +103,7 @@ export class ListingsService {
         if(row.status==='CHANGES_REQUESTED')throw fail('REVISION_REQUIRED','Revise the ad to address the recorded feedback before publishing.');
       }
       if(!(action==='RESUME'&&row.approved&&row.publication_policy==='review-v1'))this.publishable(row.payload);
-      await requirePublicationPhoto(client,user.id,this.tutors.productionMode());
+      await requirePublicationPhoto(client,user.id,this.tutors.productionMode(),this.tutors.photoReviewRequired());
       await this.tutors.publishProfile(client,user.id,action!=='RESUME'||!row.approved);
       await client.query("UPDATE teaching_listings SET status='PUBLISHED',publication_policy='direct-ads-v1',revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);
     }
@@ -119,7 +119,7 @@ export class ListingsService {
   async inspect(account:string|undefined,token:string|undefined,id:string,reason:string,correlation:string){return this.database.transaction(async client=>{const {actor,row}=await this.staffTarget(client,account,token,id);await this.audit(client,actor.id,id,'LISTING_INSPECTED',correlation,reason);return {listing:await this.view(client,row)};});}
   async review(account:string|undefined,token:string|undefined,id:string,input:z.infer<typeof listingReviewInput>,correlation:string){return this.database.transaction(async client=>{
     const {actor,row}=await this.staffTarget(client,account,token,id);this.version(row,input.revision);if(row.status!=='REVIEW'||row.safety_suspended)throw fail('INVALID_LISTING_STATE','Only an unrestricted submitted offer can be reviewed.');
-    if(input.outcome==='APPROVE'){this.publishable(row.payload);await requirePublicationPhoto(client,row.user_id,this.tutors.productionMode());const current=await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);if(current.profile_revision!==row.profile_revision)throw fail('PROFILE_CHANGED','The Tutor profile changed. Request a corrected offer.');await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}
+    if(input.outcome==='APPROVE'){this.publishable(row.payload);await requirePublicationPhoto(client,row.user_id,this.tutors.productionMode(),this.tutors.photoReviewRequired());const current=await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);if(current.profile_revision!==row.profile_revision)throw fail('PROFILE_CHANGED','The Tutor profile changed. Request a corrected offer.');await this.selection(client,row.payload);await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}
     await client.query('UPDATE teaching_listings SET status=$2,approved=$3,revision=revision+1,review_reason=$4,reviewed_by=$5,reviewed_at=$6,updated_at=$6 WHERE id=$1',[id,input.outcome==='APPROVE'?'PUBLISHED':'CHANGES_REQUESTED',input.outcome==='APPROVE',input.reason,actor.id,this.now()]);await this.decision(client,actor.id,row,input.outcome,input.reason,correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
   private async decision(client:PoolClient,actor:string,row:Record<string,any>,outcome:string,reason:string,correlation:string){await client.query('INSERT INTO listing_decisions(id,listing_id,actor_id,revision,outcome,reason,created_at) VALUES($1,$2,$3,$4,$5,$6,$7)',[randomUUID(),row.id,actor,row.revision,outcome,reason,this.now()]);await this.audit(client,actor,row.id,'LISTING_'+outcome,correlation,reason);}
