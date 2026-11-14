@@ -72,6 +72,7 @@ function Index() {
           <PublicTutorDirectory
             initial={initial.tutors ?? undefined}
             initialCatalogue={catalogue}
+            wide
           />
         </div>
         {homepageSections.teachingOffers && (offers.length > 0 || loading || error) && (
