@@ -103,10 +103,12 @@ function Profile() {
         </>
       }
     >
-      <IdentityReviewNote label={p.identity_label}>
-        {p.expertise_label}. Publishing a profile does not verify identity, teaching qualifications
-        or guarantee outcomes. Optional verification is labelled separately.
-      </IdentityReviewNote>
+      {p.identity_verified && (
+        <IdentityReviewNote label="Identity verified">
+          Our team checked this Tutor's identity document. Subjects and experience are described by
+          the Tutor.
+        </IdentityReviewNote>
+      )}
       <section id="about" className="scroll-mt-28">
         <h2 className="text-2xl font-semibold">About {p.display_name}</h2>
         <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">

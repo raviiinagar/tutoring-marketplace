@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/account/ui";
 import { PublicOfferCard, PublicOfferTerms } from "@/components/public-offer";
 import { TutorProfileLayout } from "@/components/tutor-profile-layout";
 import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
-import { Star } from "lucide-react";
+import { ShieldCheck, Star } from "lucide-react";
 import { ContactRequestForm } from "@/components/contact-request-form";
 import { PublicReviews } from "@/components/reviews";
 import { AvailabilitySignup } from "@/components/availability-signup";
@@ -38,7 +38,12 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
       ]}
       summary={
         <>
-          <p className="rounded-full bg-amber-50 px-3 py-2 text-center text-xs font-medium">{listing.evidence_labels.some(check=>check.kind==='IDENTITY') ? 'Identity verified' : 'Identity not verified'}</p>
+          {/* Only a real identity review earns a label; unverified Tutors carry none (owner decision, 14 November 2026). */}
+          {listing.evidence_labels.some((check) => check.kind === "IDENTITY") && (
+            <p className="flex items-center justify-center gap-1 rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+              <ShieldCheck aria-hidden className="size-4" /> Identity verified
+            </p>
+          )}
           {review && review.count > 0 && review.average !== null && (
             <a href="#reviews" className="flex items-center justify-center gap-1 text-sm">
               <Star aria-hidden className="size-4 fill-amber-400 text-amber-400" />

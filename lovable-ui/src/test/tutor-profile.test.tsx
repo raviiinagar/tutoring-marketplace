@@ -76,3 +76,28 @@ it("shows only actual reviewed ratings and the Tutor's recorded trial terms", ()
   expect(screen.getByText("Free trial · 20 minutes")).toBeTruthy();
   expect(screen.getByRole("region", { name: "Tutor reviews" })).toBeTruthy();
 });
+it("labels only Tutors whose identity was actually verified; others carry no identity badge", () => {
+  const { unmount } = render(<TeacherPage page={page} />);
+  expect(screen.queryByText(/Identity not verified/)).toBeNull();
+  expect(screen.queryByText("Identity verified")).toBeNull();
+  unmount();
+  render(
+    <TeacherPage
+      page={{
+        ...page,
+        listing: {
+          ...page.listing,
+          evidence_labels: [
+            {
+              kind: "IDENTITY",
+              label: "Identity reviewed",
+              reviewed_at: "2026-11-01",
+              expires_at: "2027-11-01",
+            },
+          ],
+        },
+      }}
+    />,
+  );
+  expect(screen.getByText("Identity verified")).toBeTruthy();
+});
