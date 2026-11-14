@@ -281,7 +281,7 @@ export function SiteHeader({
                 hash={teacherHash}
                 className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
               >
-                Give private classes
+                Become a Tutor
               </Link>
             )}
             {pending ? (
@@ -339,7 +339,7 @@ export function SiteHeader({
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={teacherPath} hash={teacherHash}>
-                      Give private classes
+                      Become a Tutor
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -413,7 +413,7 @@ export function SiteHeader({
             {beta.feedback && <Link to="/feedback">Beta feedback</Link>}
             <a href={helpHref}>Help</a>
             <Link to={teacherPath} hash={teacherHash}>
-              Give private classes
+              Become a Tutor
             </Link>
             {pending ? (
               <span role="status">Checking account...</span>

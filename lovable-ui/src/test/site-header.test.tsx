@@ -9,7 +9,11 @@ const visibility = vi.hoisted(() => ({
   howItWorks: true,
   subjectExplorer: true,
 }));
-vi.mock("@/lib/site-visibility", () => ({ homepageSections: visibility }));
+const features = vi.hoisted(() => ({ community: true }));
+vi.mock("@/lib/site-visibility", () => ({
+  homepageSections: visibility,
+  siteFeatures: features,
+}));
 vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
@@ -113,6 +117,22 @@ it("header links to the beta Community and Feedback pages on desktop and mobile"
     "/feedback",
   );
 });
+it("Community hidden by the owner leaves no header link and skips its policy request", async () => {
+  features.community = false;
+  try {
+    mount();
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).getByRole("link", { name: "Feedback" })).toBeVisible();
+    expect(within(nav).queryByRole("link", { name: "Community" })).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "Open menu" }));
+    const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+    expect(within(mobile).queryByRole("link", { name: "Community" })).toBeNull();
+    await waitFor(() => expect(api.feedbackPolicy).toHaveBeenCalled());
+    expect(api.communityPolicy).not.toHaveBeenCalled();
+  } finally {
+    features.community = true;
+  }
+});
 it("a beta feature switched off on the API disappears from the header", async () => {
   vi.mocked(api.communityPolicy).mockResolvedValue({
     ok: true,
@@ -139,7 +159,7 @@ it("anonymous desktop navigation has own brand, help, teaching and one sign-in d
   mount(true);
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   await within(nav).findByRole("link", { name: "Sign in" });
-  expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
+  expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
     "href",
     "/auth/signup",
   );
@@ -180,7 +200,7 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const account = await within(nav).findByRole("button", { name: "T My account" });
-  expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
+  expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
     "href",
     "/tutor/dashboard",
   );
@@ -197,7 +217,7 @@ it("a signed-in Learner enters unified onboarding without selecting a role first
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   await within(nav).findByRole("button", { name: "T My account" });
-  expect(within(nav).getByRole("link", { name: "Give private classes" })).toHaveAttribute(
+  expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
     "href",
     "/tutor",
   );

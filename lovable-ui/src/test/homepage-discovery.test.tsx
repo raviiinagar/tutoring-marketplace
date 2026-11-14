@@ -8,7 +8,10 @@ const visibility = vi.hoisted(() => ({
   howItWorks: true,
   subjectExplorer: true,
 }));
-vi.mock("@/lib/site-visibility", () => ({ homepageSections: visibility }));
+vi.mock("@/lib/site-visibility", () => ({
+  homepageSections: visibility,
+  siteFeatures: { community: true },
+}));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
     to,

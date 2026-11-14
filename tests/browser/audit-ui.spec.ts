@@ -71,8 +71,8 @@ test("QA05: keyboard start-teaching opens the private wizard without granting a 
       await menu.focus();
       await page.keyboard.press("Enter");
       const start = width < 1024
-        ? page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Give private classes", exact: true })
-        : page.getByRole("menuitem", { name: "Give private classes", exact: true });
+        ? page.getByRole("navigation", { name: "Mobile navigation" }).getByRole("link", { name: "Become a Tutor", exact: true })
+        : page.getByRole("menuitem", { name: "Become a Tutor", exact: true });
       await expect(start).toHaveAttribute("href", "/tutor");
       await start.focus();
       await page.keyboard.press("Enter");

@@ -20,3 +20,18 @@ const showAll = import.meta.env["VITE_SHOW_HIDDEN_SECTIONS"] === "true";
 export const homepageSections: Record<HomepageSection, boolean> = showAll
   ? { teachingOffers: true, howItWorks: true, subjectExplorer: true }
   : owner;
+
+/**
+ * Member features the owner has hidden from the site (14 November 2026). Hidden means no
+ * links, no announcement and a "not found" page; the API, its data and the staff console
+ * are untouched. Set back to `true` and redeploy the frontend to show it again.
+ */
+const ownerFeatures = {
+  community: false,
+};
+
+export type SiteFeature = keyof typeof ownerFeatures;
+
+export const siteFeatures: Record<SiteFeature, boolean> = showAll
+  ? { community: true }
+  : ownerFeatures;

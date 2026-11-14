@@ -11,7 +11,7 @@ import { CatalogueBrowser } from "@/components/catalogue-browser";
 import { PublicOfferCard } from "@/components/public-offer";
 import { api, describeFailure, type Catalogue, type PublicOffer } from "@/lib/api";
 import { Reveal } from "@/components/reveal";
-import { homepageSections } from "@/lib/site-visibility";
+import { homepageSections, siteFeatures } from "@/lib/site-visibility";
 export const Route = createFileRoute("/")({
   // The Tutor directory's first page loads with the page, so its first portrait
   // starts downloading straight away (it is often the largest paint on mobile).
@@ -174,7 +174,7 @@ function Index() {
             </div>
             <Button asChild className="shrink-0 rounded-full px-6">
               <Link to="/auth/signup">
-                Give private classes <ArrowUpRight aria-hidden className="size-4" />
+                Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
               </Link>
             </Button>
           </Reveal>
@@ -199,7 +199,7 @@ function Index() {
             <Link to="/tutors">Find Tutors</Link>
             {homepageSections.howItWorks && <a href="#how-it-works">How it works</a>}
             <a href="#tutors">For teachers</a>
-            <Link to="/community">Community</Link>
+            {siteFeatures.community && <Link to="/community">Community</Link>}
             <Link to="/feedback">Beta feedback</Link>
             <Link to="/auth/signin">Sign in</Link>
           </nav>
