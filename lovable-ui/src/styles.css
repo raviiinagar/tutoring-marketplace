@@ -614,6 +614,8 @@ main { scroll-margin-top: 90px; }
 /* The inbox uses the actual shared header height; short windows scroll the page. */
 .reference-account:has(.messaging-inbox) { display:flex; flex-direction:column; height:100dvh; min-height:600px; }
 .reference-account:has(.messaging-inbox) .reference-header-group { flex-shrink:0; }
+/* The inbox fills the window like an app; the site footer would squeeze the conversation. */
+.reference-account:has(.messaging-inbox) .site-footer { display:none; }
 .reference-account:has(.messaging-inbox) main.account-workspace { display:flex; flex:1; min-height:0; padding:0; }
 .reference-account:has(.messaging-inbox) .account-content { display:flex; flex:1; min-height:0; min-width:0; animation:none; }
 .reference-account:has(.messaging-inbox) .account-content > div { display:flex; flex:1; min-height:0; min-width:0; }
