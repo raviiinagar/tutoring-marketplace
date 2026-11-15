@@ -153,9 +153,6 @@ function Inbox() {
         </div>
       )}
       <nav aria-label="Tutor enquiry pages" className="mt-6 flex flex-wrap gap-3">
-        <Button variant="outline" disabled={loading || action.loading} onClick={() => void load()}>
-          Refresh enquiries
-        </Button>
         {cursor && (
           <Button variant="outline" disabled={loading} onClick={() => setCursor(undefined)}>
             First enquiries

@@ -173,15 +173,6 @@ export function NotificationSettings() {
             </li>
           ))}
         </ul>
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-4"
-          disabled={action.loading}
-          onClick={() => void action.run(load)}
-        >
-          Refresh preferences and updates
-        </Button>
       </section>
     </div>
   );

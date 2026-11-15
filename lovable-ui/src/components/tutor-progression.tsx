@@ -165,9 +165,7 @@ export function TutorProgressionPanel({ id, compact = false }: { id: string; com
           Manage evaluations
         </Link>
       </div>
-      <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
-        Refresh Tutor level
-      </Button>
+
       {query.isPending ? (
         <p role="status">Loading Tutor level…</p>
       ) : query.isError || query.data?.ok === false ? (
@@ -185,8 +183,7 @@ export function TutorProgressionPanel({ id, compact = false }: { id: string; com
         compact ? (
           <div className="space-y-3">
             <p className="text-xl font-semibold">
-                  {query.data.data.levels.find((level) => level.awarded)?.label ??
-                "Not yet public"}
+              {query.data.data.levels.find((level) => level.awarded)?.label ?? "Not yet public"}
             </p>
             <p className="text-sm text-muted-foreground">
               {query.data.data.counts.recommendations} published recommendations. Photo and

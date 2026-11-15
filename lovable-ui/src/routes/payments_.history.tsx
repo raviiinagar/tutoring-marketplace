@@ -56,7 +56,10 @@ function History() {
       <div className="space-y-6">
         {rows.map((row) => (
           <article key={row.id} className="rounded-2xl border p-5">
-            <p className="font-semibold">{row.product==='TUTOR_PRO'?'Tutor Pro':'Learner Access Pass'} · ₹{(row.amount_paise / 100).toFixed(2)}</p>
+            <p className="font-semibold">
+              {row.product === "TUTOR_PRO" ? "Tutor Pro" : "Learner Access Pass"} · ₹
+              {(row.amount_paise / 100).toFixed(2)}
+            </p>
             <p className="mt-2 text-sm">
               {row.status} · {new Date(row.created_at).toLocaleString()}
             </p>
@@ -75,12 +78,14 @@ function History() {
                 {fact.kind === "CAPTURE"
                   ? "Verified platform capture"
                   : "Unexpected captured amount"}
-                : {fact.currency==='INR'?'₹':fact.currency+' '}{(Number(fact.amount_paise) / 100).toFixed(2)}
+                : {fact.currency === "INR" ? "₹" : fact.currency + " "}
+                {(Number(fact.amount_paise) / 100).toFixed(2)}
               </p>
             ))}
             {row.reversals.map((fact, i) => (
               <p key={i} className="mt-2 text-sm">
-                {fact.kind}: {fact.currency==='INR'?'₹':fact.currency+' '}{(Number(fact.amount_paise) / 100).toFixed(2)}
+                {fact.kind}: {fact.currency === "INR" ? "₹" : fact.currency + " "}
+                {(Number(fact.amount_paise) / 100).toFixed(2)}
               </p>
             ))}
             {row.receipt_available && (
@@ -135,9 +140,6 @@ function History() {
         </section>
       )}
       <nav className="mt-6 flex flex-wrap gap-3" aria-label="Payment history pages">
-        <Button variant="outline" disabled={loading} onClick={() => void load()}>
-          Refresh payments
-        </Button>
         {cursor && (
           <Button variant="outline" onClick={() => setCursor(undefined)}>
             First purchases

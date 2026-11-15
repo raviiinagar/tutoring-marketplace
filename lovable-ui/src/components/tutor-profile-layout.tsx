@@ -50,7 +50,15 @@ export function TutorProfileLayout({
                 </span>
               ))}
             </div>
-            <h1 className="break-words font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-[2.7rem]">
+            <h1
+              className={
+                "break-words font-display font-semibold leading-tight tracking-tight " +
+                // Long ad titles read as a wall of text at full size.
+                (title.length > 60
+                  ? "text-2xl sm:text-3xl"
+                  : "text-3xl sm:text-4xl lg:text-[2.7rem]")
+              }
+            >
               {title}
             </h1>
             <nav

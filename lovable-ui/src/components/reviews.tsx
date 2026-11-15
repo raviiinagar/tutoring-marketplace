@@ -133,9 +133,6 @@ export function ReviewForm({ connectionId }: { connectionId: string }) {
           )}
         </>
       )}
-      <Button variant="outline" onClick={() => void action.run(load)} disabled={action.loading}>
-        Refresh review eligibility
-      </Button>
     </div>
   );
 }
@@ -254,7 +251,9 @@ export function MyReviews() {
         Your submitted and received feedback. Appeals are recorded privately for the upcoming
         support-case workflow.
       </p>
-      {!rows.length && !error && <p>No reviews yet. You can review a Tutor after you have messaged them.</p>}
+      {!rows.length && !error && (
+        <p>No reviews yet. You can review a Tutor after you have messaged them.</p>
+      )}
       {rows.map((row) => (
         <article key={row.id} className="space-y-4 rounded-xl border p-5">
           <p className="font-semibold">
@@ -311,10 +310,9 @@ export function MyReviews() {
             )}
         </article>
       ))}
-      <a href="/support" className="link block">Track moderation appeals in Support</a>
-      <Button variant="outline" disabled={action.loading} onClick={() => void action.run(load)}>
-        Refresh my reviews
-      </Button>
+      <a href="/support" className="link block">
+        Track moderation appeals in Support
+      </a>
     </div>
   );
 }
