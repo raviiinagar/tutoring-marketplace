@@ -17,7 +17,7 @@ import {
   type DiscoveryPage,
   type PublicTutor,
 } from "@/lib/api";
-import { SiteHeader, Notice } from "@/components/account/ui";
+import { SiteHeader, SiteFooter, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { PublicOfferCard } from "@/components/public-offer";
 import { AvailabilitySignup } from "@/components/availability-signup";
@@ -324,6 +324,7 @@ function TutorSearch() {
           </section>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

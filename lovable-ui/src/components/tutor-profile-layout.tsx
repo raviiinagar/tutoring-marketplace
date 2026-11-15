@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ShieldCheck, Info } from "lucide-react";
-import { SiteHeader } from "@/components/account/ui";
+import { SiteHeader, SiteFooter } from "@/components/account/ui";
 import { TutorPortrait } from "@/components/tutor-portrait";
 
 export function TutorProfileLayout({
@@ -109,6 +109,7 @@ export function TutorProfileLayout({
           </div>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

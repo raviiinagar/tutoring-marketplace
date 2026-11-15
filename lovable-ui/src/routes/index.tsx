@@ -5,7 +5,7 @@ import { publicHead, requirePublic } from "@/lib/public-pages";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, GraduationCap } from "lucide-react";
-import { SiteHeader, BrandWordmark } from "@/components/account/ui";
+import { SiteHeader, SiteFooter } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { CatalogueBrowser } from "@/components/catalogue-browser";
 import { PublicOfferCard } from "@/components/public-offer";
@@ -186,25 +186,7 @@ function Index() {
           </div>
         )}
       </main>
-      <footer className="border-t">
-        <div className="market-content flex flex-wrap items-center justify-between gap-4 py-7">
-          <Link to="/" aria-label="Tutor Marketplace home" className="brand-link">
-            <BrandWordmark className="brand-wordmark-footer" />
-          </Link>
-          <p className="text-xs text-muted-foreground">Made for curious minds across India.</p>
-          <nav
-            aria-label="Footer navigation"
-            className="flex flex-wrap items-center gap-5 text-sm font-medium"
-          >
-            <Link to="/tutors">Find Tutors</Link>
-            {homepageSections.howItWorks && <a href="#how-it-works">How it works</a>}
-            <a href="#tutors">For teachers</a>
-            {siteFeatures.community && <Link to="/community">Community</Link>}
-            <Link to="/feedback">Beta feedback</Link>
-            <Link to="/auth/signin">Sign in</Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

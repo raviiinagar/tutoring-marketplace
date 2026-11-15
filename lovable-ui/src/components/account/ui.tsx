@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { AnnouncementTicker } from "@/components/beta-announcements";
 import { useBetaFeatures } from "@/lib/beta-features";
-import { homepageSections } from "@/lib/site-visibility";
+import { homepageSections, siteFeatures } from "@/lib/site-visibility";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { api, describeFailure, type Catalogue } from "@/lib/api";
@@ -440,6 +440,39 @@ export function SiteHeader({
   );
 }
 
+/** The site footer, shared by every member and public page. */
+export function SiteFooter() {
+  return (
+    <footer className="site-footer border-t bg-background">
+      <div className="mx-auto flex max-w-[1184px] flex-wrap items-center justify-between gap-4 px-5 py-7 sm:px-6">
+        <Link to="/" aria-label="Tutor Marketplace home" className="brand-link">
+          <BrandWordmark className="brand-wordmark-footer" />
+        </Link>
+        <p className="text-xs text-muted-foreground">Made for curious minds across India.</p>
+        <nav aria-label="Footer navigation" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium">
+          <Link to="/tutors" className="inline-flex min-h-11 items-center">
+            Find Tutors
+          </Link>
+          <Link to="/tutor" className="inline-flex min-h-11 items-center">
+            Become a Tutor
+          </Link>
+          {siteFeatures.community && (
+            <Link to="/community" className="inline-flex min-h-11 items-center">
+              Community
+            </Link>
+          )}
+          <Link to="/feedback" className="inline-flex min-h-11 items-center">
+            Beta feedback
+          </Link>
+          <Link to="/support" className="inline-flex min-h-11 items-center">
+            Help
+          </Link>
+        </nav>
+      </div>
+    </footer>
+  );
+}
+
 export function AuthShell({
   title,
   intro,
@@ -467,7 +500,11 @@ export function AuthShell({
     teachingWorkspace ||
     (ready &&
       (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/")));
+  // Every account page shares the full-width workspace bar under the header; only the
+  // sign-in pages (/auth/...) keep the plain header.
+  const accountPage = ready && !window.location.pathname.startsWith("/auth/");
   const referenceLayout = reference || tutorWorkspace;
+  const workspaceBar = referenceLayout || accountPage;
   if (ready && window.location.pathname.startsWith("/staff"))
     return (
       <AccountReady.Provider value={ready}>
@@ -478,8 +515,8 @@ export function AuthShell({
     );
   return (
     <AccountReady.Provider value={ready}>
-      <div className={referenceLayout ? "reference-account min-h-screen" : "min-h-screen"}>
-        {referenceLayout ? (
+      <div className={workspaceBar ? "reference-account min-h-screen" : "min-h-screen"}>
+        {workspaceBar ? (
           <div className="reference-header-group">
             <SiteHeader accountStyle />
             <div className="reference-workspace-bar">
@@ -496,15 +533,6 @@ export function AuthShell({
           tabIndex={-1}
           className={`account-workspace mx-auto w-full ${referenceLayout && fullWidth ? "max-w-none" : referenceLayout ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
         >
-          {ready &&
-            !referenceLayout &&
-            !window.location.pathname.startsWith("/auth/") &&
-            (window.location.pathname === "/tutor" ||
-            window.location.pathname.startsWith("/tutor/") ? (
-              <TutorWorkspaceNavigation />
-            ) : (
-              <WorkspaceNavigation />
-            ))}
           <div
             className={
               dashboard || referenceLayout
@@ -522,6 +550,7 @@ export function AuthShell({
           </div>
           {footer && <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>}
         </main>
+        <SiteFooter />
       </div>
     </AccountReady.Provider>
   );

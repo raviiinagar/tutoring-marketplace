@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
-import { SiteHeader } from "@/components/account/ui";
+import { SiteHeader, SiteFooter } from "@/components/account/ui";
 import { PublicOfferCard, PublicOfferTerms } from "@/components/public-offer";
 import { TutorProfileLayout } from "@/components/tutor-profile-layout";
 import { TutorPresenceSummary } from "@/components/tutor-presence-summary";
@@ -160,6 +160,7 @@ export function CategoryPage({ page }: { page: PublicCategoryPage }) {
           </section>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }
@@ -177,6 +178,7 @@ export function PublicTeacherMissing() {
           Back to Tutor search
         </Link>
       </main>
+      <SiteFooter />
     </div>
   );
 }

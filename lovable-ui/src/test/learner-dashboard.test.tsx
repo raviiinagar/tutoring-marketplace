@@ -104,7 +104,7 @@ afterEach(() => {
 });
 it("shows actual access and honest empty learning states without invented phone verification or booking totals", async () => {
   mount(<LearnerDashboard />);
-  await screen.findByText("No requests");
+  await screen.findByText("No enquiries yet");
   expect(screen.getByText("Email verified")).toBeTruthy();
   fireEvent.click(screen.getByText("Learning tools and access"));
   expect(screen.getByText(/of 5 pending enquiries/).textContent).toContain("3");
@@ -121,9 +121,9 @@ it("renders a failed section as a retry rather than an empty count", async () =>
   });
   mount(<LearnerDashboard />);
   await screen.findByText("Enquiries could not be loaded.");
-  expect(screen.queryByText("No requests")).toBeNull();
+  expect(screen.queryByText("No enquiries yet")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry enquiries" }));
-  await screen.findByText("No requests");
+  await screen.findByText("No enquiries yet");
 });
 it("does not leak a late private result after switching accounts", async () => {
   let finish!: (result: Awaited<ReturnType<typeof api.contactRequests>>) => void;
@@ -141,7 +141,7 @@ it("does not leak a late private result after switching accounts", async () => {
     client.setQueryData(accountSessionKey, { ok: true, status: 200, data: { user: other } }),
   );
   await screen.findByText("Other Learner");
-  await screen.findByText("No requests");
+  await screen.findByText("No enquiries yet");
   const request: ContactRequest = {
     id: "old-private-request",
     listing_id: "offer",

@@ -247,7 +247,7 @@ function SendFeedback({
       </label>
       {policy.screenshots_enabled && (
         <div className="space-y-2">
-          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-dashed px-4 text-sm font-medium hover:bg-secondary/50">
+          <label className="relative inline-flex min-h-11 max-w-full cursor-pointer items-center gap-2 overflow-hidden rounded-xl border border-dashed px-4 text-sm font-medium hover:bg-secondary/50">
             <ImagePlus className="size-4" />
             {shot ? "Replace screenshot" : "Add a screenshot (optional)"}
             <input
