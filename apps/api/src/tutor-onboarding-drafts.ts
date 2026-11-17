@@ -20,6 +20,22 @@ export const onboardingDraftData = z.strictObject({
   identity_document: z.enum(['AADHAAR', 'GOVERNMENT_ID', 'PASSPORT']).optional(),
   adult_confirmed: z.boolean().optional(),
   public_email_consent: z.boolean().optional(),
+  // One-form first-ad setup. This remains an encrypted, incomplete working
+  // copy; existing introduction, catalogue, photo and publication services
+  // still validate every saved/public record. No upload bytes belong here.
+  quick_setup: z.strictObject({
+    domain_id: z.string().max(80),
+    level_id: z.string().max(80),
+    curriculum_id: z.string().max(80).optional(),
+    exam_id: z.string().max(80).optional(),
+    language_id: z.string().max(80),
+    teaching_mode: z.enum(['ONLINE','IN_PERSON']),
+    city: z.string().max(80),
+    country: z.string().max(80),
+    title: z.string().max(160),
+    listing_id: z.uuid().optional(),
+    existing_listing_ids: z.array(z.uuid()).max(20).optional(),
+  }).optional(),
 });
 export const onboardingDraftInput = z.strictObject({
   revision: z.number().int().min(0),

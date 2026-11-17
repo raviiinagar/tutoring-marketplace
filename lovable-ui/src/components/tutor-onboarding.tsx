@@ -1,4 +1,5 @@
 import { TutorIntroductionWizard } from "./tutor-introduction-wizard";
+import { SimpleTutorSetup } from "./simple-tutor-setup";
 import { useQueryClient } from "@tanstack/react-query";
 import { TutorPresenceEditor } from "./tutor-presence-editor";
 import { Link } from "@tanstack/react-router";
@@ -18,6 +19,7 @@ export function TutorOnboarding() {
     [error, setError] = useState<string>(),
     [notice, setNotice] = useState<string>(),
     [editing, setEditing] = useState(true);
+  const [resumeSimpleSetup, setResumeSimpleSetup] = useState(false);
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
   const client = useQueryClient();
@@ -35,7 +37,22 @@ export function TutorOnboarding() {
     }
   };
   const load = async () => {
-    const [a, b, c] = await Promise.all([api.tutor(), api.tutorPolicy(), api.catalogue()]);
+    const [a, b, c, draft, ads] = await Promise.all([
+      api.tutor(),
+      api.tutorPolicy(),
+      api.catalogue(),
+      api.tutorOnboardingDraft(),
+      api.listings(),
+    ]);
+    if (draft.ok)
+      setResumeSimpleSetup(
+        !!draft.data.draft?.data.quick_setup ||
+          (a.ok &&
+            !!a.data.profile &&
+            !a.data.profile.eligible &&
+            ads.ok &&
+            ads.data.listings.length === 0),
+      );
     if (a.ok) apply(a.data);
     else if (a.error.kind === "http" && a.error.code === "TUTOR_ROLE_REQUIRED")
       setState({ profile: null, claims: [], evidence: [] });
@@ -89,6 +106,24 @@ export function TutorOnboarding() {
     evidence = state?.evidence.find((e) => e.id === identity?.evidence_id);
   const approved = p?.identity_verified === true;
   const profilePublic = p?.eligible === true;
+  if (state && catalogue && (!p || resumeSimpleSetup))
+    return (
+      <AuthShell
+        wide
+        title="Create your teaching ad"
+        intro="Complete one short form, preview your ad and publish for free."
+      >
+        <SimpleTutorSetup catalogue={catalogue} profile={p} />
+        <details className="mx-auto mt-6 max-w-3xl rounded-xl border p-4">
+          <summary className="cursor-pointer text-sm font-medium">
+            Prefer our team to set it up?
+          </summary>
+          <div className="mt-4">
+            <TeamSetup hasProfile={!!p} />
+          </div>
+        </details>
+      </AuthShell>
+    );
   return (
     <AuthShell
       wide

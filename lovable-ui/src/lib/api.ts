@@ -2564,7 +2564,21 @@ export type TutorIntroduction = {
 };
 export type TutorOnboardingDraftData = Partial<
   Omit<TutorIntroduction, "replace_identity" | "expected_public_revision">
->;
+> & {
+  quick_setup?: {
+    domain_id: string;
+    level_id: string;
+    curriculum_id?: string;
+    exam_id?: string;
+    language_id: string;
+    teaching_mode: "ONLINE" | "IN_PERSON";
+    city: string;
+    country: string;
+    title: string;
+    listing_id?: string;
+    existing_listing_ids?: string[];
+  };
+};
 export type OnboardingHelpRequest = {
   id: string;
   reference: string;

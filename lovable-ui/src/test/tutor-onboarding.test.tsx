@@ -77,6 +77,43 @@ function mount() {
   );
 }
 beforeEach(() => {
+  // These tests manage an already-created profile/ad. First-ad setup has its
+  // own coverage; do not accidentally model these returning Tutors as new.
+  vi.spyOn(api, "listings").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      eligible_subject_ids: ["subject-physics"],
+      listings: [
+        {
+          id: "existing-ad",
+          user_id: "owner",
+          revision: 1,
+          profile_revision: 1,
+          status: "DRAFT",
+          eligible: false,
+          requires_profile_review: false,
+          review_reason: null,
+          safety_reason: null,
+          offer: {
+            title:
+              "An existing teaching ad with enough words to retain its saved publication intent",
+            description: "Saved class description.",
+            domain_id: "school",
+            subject_id: "subject-physics",
+            level_id: "level-class-10",
+            curriculum_id: "curriculum-cbse",
+            language_ids: ["language-english"],
+            teaching_mode: "ONLINE",
+            currency: "INR",
+            rate_paise: 50000,
+            rate_unit: "HOUR",
+            trial_kind: "NONE",
+          },
+        },
+      ],
+    },
+  });
   vi.spyOn(api, "tutorPresence").mockResolvedValue({
     ok: true,
     status: 200,

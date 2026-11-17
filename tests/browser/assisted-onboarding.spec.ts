@@ -60,6 +60,7 @@ test("a Tutor sends their details to the team and a Support admin sets up and pu
     // The Tutor chooses the team instead of the wizard, with consent.
     await signup(page, tutorEmail, "Fictional Assisted Tutor");
     await page.goto("/tutor");
+    await page.getByText("Prefer our team to set it up?", { exact: true }).click();
     await page.getByRole("button", { name: "Send my details to the team", exact: true }).click();
     await page.getByLabel("Your WhatsApp number", { exact: true }).fill("+91 90000 00001");
     for (const box of await page.getByRole("group", { name: "Your permission" }).getByRole("checkbox").all()) await box.check();
