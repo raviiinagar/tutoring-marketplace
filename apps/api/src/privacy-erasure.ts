@@ -435,6 +435,8 @@ export async function erasePrivacyData(
     await client.query('DELETE FROM community_members WHERE user_id=$1',[user.id]);
     for(const row of touched)await client.query("SELECT pg_notify('community_changed',$1)",[row.channel_id]);
   }
+  // Google sign-in links (ADR0020): remove them so the Google account can no longer sign in here.
+  if((await client.query("SELECT to_regclass('user_identities') AS relation")).rows[0].relation)await client.query('DELETE FROM user_identities WHERE user_id=$1',[user.id]);
   // Assisted onboarding (ADR0018): withdraw any active request and erase the contact details.
   if((await client.query("SELECT to_regclass('tutor_onboarding_requests') AS relation")).rows[0].relation){
     await client.query("UPDATE tutor_onboarding_requests SET status='CANCELLED',cancelled_at=$2,cancelled_by='ERASURE',assigned_to=NULL,revision=revision+1,updated_at=$2 WHERE user_id=$1 AND status IN ('OPEN','IN_PROGRESS')",[user.id,at]);

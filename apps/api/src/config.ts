@@ -22,6 +22,8 @@ export interface Config {
   clamav?:{host:string;port:number};
   /** New Tutor photos stay private until Trust approves them (ADR0019); on in production unless PHOTO_REVIEW_REQUIRED=false. */
   photoReviewRequired?: boolean;
+  /** Sign in with Google (ADR0020); on only when both the client ID and secret are set. */
+  google?: { clientId: string; clientSecret: string; redirectUri: string; tokenUrl: string };
   /** List only Tutors with an available ad in the public directory; off unless DIRECTORY_REQUIRES_AD=true. */
   directoryRequiresAd?: boolean;
   /** Beta feedback switch (ADR0016); off in production unless BETA_FEEDBACK_ENABLED=true. */
@@ -116,6 +118,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const photoReviewFlag=env.PHOTO_REVIEW_REQUIRED;
   if(photoReviewFlag!==undefined&&!['true','false'].includes(photoReviewFlag))throw new Error('PHOTO_REVIEW_REQUIRED must be true or false');
   const photoReviewRequired=photoReviewFlag===undefined?mode==='production':photoReviewFlag==='true';
+  const googleId=env.GOOGLE_CLIENT_ID?.trim(),googleSecret=env.GOOGLE_CLIENT_SECRET?.trim();
+  if(!!googleId!==!!googleSecret)throw new Error('Set both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, or neither');
+  const googleTokenUrl=env.GOOGLE_TOKEN_URL||'https://oauth2.googleapis.com/token';
+  if(mode==='production'&&googleTokenUrl!=='https://oauth2.googleapis.com/token')throw new Error('GOOGLE_TOKEN_URL can only be overridden outside production');
+  const google=googleId&&googleSecret?{clientId:googleId,clientSecret:googleSecret,redirectUri:env.GOOGLE_REDIRECT_URI||webOrigin+'/v1/auth/google/callback',tokenUrl:googleTokenUrl}:undefined;
   const directoryFlag=env.DIRECTORY_REQUIRES_AD;
   if(directoryFlag!==undefined&&!['true','false'].includes(directoryFlag))throw new Error('DIRECTORY_REQUIRES_AD must be true or false');
   const directoryRequiresAd=directoryFlag==='true';
@@ -125,7 +132,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const betaCommunityFlag=env.BETA_COMMUNITY_ENABLED;
   if(betaCommunityFlag!==undefined&&!['true','false'].includes(betaCommunityFlag))throw new Error('BETA_COMMUNITY_ENABLED must be true or false');
   const betaCommunity=betaCommunityFlag===undefined?mode!=='production':betaCommunityFlag==='true';
-  return { directoryRequiresAd,photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  return { google,directoryRequiresAd,photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

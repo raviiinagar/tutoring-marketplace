@@ -1860,6 +1860,7 @@ export const api = {
   tutorPublication: (expected_public_revision: number, action: "PUBLISH" | "PAUSE") =>
     request<TutorState>("POST", "/v1/me/tutor/publication", { expected_public_revision, action }),
   tutor: () => request<TutorState>("GET", "/v1/me/tutor"),
+  authProviders: () => request<{ google: boolean }>("GET", "/v1/auth/providers"),
   onboardingHelp: () =>
     request<{
       policy: { consent_version: string; consents: string[] };
