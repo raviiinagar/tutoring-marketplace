@@ -158,28 +158,30 @@ function Index() {
             ))}
           </nav>
         )}
-        <section id="tutors" className="market-content py-14">
-          <Reveal className="market-tutor-banner">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
-                For teachers
-              </p>
-              <h2 className="text-2xl font-semibold sm:text-3xl">
-                Your knowledge. Someone’s new beginning.
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Share the subjects you love. Create your free profile and publish your ad for free.
-                Identity verification is optional.
-              </p>
-            </div>
-            <Button asChild className="shrink-0 rounded-full px-6">
-              <Link to="/auth/signup">
-                Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
-              </Link>
-            </Button>
-          </Reveal>
-        </section>
-        <TutorLocations />
+        {homepageSections.forTeachers && (
+          <section id="tutors" className="market-content py-14">
+            <Reveal className="market-tutor-banner">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
+                  For teachers
+                </p>
+                <h2 className="text-2xl font-semibold sm:text-3xl">
+                  Your knowledge. Someone’s new beginning.
+                </h2>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Share the subjects you love. Create your free profile and publish your ad for
+                  free. Identity verification is optional.
+                </p>
+              </div>
+              <Button asChild className="shrink-0 rounded-full px-6">
+                <Link to="/auth/signup">
+                  Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
+                </Link>
+              </Button>
+            </Reveal>
+          </section>
+        )}
+        {homepageSections.findByCity && <TutorLocations />}
         {homepageSections.subjectExplorer && (
           <div className="market-catalogue">
             <CatalogueBrowser initialCatalogue={catalogue} />
