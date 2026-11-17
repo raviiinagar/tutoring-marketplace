@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   api,
   describeFailure,
@@ -20,6 +20,7 @@ import { TutorAdManager } from "@/components/tutor-ad-manager";
 import { hasPublicationPhoto } from "@/lib/tutor-workspace";
 import { TutorPhotoEditor } from "@/components/tutor-photo-editor";
 import { introductionFromProfile } from "@/components/tutor-introduction-wizard";
+import { useTutorApi } from "@/lib/tutor-api";
 export const Route = createFileRoute("/tutor_/listings")({
   ssr: false,
   component: TutorListingsPage,
@@ -205,7 +206,11 @@ function TutorListingsPage() {
     );
   return <TutorListingsManager key={account.user.id} />;
 }
-export function TutorListingsManager() {
+/** The ad wizard. `shell` lets the staff onboarding page (ADR0018) embed it in its own frame. */
+export function TutorListingsManager({
+  shell,
+}: { shell?: (content: ReactNode) => ReactNode } = {}) {
+  const tutorApi = useTutorApi();
   const queryClient = useQueryClient();
   const expired = (failure: { kind: string; status?: number }) => {
     if (failure.kind === "http" && failure.status === 401) {
@@ -250,7 +255,7 @@ export function TutorListingsManager() {
     const version = ++loadVersion.current;
     if (!alive.current) return;
     setReady(false);
-    const r = await api.listings();
+    const r = await tutorApi.listings();
     if (!alive.current || version !== loadVersion.current) return;
     if (r.ok) {
       setListings(r.data.listings);
@@ -281,7 +286,7 @@ export function TutorListingsManager() {
     alive.current = true;
     void load();
     void loadCatalogue();
-    void Promise.all([api.tutor(), api.tutorPhoto(), api.tutorPresence()]).then(
+    void Promise.all([tutorApi.tutor(), tutorApi.tutorPhoto(), tutorApi.tutorPresence()]).then(
       ([p, image, where]) => {
         if (!alive.current) return;
         if (p.ok) {
@@ -302,7 +307,8 @@ export function TutorListingsManager() {
       alive.current = false;
       loadVersion.current++;
     };
-  }, []);
+    // Reload when the profile being edited changes (staff onboarding, ADR0018).
+  }, [tutorApi]);
   useEffect(() => {
     if (editorOpen) editorHeading.current?.focus();
   }, [editorOpen, step]);
@@ -355,13 +361,13 @@ export function TutorListingsManager() {
       const shouldPublish =
         (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "publish";
       const r = editing
-        ? await api.editListing(editing.id, editing.revision, offer)
-        : await api.createListing(offer);
+        ? await tutorApi.editListing(editing.id, editing.revision, offer)
+        : await tutorApi.createListing(offer);
       if (!alive.current) return;
       if (r.ok) {
         let saved = r.data.listing;
         if (shouldPublish && saved.status !== "PUBLISHED") {
-          const publication = await api.listingAction(saved.id, saved.revision, "PUBLISH");
+          const publication = await tutorApi.listingAction(saved.id, saved.revision, "PUBLISH");
           if (!alive.current) return;
           if (publication.ok) saved = publication.data.listing;
           else
@@ -396,7 +402,7 @@ export function TutorListingsManager() {
     run(async () => {
       setError(undefined);
       setNotice(undefined);
-      const r = await api.listingAction(item.id, item.revision, kind);
+      const r = await tutorApi.listingAction(item.id, item.revision, kind);
       if (!alive.current) return;
       if (r.ok) {
         setListings((rows) => rows.map((row) => (row.id === item.id ? r.data.listing : row)));
@@ -477,7 +483,7 @@ export function TutorListingsManager() {
       return false;
     }
     if (step === 3 && profile && biography.trim() !== profile.biography.trim()) {
-      const r = await api.saveTutorIntroduction({
+      const r = await tutorApi.saveTutorIntroduction({
         ...introductionFromProfile(profile),
         biography: biography.trim(),
       });
@@ -506,7 +512,7 @@ export function TutorListingsManager() {
         place.city.trim() !== (presence.location?.city ?? "") ||
         place.area.trim() !== (presence.location?.area ?? "");
       if (changed) {
-        const r = await api.saveTutorPresence({
+        const r = await tutorApi.saveTutorPresence({
           expected_revision: presence.revision,
           location: {
             city: place.city.trim(),
@@ -533,7 +539,7 @@ export function TutorListingsManager() {
       return false;
     }
     if (step === 8) {
-      const image = await api.tutorPhoto();
+      const image = await tutorApi.tutorPhoto();
       if (alive.current && image.ok) setPhoto(image.data.photo);
     }
     return true;
@@ -549,17 +555,8 @@ export function TutorListingsManager() {
       });
     } else save(event);
   };
-  return (
-    <AuthShell
-      dashboard
-      title="My ads"
-      intro="Create your teaching ad for free. Publish when you are ready and update it whenever you like."
-      footer={
-        <Link to="/tutor/dashboard" className="link">
-          Back to Tutor dashboard
-        </Link>
-      }
-    >
+  const content = (
+    <>
       <div ref={feedback} tabIndex={-1} className="space-y-3 outline-none">
         {catalogueError && (
           <div className="space-y-3">
@@ -1021,6 +1018,22 @@ export function TutorListingsManager() {
           </form>
         </section>
       )}
+    </>
+  );
+  return shell ? (
+    shell(content)
+  ) : (
+    <AuthShell
+      dashboard
+      title="My ads"
+      intro="Create your teaching ad for free. Publish when you are ready and update it whenever you like."
+      footer={
+        <Link to="/tutor/dashboard" className="link">
+          Back to Tutor dashboard
+        </Link>
+      }
+    >
+      {content}
     </AuthShell>
   );
 }

@@ -11,6 +11,7 @@ import { CatalogueBrowser } from "@/components/catalogue-browser";
 import { PublicOfferCard } from "@/components/public-offer";
 import { api, describeFailure, type Catalogue, type PublicOffer } from "@/lib/api";
 import { Reveal } from "@/components/reveal";
+import { homepageSections, siteFeatures } from "@/lib/site-visibility";
 export const Route = createFileRoute("/")({
   // The Tutor directory's first page loads with the page, so its first portrait
   // starts downloading straight away (it is often the largest paint on mobile).
@@ -71,9 +72,10 @@ function Index() {
           <PublicTutorDirectory
             initial={initial.tutors ?? undefined}
             initialCatalogue={catalogue}
+            wide
           />
         </div>
-        {(offers.length > 0 || loading || error) && (
+        {homepageSections.teachingOffers && (offers.length > 0 || loading || error) && (
           <section aria-labelledby="available-title" className="market-content py-10 sm:py-14">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -125,9 +127,11 @@ function Index() {
                   Tutor to share what you know.
                 </p>
                 <div className="mt-5 flex flex-wrap justify-center gap-3">
-                  <Button asChild variant="outline" className="rounded-full">
-                    <a href="#subjects">Explore subjects</a>
-                  </Button>
+                  {homepageSections.subjectExplorer && (
+                    <Button asChild variant="outline" className="rounded-full">
+                      <a href="#subjects">Explore subjects</a>
+                    </Button>
+                  )}
                   <Button asChild className="rounded-full">
                     <Link to="/auth/signup">Become a Tutor</Link>
                   </Button>
@@ -136,8 +140,8 @@ function Index() {
             )}
           </section>
         )}
-        <HowItWorks />
-        {initial.categories.length > 0 && (
+        {homepageSections.howItWorks && <HowItWorks />}
+        {homepageSections.howItWorks && initial.categories.length > 0 && (
           <nav
             aria-label="Available subject categories"
             className="market-content flex flex-wrap gap-3 pb-8"
@@ -170,15 +174,17 @@ function Index() {
             </div>
             <Button asChild className="shrink-0 rounded-full px-6">
               <Link to="/auth/signup">
-                Give private classes <ArrowUpRight aria-hidden className="size-4" />
+                Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
               </Link>
             </Button>
           </Reveal>
         </section>
         <TutorLocations />
-        <div className="market-catalogue">
-          <CatalogueBrowser initialCatalogue={catalogue} />
-        </div>
+        {homepageSections.subjectExplorer && (
+          <div className="market-catalogue">
+            <CatalogueBrowser initialCatalogue={catalogue} />
+          </div>
+        )}
       </main>
       <footer className="border-t">
         <div className="market-content flex flex-wrap items-center justify-between gap-4 py-7">
@@ -191,9 +197,9 @@ function Index() {
             className="flex flex-wrap items-center gap-5 text-sm font-medium"
           >
             <Link to="/tutors">Find Tutors</Link>
-            <a href="#how-it-works">How it works</a>
+            {homepageSections.howItWorks && <a href="#how-it-works">How it works</a>}
             <a href="#tutors">For teachers</a>
-            <Link to="/community">Community</Link>
+            {siteFeatures.community && <Link to="/community">Community</Link>}
             <Link to="/feedback">Beta feedback</Link>
             <Link to="/auth/signin">Sign in</Link>
           </nav>

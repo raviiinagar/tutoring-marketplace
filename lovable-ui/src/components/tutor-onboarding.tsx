@@ -9,6 +9,7 @@ import { AuthShell, Notice, useSingleFlight } from "./account/ui";
 import { Button } from "./ui/button";
 import { TutorPhotoEditor } from "./tutor-photo-editor";
 import { TutorPro } from "./tutor-pro";
+import { TeamSetup } from "./team-setup";
 export function TutorOnboarding() {
   const [state, setState] = useState<TutorState>(),
     [policy, setPolicy] = useState<TutorPolicy>(),
@@ -104,6 +105,7 @@ export function TutorOnboarding() {
         <p role="status">Loading your profile…</p>
       ) : (
         <div className="space-y-6">
+          <TeamSetup hasProfile={!!p} />
           {p && (
             <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
               {[

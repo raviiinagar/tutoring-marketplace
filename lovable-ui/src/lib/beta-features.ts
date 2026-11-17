@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { siteFeatures } from "@/lib/site-visibility";
 
 export type BetaFeature = "community" | "feedback";
 
@@ -17,6 +18,7 @@ export function useBetaFeatures(): Record<BetaFeature, boolean> {
     queryKey: ["beta-policy", "community"],
     queryFn: api.communityPolicy,
     ...options,
+    enabled: mounted && siteFeatures.community,
   });
   const feedback = useQuery({
     queryKey: ["beta-policy", "feedback"],
@@ -24,7 +26,7 @@ export function useBetaFeatures(): Record<BetaFeature, boolean> {
     ...options,
   });
   return {
-    community: !(community.data?.ok && !community.data.data.enabled),
+    community: siteFeatures.community && !(community.data?.ok && !community.data.data.enabled),
     feedback: !(feedback.data?.ok && !feedback.data.data.enabled),
   };
 }

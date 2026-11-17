@@ -1,3 +1,4 @@
+import {actingTutor,type TutorActor} from './tutor-delegation.js';
 import {identityVerified,publicationPolicy,requirePublicationPhoto,wordCount} from './tutor-publication.js';
 import {requireTutorMode,publicPresence} from './tutor-presence.js';
 import {requireSafetyClear} from './safety-permissions.js';
@@ -54,8 +55,8 @@ export class ListingsService {
     }
     return {id:row.id,user_id:row.user_id,offer:row.payload,presence:publicPresence(profile??{}),class_location:row.payload.teaching_mode==='IN_PERSON'?profile?.location??null:null,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':row.status,eligible,requires_profile_review:false,publication_policy:row.publication_policy,archived_at:row.archived_at,identity_verified:await identityVerified(client,row.user_id,this.now(),this.tutors.productionMode()),review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }
-  async own(token?:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);
+  async own(token?:TutorActor){return this.database.transaction(async client=>{
+    const {user}=await actingTutor(this.auth,client,token);this.role(user);
     const rows=(await client.query('SELECT * FROM teaching_listings WHERE user_id=$1 AND archived_at IS NULL ORDER BY created_at,id',[user.id])).rows;const listings=[];
     for(const row of rows)listings.push(await this.view(client,row));
     const declared=(await client.query('SELECT subject_ids,onboarding_version FROM tutor_profiles WHERE user_id=$1',[user.id])).rows[0];
@@ -64,8 +65,8 @@ export class ListingsService {
     for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id,false);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
     let tutor_pro_active=true;try{await this.tutors.requirePro(client,user.id);}catch(error){if(!(error instanceof ApiProblem))throw error;tutor_pro_active=false;}return {listings,eligible_subject_ids,tutor_pro_active,publication_policy:publicationPolicy,identity_optional:true,free_publication:true};
   });}
-  async create(token:string|undefined,offer:Offer,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id,false);await this.selection(client,offer);await requireTutorMode(client,user.id,offer.teaching_mode);
+  async create(token:TutorActor,offer:Offer,correlation:string){return this.database.transaction(async client=>{
+    const {user}=await actingTutor(this.auth,client,token);this.role(user);const qualified=await this.tutors.requireQualified(client,user.id,offer.subject_id,false);await this.selection(client,offer);await requireTutorMode(client,user.id,offer.teaching_mode);
     if(Number((await client.query('SELECT count(*) FROM teaching_listings WHERE user_id=$1',[user.id])).rows[0].count)>=20)throw fail('LISTING_LIMIT','At most twenty offers per Tutor.',429);
     const id=randomUUID();await client.query("INSERT INTO teaching_listings(id,user_id,payload,profile_revision,created_at,updated_at,publication_policy) VALUES($1,$2,$3,$4,$5,$5,'direct-ads-v1')",[id,user.id,offer,qualified.profile_revision,this.now()]);await this.audit(client,user.id,id,'LISTING_CREATED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
@@ -75,8 +76,8 @@ export class ListingsService {
     const errors:Record<string,string[]>={};if(wordCount(offer.title)<12)errors.title=['Use at least 12 words in your ad title.'];if(!offer.description.trim())errors.description=['Write something about your class.'];
     if(Object.keys(errors).length)throw new ApiProblem(400,'VALIDATION_ERROR','Complete the ad before publishing.',errors);
   }
-  async edit(token:string|undefined,id:string,input:z.infer<typeof editOfferInput>,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);
+  async edit(token:TutorActor,id:string,input:z.infer<typeof editOfferInput>,correlation:string){return this.database.transaction(async client=>{
+    const {user}=await actingTutor(this.auth,client,token);this.role(user);
     const qualified=await this.tutors.requireQualified(client,user.id,input.offer.subject_id,false);const row=await this.row(client,id,user.id);this.version(row,input.revision);await this.selection(client,input.offer);await requireTutorMode(client,user.id,input.offer.teaching_mode);
     const online=row.status==='PUBLISHED'&&!row.safety_suspended;
     // Editing an ad must not silently undo an explicit profile pause. Profile
@@ -84,8 +85,8 @@ export class ListingsService {
     if(online){this.publishable(input.offer);await requireSafetyClear(client,'LISTING',row.id);}
     await client.query("UPDATE teaching_listings SET payload=$2,profile_revision=$3,revision=revision+1,status=$4,publication_policy='direct-ads-v1',approved=false,review_reason=NULL,reviewed_by=NULL,reviewed_at=NULL,updated_at=$5 WHERE id=$1",[id,input.offer,qualified.profile_revision,online?'PUBLISHED':row.status==='CHANGES_REQUESTED'?'DRAFT':row.status,this.now()]);await this.audit(client,user.id,id,'LISTING_EDITED',correlation);return {listing:await this.view(client,await this.row(client,id))};
   });}
-  async ownerAction(token:string|undefined,id:string,action:'SUBMIT'|'PUBLISH'|'PAUSE'|'RESUME'|'ARCHIVE',revision:number,correlation:string){return this.database.transaction(async client=>{
-    const {user}=await this.auth.authenticated(client,token);this.role(user);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id]);const row=await this.row(client,id,user.id);this.version(row,revision);
+  async ownerAction(token:TutorActor,id:string,action:'SUBMIT'|'PUBLISH'|'PAUSE'|'RESUME'|'ARCHIVE',revision:number,correlation:string){return this.database.transaction(async client=>{
+    const {user}=await actingTutor(this.auth,client,token);this.role(user);await client.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id]);const row=await this.row(client,id,user.id);this.version(row,revision);
     if(action==='ARCHIVE'){
       await client.query("UPDATE teaching_listings SET status='PAUSED',archived_at=$2,revision=revision+1,updated_at=$2 WHERE id=$1",[id,this.now()]);await this.audit(client,user.id,id,'LISTING_ARCHIVED',correlation);return {listing:await this.view(client,await this.row(client,id))};
     }

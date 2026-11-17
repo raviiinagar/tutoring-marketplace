@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnnouncementTicker } from "@/components/beta-announcements";
 import { api, type CommunityPolicy, type FeedbackPolicy } from "@/lib/api";
 
+const features = vi.hoisted(() => ({ community: true }));
+vi.mock("@/lib/site-visibility", () => ({ siteFeatures: features }));
+
 vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
@@ -103,6 +106,19 @@ it("can be paused and dismissed, and stays dismissed", () => {
   unmount();
   mount();
   expect(screen.queryByRole("region", { name: "Announcements" })).toBeNull();
+});
+
+it("Community hidden by the owner drops its announcement without asking the API", async () => {
+  features.community = false;
+  try {
+    mount();
+    const bar = screen.getByRole("region", { name: "Announcements" });
+    expect(within(bar).queryByRole("link", { name: "Join the community" })).toBeNull();
+    expect(within(bar).getByRole("link", { name: "Send feedback" })).toBeVisible();
+    expect(api.communityPolicy).not.toHaveBeenCalled();
+  } finally {
+    features.community = true;
+  }
 });
 
 it("drops announcements for a feature switched off, and disappears when both are off", async () => {

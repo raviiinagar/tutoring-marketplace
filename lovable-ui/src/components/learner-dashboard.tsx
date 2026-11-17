@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useLearnerDashboard } from "@/lib/learner-dashboard";
 import { AccountAvatar } from "./account-avatar";
 import { RequestDeadline } from "./request-deadline";
+import { siteFeatures } from "@/lib/site-visibility";
 
 function DashboardData<T>({
   query,
@@ -174,9 +175,11 @@ export function LearnerDashboard() {
               <Link to="/feedback" className="reference-subtle-link">
                 Send feedback
               </Link>
-              <Link to="/community" className="reference-subtle-link">
-                Community
-              </Link>
+              {siteFeatures.community && (
+                <Link to="/community" className="reference-subtle-link">
+                  Community
+                </Link>
+              )}
             </div>
           </section>
         </div>

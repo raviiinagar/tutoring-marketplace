@@ -34,4 +34,9 @@ if(process.env.PLAYWRIGHT_BUILT_UI==='true') {
     {name:'proxy',command:'node scripts/browser-ui-proxy.mjs',env:{BROWSER_FRONT_PORT:origin.port,BROWSER_UI_PORT:String(uiPort)}},
   ],{killOthersOn:['failure','success']});
   try {await result;}catch {process.exitCode=1;}finally {await cluster.stop();}
-} else await import('./dev.mjs');
+} else {
+  // Homepage sections the owner has hidden (lovable-ui/src/lib/site-visibility.ts) stay
+  // covered end to end here; the built-UI run above measures the page as it ships.
+  process.env.VITE_SHOW_HIDDEN_SECTIONS='true';
+  await import('./dev.mjs');
+}

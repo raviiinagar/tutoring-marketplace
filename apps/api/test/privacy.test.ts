@@ -341,10 +341,12 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   const ownerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional community message to erase.'},owner.cookie).expect(201)).body.message.id;
   const strangerPost=(await post('/v1/community/channels/'+generalChannel+'/messages',{request_key:randomUUID(),body:'A fictional reply target.'},stranger.cookie).expect(201)).body.message.id;
   await post('/v1/community/messages/'+strangerPost+'/reactions',{emoji:'HEART'},owner.cookie).expect(200);
+  const helpRequest=(await post('/v1/me/tutor/onboarding-help',{request_key:randomUUID(),whatsapp_number:'+91 90000 00001',note:'Fictional help request',adult_confirmed:true,team_publication_consent:true,photo_public_consent:true},owner.cookie).expect(201)).body.request.id;
   const exported=await database.transaction(async client=>{const {personalExport}=await import('../src/privacy-inventory.js');return personalExport(client,(await client.query('SELECT * FROM users WHERE id=$1',[owner.id])).rows[0],config,clock);});
   assert.deepEqual(exported.feedback.map((f:any)=>[f.id,f.title]),[[ownSuggestion,'Fictional owner suggestion']]);
   assert.deepEqual(exported.feedback_votes.map((v:any)=>v.item_id),[strangerSuggestion]);
   assert.equal(exported.community.membership.nickname,'Owner Nick');
+  assert.deepEqual(exported.tutor_onboarding_requests.map((r:any)=>[r.id,r.status,r.contact.whatsapp_number,r.contact.note]),[[helpRequest,'OPEN','+919000000001','Fictional help request']]);
   assert.deepEqual(exported.community.messages.map((m:any)=>m.body),['A fictional community message to erase.']);
   assert.deepEqual(exported.community.reactions.map((r:any)=>[r.message_id,r.emoji]),[[strangerPost,'HEART']]);
   const identity = await post(
@@ -376,6 +378,7 @@ test("deletion revokes activity, clears personal assets, reports retention and r
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM feedback_votes WHERE user_id=$1',[owner.id])).rows[0].count,0);
   assert.equal((await database.pool.query('SELECT vote_count FROM feedback_items WHERE id=$1',[strangerSuggestion])).rows[0].vote_count,0);
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_members WHERE user_id=$1',[owner.id])).rows[0].count,0);
+  assert.deepEqual((await database.pool.query('SELECT status,cancelled_by,encrypted_contact FROM tutor_onboarding_requests WHERE id=$1',[helpRequest])).rows[0],{status:'CANCELLED',cancelled_by:'ERASURE',encrypted_contact:null});
   assert.equal((await database.pool.query('SELECT count(*)::integer AS count FROM community_reactions WHERE user_id=$1',[owner.id])).rows[0].count,0);
   const erasedMessage=(await database.pool.query('SELECT status,encrypted_body FROM community_messages WHERE id=$1',[ownerPost])).rows[0];
   assert.equal(erasedMessage.status,'DELETED_BY_AUTHOR');
