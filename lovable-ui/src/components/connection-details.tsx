@@ -67,7 +67,9 @@ export function ConnectionDetails({
     });
   return (
     <div className="messaging-section space-y-5">
-      <h3 className="text-lg font-semibold">{detail ? "Your conversation" : "Conversation access"}</h3>
+      <h3 className="text-lg font-semibold">
+        {detail ? "Your conversation" : "Conversation access"}
+      </h3>
       {unavailableReason && <p>{connectionReason(unavailableReason)}</p>}
       {error && <Notice tone="error">{error}</Notice>}
       {loading ? (
@@ -139,9 +141,6 @@ export function ConnectionDetails({
       >
         Report or block this account
       </Link>
-      <Button variant="outline" disabled={loading || action.loading} onClick={() => void load()}>
-        Refresh Connection access
-      </Button>
     </div>
   );
 }

@@ -5,11 +5,15 @@
  * - `teachingOffers`: "Meet your next teacher", the grid of teaching offers.
  * - `howItWorks`: "A little curiosity. The right teacher." and the subject chips under it.
  * - `subjectExplorer`: "What would you like to learn?", the subject and exam browser.
+ * - `forTeachers`: the "For teachers" banner with its Become a Tutor button (hidden 17 November 2026).
+ * - `findByCity`: "Find a teacher in your city", the city and online shortcuts (hidden 17 November 2026).
  */
 const owner = {
   teachingOffers: false,
   howItWorks: false,
   subjectExplorer: false,
+  forTeachers: false,
+  findByCity: false,
 };
 
 export type HomepageSection = keyof typeof owner;
@@ -18,7 +22,13 @@ export type HomepageSection = keyof typeof owner;
 const showAll = import.meta.env["VITE_SHOW_HIDDEN_SECTIONS"] === "true";
 
 export const homepageSections: Record<HomepageSection, boolean> = showAll
-  ? { teachingOffers: true, howItWorks: true, subjectExplorer: true }
+  ? {
+      teachingOffers: true,
+      howItWorks: true,
+      subjectExplorer: true,
+      forTeachers: true,
+      findByCity: true,
+    }
   : owner;
 
 /**

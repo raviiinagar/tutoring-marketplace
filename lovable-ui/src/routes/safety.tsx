@@ -30,9 +30,21 @@ function Center() {
     const turn = ++sequence.current;
     const r = await api.safetyCenter();
     if (turn !== sequence.current) return;
-    if (r.ok) {if(identity.current&&identity.current!==r.data.actor_id){queued.current=undefined;setSelected('');setDescription('');setRetry(false);setNotice(undefined);}identity.current=r.data.actor_id;setData(r.data);}
-    else {
-      queued.current=undefined;setSelected('');setDescription('');setRetry(false);
+    if (r.ok) {
+      if (identity.current && identity.current !== r.data.actor_id) {
+        queued.current = undefined;
+        setSelected("");
+        setDescription("");
+        setRetry(false);
+        setNotice(undefined);
+      }
+      identity.current = r.data.actor_id;
+      setData(r.data);
+    } else {
+      queued.current = undefined;
+      setSelected("");
+      setDescription("");
+      setRetry(false);
       setData(undefined);
       setError(describeFailure(r.error));
     }
@@ -144,9 +156,15 @@ function Center() {
                           {r.lifted_at ? "Lifted" : "Active"}
                         </p>
                       ))}
-                    {data.appeals.some((a) => a.case_id === item.id && a.case_revision === item.revision) ? (
+                    {data.appeals.some(
+                      (a) => a.case_id === item.id && a.case_revision === item.revision,
+                    ) ? (
                       <p role="status" className="text-sm font-medium">
-                        {data.appeals.find((a) => a.case_id === item.id && a.case_revision === item.revision)?.status === 'RESOLVED' ? 'Appeal: Resolved — see Support for the outcome' : 'Appeal: Pending review'}
+                        {data.appeals.find(
+                          (a) => a.case_id === item.id && a.case_revision === item.revision,
+                        )?.status === "RESOLVED"
+                          ? "Appeal: Resolved — see Support for the outcome"
+                          : "Appeal: Pending review"}
                       </p>
                     ) : (
                       item.can_appeal && (
@@ -188,13 +206,12 @@ function Center() {
                 </SubmitButton>
               </form>
             )}
-            <Button variant="outline" disabled={flight.loading} onClick={() => void load()}>
-              Refresh safety status
-            </Button>
           </div>
         )
       )}
-      <Link to="/support" className="link mt-5 block">Track safety appeals in Support</Link>
+      <Link to="/support" className="link mt-5 block">
+        Track safety appeals in Support
+      </Link>
       <Link to="/account" className="link mt-6 inline-block">
         Back to your account
       </Link>

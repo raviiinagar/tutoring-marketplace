@@ -222,9 +222,6 @@ export function SavedTutorList() {
                 ))}
               </select>
             </label>
-            <Button variant="outline" type="button" onClick={() => void saved.refresh()}>
-              Refresh saved Tutors
-            </Button>
           </div>
           {catalogueError && (
             <p className="mb-4 text-sm">

@@ -153,9 +153,7 @@ export function TutorPro({ identityApproved }: { identityApproved: boolean }) {
           )}
         </>
       )}
-      <Button variant="outline" disabled={loading} onClick={() => void run(load)}>
-        Refresh Pro status
-      </Button>
+
       {state?.purchase && <RefundPanel purchaseId={state.purchase.id} onChange={load} />}
     </section>
   );

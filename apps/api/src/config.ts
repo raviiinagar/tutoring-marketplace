@@ -22,6 +22,8 @@ export interface Config {
   clamav?:{host:string;port:number};
   /** New Tutor photos stay private until Trust approves them (ADR0019); on in production unless PHOTO_REVIEW_REQUIRED=false. */
   photoReviewRequired?: boolean;
+  /** List only Tutors with an available ad in the public directory; off unless DIRECTORY_REQUIRES_AD=true. */
+  directoryRequiresAd?: boolean;
   /** Beta feedback switch (ADR0016); off in production unless BETA_FEEDBACK_ENABLED=true. */
   betaFeedback?: boolean;
   /** Beta community chat switch (ADR0017); off in production unless BETA_COMMUNITY_ENABLED=true. */
@@ -114,13 +116,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const photoReviewFlag=env.PHOTO_REVIEW_REQUIRED;
   if(photoReviewFlag!==undefined&&!['true','false'].includes(photoReviewFlag))throw new Error('PHOTO_REVIEW_REQUIRED must be true or false');
   const photoReviewRequired=photoReviewFlag===undefined?mode==='production':photoReviewFlag==='true';
+  const directoryFlag=env.DIRECTORY_REQUIRES_AD;
+  if(directoryFlag!==undefined&&!['true','false'].includes(directoryFlag))throw new Error('DIRECTORY_REQUIRES_AD must be true or false');
+  const directoryRequiresAd=directoryFlag==='true';
   const betaFeedbackFlag=env.BETA_FEEDBACK_ENABLED;
   if(betaFeedbackFlag!==undefined&&!['true','false'].includes(betaFeedbackFlag))throw new Error('BETA_FEEDBACK_ENABLED must be true or false');
   const betaFeedback=betaFeedbackFlag===undefined?mode!=='production':betaFeedbackFlag==='true';
   const betaCommunityFlag=env.BETA_COMMUNITY_ENABLED;
   if(betaCommunityFlag!==undefined&&!['true','false'].includes(betaCommunityFlag))throw new Error('BETA_COMMUNITY_ENABLED must be true or false');
   const betaCommunity=betaCommunityFlag===undefined?mode!=='production':betaCommunityFlag==='true';
-  return { photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  return { directoryRequiresAd,photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

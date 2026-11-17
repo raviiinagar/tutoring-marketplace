@@ -84,14 +84,6 @@ export function TutorDashboard() {
         <Button className="rounded-full" asChild>
           <Link to="/tutor/listings">Manage teaching offers</Link>
         </Button>
-        <Button
-          variant="outline"
-          className="rounded-full"
-          onClick={() => void data.refresh()}
-          disabled={data.session.isFetching}
-        >
-          Refresh workspace
-        </Button>
       </div>
       {/* Having this workspace is not the same as being visible to learners.
           State it plainly, so an owner is never left guessing whether their

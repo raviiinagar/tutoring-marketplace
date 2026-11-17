@@ -117,7 +117,7 @@ export function LearnerDashboard() {
                 ) : (
                   <div className="reference-no-requests">
                     <MessageCircle aria-hidden className="size-12 text-slate-300" />
-                    <p>No requests</p>
+                    <p>No enquiries yet</p>
                     <Button asChild className="reference-coral-button">
                       <Link to="/tutors">Find a tutor</Link>
                     </Button>
@@ -129,7 +129,7 @@ export function LearnerDashboard() {
           <TeachingCard />
         </div>
       </div>
-      <details className="reference-account-tools">
+      <details className="reference-account-tools" open>
         <summary>Learning tools and access</summary>
         <div className="grid gap-6 pt-6 sm:grid-cols-2">
           <section>

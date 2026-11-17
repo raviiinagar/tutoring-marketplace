@@ -31,7 +31,10 @@ export function TutorPresenceSummary({
         <p className="flex items-start gap-2">
           <MapPin aria-hidden className="mt-0.5 size-4 shrink-0" />
           <span className="min-w-0 [overflow-wrap:anywhere]">
-            {[place.area, place.city, place.state, place.country].filter(Boolean).join(", ")}
+            {/* Skip repeated names, such as a state that matches its city (New Delhi, New Delhi). */}
+            {[place.area, place.city, place.state, place.country]
+              .filter((part, i, all): part is string => !!part && all.indexOf(part) === i)
+              .join(", ")}
           </span>
         </p>
       )}

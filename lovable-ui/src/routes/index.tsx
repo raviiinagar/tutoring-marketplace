@@ -5,7 +5,7 @@ import { publicHead, requirePublic } from "@/lib/public-pages";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, GraduationCap } from "lucide-react";
-import { SiteHeader, BrandWordmark } from "@/components/account/ui";
+import { SiteHeader, SiteFooter } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { CatalogueBrowser } from "@/components/catalogue-browser";
 import { PublicOfferCard } from "@/components/public-offer";
@@ -158,53 +158,37 @@ function Index() {
             ))}
           </nav>
         )}
-        <section id="tutors" className="market-content py-14">
-          <Reveal className="market-tutor-banner">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
-                For teachers
-              </p>
-              <h2 className="text-2xl font-semibold sm:text-3xl">
-                Your knowledge. Someone’s new beginning.
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Share the subjects you love. Create your free profile and publish your ad for free.
-                Identity verification is optional.
-              </p>
-            </div>
-            <Button asChild className="shrink-0 rounded-full px-6">
-              <Link to="/auth/signup">
-                Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
-              </Link>
-            </Button>
-          </Reveal>
-        </section>
-        <TutorLocations />
+        {homepageSections.forTeachers && (
+          <section id="tutors" className="market-content py-14">
+            <Reveal className="market-tutor-banner">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-coral-strong">
+                  For teachers
+                </p>
+                <h2 className="text-2xl font-semibold sm:text-3xl">
+                  Your knowledge. Someone’s new beginning.
+                </h2>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Share the subjects you love. Create your free profile and publish your ad for
+                  free. Identity verification is optional.
+                </p>
+              </div>
+              <Button asChild className="shrink-0 rounded-full px-6">
+                <Link to="/auth/signup">
+                  Become a Tutor <ArrowUpRight aria-hidden className="size-4" />
+                </Link>
+              </Button>
+            </Reveal>
+          </section>
+        )}
+        {homepageSections.findByCity && <TutorLocations />}
         {homepageSections.subjectExplorer && (
           <div className="market-catalogue">
             <CatalogueBrowser initialCatalogue={catalogue} />
           </div>
         )}
       </main>
-      <footer className="border-t">
-        <div className="market-content flex flex-wrap items-center justify-between gap-4 py-7">
-          <Link to="/" aria-label="Tutor Marketplace home" className="brand-link">
-            <BrandWordmark className="brand-wordmark-footer" />
-          </Link>
-          <p className="text-xs text-muted-foreground">Made for curious minds across India.</p>
-          <nav
-            aria-label="Footer navigation"
-            className="flex flex-wrap items-center gap-5 text-sm font-medium"
-          >
-            <Link to="/tutors">Find Tutors</Link>
-            {homepageSections.howItWorks && <a href="#how-it-works">How it works</a>}
-            <a href="#tutors">For teachers</a>
-            {siteFeatures.community && <Link to="/community">Community</Link>}
-            <Link to="/feedback">Beta feedback</Link>
-            <Link to="/auth/signin">Sign in</Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

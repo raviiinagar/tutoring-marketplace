@@ -578,7 +578,7 @@ main { scroll-margin-top: 90px; }
 .reference-no-requests { display:flex; flex-wrap:wrap; align-items:center; gap:20px; padding:28px; min-height:116px; }
 .reference-no-requests p { flex:1; font-weight:650; color:#999; }
 .reference-teaching-body { padding:28px 44px 36px; }
-.reference-coral-button { background:linear-gradient(110deg,#ff9c9c,#ff5f87); border:0; color:white; border-radius:28px; font-weight:700; padding:12px 24px; box-shadow:none; }
+.reference-coral-button { background:var(--primary); border:0; color:white; border-radius:28px; font-weight:700; padding:12px 24px; box-shadow:none; }
 .reference-teaching-link { display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-top:24px; font-size:14px; }
 .reference-account-tools { border-top:1px solid #e8e8e8; margin-top:40px; padding:22px 0; font-size:14px; color:#555; }
 .reference-account-tools summary { cursor:pointer; }
@@ -614,6 +614,8 @@ main { scroll-margin-top: 90px; }
 /* The inbox uses the actual shared header height; short windows scroll the page. */
 .reference-account:has(.messaging-inbox) { display:flex; flex-direction:column; height:100dvh; min-height:600px; }
 .reference-account:has(.messaging-inbox) .reference-header-group { flex-shrink:0; }
+/* The inbox fills the window like an app; the site footer would squeeze the conversation. */
+.reference-account:has(.messaging-inbox) .site-footer { display:none; }
 .reference-account:has(.messaging-inbox) main.account-workspace { display:flex; flex:1; min-height:0; padding:0; }
 .reference-account:has(.messaging-inbox) .account-content { display:flex; flex:1; min-height:0; min-width:0; animation:none; }
 .reference-account:has(.messaging-inbox) .account-content > div { display:flex; flex:1; min-height:0; min-width:0; }
@@ -690,3 +692,8 @@ main { scroll-margin-top: 90px; }
   .announcement-pause { display:none; }
 }
 @media(max-width:640px) { .announcement-item { padding-inline:18px; } }
+
+/* Larger touch targets without changing the look (site review, 15 November 2026). */
+.announcement-link { display:inline-block; padding-block:12px; margin-block:-12px; }
+.brand-link { display:inline-flex; align-items:center; min-height:44px; }
+.subject-scroll-button { min-width:44px; }

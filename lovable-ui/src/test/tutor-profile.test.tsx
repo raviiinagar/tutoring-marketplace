@@ -4,6 +4,7 @@ import { TeacherPage } from "@/components/public-pages";
 import type { PublicTeacherPage } from "@/lib/api";
 vi.mock("@/components/account/ui", () => ({
   SiteHeader: () => <header>Tutor Marketplace</header>,
+  SiteFooter: () => <footer />,
 }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
