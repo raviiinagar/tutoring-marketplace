@@ -12,12 +12,14 @@ import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/compo
 import { useQueryClient } from "@tanstack/react-query";
 import { accountSessionKey } from "@/lib/session";
 import { enquiryTarget } from "@/lib/enquiry";
+import { GoogleSignInButton, GoogleSignInNotice } from "@/components/google-sign-in";
 import { landingAfterSignIn } from "@/lib/teaching-presence";
 
 export const Route = createFileRoute("/auth/signin")({
-  validateSearch: (search: Record<string, unknown>): { enquire?: string } => {
+  validateSearch: (search: Record<string, unknown>): { enquire?: string; google?: string } => {
     const target = enquiryTarget(search["enquire"]);
-    return target ? { enquire: target } : {};
+    const google = typeof search["google"] === "string" ? search["google"] : undefined;
+    return { ...(target ? { enquire: target } : {}), ...(google ? { google } : {}) };
   },
   head: () => ({
     meta: [
@@ -33,7 +35,7 @@ export const Route = createFileRoute("/auth/signin")({
 });
 
 function SignIn() {
-  const { enquire } = Route.useSearch();
+  const { enquire, google } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
@@ -90,7 +92,11 @@ function SignIn() {
         </>
       }
     >
-      <form noValidate onSubmit={onSubmit} className="space-y-5">
+      <GoogleSignInNotice outcome={google} />
+      <div className="mt-5">
+        <GoogleSignInButton returnTo={enquire ? "/teachers/" + enquire : undefined} />
+      </div>
+      <form noValidate onSubmit={onSubmit} className="mt-5 space-y-5">
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field
           label="Email"
