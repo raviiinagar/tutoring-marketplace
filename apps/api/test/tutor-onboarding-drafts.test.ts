@@ -106,3 +106,27 @@ test('starting a teaching draft records the Tutor role without publishing anythi
   assert.equal((await get('/v1/me/tutor', learner.cookie).expect(200)).body.profile, null);
   assert.deepEqual((await get('/v1/me/listings', learner.cookie).expect(200)).body.listings, []);
 });
+
+test('one-form teaching selections remain encrypted and private without creating or publishing records', async () => {
+  const owner = await account(false);
+  const data = { display_name: 'Private one-form Tutor', biography: 'Private working introduction.',
+    quick_setup: { domain_id: 'school', level_id: '', language_id: '', teaching_mode: 'IN_PERSON', city: 'Kota', country: 'India', title: '' } };
+  const saved = await post(path, { revision: 0, step: 0, data }, owner.cookie).expect(200);
+  assert.deepEqual(saved.body.draft.data, data);
+  assert.deepEqual((await get(path, owner.cookie).expect(200)).body.draft.data, data);
+  assert.equal((await get('/v1/me/tutor', owner.cookie).expect(200)).body.profile, null);
+  assert.deepEqual((await get('/v1/me/listings', owner.cookie).expect(200)).body.listings, []);
+  const stored = (await db.pool.query('SELECT encrypted_payload FROM tutor_onboarding_drafts WHERE user_id=$1', [owner.id])).rows[0];
+  assert.ok(!JSON.stringify(stored).includes('Private working introduction.'));
+  assert.deepEqual(decrypt(stored.encrypted_payload, config.authSecret), data);
+  await post(path, { revision: 0, step: 0, data }, owner.cookie).expect(409);
+});
+
+test('one-form working copies cannot smuggle publication, image bytes or another user into the payload', async () => {
+  const owner = await account();
+  const quick_setup = { domain_id: '', level_id: '', language_id: '', teaching_mode: 'ONLINE', city: '', country: 'India', title: '' };
+  for (const extra of [{ status: 'PUBLISHED' }, { image_data: 'base64-upload' }, { user_id: randomUUID() }, { city: 'x'.repeat(81) }, { listing_id: 'not-a-uuid' }]) {
+    await post(path, { revision: 0, step: 0, data: { quick_setup: { ...quick_setup, ...extra } } }, owner.cookie).expect(400);
+  }
+  assert.equal((await get(path, owner.cookie).expect(200)).body.draft, null);
+});
