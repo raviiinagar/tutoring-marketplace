@@ -264,6 +264,9 @@ test('location and hours validate ownership, stale writes and public Subject/cit
  const own=(await get('/v1/me/tutor',teacher.cookie).expect(200)).body.profile;assert.equal(own.status,'APPROVED');assert.equal(own.revision,1);
  const pub=(await get('/v1/tutor-profiles/'+teacher.publicId).expect(200)).body.profile;assert.deepEqual(pub.presence.location,place);assert.equal(pub.presence.weekly_slots.length,1);assert.equal(pub.offers.length,0);
  const prefix='/v1/tutor-profiles?subject_id=subject-physics&location='+encodeURIComponent(place.city)+'&teaching_mode=IN_PERSON';
+ // The directory lists only Tutors with an available ad; the profile itself stays reachable by link.
+ assert.ok(!(await get(prefix+'&day=MON&at_time=1020').expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));
+ await publish(teacher);
  const found=(await get(prefix+'&day=MON&at_time=1020').expect(200)).body.profiles;assert.ok(found.some((p:any)=>p.id===teacher.publicId));
  for(const filter of ['&day=TUE','&day=MON&at_time=1080'])assert.ok(!(await get(prefix+filter).expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));
  assert.ok(!(await get('/v1/tutor-profiles?location=NoSuchCity').expect(200)).body.profiles.some((p:any)=>p.id===teacher.publicId));

@@ -125,7 +125,7 @@ export function TutorDashboard() {
                       <p className="break-words font-semibold">{profile.display_name}</p>
                       <p className="mt-2 text-sm">
                         {profile.eligible
-                          ? "Your introduction is publicly eligible."
+                          ? "Your profile can be shown to learners."
                           : `Profile: ${profile.publication_status?.toLowerCase() || "private draft"}`}
                       </p>
                       <p className="mt-3 text-xs text-muted-foreground">
@@ -196,7 +196,7 @@ export function TutorDashboard() {
               Manage location & availability
             </Link>
             <Link to="/connections" className="link mt-4 block text-sm">
-              Open your Connections
+              Open your messages
             </Link>
           </section>
         </aside>

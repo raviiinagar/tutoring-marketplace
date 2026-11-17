@@ -148,7 +148,7 @@ it("archives only after confirmation and explains that established history is re
   fireEvent.click(screen.getByRole("button", { name: "Delete advert" }));
   const dialog = screen.getByRole("alertdialog");
   expect(dialog).toHaveTextContent(
-    "Existing enquiries, payment history and Connections are retained.",
+    "Existing enquiries, payments and conversations are kept.",
   );
   expect(onAction).not.toHaveBeenCalled();
   fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));

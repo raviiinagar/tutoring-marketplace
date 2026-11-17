@@ -37,6 +37,7 @@ export class TutorsService {
     if(config.mode==='production'&&scanner?.testOnly)throw new Error('Test evidence scanner is forbidden in production');
   }
   productionMode(){return this.config.mode==='production';}
+  photoReviewRequired(){return !!this.config.photoReviewRequired;}
   async requirePro(client:PoolClient,userId:string){if(!await currentTutorPro(client,userId,this.now(),this.config.mode!=='production'))throw problem('TUTOR_PRO_REQUIRED','An active Tutor Pro pass is required for teaching offers.',403);}
   policy(){return {publication_policy:publicationPolicy,identity_optional:true,free_publication:true,uploads_enabled:!!this.scanner,test_only:this.scanner?.testOnly||false,max_bytes:1048576,media_types:['application/pdf','image/png','image/jpeg']};}
   private role(user:{roles:string[]}){if(!user.roles.includes('TUTOR'))throw problem('TUTOR_ROLE_REQUIRED','Choose the Tutor role in your account.',403);}

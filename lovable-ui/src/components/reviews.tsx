@@ -160,12 +160,14 @@ export function PublicReviews({ listingId }: { listingId: string }) {
     return () => window.removeEventListener("focus", focus);
   }, [load]);
   return (
-    <section className="mt-8 rounded-2xl border bg-card p-6" aria-label="Connection-linked reviews">
-      <h2 className="text-xl font-semibold">Connection-linked reviews</h2>
+    <section className="mt-8 rounded-2xl border bg-card p-6" aria-label="Reviews from students">
+      <h2 className="text-xl font-semibold">Reviews from students</h2>
       {error && <Notice tone="error">{error}</Notice>}
       {page ? (
         <>
-          <p className="mt-3 text-sm text-muted-foreground">{page.disclaimer}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Only students who contacted this Tutor through Tutor Marketplace can leave a review.
+          </p>
           {page.summary.count ? (
             <p className="mt-5 font-semibold">
               {page.summary.average?.toFixed(1)} / 5 · {page.summary.count} published{" "}
@@ -190,9 +192,6 @@ export function PublicReviews({ listingId }: { listingId: string }) {
             ))}
           </ul>
           <nav className="mt-4 flex flex-wrap gap-3" aria-label="Review pages">
-            <Button variant="outline" onClick={() => void load()}>
-              Refresh reviews
-            </Button>
             {cursor && (
               <Button variant="outline" onClick={() => setCursor(undefined)}>
                 First reviews
@@ -255,7 +254,7 @@ export function MyReviews() {
         Your submitted and received feedback. Appeals are recorded privately for the upcoming
         support-case workflow.
       </p>
-      {!rows.length && !error && <p>No reviews yet. Open a Connection to check eligibility.</p>}
+      {!rows.length && !error && <p>No reviews yet. You can review a Tutor after you have messaged them.</p>}
       {rows.map((row) => (
         <article key={row.id} className="space-y-4 rounded-xl border p-5">
           <p className="font-semibold">
@@ -263,7 +262,7 @@ export function MyReviews() {
           </p>
           <p className="text-xs text-muted-foreground">
             {row.relationship === "AUTHOR" ? "Your feedback" : "Feedback about your tutoring"} ·{" "}
-            {row.test_only ? "Fictional test review" : "Connection-linked review"}
+            {row.test_only ? "Fictional test review" : "Student review"}
           </p>
           {row.text && <p className="whitespace-pre-wrap break-words text-sm">{row.text}</p>}
           {row.decisions?.map((d) => (

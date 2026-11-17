@@ -55,7 +55,7 @@ it("keeps lesson pricing and contact eligibility separate without inventing free
   expect(screen.getByRole("link", { name: "Contact Fictional Asha" }).getAttribute("href")).toBe(
     "#contact",
   );
-  expect(screen.getByText(/In-app enquiries use the Learner Access Pass/)).toBeTruthy();
+  expect(screen.getByText(/Sending an enquiry needs an Access Pass/)).toBeTruthy();
   expect(screen.getByRole("form", { name: "Existing enquiry form" })).toBeTruthy();
   expect(screen.getByText("Identity review does not verify teaching expertise.")).toBeTruthy();
 });
@@ -75,4 +75,29 @@ it("shows only actual reviewed ratings and the Tutor's recorded trial terms", ()
   expect(screen.getByRole("link", { name: "4.7 (3 reviews)" })).toBeTruthy();
   expect(screen.getByText("Free trial · 20 minutes")).toBeTruthy();
   expect(screen.getByRole("region", { name: "Tutor reviews" })).toBeTruthy();
+});
+it("labels only Tutors whose identity was actually verified; others carry no identity badge", () => {
+  const { unmount } = render(<TeacherPage page={page} />);
+  expect(screen.queryByText(/Identity not verified/)).toBeNull();
+  expect(screen.queryByText("Identity verified")).toBeNull();
+  unmount();
+  render(
+    <TeacherPage
+      page={{
+        ...page,
+        listing: {
+          ...page.listing,
+          evidence_labels: [
+            {
+              kind: "IDENTITY",
+              label: "Identity reviewed",
+              reviewed_at: "2026-11-01",
+              expires_at: "2027-11-01",
+            },
+          ],
+        },
+      }}
+    />,
+  );
+  expect(screen.getByText("Identity verified")).toBeTruthy();
 });

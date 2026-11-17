@@ -405,7 +405,7 @@ export function PaymentCheckout({
                     ? "Your Access Pass is active."
                     : purchase.access?.status === "EXPIRED"
                       ? purchase.access.starts_at
-                        ? "Your Access Pass has expired. Existing Connections remain available, subject to current safety permissions."
+                        ? "Your Access Pass has expired. Your existing conversations stay open."
                         : "The matching window has ended. Your pass did not start; resolution is pending."
                       : purchase.access?.status === "UNAVAILABLE"
                         ? "New enquiries are unavailable for this purchase. Check its payment status before paying again."

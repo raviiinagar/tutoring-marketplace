@@ -113,7 +113,7 @@ function TutorRecommendations({ user }: { user: User }) {
           </>
         ) : (
           <p className="text-sm">
-            Your link becomes available when your profile is publicly eligible.{" "}
+            Your link becomes available when your profile is published.{" "}
             <Link className="link" to="/tutor">
               Check profile and identity status
             </Link>

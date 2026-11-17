@@ -251,7 +251,7 @@ export function ContactRequestForm({
             </Link>
           )}
           <Link to="/requests" className="link block">
-            View your Contact Requests
+            View my enquiries
           </Link>
         </div>
       ) : (
@@ -476,7 +476,7 @@ export function ContactRequestForm({
             </div>
           )}
           <Link to="/requests" className="link mt-5 inline-block">
-            My Contact Requests
+            My enquiries
           </Link>
         </>
       )}

@@ -342,7 +342,7 @@ export function TutorAdManager({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm === "ARCHIVE"
-                ? "This removes the ad from your workspace and public search. Existing enquiries, payment history and Connections are retained."
+                ? "This removes the ad from your workspace and public search. Existing enquiries, payments and conversations are kept."
                 : "Your ad will be offline. You can reactivate it from My ads when you are ready."}
             </AlertDialogDescription>
           </AlertDialogHeader>

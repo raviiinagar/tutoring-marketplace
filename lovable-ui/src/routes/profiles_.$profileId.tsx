@@ -103,10 +103,12 @@ function Profile() {
         </>
       }
     >
-      <IdentityReviewNote label={p.identity_label}>
-        {p.expertise_label}. Publishing a profile does not verify identity, teaching qualifications
-        or guarantee outcomes. Optional verification is labelled separately.
-      </IdentityReviewNote>
+      {p.identity_verified && (
+        <IdentityReviewNote label="Identity verified">
+          Our team checked this Tutor's identity document. Subjects and experience are described by
+          the Tutor.
+        </IdentityReviewNote>
+      )}
       <section id="about" className="scroll-mt-28">
         <h2 className="text-2xl font-semibold">About {p.display_name}</h2>
         <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">
@@ -149,14 +151,8 @@ function Profile() {
             No available teaching offers yet. Check back later to enquire about classes.
           </p>
         )}
-        {!p.contact && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Public contact details are not available.
-          </p>
-        )}
         <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
-          In-app enquiries use the Learner Access Pass. Tuition is arranged and paid directly with
-          the Tutor.
+          You pay the Tutor directly for lessons. Sending an enquiry needs an Access Pass.
         </p>
       </section>
       <PublicTutorReputation profileId={p.id} />

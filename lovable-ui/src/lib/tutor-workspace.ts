@@ -1,7 +1,10 @@
 import type { TeachingListing, TutorPhoto } from "./api";
 export function hasPublicationPhoto(photo: TutorPhoto | null | undefined) {
+  if (!photo) return false;
+  // The server says whether this photo lets the Tutor publish (with photo review on, a clean
+  // photo awaiting review counts); older responses fall back to the self-publication rule.
+  if (typeof photo.publishable === "boolean") return photo.publishable;
   return (
-    !!photo &&
     photo.scan_status === "CLEAN" &&
     (photo.status === "APPROVED" || (photo.status === "PENDING" && photo.self_published === true))
   );

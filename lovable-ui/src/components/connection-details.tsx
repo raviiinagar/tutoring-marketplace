@@ -67,11 +67,11 @@ export function ConnectionDetails({
     });
   return (
     <div className="messaging-section space-y-5">
-      <h3 className="text-lg font-semibold">{detail ? "Your Connection" : "Connection access"}</h3>
+      <h3 className="text-lg font-semibold">{detail ? "Your conversation" : "Conversation access"}</h3>
       {unavailableReason && <p>{connectionReason(unavailableReason)}</p>}
       {error && <Notice tone="error">{error}</Notice>}
       {loading ? (
-        <p role="status">Checking Connection access…</p>
+        <p role="status">Checking access…</p>
       ) : (
         detail && (
           <>

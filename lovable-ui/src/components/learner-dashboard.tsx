@@ -93,7 +93,7 @@ export function LearnerDashboard() {
         <div className="min-w-0">
           <section className="reference-requests-card">
             <div className="reference-card-heading">
-              <h2>Class Request</h2>
+              <h2>My enquiries</h2>
               <Link to="/requests" className="reference-subtle-link">
                 View all
               </Link>

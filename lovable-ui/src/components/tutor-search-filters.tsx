@@ -210,8 +210,7 @@ export function TutorSearchFilters({
         Free introductory class offered
       </label>
       <p className="text-xs text-muted-foreground">
-        A free class is offered by the Tutor; check its duration. The platform Access Pass is
-        separate. Hourly and per-lesson prices are compared separately.
+        The Tutor offers a free first class; check how long it is.
       </p>
     </fieldset>
   );
@@ -339,7 +338,7 @@ export function TutorSearchFilters({
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block text-sm font-medium">
-                    Learning Domain
+                    Subject area
                     <select
                       className="input mt-2"
                       value={draft.domain_id || ""}

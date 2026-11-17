@@ -49,5 +49,9 @@ it("shows honest zero-review state without inventing stars or verified attendanc
   render(<PublicReviews listingId="listing" />);
   expect(await screen.findByText("No published reviews yet.")).toBeTruthy();
   expect(screen.queryByText(/5.0/)).toBeNull();
-  expect(screen.getByText("Lesson attendance is not independently verified.")).toBeTruthy();
+  expect(
+    screen.getByText(
+      "Only students who contacted this Tutor through Tutor Marketplace can leave a review.",
+    ),
+  ).toBeTruthy();
 });
