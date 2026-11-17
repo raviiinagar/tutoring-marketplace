@@ -11,6 +11,7 @@ import {
   type FieldErrors,
 } from "@/lib/validation";
 import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
+import { GoogleSignInButton } from "@/components/google-sign-in";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({
@@ -77,7 +78,8 @@ function SignUp() {
         </>
       }
     >
-      <form noValidate onSubmit={onSubmit} className="space-y-5">
+      <GoogleSignInButton />
+      <form noValidate onSubmit={onSubmit} className="mt-5 space-y-5">
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field
           label="Your name"

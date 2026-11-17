@@ -1,0 +1,15 @@
+# Sign in with Google
+
+On 17 November 2026 the owner asked for "Continue with Google" on the sign-in and sign-up pages, decided that a Google account with the same email as an existing account links to it automatically, and decided that email-and-password sign-in stays.
+
+**Flow.** The browser goes to `GET /v1/auth/google/start`, which records a one-time attempt and redirects to Google with the authorization-code flow, PKCE (S256), a `state`, a `nonce` and `prompt=select_account`. Google returns to `GET /v1/auth/google/callback` on the site's own origin (the Cloudflare frontend forwards `/v1` to the API). The API exchanges the code with Google's token endpoint using the client secret, which never leaves the server. Because the ID token comes directly from Google over TLS, its signature is not re-verified, following Google's OpenID Connect guidance; its issuer, audience, expiry and nonce are checked, and the email must be verified by Google.
+
+**One-time attempts.** Each attempt is stored with only a hash of its state and a hash of a random browser binding, and with its PKCE verifier and nonce encrypted. The binding is an HttpOnly, SameSite=Lax cookie limited to `/v1/auth/google` for ten minutes, so a callback opened in a different browser, a replayed state or an expired attempt fails. That also prevents someone from signing a victim into the attacker's account. Starting and finishing are rate-limited per address.
+
+**Accounts.** A linked Google account (`user_identities`, one per platform account) signs in to its account. Otherwise an existing account with the same email is linked; if that registration was still unverified, Google's verified address verifies it. Otherwise a new active, verified account is created with the Google name and an unknown random password, which the owner can replace later with password reset. A disabled account, an account already linked to a different Google account, or an unverified Google email cannot sign in. Sign-in creates the same session as a password sign-in, so restrictions, the adult declarations on Learner and Tutor profiles and staff MFA are unchanged. Every sign-in is audited (`SESSION_CREATED` with `method: GOOGLE`), as are new accounts and links.
+
+**Return address.** The attempt keeps only a same-site path, never another origin, an API path or a sign-in page; the default is `/account`. Failures return to `/auth/signin?google=failed|cancelled|account|unavailable`, which shows a plain message.
+
+**Configuration.** `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` turn the feature on; setting only one stops the API from starting. The callback is `WEB_ORIGIN/v1/auth/google/callback` unless `GOOGLE_REDIRECT_URI` is set, and it must match an authorised redirect URI in the Google client. `GOOGLE_TOKEN_URL` can be overridden only outside production, for tests. `GET /v1/auth/providers` tells the pages whether to show the button.
+
+**Privacy.** Privacy export lists linked sign-in providers; account deletion removes the links. Migration 042 is additive.
