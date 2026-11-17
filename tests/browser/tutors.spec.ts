@@ -27,19 +27,24 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     const roleSaved=page.waitForResponse(r=>r.url().endsWith("/v1/me/roles")&&r.request().method()==="POST");
     await page.getByRole("checkbox",{name:"Tutor",exact:true}).check();
     expect((await roleSaved).status()).toBe(200);
-    await page.goto("/tutor");
-    await page.getByRole("checkbox",{name:"Physics",exact:true}).check();
-    await page.getByRole("button",{name:"Next",exact:true}).click();
-    await page.getByLabel("Your public name",{exact:true}).fill("Fictional Physics Tutor");
-    await page.getByLabel("About you, skills and experience",{exact:true}).fill(fixtureBiography);
-    await page.getByRole("button",{name:"Next",exact:true}).click();
-    await page.getByLabel("Hourly tuition rate (INR)",{exact:true}).fill("500");
-    await page.getByRole("button",{name:"Next",exact:true}).click();
-    await page.getByRole("checkbox",{name:"I am at least 18 and will provide my own teaching services.",exact:true}).check();
-    await page.getByRole("button",{name:"Next",exact:true}).click();
-    await page.getByRole("button",{name:"Save introduction and continue",exact:true}).click();
-    await expect(page.getByRole("heading",{name:"Your Tutor profile",exact:true})).toBeVisible();
     const origin=process.env.PLAYWRIGHT_BASE_URL||"http://localhost:3100",headers={Origin:origin};
+    // This journey exercises a returning Tutor's optional evidence/photo review
+    // and ad management. First-ad creation is covered by the one-form journey.
+    // Seed a real private profile/ad through the owner APIs, never via SQL or
+    // fabricated approval. Neither operation may publish anything.
+    const introduction=await page.request.post("/v1/me/tutor/introduction",{headers,data:{
+      display_name:"Fictional Physics Tutor",biography:fixtureBiography,
+      subject_ids:["subject-physics"],hourly_rate_paise:50000,
+      identity_country:"IN",identity_document:"AADHAAR",adult_confirmed:true,public_email_consent:false,
+    }});
+    expect(introduction.status()).toBe(200);
+    const existingDraftResponse=await page.request.post("/v1/me/listings",{headers,data:completeFixtureOffer({title,description:fixtureDescription,domain_id:"school",subject_id:"subject-physics",level_id:"level-class-10",curriculum_id:"curriculum-cbse",language_ids:["language-english"],currency:"INR",teaching_mode:"ONLINE",rate_paise:50000,rate_unit:"HOUR",trial_kind:"NONE"})});
+    expect(existingDraftResponse.status()).toBe(201);
+    const existingDraft=(await existingDraftResponse.json()).listing;
+    expect(existingDraft.status).toBe("DRAFT");
+    expect((await page.request.get("/v1/listings/"+existingDraft.id)).status()).toBe(404);
+    await page.goto("/tutor");
+    await expect(page.getByRole("heading",{name:"Your Tutor profile",exact:true})).toBeVisible();
     expect((await (await page.request.get("/v1/me/tutor")).json()).profile.publication_status).toBe("DRAFT");
     // The retired qualification widgets are covered through their real compatibility APIs;
     // qualification evidence is optional and never a publication prerequisite.
@@ -77,6 +82,12 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
 
     await reviewer.goto('/staff/photos');await reviewer.getByLabel('Reason for photo review', { exact: true }).fill('Review fictional adult portrait for public display');await reviewer.getByRole('article').filter({hasText:'Fictional Physics Tutor'}).getByRole('button',{name:'Inspect photo',exact:true}).click();await expect(reviewer.getByRole('img',{name:'Tutor portrait submitted for review'})).toBeVisible();await reviewer.getByRole('button',{name:'Approve photo',exact:true}).click();await expect(reviewer.getByText('Photo: APPROVED',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Refresh photo status',exact:true}).click();
     await expect(page.getByText(/Photo: Approved for eligible teaching offers/)).toBeVisible();
+    // Retain the setup fixture in history and leave a clean ad-manager create
+    // case. Identity/photo approvals still must not publish that private ad.
+    const beforeArchive=(await (await page.request.get("/v1/me/listings")).json()).listings.find((row:{id:string})=>row.id===existingDraft.id);
+    expect(beforeArchive.status).toBe("DRAFT");
+    expect((await page.request.get("/v1/listings/"+existingDraft.id)).status()).toBe(404);
+    expect((await page.request.post("/v1/me/listings/"+existingDraft.id+"/actions/ARCHIVE",{headers,data:{revision:beforeArchive.revision}})).status()).toBe(200);
     let releaseApprovals!:()=>void;const approvalsGate=new Promise<void>(resolve=>{releaseApprovals=resolve;});
     await page.route("**/v1/me/listings",async route=>{if(route.request().method()==="GET")await approvalsGate;await route.continue();});
     await page.goto("/tutor/listings",{waitUntil:"domcontentloaded"});

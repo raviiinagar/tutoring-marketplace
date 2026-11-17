@@ -26,7 +26,7 @@ Deploy this additive API change before a future matching frontend release: the p
 | UI baseline, `npm --prefix lovable-ui test` | 275 passed, 0 failed |
 | Final UI, `npm --prefix lovable-ui test -- --maxWorkers=2` | 291 passed, 0 failed; 50 files |
 | API: onboarding drafts, photo review, assisted onboarding | 10 passed, 0 failed/skipped |
-| Full API suite | NOT RUN; changes verified with the relevant suites |
+| Full API suite | Not run locally; GitHub CI run `44139392241` passed 253/253, 0 failures |
 | `npm run typecheck` | PASS (all configured workspaces and pilot types) |
 | Final `npx tsc -p lovable-ui --noEmit` | PASS |
 | `npx tsc -p apps/api --noEmit` | PASS |
@@ -37,7 +37,8 @@ Deploy this additive API change before a future matching frontend release: the p
 | Browser self-service journey, 1440px and 390px | 2 passed |
 | Browser staff-assisted journey | 1 passed |
 | Axe on the new form and preview at both widths | 4 scans, 0 violations |
-| Full browser suite | NOT RUN |
+| Pilot review/accessibility follow-up | Six distinct cases passed locally; the signed-in case was rerun after correcting its loading-shell wait |
+| Full browser suite | NOT RUN; CI runs the configured pilot subset |
 | Git whitespace check | PASS |
 
 API command: `node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/tutor-onboarding-drafts.test.ts apps/api/test/photo-review.test.ts apps/api/test/assisted-onboarding.test.ts`.
@@ -51,6 +52,8 @@ An initial concurrent UI/browser run exposed resource-contention timeouts in thr
 No existing test was deleted or skipped. Self-service browser navigation now uses one form rather than 15 wizard steps, with exact combobox-role selectors. It still asserts role selection, private resume, no automatic publication, photo-less draft, publication being disabled without a photo, photo upload not publishing, a single persisted ad, explicit publication, unverified identity, no horizontal overflow, pause/resume and archive. It adds real portrait upload through the form and axe scans. The staff-assisted browser test adds one action opening the new secondary help section; its remaining flow/assertions are unchanged.
 
 The returning-Tutor unit fixture now explicitly includes its already-existing ad so management tests do not accidentally represent a new first-ad owner. All its assertions remain. Sixteen new UI cases cover the one-form workflow and failure/retry/race boundaries. Two API cases cover the extended private draft.
+
+The first PR #6 CI run passed full API/UI tests, types and artifact build but found two additional stale pilot assumptions: an old Physics checkbox in the review journey and an Edit profile button in the signed-in accessibility journey. The review fixture now creates a real private profile/ad through the owner APIs, asserts it remains private after review, and archives that setup draft before exercising ad creation. All its private download, approval, publication, financial-mode and revocation assertions remain. Accessibility chooses the exact expected first-ad or returning-Tutor state from the owner's ad list, waits for the actual form rather than its loading shell, and keeps the existing editable-name, contrast, keyboard and axe checks. No test assertions or configured timeouts were relaxed. These follow-up changes affect tests only; the application code remains that verified in the initial CI run. The PR is rerun in CI after this follow-up.
 
 ## Screenshots
 
@@ -72,6 +75,8 @@ These come from the isolated development harness, which enables the project's hi
 - `lovable-ui/src/test/tutor-onboarding.test.tsx`
 - `tests/browser/unified-tutor-onboarding.spec.ts`
 - `tests/browser/assisted-onboarding.spec.ts`
+- `tests/browser/tutors.spec.ts`
+- `tests/browser/accessibility.spec.ts`
 - `.scratch/simple-tutor-setup/spec.md` and `issues/01-one-form-first-ad.md` (new)
 - This report and the four screenshots above (new)
 

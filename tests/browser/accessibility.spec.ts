@@ -131,17 +131,28 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
       ["/support", "Support and appeals"],
       ["/privacy", "Your data and privacy"],
     ]) {
+      const firstAd = path === "/tutor" &&
+        (await (await page.request.get("/v1/me/listings")).json()).listings.length === 0;
       await page.goto(path);
       await expect(
-        page.getByRole("heading", { name: label, exact: true }),
+        page.getByRole("heading", { name: firstAd ? "Create your teaching ad" : label, exact: true }),
       ).toBeVisible();
       // Wait for the authoritative response, rather than auditing a temporary loading shell.
       if (path === "/tutor") {
-        await page.getByRole("button", { name: "Edit profile", exact: true }).click();
-        // A complete introduction resumes at Review. Reach the editable name step.
-        for (let n = 0; n < 3; n++)
-          await page.getByRole("button", { name: "Go back", exact: true }).click();
+        if (firstAd) {
+          // Wait for the actual form, not its identically titled loading shell.
+          await page.getByRole("heading", { name: "Start teaching", exact: true }).waitFor();
+          await expect(page.getByRole("combobox", { name: "Subject", exact: true })).toBeEnabled();
+        } else {
+          // The earlier width may already have saved an ad. Keep the existing
+          // returning-Tutor editor covered as well as the first-ad form.
+          await page.getByRole("button", { name: "Edit profile", exact: true }).click();
+          for (let n = 0; n < 3; n++)
+            await page.getByRole("button", { name: "Go back", exact: true }).click();
+        }
         await expect(page.getByLabel("Your public name", { exact: true })).toBeEnabled();
+        await expect(page.getByLabel("Your public name", { exact: true })).toHaveValue("Fictional accessibility Tutor");
+        expect((await (await page.request.get("/v1/me/tutor")).json()).profile.publication_status).toBe("DRAFT");
       }
       if (path === "/privacy")
         await expect(
