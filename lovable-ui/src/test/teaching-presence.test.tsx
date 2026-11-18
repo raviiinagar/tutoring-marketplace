@@ -76,8 +76,18 @@ it("shows the teaching tabs as soon as any ad exists, a private draft included",
   listingsOf([ad("DRAFT")]);
   mount(tutor, <WorkspaceNavigation />);
   expect(await screen.findByRole("link", { name: "My ads" })).toHaveProperty("href");
-  expect(screen.getByRole("link", { name: "Evaluations" })).toBeTruthy();
   expect(screen.getByRole("link", { name: "Switch to teaching" })).toBeTruthy();
+  // ADR0021: Evaluations only matter once an ad is online.
+  expect(screen.queryByRole("link", { name: "Evaluations" })).toBeNull();
+});
+
+it("adds Evaluations to both navigations once an ad is online", async () => {
+  listingsOf([ad("PUBLISHED")]);
+  mount(tutor, <WorkspaceNavigation />);
+  expect(await screen.findByRole("link", { name: "Evaluations" })).toBeTruthy();
+  cleanup();
+  mount(tutor, <TutorWorkspaceNavigation />);
+  expect(await screen.findByRole("link", { name: "Evaluations" })).toBeTruthy();
 });
 
 it("keeps the learner tabs for a tutor with no ads", async () => {
@@ -89,10 +99,19 @@ it("keeps the learner tabs for a tutor with no ads", async () => {
 });
 
 it("offers a way back to learning from the teaching navigation", () => {
+  listingsOf([]);
   mount(tutor, <TutorWorkspaceNavigation />);
   expect(screen.getByRole("link", { name: "Switch to learning" }).getAttribute("href")).toBe(
     "/account",
   );
+  expect(screen.queryByRole("link", { name: "Evaluations" })).toBeNull();
+});
+
+it("shows a teaching-only account only teaching tools", () => {
+  listingsOf([]);
+  mount({ ...tutor, roles: ["TUTOR"] }, <TutorWorkspaceNavigation />);
+  expect(screen.getByRole("link", { name: "My ads" })).toBeTruthy();
+  expect(screen.queryByRole("link", { name: "Switch to learning" })).toBeNull();
 });
 
 it("lands on the teaching dashboard only for accounts that own an ad", async () => {
@@ -108,6 +127,17 @@ it("lands on the teaching dashboard only for accounts that own an ad", async () 
   vi.restoreAllMocks();
   vi.spyOn(api, "listings").mockRejectedValue(new Error("offline"));
   expect(await landingAfterSignIn(tutor)).toBe("/account");
+});
+
+it("sends a new account to choose its roles, and a teaching-only one to its teaching", async () => {
+  const spy = listingsOf([]);
+  expect(await landingAfterSignIn({ ...tutor, roles_chosen: false })).toBe("/account/settings");
+  expect(spy).not.toHaveBeenCalled();
+  const teacher = { ...tutor, roles: ["TUTOR"] as User["roles"], roles_chosen: true };
+  expect(await landingAfterSignIn(teacher)).toBe("/tutor");
+  vi.restoreAllMocks();
+  listingsOf([ad("DRAFT")]);
+  expect(await landingAfterSignIn(teacher)).toBe("/tutor/dashboard");
 });
 
 it("teaching card: drafts only means nothing is public", async () => {

@@ -54,6 +54,8 @@ export type User = {
   email_verified: true;
   created_at: string;
   roles: ("LEARNER" | "TUTOR")[];
+  /** False until the account has chosen Learn, Teach or Both (ADR0021). Older responses omit it. */
+  roles_chosen?: boolean;
 };
 export type AccountSession = {
   id: string;
@@ -1861,6 +1863,15 @@ export const api = {
     request<TutorState>("POST", "/v1/me/tutor/publication", { expected_public_revision, action }),
   tutor: () => request<TutorState>("GET", "/v1/me/tutor"),
   authProviders: () => request<{ google: boolean }>("GET", "/v1/auth/providers"),
+  reportTutorPhoto: (
+    profileId: string,
+    reason: "NOT_A_PORTRAIT" | "NOT_THE_TUTOR" | "INAPPROPRIATE" | "OTHER",
+  ) =>
+    request<{ reported: boolean }>(
+      "POST",
+      "/v1/tutor-profiles/" + encodeURIComponent(profileId) + "/photo-reports",
+      { reason },
+    ),
   onboardingHelp: () =>
     request<{
       policy: { consent_version: string; consents: string[] };

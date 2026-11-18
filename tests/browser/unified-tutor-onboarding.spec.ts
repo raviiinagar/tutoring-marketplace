@@ -15,6 +15,8 @@ for (const width of [1440, 390]) {
     const invitation = page.getByRole('link', { name: 'Start your teaching introduction', exact: true });
     await expect(invitation).toHaveAttribute('href', '/tutor');
     await invitation.click();
+    await expect(page.getByRole('heading', { name: 'Become a Tutor', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Create it myself', exact: true }).click();
     await page.getByRole('combobox', { name: 'Subject', exact: true }).selectOption('subject-physics');
     await page.getByRole('combobox', { name: 'Teaching category', exact: true }).selectOption('school');
     await page.getByRole('combobox', { name: 'Students you teach', exact: true }).selectOption('level-class-10');

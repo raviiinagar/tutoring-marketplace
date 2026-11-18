@@ -18,8 +18,13 @@ export async function openAdminConsole(page: Page) {
 }
 export async function openRoles(page: Page) {
   await openAccountSettings(page);
-  if (!(await page.locator("#roles").evaluate(element => element.hasAttribute("open"))))
-    await page.locator("#roles > summary").click();
+  await page.locator("#roles").scrollIntoViewIfNeeded();
+}
+/** Answers "I want to: Learn, Teach or Both" in My Account (ADR0021) and waits for it to save. */
+export async function chooseRoles(page: Page, choice: "Learn" | "Teach" | "Both") {
+  const saved = page.waitForResponse(r => r.url().endsWith("/v1/me/roles") && r.request().method() === "POST");
+  await page.locator("#roles").getByRole("radio", { name: new RegExp("^" + choice) }).check();
+  expect((await saved).status()).toBe(200);
 }
 export async function openSecurity(page: Page) {
   if (!(await page.locator("#security").evaluate(element => element.hasAttribute("open"))))

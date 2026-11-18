@@ -7,6 +7,7 @@ import { SiteHeader, Notice } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { SaveTutorButton } from "@/components/save-tutor-button";
 import { ShareTutorButton } from "@/components/share-tutor-button";
+import { ReportPhotoButton } from "@/components/report-photo-button";
 import { TutorProfileLayout, IdentityReviewNote } from "@/components/tutor-profile-layout";
 export const Route = createFileRoute("/profiles_/$profileId")({
   ssr: false,
@@ -114,6 +115,11 @@ function Profile() {
         <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">
           {p.biography}
         </p>
+        {p.photo_url && (
+          <div className="mt-4">
+            <ReportPhotoButton profileId={p.id} />
+          </div>
+        )}
       </section>
       <section id="availability" className="scroll-mt-28 border-t pt-7">
         <h2 className="mb-4 text-2xl font-semibold">Location & availability</h2>

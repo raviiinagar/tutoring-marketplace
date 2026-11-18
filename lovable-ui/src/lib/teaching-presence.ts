@@ -76,13 +76,18 @@ export function useTeachingPresence() {
  * learner dashboard.
  */
 export async function landingAfterSignIn(
-  user: Pick<User, "roles">,
-): Promise<"/tutor/dashboard" | "/account"> {
+  user: Pick<User, "roles" | "roles_chosen">,
+): Promise<"/tutor/dashboard" | "/tutor" | "/account" | "/account/settings"> {
+  // ADR0021: a new account answers "I want to: Learn, Teach or Both" in My Account first.
+  if (user.roles_chosen === false) return "/account/settings";
   if (!isTutor(user)) return "/account";
+  // Teaching-only accounts have no learner dashboard: without an ad yet they go to
+  // "Become a Tutor".
+  const fallback = user.roles.includes("LEARNER") ? "/account" : "/tutor";
   try {
     const result = await api.listings();
-    return result.ok && result.data.listings.length > 0 ? "/tutor/dashboard" : "/account";
+    return result.ok && result.data.listings.length > 0 ? "/tutor/dashboard" : fallback;
   } catch {
-    return "/account";
+    return fallback;
   }
 }

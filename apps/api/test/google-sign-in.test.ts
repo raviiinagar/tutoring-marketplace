@@ -153,7 +153,10 @@ test("a new Google account signs in with PKCE, state and nonce checks, and retur
   // Signing in again finds the same account, and a used state cannot be replayed.
   const again = await googleSignIn("google-sub-new-" + email, email);
   assert.equal((await me(again.cookie!)).id, user.id);
-  assert.equal(again.redirect, "/account");
+  // Without a requested page, a new account opens My Account to choose Learn, Teach or Both.
+  assert.equal(again.redirect, "/account/settings");
+  await post("/v1/me/roles", { roles: ["LEARNER"] }, again.cookie!).expect(200);
+  assert.equal((await googleSignIn("google-sub-new-" + email, email)).redirect, "/account");
   const replay = await request(server()).get("/v1/auth/google/callback?" + again.params).set("Cookie", again.binding).expect(302);
   assert.equal(replay.headers.location, "/auth/signin?google=failed");
 });
@@ -192,7 +195,7 @@ test("forged, foreign, unverified, cancelled and disabled sign-ins are refused w
   // Other origins, API paths and sign-in pages are never used as the return address.
   for (const target of ["//evil.example/path", "https://evil.example", "/v1/me", "/auth/signin"]) {
     const outcome = await googleSignIn("sub-return-" + email, email, { returnTo: target });
-    assert.equal(outcome.redirect, "/account");
+    assert.equal(outcome.redirect, "/account/settings");
   }
   const disabled = await account();
   await database.pool.query("UPDATE users SET status='DISABLED' WHERE id=$1", [disabled.id]);

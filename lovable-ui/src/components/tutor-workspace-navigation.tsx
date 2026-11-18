@@ -1,31 +1,76 @@
 import { Link } from "@tanstack/react-router";
-const links = [
-  { to: "/tutor/dashboard", label: "Dashboard" },
-  { to: "/connections", label: "My messages" },
-  { to: "/tutor/listings", label: "My ads" },
-  { to: "/tutor/evaluations", label: "Evaluations" },
-  { to: "/account/settings", label: "My account" },
-] as const;
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { accountSessionKey } from "@/lib/session";
+import { useTeachingPresence } from "@/lib/teaching-presence";
+
+const linkClass = "reference-workspace-link";
+const activeProps = { "aria-current": "page", className: "reference-workspace-active" } as const;
+
+/**
+ * The teaching workspace navigation (ADR0021). Evaluations appear once an ad is online, and
+ * the switch to learning only for accounts that also learn.
+ */
 export function TutorWorkspaceNavigation() {
+  const session = useQuery({
+    queryKey: accountSessionKey,
+    queryFn: api.me,
+    enabled: false,
+    retry: false,
+  });
+  const user = session.data?.ok ? session.data.data.user : null;
+  const { summary } = useTeachingPresence();
+  const learns = !user || user.roles.includes("LEARNER");
+  const online = (summary?.online ?? 0) > 0;
   return (
     <nav aria-label="Teaching workspace navigation" className="reference-workspace-nav">
-      {links.map((item) => (
-        <Link
-          key={item.to}
-          to={item.to}
-          activeOptions={{ exact: true }}
-          activeProps={{
-            "aria-current": "page",
-            className: "reference-workspace-active",
-          }}
-          className="reference-workspace-link"
-        >
-          {item.label}
-        </Link>
-      ))}
-      <Link to="/account" className="reference-workspace-link reference-workspace-switch">
-        Switch to learning
+      <Link
+        to="/tutor/dashboard"
+        activeOptions={{ exact: true }}
+        activeProps={activeProps}
+        className={linkClass}
+      >
+        Dashboard
       </Link>
+      <Link
+        to="/connections"
+        activeOptions={{ exact: true }}
+        activeProps={activeProps}
+        className={linkClass}
+      >
+        My messages
+      </Link>
+      <Link
+        to="/tutor/listings"
+        activeOptions={{ exact: true }}
+        activeProps={activeProps}
+        className={linkClass}
+      >
+        My ads
+      </Link>
+      {online && (
+        <Link
+          to="/tutor/evaluations"
+          activeOptions={{ exact: true }}
+          activeProps={activeProps}
+          className={linkClass}
+        >
+          Evaluations
+        </Link>
+      )}
+      <Link
+        to="/account/settings"
+        activeOptions={{ exact: true }}
+        activeProps={activeProps}
+        className={linkClass}
+      >
+        My account
+      </Link>
+      {learns && (
+        <Link to="/account" className={`${linkClass} reference-workspace-switch`}>
+          Switch to learning
+        </Link>
+      )}
     </nav>
   );
 }

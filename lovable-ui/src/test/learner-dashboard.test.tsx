@@ -187,19 +187,19 @@ it("clears the dashboard and redirects when a private endpoint returns 401", asy
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
   expect(screen.queryByText("Fictional Learner")).toBeNull();
 });
-it("preserves the last-role guard and updates the shared session after explicit role changes", async () => {
+it("always keeps one role and updates the shared session after an explicit role change", async () => {
   vi.spyOn(api, "changeRoles").mockResolvedValue({
     ok: true,
     status: 200,
     data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
   });
   const client = mount(<AccountSettings />);
-  await screen.findByText("How you use your account");
-  fireEvent.click(screen.getByText("How you use your account"));
-  const current = await screen.findByRole("checkbox", { name: "Learner" });
-  expect(current.hasAttribute("disabled")).toBe(true);
+  // Learn / Teach / Both always names at least one role, so an account can never end up with none.
+  const current = await screen.findByRole("radio", { name: /^Learn/ });
+  expect(current).toBeChecked();
+  fireEvent.click(current);
   expect(api.changeRoles).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("checkbox", { name: "Tutor" }));
+  fireEvent.click(screen.getByRole("radio", { name: /^Both/ }));
   await waitFor(() => expect(api.changeRoles).toHaveBeenCalledWith(["LEARNER", "TUTOR"]));
   await waitFor(() =>
     expect(client.getQueryData(accountSessionKey)).toMatchObject({

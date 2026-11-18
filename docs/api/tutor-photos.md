@@ -40,3 +40,13 @@ Live portraits require the configured ClamAV scanner and actual operator review.
 ## Responsive public delivery
 
 The public `/v1/discovery/:listingId/photos/:photoId` endpoint keeps its default metadata-free JPEG response. Optional `?variant=card` returns a 384?480 WebP and `?variant=portrait` a 640?800 WebP. Other variants/parameters are rejected. Public cards choose these via `srcset` and `sizes`; the full approved portrait remains available for compatibility. Every request rechecks current Listing/photo/evidence eligibility before deriving bytes. Transformation runs outside the database transaction, with fixed dimensions and a two-second processing limit. No derivative cache or additional retained personal-data copy is created; no-store and withdrawal/suspension rules also apply to variants.
+
+## Account photos and photo reports (ADR0021)
+
+The photo belongs to the account: any active verified account manages it in My Account with the owner endpoints above, without a Tutor profile. It is still shown publicly only on a published Tutor profile and its ads. The hosted service runs with `PHOTO_REVIEW_REQUIRED=false`.
+
+| Method | Path | Behaviour |
+|---|---|---|
+| POST | `/v1/tutor-profiles/:id/photo-reports` | Signed in. `{ reason }` is one of `NOT_A_PORTRAIT`, `NOT_THE_TUTOR`, `INAPPROPRIATE` or `OTHER`. Returns 200 `{ reported: true }`. One report per account per photo, and repeats are no-ops. Returns 404 when the profile has no public photo and 409 `OWN_PHOTO` for your own photo. Limited to 20 a day per account and audited. |
+
+`GET /v1/staff/tutor-photos` adds `report_count` and lists the most-reported photos first. Staff remove a reported photo with a `REJECT` review.

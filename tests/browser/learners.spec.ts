@@ -1,4 +1,4 @@
-import { openLearningTools } from "./navigation";
+import { chooseRoles, openLearningTools } from "./navigation";
 import {test,expect,type Page} from '@playwright/test';
 const password='Fictional-profile-password-321!';
 async function signup(page:Page,email:string){
@@ -6,7 +6,10 @@ async function signup(page:Page,email:string){
   const registered=page.waitForResponse(r=>r.url().endsWith('/v1/auth/registrations')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create account',exact:true}).click();expect((await registered).status()).toBe(202);
   await page.getByRole('link',{name:'Open captured email inbox'}).click();await page.getByRole('listitem').filter({hasText:email}).getByRole('link',{name:'Open verification link'}).click();await page.getByRole('button',{name:'Verify email',exact:true}).click();await expect(page.getByRole('heading',{name:'Email verified',exact:true})).toBeVisible();
   await page.goto('/auth/signin');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
-  const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);await expect(page.getByRole('heading',{name: 'Dashboard',exact:true})).toBeVisible();
+  const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);
+  // ADR0021: a new account opens My Account and chooses Learn, Teach or Both first.
+  await expect(page.getByRole('heading',{name:'How will you use Tutor Marketplace?',exact:true})).toBeVisible();
+  await chooseRoles(page,'Learn');await page.goto('/account');await expect(page.getByRole('heading',{name: 'Dashboard',exact:true})).toBeVisible();
 }
 // ADR 0015: one adult Learner profile per account; a parent books for their child
 // from it. Child profiles and Guardian reviews are retired.

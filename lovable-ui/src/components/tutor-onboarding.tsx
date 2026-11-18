@@ -11,6 +11,7 @@ import { Button } from "./ui/button";
 import { TutorPhotoEditor } from "./tutor-photo-editor";
 import { TutorPro } from "./tutor-pro";
 import { TeamSetup } from "./team-setup";
+import { BecomeTutorChooser, type TutorSetupPath } from "./become-tutor-chooser";
 export function TutorOnboarding() {
   const [state, setState] = useState<TutorState>(),
     [policy, setPolicy] = useState<TutorPolicy>(),
@@ -20,6 +21,7 @@ export function TutorOnboarding() {
     [notice, setNotice] = useState<string>(),
     [editing, setEditing] = useState(true);
   const [resumeSimpleSetup, setResumeSimpleSetup] = useState(false);
+  const [path, setPath] = useState<TutorSetupPath>();
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
   const client = useQueryClient();
@@ -106,6 +108,33 @@ export function TutorOnboarding() {
     evidence = state?.evidence.find((e) => e.id === identity?.evidence_id);
   const approved = p?.identity_verified === true;
   const profilePublic = p?.eligible === true;
+  // ADR0021: a new Tutor first chooses how to create their ad.
+  if (state && catalogue && !p && !resumeSimpleSetup && !path)
+    return (
+      <AuthShell
+        wide
+        title="Become a Tutor"
+        intro="Choose how you would like to create your teaching ad. Both ways are free."
+      >
+        {error && <Notice tone="error">{error}</Notice>}
+        <BecomeTutorChooser onChoose={setPath} />
+      </AuthShell>
+    );
+  if (state && catalogue && !p && path === "team")
+    return (
+      <AuthShell
+        wide
+        title="Send to our team"
+        intro="We create and publish your teaching ad for you."
+      >
+        <div className="max-w-3xl space-y-4">
+          <TeamSetup hasProfile={false} startOpen onCancel={() => setPath(undefined)} />
+          <Button variant="ghost" className="px-0 underline" onClick={() => setPath("self")}>
+            Create it myself instead
+          </Button>
+        </div>
+      </AuthShell>
+    );
   if (state && catalogue && (!p || resumeSimpleSetup))
     return (
       <AuthShell

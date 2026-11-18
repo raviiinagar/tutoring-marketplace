@@ -9,17 +9,16 @@ import {
   type NotificationPreferenceView,
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
-import { Check, ShieldCheck, Bell, Camera, CreditCard } from "lucide-react";
+import { Check, ShieldCheck, Bell, CreditCard } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { AccountAvatar } from "./account-avatar";
+import { AccountPhotoCard } from "./account-photo-card";
+import { RoleChooser } from "./role-chooser";
 import { accountSessionKey } from "@/lib/session";
 import { siteFeatures } from "@/lib/site-visibility";
 
 export function AccountSettings() {
   const navigate = useNavigate();
   const hash = useLocation({ select: (location) => location.hash });
-  const rolesSection = useRef<HTMLDetailsElement>(null);
-  const rolesSummary = useRef<HTMLElement>(null);
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loadError, setLoadError] = useState<string>();
@@ -117,23 +116,20 @@ export function AccountSettings() {
   useEffect(() => {
     if (!user?.id || hash !== "roles") return;
     const frame = requestAnimationFrame(() => {
-      if (!rolesSection.current) return;
-      rolesSection.current.open = true;
-      rolesSection.current.scrollIntoView({ block: "center" });
-      rolesSummary.current?.focus({ preventScroll: true });
+      const roles = document.getElementById("roles");
+      if (!roles) return;
+      roles.scrollIntoView({ block: "center" });
+      roles.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
   }, [user?.id, hash]);
 
-  const toggleRole = (role: User["roles"][number]) =>
+  const chooseRoles = (roles: User["roles"]) =>
     security.run(async () => {
       if (!user) return;
       setSecurityError(undefined);
-      const roles = user.roles.includes(role)
-        ? user.roles.filter((value) => value !== role)
-        : [...user.roles, role];
       const previous = user;
-      setUser({ ...user, roles });
+      setUser({ ...user, roles, roles_chosen: true });
       const result = await api.changeRoles(roles);
       if (!active.current || actor.current !== previous.id) return;
       if (result.ok) {
@@ -234,6 +230,14 @@ export function AccountSettings() {
   const card = "min-w-0 rounded-lg bg-white p-6 sm:p-8";
   return (
     <AuthShell reference dashboard title="My Account">
+      <div className="mb-6">
+        <RoleChooser
+          user={user}
+          busy={security.loading}
+          onChoose={(roles) => void chooseRoles(roles)}
+        />
+        {securityError && !user.roles_chosen && <Notice tone="error">{securityError}</Notice>}
+      </div>
       <nav aria-label="Account sections" className="mb-7 flex gap-8 text-sm font-semibold">
         <a
           href="#profile"
@@ -434,66 +438,7 @@ export function AccountSettings() {
           </section>
         </div>
         <div className="min-w-0 space-y-6">
-          <section className={card} aria-labelledby="photo-title">
-            <h2 id="photo-title" className="mb-7 text-center text-base font-bold">
-              Profile Photo
-            </h2>
-            <div className="relative mx-auto flex aspect-square w-full max-w-52 items-center justify-center rounded-[56px] bg-[#f1f1f1]">
-              <AccountAvatar
-                user={user}
-                className="absolute inset-0 h-full w-full rounded-[56px] text-5xl text-muted-foreground"
-              />
-              <Camera
-                aria-hidden
-                className="absolute -bottom-2 -right-2 size-12 rounded-full border-4 border-white bg-[#ff6268] p-2.5 text-white"
-              />
-            </div>
-            <p className="mt-7 text-center text-sm leading-relaxed text-muted-foreground">
-              {tutor
-                ? "Manage the portrait shown with your teaching profile."
-                : "A public portrait is added when you create your teaching profile."}
-            </p>
-            {tutor && (
-              <Button asChild className="mt-5 w-full rounded-full">
-                <Link to="/tutor">Manage Tutor photo</Link>
-              </Button>
-            )}
-          </section>
-          <section className={card}>
-            <details ref={rolesSection} id="roles" className="group scroll-mt-28">
-              <summary
-                ref={rolesSummary}
-                aria-describedby={hash === "roles" ? "start-teaching-help" : undefined}
-                className="cursor-pointer py-2 font-bold"
-              >
-                How you use your account
-              </summary>
-              {hash === "roles" && (
-                <p id="start-teaching-help" role="status" className="my-4 text-sm">
-                  To start teaching, select Tutor below to enable teaching tools. Your Learner role
-                  can stay enabled.
-                </p>
-              )}
-              <p className="my-4 text-sm leading-relaxed text-muted-foreground">
-                Choose one or both roles. Creating and publishing a teaching ad is free; identity
-                verification is optional.
-              </p>
-              {(["LEARNER", "TUTOR"] as const).map((role) => (
-                <label key={role} className="flex min-h-12 items-center gap-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-5 accent-[#ff6268]"
-                    checked={user.roles.includes(role)}
-                    disabled={
-                      security.loading || (user.roles.length === 1 && user.roles.includes(role))
-                    }
-                    onChange={() => void toggleRole(role)}
-                  />
-                  {role === "LEARNER" ? "Learner" : "Tutor"}
-                </label>
-              ))}
-            </details>
-          </section>
+          <AccountPhotoCard user={user} className={card} />
           <section className={card}>
             <details id="security" className="scroll-mt-28">
               <summary className="cursor-pointer py-2 font-bold">Security and sessions</summary>

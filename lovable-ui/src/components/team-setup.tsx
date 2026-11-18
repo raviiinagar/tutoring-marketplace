@@ -58,12 +58,21 @@ function ContactTeam({ reference }: { reference: string }) {
  * The second way to become a Tutor (ADR0018): send your details to the team and let
  * them set up and publish your profile. Shown on the Tutor page above the wizard.
  */
-export function TeamSetup({ hasProfile }: { hasProfile: boolean }) {
+export function TeamSetup({
+  hasProfile,
+  startOpen = false,
+  onCancel,
+}: {
+  hasProfile: boolean;
+  /** Opened straight away when the Tutor chose "Send to our team" (ADR0021). */
+  startOpen?: boolean;
+  onCancel?: () => void;
+}) {
   const [state, setState] = useState<{
     consents: string[];
     request: OnboardingHelpRequest | null;
   }>();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [number, setNumber] = useState("");
   const [note, setNote] = useState("");
   const [agreed, setAgreed] = useState<boolean[]>([]);
@@ -175,12 +184,18 @@ export function TeamSetup({ hasProfile }: { hasProfile: boolean }) {
         <UserRoundCog aria-hidden className="mt-0.5 size-6 shrink-0 text-coral-strong" />
         <div>
           <h2 id={ids + "-title"} className="text-lg font-semibold">
-            {hasProfile ? "Need help with your profile?" : "Prefer that we set it up for you?"}
+            {startOpen
+              ? "Send your details to our team"
+              : hasProfile
+                ? "Need help with your profile?"
+                : "Prefer that we set it up for you?"}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {hasProfile
-              ? "Our team can finish and publish your profile and ad for you."
-              : "Set it up yourself below, or send your details to our team and we will create and publish your profile and ad for you. It's free."}
+            {startOpen
+              ? "Tell us your WhatsApp number. We will create and publish your profile and ad for you. It's free."
+              : hasProfile
+                ? "Our team can finish and publish your profile and ad for you."
+                : "Set it up yourself below, or send your details to our team and we will create and publish your profile and ad for you. It's free."}
           </p>
         </div>
       </div>
@@ -241,7 +256,11 @@ export function TeamSetup({ hasProfile }: { hasProfile: boolean }) {
             <Button type="submit" disabled={loading}>
               {loading ? "Sending…" : "Send to the team"}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => (onCancel ? onCancel() : setOpen(false))}
+            >
               Cancel
             </Button>
           </div>

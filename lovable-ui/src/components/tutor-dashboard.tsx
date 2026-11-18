@@ -73,6 +73,9 @@ export function TutorDashboard() {
         </Link>
       </AuthShell>
     );
+  // ADR0021: the Tutor level and Tutor Pro only matter once an ad is online, so a new Tutor
+  // sees just their profile, ads and messages.
+  const online = !!data.offers.data?.listings.some((l) => l.status === "PUBLISHED" && l.eligible);
   return (
     <AuthShell
       wide
@@ -102,7 +105,7 @@ export function TutorDashboard() {
       </Data>
       <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside aria-label="Tutor profile and access" className="min-w-0 space-y-5">
-          <TutorProgressionPanel id={data.user.id} compact />
+          {online && <TutorProgressionPanel id={data.user.id} compact />}
           <section className={panel + " bg-gradient-to-b from-amber-50 to-card"}>
             <AccountAvatar
               user={data.user}
@@ -151,34 +154,36 @@ export function TutorDashboard() {
               Manage profile & identity
             </Link>
           </section>
-          <section className={panel}>
-            <h2 className="text-xl font-semibold">Tutor Pro</h2>
-            <div className="mt-4">
-              <Data query={data.pro} label="Tutor Pro">
-                {(pro) => (
-                  <>
-                    <p className="font-semibold">{pro.active ? "Active" : "Not active"}</p>
-                    {pro.active ? (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Valid until {new Date(pro.active.ends_at).toLocaleString()}.
+          {online && (
+            <section className={panel}>
+              <h2 className="text-xl font-semibold">Tutor Pro</h2>
+              <div className="mt-4">
+                <Data query={data.pro} label="Tutor Pro">
+                  {(pro) => (
+                    <>
+                      <p className="font-semibold">{pro.active ? "Active" : "Not active"}</p>
+                      {pro.active ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Valid until {new Date(pro.active.ends_at).toLocaleString()}.
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Tutor Pro is optional for consented public email. Your ads can go online
+                          without it. A pass does not verify identity or teaching qualifications.
+                        </p>
+                      )}
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Separate from the Learner Access Pass and tuition.
                       </p>
-                    ) : (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Tutor Pro is optional for consented public email. Your ads can go online
-                        without it. A pass does not verify identity or teaching qualifications.
-                      </p>
-                    )}
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Separate from the Learner Access Pass and tuition.
-                    </p>
-                  </>
-                )}
-              </Data>
-            </div>
-            <Link to="/tutor" hash="tutor-pro" className="link mt-4 inline-block text-sm">
-              View Tutor Pro options
-            </Link>
-          </section>
+                    </>
+                  )}
+                </Data>
+              </div>
+              <Link to="/tutor" hash="tutor-pro" className="link mt-4 inline-block text-sm">
+                View Tutor Pro options
+              </Link>
+            </section>
+          )}
           <section className={panel}>
             <h2 className="text-lg font-semibold">Teaching preferences</h2>
             <p className="mt-3 text-sm text-muted-foreground">

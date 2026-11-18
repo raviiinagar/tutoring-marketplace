@@ -44,6 +44,11 @@ export function LearnerDashboard() {
     if (data.anonymous) void navigate({ to: "/auth/signin", replace: true });
   }, [data.anonymous, navigate]);
   const user = data.user;
+  // ADR0021: teaching-only accounts have no learner dashboard, so they go to their teaching one.
+  const teachingOnly = !!user && user.roles.includes("TUTOR") && !user.roles.includes("LEARNER");
+  useEffect(() => {
+    if (teachingOnly) void navigate({ to: "/tutor/dashboard", replace: true });
+  }, [teachingOnly, navigate]);
   if (!user)
     return (
       <AuthShell title="Your dashboard" reference dashboard>
