@@ -18,6 +18,8 @@ All bodies and responses use JSON. Writes require `Origin` exactly matching `ALL
 | DELETE `/v1/auth/sessions/current` | `{}` | 204, revoked session and cleared cookie |
 | GET `/v1/health` | No body | 200 `{status:"ok"}` after database query |
 
+`user.roles_chosen` is false until a new account first saves its roles. My Account asks "Learn / Teach / Both" until then, and the sign-in landing goes there (ADR0021). Accounts that existed before migration 043 count as having chosen.
+
 `user` = `{id,display_name,email,email_verified:true,created_at,roles}`. Registration display name is trimmed, 2–80 characters; email is trimmed/lowercased, valid, at most 254 characters. Passwords are 12–128 characters and are not trimmed. Sign-in accepts existing password strings up to 128 characters. Reject extra fields. Tokens are 43 URL-safe base64 characters. Verification email links use `/auth/verify#token=...`; remove the fragment after reading it into temporary component state, and submit only on an explicit button press.
 
 Errors: `{code,message,correlation_id,field_errors?}`. Field errors map field names to arrays. Codes: `VALIDATION_ERROR` (400), `INVALID_OR_EXPIRED_TOKEN` (400), `INVALID_CREDENTIALS` (401), `UNAUTHENTICATED` (401), `EMAIL_NOT_VERIFIED` (403), `ORIGIN_NOT_ALLOWED` (403), `RATE_LIMITED` (429), `JSON_REQUIRED` (415), `REQUEST_TOO_LARGE` (413), `INTERNAL_ERROR` (500). Missing/unknown accounts get the same public sign-in failure. Registration/resend responses do not confirm whether an account exists.

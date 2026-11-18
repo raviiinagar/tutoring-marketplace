@@ -1,4 +1,4 @@
-import { openAccountSettings, openRoles, openSecurity } from "./navigation";
+import { chooseRoles, openAccountSettings, openRoles, openSecurity } from "./navigation";
 import {test,expect} from '@playwright/test';
 const browserOrigin=process.env.PLAYWRIGHT_BASE_URL||'http://localhost:3100';
 const aliasOrigin=new URL(browserOrigin);aliasOrigin.hostname=new URL(browserOrigin).hostname==='localhost'?'127.0.0.1':'localhost';
@@ -42,9 +42,8 @@ for(const origin of [browserOrigin,aliasOrigin.origin])test(`Lovable account jou
   await page.screenshot({path:'.local/task20-notifications-mobile.png',fullPage:true});
   await page.setViewportSize({width:1280,height:720});
   await page.getByRole('link',{name:'Back to your account',exact:true}).click();await openRoles(page);
-  const rolesSaved=page.waitForResponse(r=>r.url().endsWith('/v1/me/roles')&&r.request().method()==='POST');
-  await page.getByRole('checkbox',{name:'Tutor',exact:true}).check();expect((await rolesSaved).status()).toBe(200);
-  await page.reload();await openRoles(page);await expect(page.getByRole('checkbox',{name:'Tutor',exact:true})).toBeChecked();
+  await chooseRoles(page,'Both');
+  await page.reload();await expect(page.locator('#roles').getByRole('radio',{name:/^Both/})).toBeChecked();
   const browser=page.context().browser()!;
   const other=await browser.newContext();const device=await other.newPage();
   try {

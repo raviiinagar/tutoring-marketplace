@@ -1,7 +1,7 @@
 import {Body,Controller,Delete,Get,HttpCode,Inject,Param,Post,Req,Res} from '@nestjs/common';
 import type {Request,Response} from 'express';
 import {z} from 'zod';
-import {TutorPhotosService,photoInput,photoReview} from './tutor-photos.js';
+import {TutorPhotosService,photoInput,photoReview,photoReportInput} from './tutor-photos.js';
 import {sessionCookieName,type Config} from './config.js';
 import {staffCookieName} from './staff.js';
 import {ApiProblem} from './errors.js';
@@ -16,6 +16,7 @@ export class TutorPhotosController {
  private account(r:Request){return cookie(r,sessionCookieName(this.config));}
  private staff(r:Request){return cookie(r,staffCookieName(this.config));}
  @Get('me/tutor/photo') own(@Req() r:PhotoRequest){return this.photos.own(this.account(r));}
+ @Post('tutor-profiles/:id/photo-reports') @HttpCode(200) reportPhoto(@Req() r:PhotoRequest,@Param('id') id:string,@Body() body:unknown){return this.photos.report(this.account(r),parse(z.uuid(),id),parse(photoReportInput,body).reason,r.correlationId);}
  @Post('me/tutor/photo') @HttpCode(201) upload(@Req() r:PhotoRequest,@Body() body:unknown){return this.photos.upload(this.account(r),parse(photoInput,body),r.correlationId);}
  @Get('me/tutor/photo/:id') async preview(@Req() r:PhotoRequest,@Param('id') id:string,@Res() response:Response){send(response,await this.photos.preview(this.account(r),parse(z.uuid(),id)));}
  @Delete('me/tutor/photo/:id') @HttpCode(204) remove(@Req() r:PhotoRequest,@Param('id') id:string,@Body() body:unknown){parse(z.strictObject({}),body);return this.photos.remove(this.account(r),parse(z.uuid(),id),r.correlationId);}

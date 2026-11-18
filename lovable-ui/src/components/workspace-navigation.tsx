@@ -20,7 +20,7 @@ const activeProps = {
  * makes an ad public. Tutors also get a plain switch into the teaching view.
  */
 export function WorkspaceNavigation() {
-  const { isTutor, hasAds } = useTeachingPresence();
+  const { isTutor, hasAds, summary } = useTeachingPresence();
   return (
     <nav aria-label="Workspace navigation" className="reference-workspace-nav">
       <Link
@@ -39,9 +39,11 @@ export function WorkspaceNavigation() {
           <Link to="/tutor/listings" activeProps={activeProps} className={linkClass}>
             My ads
           </Link>
-          <Link to="/tutor/evaluations" activeProps={activeProps} className={linkClass}>
-            Evaluations
-          </Link>
+          {(summary?.online ?? 0) > 0 && (
+            <Link to="/tutor/evaluations" activeProps={activeProps} className={linkClass}>
+              Evaluations
+            </Link>
+          )}
         </>
       )}
       <Link to="/account/settings" activeProps={activeProps} className={linkClass}>

@@ -1,4 +1,4 @@
-import { openRoles, openAdminArea, openAdminConsole } from "./navigation";
+import { chooseRoles, openRoles, openAdminArea, openAdminConsole } from "./navigation";
 import { fixtureBiography, fixtureDescription, completeFixtureOffer } from "../../apps/api/test/helpers/publication";
 import {auditAccessibility} from './accessibility';
 import {test,expect,type Page} from '@playwright/test';
@@ -14,7 +14,7 @@ async function signup(page:Page,email:string){
   const registered=page.waitForResponse(r=>r.url().endsWith('/v1/auth/registrations')&&r.request().method()==='POST');await page.getByRole('button',{name:'Create account',exact:true}).click();expect((await registered).status()).toBe(202);
   await page.getByRole('link',{name:'Open captured email inbox'}).click();await page.getByRole('listitem').filter({hasText:email}).getByRole('link',{name:'Open verification link'}).click();await page.getByRole('button',{name:'Verify email',exact:true}).click();await expect(page.getByRole('heading',{name:'Email verified',exact:true})).toBeVisible();
   await page.goto('/auth/signin');await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('Password',{exact:true}).fill(password);
-  const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);await expect(page.getByRole('heading',{name: 'Dashboard',exact:true})).toBeVisible();
+  const login=page.waitForResponse(r=>r.url().endsWith('/v1/auth/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'Sign in',exact:true}).click();expect((await login).status()).toBe(200);await expect(page.getByRole('heading',{name:'How will you use Tutor Marketplace?',exact:true})).toBeVisible();
 }
 test('fictional Tutor evidence, private reviewer download, approvals and revocation',async({page,browser},testInfo)=>{
   test.setTimeout(360_000);const tutorEmail=`tutor-${Date.now()}@example.test`,staffEmail=`tutor-reviewer-${Date.now()}@example.test`;
@@ -24,9 +24,7 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     await signup(page,tutorEmail);
     const tutorId=(await (await page.request.get("/v1/me")).json()).user.id;
     await openRoles(page);
-    const roleSaved=page.waitForResponse(r=>r.url().endsWith("/v1/me/roles")&&r.request().method()==="POST");
-    await page.getByRole("checkbox",{name:"Tutor",exact:true}).check();
-    expect((await roleSaved).status()).toBe(200);
+    await chooseRoles(page,"Both");
     const origin=process.env.PLAYWRIGHT_BASE_URL||"http://localhost:3100",headers={Origin:origin};
     // This journey exercises a returning Tutor's optional evidence/photo review
     // and ad management. First-ad creation is covered by the one-form journey.

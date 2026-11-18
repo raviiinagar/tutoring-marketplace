@@ -142,7 +142,10 @@ export class GoogleSignIn {
       await client.query("INSERT INTO sessions(id,user_id,token_hash,expires_at,created_at) VALUES($1,$2,$3,$4,$5)", [randomUUID(), user.id, tokenHash(token), expires, now]);
       await client.query("UPDATE user_identities SET last_used_at=$3 WHERE provider='GOOGLE' AND subject=$1 AND user_id=$2", [identity.sub, user.id, now]);
       await this.audit(client, user.id, "SESSION_CREATED", correlation, { method: "GOOGLE" });
-      return { location: attempt.returnTo, session: { token, expires } };
+      // ADR0021: without a requested page, an account that has not yet chosen Learn, Teach or
+      // Both opens My Account first, as after a password sign-in.
+      const location = attempt.returnTo === "/account" && !user.roles_chosen_at ? "/account/settings" : attempt.returnTo;
+      return { location, session: { token, expires } };
     });
   }
 

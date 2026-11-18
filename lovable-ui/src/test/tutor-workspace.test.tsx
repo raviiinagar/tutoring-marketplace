@@ -147,10 +147,25 @@ it("publishes for free while preserving subject, profile and safety restrictions
     ]).map((item) => item.id),
   ).toEqual(["restricted", "public"]);
 });
-it("shows actual draft and Pro state without inventing revenue or visitor metrics", async () => {
+it("keeps Tutor Pro and the Tutor level out of the way until an ad is online (ADR0021)", async () => {
   mount();
   await screen.findByText(listing.offer.title);
-  expect(screen.getByText("Not active")).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: "Tutor Pro" })).toBeNull();
+  expect(screen.queryByLabelText("Tutor level")).toBeNull();
+});
+it("shows actual offer and Pro state without inventing revenue or visitor metrics", async () => {
+  vi.mocked(api.listings).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      listings: [{ ...listing, status: "PUBLISHED", eligible: true }],
+      eligible_subject_ids: ["subject-physics"],
+      tutor_pro_active: false,
+    },
+  });
+  mount();
+  await screen.findByText(listing.offer.title);
+  expect(await screen.findByText("Not active")).toBeTruthy();
   expect(screen.getByText("No incoming enquiries yet")).toBeTruthy();
   expect(screen.queryByText(/Total earnings|Profile views|Booked lessons/)).toBeNull();
 });

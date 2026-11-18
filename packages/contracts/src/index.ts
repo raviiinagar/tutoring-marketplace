@@ -25,6 +25,8 @@ export interface Account {
   email_verified: true;
   created_at: string;
   roles: AccountRole[];
+  /** False until the account has chosen Learn, Teach or Both (ADR0021). */
+  roles_chosen: boolean;
 }
 export interface ApiError {
   code: string;

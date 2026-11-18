@@ -81,9 +81,17 @@ it.each([
   expect(await screen.findByText("F")).toBeTruthy();
   expect(screen.queryByAltText("Your profile photo")).toBeNull();
 });
-it("never requests Tutor photos for an account without the role", async () => {
+it("shows a Learner their own photo without a Tutor role (ADR0021)", async () => {
   const learner = { ...user, roles: ["LEARNER"] as User["roles"] };
   mount(<AccountAvatar user={learner} />, learner);
+  expect(await screen.findByAltText("Your profile photo")).toHaveAttribute(
+    "src",
+    api.photoPreviewUrl(portrait.id),
+  );
+});
+it("never requests a photo for an account other than the signed-in one", async () => {
+  const other = { ...user, id: "owner-b", roles: ["LEARNER"] as User["roles"] };
+  mount(<AccountAvatar user={other} />, user);
   expect(await screen.findByText("F")).toBeTruthy();
   expect(api.tutorPhoto).not.toHaveBeenCalled();
 });

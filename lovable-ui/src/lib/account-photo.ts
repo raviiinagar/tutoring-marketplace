@@ -10,8 +10,8 @@ export const accountPhotoKey = (id: string) => ["account-photo", id] as const;
 export function useAccountPhoto(user: User | null | undefined) {
   const session = useQuery({ queryKey: accountSessionKey, queryFn: api.me, enabled: false });
   const allowed =
-    !!user?.roles.includes("TUTOR") &&
-    (!session.data || (session.data.ok && session.data.data.user.id === user.id));
+    // Every account has one profile photo (ADR0021), not only Tutors.
+    !!user && (!session.data || (session.data.ok && session.data.data.user.id === user.id));
   const query = useQuery({
     queryKey: accountPhotoKey(user?.id ?? "signed-out"),
     enabled: allowed,
