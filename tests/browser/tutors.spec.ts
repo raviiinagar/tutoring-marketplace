@@ -96,27 +96,23 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     releaseApprovals();
     await page.getByRole("button",{name:"Create an ad",exact:true}).click();
     await page.unroute("**/v1/me/listings");
-    // Superprof-order wizard: Subjects, Title, About the class, About you, Location,
-    // Languages, Hourly fee, Adjust your fees, Profile picture, Review.
-    const next=()=>page.getByRole("button",{name:"Continue",exact:true}).click();
-    await next();await expect(page.getByRole("heading",{name:"Title of your ad",exact:true})).toBeVisible();
+    // My ads uses one form; the saved profile and portrait are reused.
+    const introductionBefore=(await (await page.request.get('/v1/me/tutor')).json()).profile;
+    await expect(page.getByRole('list',{name:'Offer editing progress',exact:true})).toHaveCount(0);
     await page.getByLabel("Ad title",{exact:true}).fill(title);
     await expect(page.getByLabel("Ad title",{exact:true})).toHaveValue(title);
-    await next();await expect(page.getByRole("heading",{name:"About the class",exact:true})).toBeVisible();
     await page.getByLabel("About the class",{exact:true}).fill(fixtureDescription);
     await expect(page.getByLabel("About the class",{exact:true})).toHaveValue(fixtureDescription);
-    await next();
-    await expect(page.getByRole("heading",{name:"About you",exact:true})).toBeVisible();
-    await next();await expect(page.getByRole("heading",{name:"Location of the class",exact:true})).toBeVisible();
-    await page.getByLabel("Your city",{exact:true}).fill("Kota");
-    await next();
-    await expect(page.getByRole("heading",{name:"Languages you teach in",exact:true})).toBeVisible();
-    await next();await expect(page.getByRole("heading",{name:"Hourly fee",exact:true})).toBeVisible();
-    await next();await expect(page.getByRole("heading",{name:"Adjust your fees",exact:true})).toBeVisible();
+    await expect(page.getByRole('textbox',{name:'About you',exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('Your city',{exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('Tuition rate (INR)',{exact:true})).toBeVisible();
+    await page.getByText('Optional trial class',{exact:true}).click();
     await expect(page.getByRole("checkbox",{name:/Offer your first class for free/})).toBeChecked();
-    await next();await expect(page.getByRole("heading",{name:"Profile picture",exact:true})).toBeVisible();
-    await next();
+    await page.getByRole('button',{name:'Preview my ad',exact:true}).click();
     await expect(page.getByRole("heading",{name:"Check your ad before publishing",exact:true})).toBeVisible();
+    const introductionAfter=(await (await page.request.get('/v1/me/tutor')).json()).profile;
+    expect(introductionAfter.biography).toBe(introductionBefore.biography);
+    expect(introductionAfter.revision).toBe(introductionBefore.revision);
     await page.getByRole("button",{name:"Save as draft",exact:true}).click();
     const offerCard=page.getByRole("complementary",{name:"Ad publication",exact:true});
     await expect(offerCard).toContainText("Your ad is a draft");
