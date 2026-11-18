@@ -166,7 +166,6 @@ test("signed-in mobile and desktop checkout, Tutor, support and privacy forms ar
         await expect(page.getByText("₹599.00", { exact: false })).toBeVisible();
       if (path === "/tutor/listings") {
         await page.getByRole("button", { name: "Create an ad", exact: true }).click();
-        await page.getByRole("button", { name: "Continue", exact: true }).click();
         await expect(page.getByLabel("Ad title", { exact: true })).toBeVisible();
       }
       await auditAccessibility(page, info, width + path.replaceAll("/", "-"));

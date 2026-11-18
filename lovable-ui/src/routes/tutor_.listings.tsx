@@ -206,7 +206,7 @@ function TutorListingsPage() {
     );
   return <TutorListingsManager key={account.user.id} />;
 }
-/** The ad wizard. `shell` lets the staff onboarding page (ADR0018) embed it in its own frame. */
+/** Ad management, with one-form self-service creation and the existing section editor. */
 export function TutorListingsManager({
   shell,
 }: { shell?: (content: ReactNode) => ReactNode } = {}) {
@@ -244,6 +244,9 @@ export function TutorListingsManager({
   const [approvalsReady, setApprovalsReady] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false),
     [step, setStep] = useState(0);
+  const simpleCreate = !editing && tutorApi.scope === "own";
+  const showStep = (index: number) =>
+    simpleCreate && step !== REVIEW ? index !== 3 && index !== REVIEW : step === index;
   const editorHeading = useRef<HTMLHeadingElement>(null),
     feedback = useRef<HTMLDivElement>(null),
     alive = useRef(true),
@@ -310,8 +313,10 @@ export function TutorListingsManager({
     // Reload when the profile being edited changes (staff onboarding, ADR0018).
   }, [tutorApi]);
   useEffect(() => {
-    if (editorOpen) editorHeading.current?.focus();
-  }, [editorOpen, step]);
+    if (!editorOpen) return;
+    editorHeading.current?.focus({ preventScroll: simpleCreate });
+    if (simpleCreate) editorHeading.current?.scrollIntoView?.({ block: "center" });
+  }, [editorOpen, step, simpleCreate]);
   useEffect(() => {
     if (error || notice || catalogueError) feedback.current?.focus();
   }, [error, notice, catalogueError]);
@@ -341,15 +346,25 @@ export function TutorListingsManager({
       );
     }
   }, [ready, approvalsReady, catalogue, editing, eligibleSubjects]);
+  const suggestedTitle = (subjectId: string) =>
+    `${(catalogue?.terms.find((term) => term.id === subjectId)?.label || "").slice(0, 40)} lessons for students. Read about my teaching approach, class format and fees below.`;
   const change = <K extends keyof TeachingOffer>(key: K, value: TeachingOffer[K]) =>
-    setOffer((current) => ({ ...current, [key]: value }));
+    setOffer((current) => ({
+      ...current,
+      [key]: value,
+      ...(simpleCreate &&
+      key === "subject_id" &&
+      current.title === suggestedTitle(current.subject_id)
+        ? { title: suggestedTitle(String(value || "")) }
+        : {}),
+    }));
   const save = (e: FormEvent) => {
     e.preventDefault();
     void run(async () => {
       setError(undefined);
       setNotice(undefined);
       // "Save changes" on an earlier step still checks and saves that step first.
-      if (step < REVIEW && !(await leaveStep())) return;
+      if (step < REVIEW && !(await (simpleCreate ? validateCreation() : leaveStep()))) return;
       if (!directMode || !approvalsReady || !ready) {
         setError("Refresh your ads before saving. Direct publication must be available.");
         return;
@@ -454,10 +469,25 @@ export function TutorListingsManager({
     </label>
   );
   const canCreate =
-    ready && directMode && approvalsReady && !!catalogue && eligibleSubjects.length > 0;
+    ready &&
+    directMode &&
+    approvalsReady &&
+    !!catalogue &&
+    !!profile &&
+    eligibleSubjects.length > 0;
   const beginCreate = () => {
     setEditing(undefined);
-    setOffer(approvedDraft(catalogue, eligibleSubjects));
+    const draft = approvedDraft(catalogue, eligibleSubjects);
+    setOffer(
+      tutorApi.scope === "own"
+        ? {
+            ...draft,
+            title: suggestedTitle(draft.subject_id),
+            description: profile?.biography || "",
+            rate_paise: profile?.hourly_rate_paise || draft.rate_paise,
+          }
+        : draft,
+    );
     setStep(0);
     setEditorOpen(true);
     setError(undefined);
@@ -473,16 +503,16 @@ export function TutorListingsManager({
   };
   // Saves what a step owns outside the ad (biography, public place) and checks
   // the step, then moves on. Returns false to stay on the step.
-  const leaveStep = async (): Promise<boolean> => {
-    if (step === 1 && wordCount(offer.title) < 12) {
+  const leaveStep = async (target = step): Promise<boolean> => {
+    if (target === 1 && wordCount(offer.title) < 12) {
       setError("Write at least 12 words in your ad title.");
       return false;
     }
-    if (step === 2 && !offer.description.trim()) {
+    if (target === 2 && !offer.description.trim()) {
       setError("Write something about your class.");
       return false;
     }
-    if (step === 3 && profile && biography.trim() !== profile.biography.trim()) {
+    if (target === 3 && profile && biography.trim() !== profile.biography.trim()) {
       const r = await tutorApi.saveTutorIntroduction({
         ...introductionFromProfile(profile),
         biography: biography.trim(),
@@ -495,8 +525,9 @@ export function TutorListingsManager({
       }
       if (r.data.profile) setProfile(r.data.profile);
     }
-    if (step === 4) {
-      if (!place.city.trim()) {
+    if (target === 4) {
+      const needsLocation = !simpleCreate || offer.teaching_mode === "IN_PERSON";
+      if (needsLocation && !place.city.trim()) {
         setError("Add the city where you teach. Only your city and area appear publicly.");
         return false;
       }
@@ -509,17 +540,20 @@ export function TutorListingsManager({
         : [...presence.teaching_modes, offer.teaching_mode];
       const changed =
         modes.length !== presence.teaching_modes.length ||
-        place.city.trim() !== (presence.location?.city ?? "") ||
-        place.area.trim() !== (presence.location?.area ?? "");
+        (needsLocation &&
+          (place.city.trim() !== (presence.location?.city ?? "") ||
+            place.area.trim() !== (presence.location?.area ?? "")));
       if (changed) {
         const r = await tutorApi.saveTutorPresence({
           expected_revision: presence.revision,
-          location: {
-            city: place.city.trim(),
-            country: presence.location?.country || "India",
-            ...(place.area.trim() ? { area: place.area.trim() } : {}),
-            ...(presence.location?.state ? { state: presence.location.state } : {}),
-          },
+          location: needsLocation
+            ? {
+                city: place.city.trim(),
+                country: presence.location?.country || "India",
+                ...(place.area.trim() ? { area: place.area.trim() } : {}),
+                ...(presence.location?.state ? { state: presence.location.state } : {}),
+              }
+            : presence.location,
           teaching_modes: modes,
           accepting_students: presence.accepting_students ?? true,
           weekly_slots: presence.weekly_slots,
@@ -534,13 +568,24 @@ export function TutorListingsManager({
         setPresence(r.data.presence);
       }
     }
-    if (step === 5 && (offer.language_ids.length < 1 || offer.language_ids.length > 3)) {
+    if (target === 5 && (offer.language_ids.length < 1 || offer.language_ids.length > 3)) {
       setError("Choose between one and three teaching languages.");
       return false;
     }
-    if (step === 8) {
+    if (target === 8) {
       const image = await tutorApi.tutorPhoto();
       if (alive.current && image.ok) setPhoto(image.data.photo);
+      if (simpleCreate && !image.ok) {
+        setError(describeFailure(image.error));
+        expired(image.error);
+        return false;
+      }
+    }
+    return true;
+  };
+  const validateCreation = async () => {
+    for (const target of [1, 2, 5, 4, 8]) {
+      if (!(await leaveStep(target))) return false;
     }
     return true;
   };
@@ -551,7 +596,8 @@ export function TutorListingsManager({
       event.preventDefault();
       void run(async () => {
         setError(undefined);
-        if (await leaveStep()) setStep((value) => value + 1);
+        if (await (simpleCreate ? validateCreation() : leaveStep()))
+          setStep((value) => (simpleCreate ? REVIEW : value + 1));
       });
     } else save(event);
   };
@@ -582,18 +628,20 @@ export function TutorListingsManager({
           {error ? "Your ads could not be loaded. Refresh to try again." : "Loading your ads…"}
         </p>
       ) : (
-        <TutorAdManager
-          ads={listings}
-          catalogue={catalogue}
-          profile={profile}
-          photo={photo}
-          subjects={eligibleSubjects}
-          disabled={loading || editorOpen || !directMode || !approvalsReady}
-          canCreate={canCreate}
-          onCreate={beginCreate}
-          onEdit={beginEdit}
-          onAction={(item, kind) => void action(item, kind)}
-        />
+        (!simpleCreate || !editorOpen) && (
+          <TutorAdManager
+            ads={listings}
+            catalogue={catalogue}
+            profile={profile}
+            photo={photo}
+            subjects={eligibleSubjects}
+            disabled={loading || editorOpen || !directMode || !approvalsReady}
+            canCreate={canCreate}
+            onCreate={beginCreate}
+            onEdit={beginEdit}
+            onAction={(item, kind) => void action(item, kind)}
+          />
+        )
       )}
       {ready && approvalsReady && !eligibleSubjects.length && (
         <p className="mt-5 text-sm text-muted-foreground">
@@ -611,38 +659,53 @@ export function TutorListingsManager({
           <h2 ref={editorHeading} tabIndex={-1} className="text-xl font-semibold outline-none">
             {editing ? "Edit teaching offer" : "Create teaching offer"}
           </h2>
-          <ol aria-label="Offer editing progress" className="sr-only">
-            {adSteps.map((label, index) => (
-              <li key={label} aria-current={step === index ? "step" : undefined}>
-                {index + 1}. {label}
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-sm text-muted-foreground" aria-hidden="true">
-            Step {step + 1} of {adSteps.length}
-          </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${((step + 1) / adSteps.length) * 100}%` }}
-            />
-          </div>
+          {!simpleCreate && (
+            <>
+              <ol aria-label="Offer editing progress" className="sr-only">
+                {adSteps.map((label, index) => (
+                  <li key={label} aria-current={step === index ? "step" : undefined}>
+                    {index + 1}. {label}
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-4 text-sm text-muted-foreground" aria-hidden="true">
+                Step {step + 1} of {adSteps.length}
+              </p>
+              <div
+                className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary"
+                aria-hidden="true"
+              >
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${((step + 1) / adSteps.length) * 100}%` }}
+                />
+              </div>
+            </>
+          )}
+          {simpleCreate && step !== REVIEW && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Your saved Tutor name, introduction and photo are reused. Check the details for this
+              ad, then preview it. Nothing goes online until you publish.
+            </p>
+          )}
           <form onSubmit={editorSubmit} className="mt-5 space-y-5">
             <fieldset
               disabled={loading || !directMode || !approvalsReady || !ready}
               className="space-y-5"
             >
               <div className="ad-wizard-step">
-                {step < REVIEW && (
+                {!simpleCreate && step < REVIEW && (
                   <aside className="ad-wizard-tip" aria-label="Good to know">
                     <p className="font-semibold">Good to know</p>
                     <p className="mt-2 text-sm text-muted-foreground">{goodToKnow[step]}</p>
                   </aside>
                 )}
                 <div className="min-w-0 flex-1 space-y-5">
-                  <h3 className="text-lg font-semibold">{stepQuestions[step]}</h3>
-                  {step === 0 && (
-                    <div className="space-y-5">
+                  {(!simpleCreate || step === REVIEW) && (
+                    <h3 className="text-lg font-semibold">{stepQuestions[step]}</h3>
+                  )}
+                  {showStep(0) && (
+                    <div className={simpleCreate ? "grid gap-5 sm:grid-cols-2" : "space-y-5"}>
                       <label className="block">
                         Subject area
                         <select
@@ -657,6 +720,10 @@ export function TutorListingsManager({
                               level_id: "",
                               curriculum_id: undefined,
                               exam_id: undefined,
+                              title:
+                                simpleCreate && v.title === suggestedTitle(v.subject_id)
+                                  ? suggestedTitle("")
+                                  : v.title,
                             }))
                           }
                         >
@@ -669,16 +736,18 @@ export function TutorListingsManager({
                       </label>
                       {select("Subject", "SUBJECT", "subject_id")}
                       {select("Learner Level", "LEVEL", "level_id")}
-                      {select(
-                        "Curriculum",
-                        "CURRICULUM",
-                        "curriculum_id",
-                        offer.domain_id !== "school",
-                      )}
-                      {select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
+                      {(!simpleCreate || offer.domain_id === "school") &&
+                        select(
+                          "Curriculum",
+                          "CURRICULUM",
+                          "curriculum_id",
+                          offer.domain_id !== "school",
+                        )}
+                      {(!simpleCreate || offer.domain_id === "entrance") &&
+                        select("Exam Track", "EXAM", "exam_id", offer.domain_id !== "entrance")}
                     </div>
                   )}
-                  {step === 1 && (
+                  {showStep(1) && (
                     <Field
                       label="Ad title"
                       hint={`${wordCount(offer.title)}/12 words. Describe your subject, how you teach and the learner level.`}
@@ -688,7 +757,7 @@ export function TutorListingsManager({
                       onChange={(e) => change("title", e.target.value)}
                     />
                   )}
-                  {step === 2 && (
+                  {showStep(2) && (
                     <label className="block">
                       About the class
                       <textarea
@@ -709,7 +778,7 @@ export function TutorListingsManager({
                       </span>
                     </label>
                   )}
-                  {step === 3 &&
+                  {showStep(3) &&
                     (profile ? (
                       <label className="block">
                         About you
@@ -735,7 +804,7 @@ export function TutorListingsManager({
                         from your Tutor profile.
                       </p>
                     ))}
-                  {step === 4 && (
+                  {showStep(4) && (
                     <div className="space-y-5">
                       <fieldset className="grid gap-3 sm:grid-cols-2">
                         <legend className="mb-2 font-medium">
@@ -765,24 +834,32 @@ export function TutorListingsManager({
                           </label>
                         ))}
                       </fieldset>
-                      <Field
-                        label="Your city"
-                        required
-                        value={place.city}
-                        maxLength={80}
-                        hint="Mention your city. Your address never appears on the site."
-                        onChange={(e) => setPlace((v) => ({ ...v, city: e.target.value }))}
-                      />
-                      <Field
-                        label="Area / locality (optional)"
-                        value={place.area}
-                        maxLength={80}
-                        onChange={(e) => setPlace((v) => ({ ...v, area: e.target.value }))}
-                      />
+                      {(!simpleCreate || offer.teaching_mode === "IN_PERSON") && (
+                        <>
+                          <Field
+                            label="Your city"
+                            required
+                            value={place.city}
+                            maxLength={80}
+                            hint="Mention your city. Your address never appears on the site."
+                            onChange={(e) => setPlace((v) => ({ ...v, city: e.target.value }))}
+                          />
+                          <Field
+                            label="Area / locality (optional)"
+                            value={place.area}
+                            maxLength={80}
+                            onChange={(e) => setPlace((v) => ({ ...v, area: e.target.value }))}
+                          />
+                        </>
+                      )}
                     </div>
                   )}
-                  {step === 5 && (
-                    <fieldset className="space-y-2">
+                  {showStep(5) && (
+                    <fieldset
+                      className={
+                        simpleCreate ? "grid grid-cols-2 gap-2 sm:grid-cols-3" : "space-y-2"
+                      }
+                    >
                       <legend className="font-medium">Teaching languages (choose 1–3)</legend>
                       {terms("LANGUAGE").map((t) => (
                         <label key={t.id} className="flex items-center gap-2">
@@ -803,8 +880,8 @@ export function TutorListingsManager({
                       ))}
                     </fieldset>
                   )}
-                  {step === 6 && (
-                    <div className="space-y-5">
+                  {showStep(6) && (
+                    <div className={simpleCreate ? "grid gap-5 sm:grid-cols-2" : "space-y-5"}>
                       <Field
                         label="Tuition rate (INR)"
                         type="number"
@@ -846,88 +923,104 @@ export function TutorListingsManager({
                       )}
                     </div>
                   )}
-                  {step === 7 && (
-                    <div className="space-y-5">
-                      <label className="ad-wizard-choice">
-                        <input
-                          type="checkbox"
-                          checked={offer.trial_kind === "FREE"}
-                          onChange={(e) =>
-                            setOffer((v) => ({
-                              ...v,
-                              trial_kind: e.target.checked ? "FREE" : "NONE",
-                              trial_minutes: e.target.checked ? 60 : undefined,
-                              trial_price_paise: undefined,
-                            }))
-                          }
-                        />
-                        <span>
-                          <span className="block font-semibold">
-                            Offer your first class for free
-                          </span>
-                          <span className="block text-sm text-muted-foreground">
-                            One free class so a learner can try your teaching.
-                          </span>
-                        </span>
-                      </label>
-                      {offer.trial_kind === "FREE" && (
-                        <Field
-                          label="Free class duration (minutes)"
-                          type="number"
-                          min={15}
-                          max={90}
-                          value={offer.trial_minutes || 60}
-                          onChange={(e) => change("trial_minutes", Number(e.target.value))}
-                        />
-                      )}
-                      {offer.trial_kind !== "FREE" && (
+                  {showStep(7) && (
+                    <details open={!simpleCreate}>
+                      <summary className="cursor-pointer font-medium">Optional trial class</summary>
+                      <div className="space-y-5">
                         <label className="ad-wizard-choice">
                           <input
                             type="checkbox"
-                            checked={offer.trial_kind === "PAID"}
+                            checked={offer.trial_kind === "FREE"}
                             onChange={(e) =>
                               setOffer((v) => ({
                                 ...v,
-                                trial_kind: e.target.checked ? "PAID" : "NONE",
-                                trial_minutes: e.target.checked ? 30 : undefined,
-                                trial_price_paise: e.target.checked ? 10000 : undefined,
+                                trial_kind: e.target.checked ? "FREE" : "NONE",
+                                trial_minutes: e.target.checked ? 60 : undefined,
+                                trial_price_paise: undefined,
                               }))
                             }
                           />
                           <span>
-                            <span className="block font-semibold">Offer a paid trial class</span>
+                            <span className="block font-semibold">
+                              Offer your first class for free
+                            </span>
                             <span className="block text-sm text-muted-foreground">
-                              A shorter first class at a price you choose.
+                              One free class so a learner can try your teaching.
                             </span>
                           </span>
                         </label>
-                      )}
-                      {offer.trial_kind === "PAID" && (
-                        <>
+                        {offer.trial_kind === "FREE" && (
                           <Field
-                            label="Trial duration (minutes)"
+                            label="Free class duration (minutes)"
                             type="number"
                             min={15}
                             max={90}
-                            value={offer.trial_minutes || 30}
+                            value={offer.trial_minutes || 60}
                             onChange={(e) => change("trial_minutes", Number(e.target.value))}
                           />
-                          <Field
-                            label="Trial price (INR)"
-                            type="number"
-                            min={1}
-                            max={100000}
-                            step="0.01"
-                            value={(offer.trial_price_paise || 100) / 100}
-                            onChange={(e) =>
-                              change("trial_price_paise", Math.round(Number(e.target.value) * 100))
-                            }
-                          />
-                        </>
-                      )}
-                    </div>
+                        )}
+                        {offer.trial_kind !== "FREE" && (
+                          <label className="ad-wizard-choice">
+                            <input
+                              type="checkbox"
+                              checked={offer.trial_kind === "PAID"}
+                              onChange={(e) =>
+                                setOffer((v) => ({
+                                  ...v,
+                                  trial_kind: e.target.checked ? "PAID" : "NONE",
+                                  trial_minutes: e.target.checked ? 30 : undefined,
+                                  trial_price_paise: e.target.checked ? 10000 : undefined,
+                                }))
+                              }
+                            />
+                            <span>
+                              <span className="block font-semibold">Offer a paid trial class</span>
+                              <span className="block text-sm text-muted-foreground">
+                                A shorter first class at a price you choose.
+                              </span>
+                            </span>
+                          </label>
+                        )}
+                        {offer.trial_kind === "PAID" && (
+                          <>
+                            <Field
+                              label="Trial duration (minutes)"
+                              type="number"
+                              min={15}
+                              max={90}
+                              value={offer.trial_minutes || 30}
+                              onChange={(e) => change("trial_minutes", Number(e.target.value))}
+                            />
+                            <Field
+                              label="Trial price (INR)"
+                              type="number"
+                              min={1}
+                              max={100000}
+                              step="0.01"
+                              value={(offer.trial_price_paise || 100) / 100}
+                              onChange={(e) =>
+                                change(
+                                  "trial_price_paise",
+                                  Math.round(Number(e.target.value) * 100),
+                                )
+                              }
+                            />
+                          </>
+                        )}
+                      </div>
+                    </details>
                   )}
-                  {step === 8 && <TutorPhotoEditor />}
+                  {showStep(8) &&
+                    (simpleCreate && canPublishPhoto ? (
+                      <details>
+                        <summary className="cursor-pointer font-medium">
+                          Your saved profile photo is ready. Change photo
+                        </summary>
+                        <TutorPhotoEditor />
+                      </details>
+                    ) : (
+                      <TutorPhotoEditor />
+                    ))}
                   {step === REVIEW && (
                     <div className="space-y-4">
                       <p className="break-words text-lg font-semibold">{offer.title}</p>
@@ -942,9 +1035,11 @@ export function TutorListingsManager({
                       {editing?.status !== "PUBLISHED" && !canPublishPhoto && (
                         <Notice tone="info">
                           Add a profile photo before you can publish this ad. You can still save it
-                          as a private draft now and publish once your photo is in place. Go back to
-                          the Profile picture step to add one. Adding a photo never publishes an ad
-                          on its own.
+                          as a private draft now and publish once your photo is in place.{" "}
+                          {simpleCreate
+                            ? "Choose Edit details to add one."
+                            : "Go back to the Profile picture step to add one."}{" "}
+                          Adding a photo never publishes an ad on its own.
                         </Notice>
                       )}
                     </div>
@@ -956,9 +1051,9 @@ export function TutorListingsManager({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setStep((value) => value - 1)}
+                    onClick={() => setStep((value) => (simpleCreate ? 0 : value - 1))}
                   >
-                    Back
+                    {simpleCreate ? "Edit details" : "Back"}
                   </Button>
                 )}
                 {editing && step < REVIEW && (
@@ -973,7 +1068,7 @@ export function TutorListingsManager({
                   </Button>
                 )}
                 {step < REVIEW ? (
-                  <Button type="submit">Continue</Button>
+                  <Button type="submit">{simpleCreate ? "Preview my ad" : "Continue"}</Button>
                 ) : (
                   <Button
                     type="submit"
@@ -988,11 +1083,12 @@ export function TutorListingsManager({
                     {editing?.status === "PUBLISHED" ? "Save changes" : "Publish my ad"}
                   </Button>
                 )}
-                {step === REVIEW && editing?.status !== "PUBLISHED" && (
+                {(simpleCreate || step === REVIEW) && editing?.status !== "PUBLISHED" && (
                   <Button
                     type="submit"
                     name="intent"
                     value="draft"
+                    data-save-now="true"
                     variant="outline"
                     disabled={loading}
                   >
