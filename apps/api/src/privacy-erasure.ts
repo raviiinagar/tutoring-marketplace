@@ -435,6 +435,8 @@ export async function erasePrivacyData(
     await client.query('DELETE FROM community_members WHERE user_id=$1',[user.id]);
     for(const row of touched)await client.query("SELECT pg_notify('community_changed',$1)",[row.channel_id]);
   }
+  // Photo reports (ADR0021): the account's own reports, and reports about its photos.
+  if((await client.query("SELECT to_regclass('photo_reports') AS relation")).rows[0].relation)await client.query('DELETE FROM photo_reports WHERE reporter_id=$1 OR photo_id IN (SELECT id FROM tutor_photos WHERE user_id=$1)',[user.id]);
   // Google sign-in links (ADR0020): remove them so the Google account can no longer sign in here.
   if((await client.query("SELECT to_regclass('user_identities') AS relation")).rows[0].relation)await client.query('DELETE FROM user_identities WHERE user_id=$1',[user.id]);
   // Assisted onboarding (ADR0018): withdraw any active request and erase the contact details.

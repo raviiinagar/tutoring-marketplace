@@ -184,7 +184,10 @@ export class AuthService {
         await client.query('UPDATE users SET roles=$2 WHERE id=$1',[user.id,sorted]);
         await this.audit(client,user.id,'ACCOUNT_ROLES_CHANGED',correlation,{previous_roles:user.roles,roles:sorted});
       }
-      return {user:this.publicAccount({...user,roles:sorted})};
+      // Choosing Learn, Teach or Both once ends the first-visit question (ADR0021).
+      const chosen=user.roles_chosen_at??this.now();
+      if(!user.roles_chosen_at)await client.query('UPDATE users SET roles_chosen_at=$2 WHERE id=$1',[user.id,chosen]);
+      return {user:this.publicAccount({...user,roles:sorted,roles_chosen_at:chosen})};
     });
   }
   async sessions(token?: string) {
@@ -208,7 +211,7 @@ export class AuthService {
     });
   }
   private publicAccount(row: Record<string, any>): Account {
-    return { id: row.id, display_name: row.display_name, email: row.email, email_verified: true, created_at: new Date(row.created_at).toISOString(), roles: row.roles };
+    return { id: row.id, display_name: row.display_name, email: row.email, email_verified: true, created_at: new Date(row.created_at).toISOString(), roles: row.roles, roles_chosen: !!row.roles_chosen_at };
   }
 }
 

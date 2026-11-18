@@ -29,6 +29,7 @@ export async function personalExport(
   const reputationDocumentsTable=(await client.query("SELECT to_regclass('public.tutor_reputation_documents') AS present")).rows[0].present;
   const communityTable=(await client.query("SELECT to_regclass('public.community_members') AS present")).rows[0].present;
   const feedbackTable=(await client.query("SELECT to_regclass('public.feedback_items') AS present")).rows[0].present;
+  const photoReportsTable=(await client.query("SELECT to_regclass('public.photo_reports') AS present")).rows[0].present;
   const identitiesTable=(await client.query("SELECT to_regclass('public.user_identities') AS present")).rows[0].present;
   const onboardingHelpTable=(await client.query("SELECT to_regclass('public.tutor_onboarding_requests') AS present")).rows[0].present;
   const profile = (
@@ -209,6 +210,8 @@ export async function personalExport(
       reports_filed: (await rows("SELECT message_id,category,status,encrypted_note,created_at FROM community_reports WHERE reporter_id=$1 ORDER BY created_at")).map(({encrypted_note,...r}) => ({ ...r, note: read(encrypted_note)?.note || null })),
       mute: (await rows("SELECT muted_until,reason,created_at FROM community_mutes WHERE user_id=$1"))[0] ?? null,
     } : null,
+    // Photo reports this account made (ADR0021).
+    photo_reports: photoReportsTable ? await rows("SELECT photo_id,reason,created_at FROM photo_reports WHERE reporter_id=$1 ORDER BY created_at,photo_id") : [],
     // Sign-in providers linked to the account (ADR0020).
     linked_sign_in: identitiesTable ? await rows("SELECT provider,email,created_at,last_used_at FROM user_identities WHERE user_id=$1 ORDER BY provider") : [],
     // Assisted onboarding requests (ADR0018): status, consent and the contact details the Tutor gave.

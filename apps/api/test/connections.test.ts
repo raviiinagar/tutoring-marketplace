@@ -103,7 +103,7 @@ test('clean consented Tutor photos publish without fabricated review and public 
  const photo=(await uploadPhoto(raw,teacher.cookie).expect(201)).body.photo;assert.equal(photo.status,'PENDING');assert.equal(photo.scan_status,'CLEAN');
  const publicPath='/v1/discovery/'+listing.id+'/photos/'+photo.id;assert.equal(photo.self_published,true);assert.equal((await find()).body.offers.find((o:{id:string})=>o.id===listing.id).tutor.photo_url,publicPath);
  await get(publicPath).expect(200);await get('/v1/me/tutor/photo/'+photo.id).expect(401);
- const stranger=await fixture(null);await get('/v1/me/tutor/photo/'+photo.id,stranger.cookie).expect(403);
+ const stranger=await fixture(null);await get('/v1/me/tutor/photo/'+photo.id,stranger.cookie).expect(404); // another account's private preview stays unreachable
  const another=await tutor();await get('/v1/me/tutor/photo/'+photo.id,another.cookie).expect(404);
  const preview=await get('/v1/me/tutor/photo/'+photo.id,teacher.cookie).expect(200);const metadata=await sharp(preview.body).metadata();assert.equal(metadata.width,640);assert.equal(metadata.height,800);assert.equal(metadata.exif,undefined);assert.equal(metadata.format,'jpeg');
  const stored=(await database.pool.query('SELECT encrypted_payload FROM tutor_photos WHERE id=$1',[photo.id])).rows[0];assert.ok(!JSON.stringify(stored).includes('FICTIONAL-TUTOR-EVIDENCE'));
