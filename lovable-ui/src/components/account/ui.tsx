@@ -48,6 +48,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { accountSessionKey } from "@/lib/session";
+import { useTeachingPresence } from "@/lib/teaching-presence";
 import { WorkspaceNavigation, workspaceLinks } from "@/components/workspace-navigation";
 import { TutorWorkspaceNavigation } from "@/components/tutor-workspace-navigation";
 const AccountReady = createContext(false);
@@ -193,18 +194,17 @@ export function SiteHeader({
   const beta = useBetaFeatures();
   // Help explains the steps on the homepage; while those are hidden it opens Support instead.
   const helpHref = homepageSections.howItWorks ? "/#how-it-works" : "/support";
-  const teacherPath = user
-    ? user.roles.includes("TUTOR")
-      ? "/tutor/dashboard"
-      : "/tutor"
-    : "/auth/signup";
+  // ADR0021 (owner's choice): "Become a Tutor" until the account has an ad online, then
+  // "Teaching dashboard". Before publishing it opens /tutor, where a new Tutor chooses how
+  // to create the ad and a started one continues it.
+  const { summary: teaching } = useTeachingPresence();
+  const published = (teaching?.online ?? 0) > 0;
+  const teacherPath = !user ? "/auth/signup" : published ? "/tutor/dashboard" : "/tutor";
+  const teacherLabel = published ? "Teaching dashboard" : "Become a Tutor";
   const teacherHash = "";
   const showSearch = !homepage || scrolled;
-  // ADR0021: each mode shows only its own links. Teaching-only accounts have no learner
-  // pages; accounts that already teach get their teaching dashboard, not "Become a Tutor".
+  // Each mode shows only its own links; teaching-only accounts have no learner pages.
   const learns = !user || user.roles.includes("LEARNER");
-  const teaches = !!user && user.roles.includes("TUTOR");
-  const teacherLabel = teaches ? "Teaching dashboard" : "Become a Tutor";
   const menuLinks: { to: string; label: string }[] = learns
     ? [
         ...workspaceLinks,

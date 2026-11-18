@@ -191,16 +191,24 @@ it("pending session announces checking without a false logged-in state", () => {
   expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
   expect(screen.queryByRole("button", { name: /My account/ })).toBeNull();
 });
+const adsOf = (...ads: { status: string; eligible: boolean }[]) =>
+  vi.spyOn(api, "listings").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { listings: ads, eligible_subject_ids: [], tutor_pro_active: false },
+  } as never);
 it("signed-in teaching-only Tutor sees only teaching links in a keyboard-accessible account menu", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
     data: { user: { ...user, roles: ["TUTOR"] } },
   });
+  adsOf({ status: "PUBLISHED", eligible: true });
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const account = await within(nav).findByRole("button", { name: "T My account" });
-  expect(within(nav).getByRole("link", { name: "Teaching dashboard" })).toHaveAttribute(
+  // ADR0021: once an ad is online the link becomes "Teaching dashboard".
+  expect(await within(nav).findByRole("link", { name: "Teaching dashboard" })).toHaveAttribute(
     "href",
     "/tutor/dashboard",
   );
@@ -220,24 +228,43 @@ it("signed-in teaching-only Tutor sees only teaching links in a keyboard-accessi
   fireEvent.keyDown(menu, { key: "Escape" });
   await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
 });
-it("an account that learns and teaches keeps learner links and reaches its teaching dashboard", async () => {
+it("a Tutor who has not published yet still sees Become a Tutor, opening their set-up", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["TUTOR"] } },
+  });
+  const listings = adsOf({ status: "DRAFT", eligible: false });
+  mount();
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await within(nav).findByRole("button", { name: "T My account" });
+  await waitFor(() => expect(listings).toHaveBeenCalled());
+  expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
+    "href",
+    "/tutor",
+  );
+  expect(within(nav).queryByRole("link", { name: "Teaching dashboard" })).toBeNull();
+});
+it("an account that learns and teaches keeps learner links and reaches its teaching set-up", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
     data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
   });
+  const listings = adsOf();
   mount();
+  await waitFor(() => expect(listings).toHaveBeenCalled());
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const account = await within(nav).findByRole("button", { name: "T My account" });
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");
   for (const name of ["Dashboard", "My Account", "Saved Tutors", "My enquiries", "My messages"])
     expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
-  expect(within(menu).getByRole("menuitem", { name: "Teaching dashboard" })).toHaveAttribute(
+  expect(within(menu).getByRole("menuitem", { name: "Become a Tutor" })).toHaveAttribute(
     "href",
-    "/tutor/dashboard",
+    "/tutor",
   );
-  expect(within(menu).queryByRole("menuitem", { name: "Become a Tutor" })).toBeNull();
+  expect(within(menu).queryByRole("menuitem", { name: "Teaching dashboard" })).toBeNull();
 });
 it("a signed-in Learner enters unified onboarding without selecting a role first", async () => {
   vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user } });
