@@ -42,7 +42,7 @@ Looking at the choice creates nothing. A Tutor who has already started the one-f
 **Follow-up, 18 November 2026: one mode, one set of links.** An audit of what each kind of account sees found leftovers, which the owner asked to remove (feedback links stay as they are):
 - **Header menu:**
   - a Teach-only account's menu shows only teaching links: Dashboard, My messages, My ads and My Account. There are no Saved Tutors, enquiries or heart icon, and its pages keep the teaching bar;
-  - an account that already teaches sees "Teaching dashboard" instead of "Become a Tutor".
+  - the link reads "Become a Tutor" and opens `/tutor` until the account has an ad online; from then on it reads "Teaching dashboard" and opens `/tutor/dashboard` (owner's choice).
 - **New Tutor's dashboard:** with no profile and no ad, it shows one "Create your first ad" step instead of four empty panels.
 - **The Tutor profile page:**
   - drops the team-help offer and the set-up steps once the profile is public;
