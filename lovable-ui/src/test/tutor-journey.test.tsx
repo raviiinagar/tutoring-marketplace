@@ -167,3 +167,33 @@ it("the learner dashboard sends a teaching-only account to its teaching dashboar
     expect(navigate).toHaveBeenCalledWith({ to: "/tutor/dashboard", replace: true }),
   );
 });
+
+it("a public profile shows only the team's result, never the offer to send details again", async () => {
+  const done = {
+    id: "11111111-2222-4333-8444-555555555555",
+    reference: "TM-111111",
+    status: "COMPLETED" as const,
+    whatsapp_number: "+919000000001",
+    note: null,
+    revision: 3,
+    created_at: "2026-11-18T10:00:00.000Z",
+    updated_at: "2026-11-18T11:00:00.000Z",
+    completed_at: "2026-11-18T11:00:00.000Z",
+    cancelled_at: null,
+    cancelled_by: null,
+  };
+  vi.mocked(api.onboardingHelp).mockResolvedValue(
+    ok({ policy: { consent_version: "v1", consents }, request: done }),
+  );
+  mount(<TeamSetup hasProfile profilePublic />);
+  expect(await screen.findByText(/Our team finished setting up your profile/)).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Send my details to the team" })).toBeNull();
+  cleanup();
+  vi.mocked(api.onboardingHelp).mockResolvedValue(
+    ok({ policy: { consent_version: "v1", consents }, request: null }),
+  );
+  mount(<TeamSetup hasProfile profilePublic />);
+  await waitFor(() => expect(api.onboardingHelp).toHaveBeenCalledTimes(2));
+  expect(screen.queryByRole("button", { name: "Send my details to the team" })).toBeNull();
+  expect(screen.queryByText(/Need help with your profile/)).toBeNull();
+});

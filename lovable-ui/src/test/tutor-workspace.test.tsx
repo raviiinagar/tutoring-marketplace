@@ -172,9 +172,9 @@ it("shows actual offer and Pro state without inventing revenue or visitor metric
 it("keeps a failed listings response distinct from an empty dashboard", async () => {
   vi.mocked(api.listings).mockResolvedValueOnce({ ok: false, error: { kind: "unavailable" } });
   mount();
-  await screen.findByText("Teaching offers could not be loaded.");
+  await screen.findByText("Your ads could not be loaded.");
   expect(screen.queryByText("Ready to describe your classes?")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Retry teaching offers" }));
+  fireEvent.click(screen.getByRole("button", { name: "Retry your ads" }));
   await screen.findByText(listing.offer.title);
 });
 it("does not request private Tutor data for an account without the Tutor role", async () => {
@@ -194,6 +194,18 @@ it("does not request private Tutor data for an account without the Tutor role", 
   expect(screen.queryByRole("link", { name: "Choose your account roles" })).not.toBeInTheDocument();
   expect(api.listings).not.toHaveBeenCalled();
   expect(api.tutor).not.toHaveBeenCalled();
+});
+it("gives a new Tutor with no profile or ad one first step instead of empty panels", async () => {
+  vi.mocked(api.listings).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { listings: [], eligible_subject_ids: [], tutor_pro_active: false },
+  });
+  mount();
+  expect(await screen.findByRole("heading", { name: "Create your first ad" })).toBeVisible();
+  expect(screen.getByRole("link", { name: "Become a Tutor" })).toHaveAttribute("href", "/tutor");
+  expect(screen.queryByRole("heading", { name: "Profile & identity" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "Recent learner enquiries" })).toBeNull();
 });
 it("separates having a teaching workspace from having a published ad", async () => {
   mount();
@@ -223,7 +235,8 @@ it("ignores old private listings after the authoritative account changes", async
   act(() =>
     client.setQueryData(accountSessionKey, { ok: true, status: 200, data: { user: other } }),
   );
-  await screen.findByText("Ready to describe your classes?");
+  // The second account has no profile or ad yet, so it sees the single first step (ADR0021).
+  await screen.findByRole("heading", { name: "Create your first ad" });
   await act(async () =>
     finish({
       ok: true,
@@ -244,7 +257,7 @@ it("hides private workspace data and requests sign-in after a private 401", asyn
   });
   mount();
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
-  expect(screen.queryByRole("button", { name: "Manage teaching offers" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Manage my ads" })).toBeNull();
 });
 
 it("counts paused ads as offline without claiming unavailable published ads are available", async () => {

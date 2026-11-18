@@ -200,11 +200,36 @@ export function SiteHeader({
     : "/auth/signup";
   const teacherHash = "";
   const showSearch = !homepage || scrolled;
-  const accountLinks = (
+  // ADR0021: each mode shows only its own links. Teaching-only accounts have no learner
+  // pages; accounts that already teach get their teaching dashboard, not "Become a Tutor".
+  const learns = !user || user.roles.includes("LEARNER");
+  const teaches = !!user && user.roles.includes("TUTOR");
+  const teacherLabel = teaches ? "Teaching dashboard" : "Become a Tutor";
+  const menuLinks: { to: string; label: string }[] = learns
+    ? [
+        ...workspaceLinks,
+        { to: "/saved-tutors", label: "Saved Tutors" },
+        { to: "/requests", label: "My enquiries" },
+        { to: teacherPath, label: teacherLabel },
+      ]
+    : [
+        { to: "/tutor/dashboard", label: "Dashboard" },
+        { to: "/connections", label: "My messages" },
+        { to: "/tutor/listings", label: "My ads" },
+        { to: "/account/settings", label: "My Account" },
+      ];
+  const accountLinks = learns ? (
     <>
       <Link to="/account">Dashboard</Link>
       <Link to="/saved-tutors">Saved Tutors</Link>
       <Link to="/requests">My enquiries</Link>
+      <Link to="/connections">Messages</Link>
+      <Link to="/account/settings">My account</Link>
+    </>
+  ) : (
+    <>
+      <Link to="/tutor/dashboard">Dashboard</Link>
+      <Link to="/tutor/listings">My ads</Link>
       <Link to="/connections">Messages</Link>
       <Link to="/account/settings">My account</Link>
     </>
@@ -272,16 +297,22 @@ export function SiteHeader({
               <CircleHelp aria-hidden className="size-5" />
             </a>
             {accountStyle && user ? (
-              <Link to="/saved-tutors" aria-label="Saved Tutors" className="reference-header-icon">
-                <Heart aria-hidden className="size-5" />
-              </Link>
+              learns && (
+                <Link
+                  to="/saved-tutors"
+                  aria-label="Saved Tutors"
+                  className="reference-header-icon"
+                >
+                  <Heart aria-hidden className="size-5" />
+                </Link>
+              )
             ) : (
               <Link
                 to={teacherPath}
                 hash={teacherHash}
                 className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
               >
-                Become a Tutor
+                {teacherLabel}
               </Link>
             )}
             {pending ? (
@@ -326,22 +357,11 @@ export function SiteHeader({
                     if (document.activeElement?.closest("#roles")) event.preventDefault();
                   }}
                 >
-                  {workspaceLinks.map((item) => (
-                    <DropdownMenuItem key={item.to} asChild>
+                  {menuLinks.map((item) => (
+                    <DropdownMenuItem key={item.label} asChild>
                       <Link to={item.to}>{item.label}</Link>
                     </DropdownMenuItem>
                   ))}
-                  <DropdownMenuItem asChild>
-                    <Link to="/saved-tutors">Saved Tutors</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/requests">My enquiries</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={teacherPath} hash={teacherHash}>
-                      Become a Tutor
-                    </Link>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -412,9 +432,11 @@ export function SiteHeader({
             {beta.community && <Link to="/community">Community</Link>}
             {beta.feedback && <Link to="/feedback">Beta feedback</Link>}
             <a href={helpHref}>Help</a>
-            <Link to={teacherPath} hash={teacherHash}>
-              Become a Tutor
-            </Link>
+            {learns && (
+              <Link to={teacherPath} hash={teacherHash}>
+                {teacherLabel}
+              </Link>
+            )}
             {pending ? (
               <span role="status">Checking account...</span>
             ) : user ? (
@@ -449,7 +471,10 @@ export function SiteFooter() {
           <BrandWordmark className="brand-wordmark-footer" />
         </Link>
         <p className="text-xs text-muted-foreground">Made for curious minds across India.</p>
-        <nav aria-label="Footer navigation" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium">
+        <nav
+          aria-label="Footer navigation"
+          className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium"
+        >
           <Link to="/tutors" className="inline-flex min-h-11 items-center">
             Find Tutors
           </Link>
@@ -496,8 +521,19 @@ export function AuthShell({
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
+  const shellSession = useQuery({
+    queryKey: accountSessionKey,
+    queryFn: api.me,
+    enabled: false,
+    retry: false,
+  });
+  const shellUser = shellSession.data?.ok ? shellSession.data.data.user : null;
+  // ADR0021: teaching-only accounts have no learner pages, so they keep the teaching bar.
+  const teachingOnly =
+    !!shellUser && shellUser.roles.includes("TUTOR") && !shellUser.roles.includes("LEARNER");
   const tutorWorkspace =
     teachingWorkspace ||
+    (ready && teachingOnly && !window.location.pathname.startsWith("/auth/")) ||
     (ready &&
       (window.location.pathname === "/tutor" || window.location.pathname.startsWith("/tutor/")));
   // Every account page shares the full-width workspace bar under the header; only the
