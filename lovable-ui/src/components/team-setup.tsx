@@ -60,13 +60,13 @@ function ContactTeam({ reference }: { reference: string }) {
  */
 export function TeamSetup({
   hasProfile,
-  profilePublic = false,
+  adOnline = false,
   startOpen = false,
   onCancel,
 }: {
   hasProfile: boolean;
-  /** Once the profile is public, only an open request or the team's result is shown (ADR0021). */
-  profilePublic?: boolean;
+  /** Once the Tutor has an ad online, only an open request or the team's result is shown (ADR0021). */
+  adOnline?: boolean;
   /** Opened straight away when the Tutor chose "Send to our team" (ADR0021). */
   startOpen?: boolean;
   onCancel?: () => void;
@@ -176,7 +176,7 @@ export function TeamSetup({
     });
   };
   const completed = state.request?.status === "COMPLETED" ? state.request : null;
-  if (profilePublic)
+  if (adOnline)
     return completed ? (
       <Notice tone="success">
         Our team finished setting up your profile. Check it below and change anything you like.

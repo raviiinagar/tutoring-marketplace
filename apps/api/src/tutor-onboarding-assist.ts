@@ -30,7 +30,7 @@ export const assistRequestInput = z.strictObject({
   photo_public_consent: z.literal(true),
 });
 export const assistAction = z.strictObject({
-  operation: z.enum(["CLAIM", "RELEASE", "COMPLETE", "CANCEL"]),
+  operation: z.enum(["CLAIM", "RELEASE", "COMPLETE", "CANCEL", "REOPEN"]),
   revision: z.number().int().positive(),
   reason: z.string().trim().max(240).optional(),
 });
@@ -214,6 +214,9 @@ export class AssistedOnboardingService {
         RELEASE: "status='OPEN',assigned_to=NULL",
         COMPLETE: "status='COMPLETED',completed_at=$3,staff_note=COALESCE($4,staff_note)",
         CANCEL: "status='CANCELLED',cancelled_at=$3,cancelled_by='STAFF',assigned_to=NULL,staff_note=$4",
+        // ADR0021: a completed request comes back to the staff member who reopens it, so a
+        // missing or wrong ad can be fixed under the Tutor's original consent.
+        REOPEN: "status='IN_PROGRESS',assigned_to=$2,completed_at=NULL",
       };
       if (input.operation === "CLAIM" && (!open || row.assigned_to === actor.id))
         throw conflict("INVALID_REQUEST_STATE", "This request cannot be claimed.");
@@ -221,6 +224,31 @@ export class AssistedOnboardingService {
         throw conflict("INVALID_REQUEST_STATE", "Only a claimed request can be released.");
       if (input.operation === "COMPLETE" && row.status !== "IN_PROGRESS")
         throw conflict("INVALID_REQUEST_STATE", "Claim the request before completing it.");
+      // ADR0021: becoming a Tutor means a live ad, so a request is complete only once the
+      // Tutor has at least one published ad.
+      if (
+        input.operation === "COMPLETE" &&
+        !(
+          await client.query(
+            "SELECT 1 FROM teaching_listings WHERE user_id=$1 AND status='PUBLISHED' AND archived_at IS NULL AND NOT safety_suspended LIMIT 1",
+            [row.user_id],
+          )
+        ).rowCount
+      )
+        throw conflict("AD_NOT_PUBLISHED", "Publish the Tutor's ad before completing the request.");
+      if (input.operation === "REOPEN") {
+        if (row.status !== "COMPLETED")
+          throw conflict("INVALID_REQUEST_STATE", "Only a completed request can be reopened.");
+        if (
+          (
+            await client.query(
+              "SELECT 1 FROM tutor_onboarding_requests WHERE user_id=$1 AND status IN ('OPEN','IN_PROGRESS') AND id<>$2",
+              [row.user_id, id],
+            )
+          ).rowCount
+        )
+          throw conflict("ACTIVE_REQUEST", "This Tutor already has another request with the team.");
+      }
       if (input.operation === "CANCEL") {
         if (!open) throw conflict("INVALID_REQUEST_STATE", "This request is already closed.");
         if (!input.reason || input.reason.length < 10)

@@ -20,6 +20,7 @@ export function TutorOnboarding() {
     [notice, setNotice] = useState<string>(),
     [editing, setEditing] = useState(true);
   const [resumeSimpleSetup, setResumeSimpleSetup] = useState(false);
+  const [adOnline, setAdOnline] = useState(false);
   const [path, setPath] = useState<TutorSetupPath>();
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
@@ -45,6 +46,7 @@ export function TutorOnboarding() {
       api.tutorOnboardingDraft(),
       api.listings(),
     ]);
+    if (ads.ok) setAdOnline(ads.data.listings.some((l) => l.status === "PUBLISHED" && l.eligible));
     if (draft.ok)
       setResumeSimpleSetup(
         !!draft.data.draft?.data.quick_setup ||
@@ -169,7 +171,7 @@ export function TutorOnboarding() {
       ) : (
         <div className="space-y-6">
           {/* Once the profile is public, the team offer and progress steps are done (ADR0021). */}
-          <TeamSetup hasProfile={!!p} profilePublic={profilePublic} />
+          <TeamSetup hasProfile={!!p} adOnline={adOnline} />
           {p && !profilePublic && (
             <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
               {[

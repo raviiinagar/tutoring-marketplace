@@ -18,6 +18,7 @@ import {
 import { accountSessionKey } from "@/lib/session";
 import { hasPublicationPhoto } from "@/lib/tutor-workspace";
 import { introductionFromProfile } from "./tutor-introduction-wizard";
+import { useTutorApi } from "@/lib/tutor-api";
 import { Field, Notice } from "./account/ui";
 import { Button } from "./ui/button";
 
@@ -58,11 +59,18 @@ const notStarted = <T,>(r: ApiResult<T>) =>
 export function SimpleTutorSetup({
   catalogue,
   profile,
+  tutorName,
+  onPublished,
 }: {
   catalogue: Catalogue;
   profile?: TutorProfile | null | undefined;
+  /** The Tutor's account name when staff fill this in for them (ADR0018, ADR0021). */
+  tutorName?: string;
+  onPublished?: () => void;
 }) {
   const client = useQueryClient();
+  // The Tutor's own calls, or the same calls acting for one claimed team request.
+  const tutorApi = useTutorApi();
   const [form, setForm] = useState<Form>(empty),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
@@ -131,11 +139,11 @@ export function SimpleTutorSetup({
     void (async () => {
       try {
         const [d, me, photos, places, ads] = await Promise.all([
-          api.tutorOnboardingDraft(),
-          api.me(),
-          api.tutorPhoto(),
-          api.tutorPresence(),
-          api.listings(),
+          tutorApi.tutorOnboardingDraft(),
+          tutorName === undefined ? api.me() : Promise.resolve(undefined),
+          tutorApi.tutorPhoto(),
+          tutorApi.tutorPresence(),
+          tutorApi.listings(),
         ]);
         const working = value(d).draft;
         for (const r of [photos, places, ads])
@@ -155,7 +163,10 @@ export function SimpleTutorSetup({
         }
         const seeded = profile
           ? introductionFromProfile(profile)
-          : { ...empty, display_name: me.ok ? me.data.user.display_name : "" };
+          : {
+              ...empty,
+              display_name: tutorName ?? (me?.ok ? me.data.user.display_name : ""),
+            };
         const next: Form = {
           ...seeded,
           ...working?.data,
@@ -189,7 +200,11 @@ export function SimpleTutorSetup({
   const persist = useCallback(async (f: Form) => {
     const { replace_identity: _, expected_public_revision: __, ...data } = f;
     const r = value(
-      await api.saveTutorOnboardingDraft({ revision: draft.current?.revision ?? 0, step: 0, data }),
+      await tutorApi.saveTutorOnboardingDraft({
+        revision: draft.current?.revision ?? 0,
+        step: 0,
+        data,
+      }),
     );
     if (!alive.current) throw new Error("This setup is no longer open.");
     draft.current = r.draft;
@@ -253,7 +268,7 @@ export function SimpleTutorSetup({
     await persist(latest.current);
     const { quick_setup: _, ...introduction } = latest.current;
     const next = activeValue(
-      await api.saveTutorIntroduction({
+      await tutorApi.saveTutorIntroduction({
         ...introduction,
         ...(savedProfile.current
           ? { expected_public_revision: savedProfile.current.public_revision }
@@ -261,10 +276,10 @@ export function SimpleTutorSetup({
       }),
     );
     savedProfile.current = next.profile;
-    const p = activeValue(await api.tutorPresence()).presence;
+    const p = activeValue(await tutorApi.tutorPresence()).presence;
     const mode = form.quick_setup.teaching_mode;
     activeValue(
-      await api.saveTutorPresence({
+      await tutorApi.saveTutorPresence({
         expected_revision: p.revision,
         location:
           mode === "IN_PERSON"
@@ -281,16 +296,16 @@ export function SimpleTutorSetup({
       let binary = "";
       for (let i = 0; i < bytes.length; i += 32768)
         binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
-      const uploaded = activeValue(await api.uploadTutorPhoto(file.type, btoa(binary))).photo;
+      const uploaded = activeValue(await tutorApi.uploadTutorPhoto(file.type, btoa(binary))).photo;
       setPhoto(uploaded);
       setFile(undefined);
       setPhotoConsent(false);
       await client.invalidateQueries({ queryKey: ["account-photo"] });
     } else {
-      setPhoto(activeValue(await api.tutorPhoto()).photo);
+      setPhoto(activeValue(await tutorApi.tutorPhoto()).photo);
     }
     const wanted = offer(form);
-    const current = activeValue(await api.listings()).listings;
+    const current = activeValue(await tutorApi.listings()).listings;
     const matches = (a: TeachingListing) =>
       a.status === "DRAFT" &&
       Object.entries(wanted).every(
@@ -306,8 +321,8 @@ export function SimpleTutorSetup({
     if (owned && owned.status !== "DRAFT")
       throw new Error("This ad changed in another session. Open My ads before continuing.");
     listing.current = owned
-      ? activeValue(await api.editListing(owned.id, owned.revision, wanted)).listing
-      : activeValue(await api.createListing(wanted)).listing;
+      ? activeValue(await tutorApi.editListing(owned.id, owned.revision, wanted)).listing
+      : activeValue(await tutorApi.createListing(wanted)).listing;
     const updated = {
       ...latest.current,
       quick_setup: { ...latest.current.quick_setup, listing_id: listing.current.id },
@@ -346,7 +361,7 @@ export function SimpleTutorSetup({
         if (!preview || !listing.current || !hasPublicationPhoto(photo))
           throw new Error("Preview your ad and add a usable profile photo before publishing.");
         const result = activeValue(
-          await api.listingAction(listing.current.id, listing.current.revision, "PUBLISH"),
+          await tutorApi.listingAction(listing.current.id, listing.current.revision, "PUBLISH"),
         );
         listing.current = result.listing;
         setPublished(true);
@@ -354,10 +369,11 @@ export function SimpleTutorSetup({
         // Publication has already succeeded. A cleanup failure must never
         // invite a second publication or claim that the ad is still a draft.
         if (draft.current) {
-          const cleared = await api.clearTutorOnboardingDraft(draft.current.revision);
+          const cleared = await tutorApi.clearTutorOnboardingDraft(draft.current.revision);
           if (!cleared.ok) setNotice("Your ad is online. A private working copy remains saved.");
         }
         await client.invalidateQueries({ queryKey: ["tutor-dashboard"] });
+        onPublished?.();
       } else {
         await prepare();
         setPreview(kind === "preview");
@@ -450,7 +466,7 @@ export function SimpleTutorSetup({
         <div className="space-y-4 rounded-2xl border bg-card p-5 sm:p-7">
           {photo && (
             <img
-              src={api.photoPreviewUrl(photo.id)}
+              src={tutorApi.photoPreviewUrl(photo.id)}
               alt="Your profile photo preview"
               className="aspect-[4/5] w-28 rounded-xl object-cover"
             />
@@ -650,7 +666,7 @@ export function SimpleTutorSetup({
             {photo && (
               <div className="flex items-center gap-3">
                 <img
-                  src={api.photoPreviewUrl(photo.id)}
+                  src={tutorApi.photoPreviewUrl(photo.id)}
                   alt="Your saved profile photo"
                   className="aspect-[4/5] w-20 rounded-xl object-cover"
                 />

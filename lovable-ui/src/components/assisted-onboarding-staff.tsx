@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import {
   api,
@@ -11,8 +11,10 @@ import {
 import { assistedTutorApi, TutorApiContext } from "@/lib/tutor-api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
-import { TutorIntroductionWizard } from "@/components/tutor-introduction-wizard";
+import { SimpleTutorSetup } from "@/components/simple-tutor-setup";
 import { TutorListingsManager } from "@/routes/tutor_.listings";
+
+type Operation = "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL" | "REOPEN";
 
 type Status = "ACTIVE" | "COMPLETED" | "CANCELLED";
 const statusLabel: Record<StaffOnboardingRequest["status"], string> = {
@@ -37,7 +39,7 @@ function RequestCard({
 }: {
   row: StaffOnboardingRequest;
   busy: boolean;
-  onAction: (operation: "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL", reason?: string) => void;
+  onAction: (operation: Operation, reason?: string) => void;
   onOpen: () => void;
 }) {
   const [cancelling, setCancelling] = useState(false);
@@ -111,6 +113,14 @@ function RequestCard({
           </Button>
         </div>
       )}
+      {row.status === "COMPLETED" && (
+        // ADR0021: reopen to fix a missing or wrong ad under the Tutor's original consent.
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" disabled={busy} onClick={() => onAction("REOPEN")}>
+            Reopen
+          </Button>
+        </div>
+      )}
       {active && cancelling && (
         <div className="space-y-2">
           <label className="block text-sm font-semibold" htmlFor={"cancel-" + row.id}>
@@ -148,29 +158,31 @@ function Workspace({
   const tutorApi = useMemo(() => assistedTutorApi(request.id), [request.id]);
   const [state, setState] = useState<TutorState | null>();
   const [catalogue, setCatalogue] = useState<Catalogue>();
-  const [editing, setEditing] = useState(false);
+  const [online, setOnline] = useState<boolean>();
   const [error, setError] = useState<string>();
   const [note, setNote] = useState("");
+  const load = useCallback(
+    () =>
+      Promise.all([tutorApi.tutor(), api.catalogue(), tutorApi.listings()]).then(([t, c, l]) => {
+        if (t.ok) setState(t.data);
+        else if (t.error.kind === "http" && t.error.code === "TUTOR_ROLE_REQUIRED") setState(null);
+        else setError(describeFailure(t.error));
+        if (c.ok) setCatalogue(c.data);
+        else setError(describeFailure(c.error));
+        // ADR0021: becoming a Tutor means a live ad, so the request is finished only then.
+        setOnline(l.ok && l.data.listings.some((ad) => ad.status === "PUBLISHED" && ad.eligible));
+      }),
+    [tutorApi],
+  );
   useEffect(() => {
-    let alive = true;
-    void Promise.all([tutorApi.tutor(), api.catalogue()]).then(([t, c]) => {
-      if (!alive) return;
-      if (t.ok) setState(t.data);
-      else if (t.error.kind === "http" && t.error.code === "TUTOR_ROLE_REQUIRED") setState(null);
-      else setError(describeFailure(t.error));
-      if (c.ok) setCatalogue(c.data);
-      else setError(describeFailure(c.error));
-    });
-    return () => {
-      alive = false;
-    };
-  }, [tutorApi]);
+    void load();
+  }, [load]);
   const profile = state?.profile ?? null;
   return (
     <TutorApiContext.Provider value={tutorApi}>
       <div className="space-y-6">
         <div className="rounded-2xl border bg-secondary/60 p-5 space-y-2">
-          <p className="text-sm text-muted-foreground">Setting up a Tutor profile for</p>
+          <p className="text-sm text-muted-foreground">Creating the first ad for</p>
           <p className="text-lg font-semibold">
             {request.display_name} · {request.reference}
           </p>
@@ -195,50 +207,46 @@ function Workspace({
           </Button>
         </div>
         {error && <Notice tone="error">{error}</Notice>}
-        <section className="onboarding-section space-y-4" aria-labelledby="assist-intro-title">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="assist-intro-title" className="text-lg font-semibold">
-              1. Introduction
-            </h2>
-            {profile && !editing && (
-              <Button variant="outline" onClick={() => setEditing(true)}>
-                Edit introduction
-              </Button>
-            )}
-          </div>
-          {state === undefined || !catalogue ? (
-            <p role="status">Loading the Tutor's profile…</p>
-          ) : !profile || editing ? (
-            <TutorIntroductionWizard
+        <section className="space-y-4" aria-labelledby="assist-ad-title">
+          <h2 id="assist-ad-title" className="text-lg font-semibold">
+            1. The Tutor's ad
+          </h2>
+          {state === undefined || !catalogue || online === undefined ? (
+            <p role="status">Loading the Tutor's details…</p>
+          ) : !online ? (
+            // The same one form the Tutor sees under "Create it myself", filled in for them.
+            <SimpleTutorSetup
               catalogue={catalogue}
               profile={profile}
-              onCompleted={(next) => {
-                setState(next);
-                setEditing(false);
-              }}
+              tutorName={request.display_name}
+              onPublished={() => void load()}
             />
           ) : (
-            <div className="space-y-1">
-              <p className="font-semibold">{profile.display_name}</p>
-              <p className="whitespace-pre-wrap break-words text-sm">{profile.biography}</p>
-            </div>
+            <>
+              <Notice tone="success">
+                The Tutor's ad is online. You can mark the request complete.
+              </Notice>
+              <details className="rounded-2xl border p-4">
+                <summary className="cursor-pointer font-semibold">
+                  Change the ad or add another
+                </summary>
+                <div className="mt-4">
+                  <TutorListingsManager
+                    shell={(content) => <div className="space-y-4">{content}</div>}
+                  />
+                </div>
+              </details>
+            </>
           )}
         </section>
-        {profile && (
-          <section aria-labelledby="assist-ads-title" className="space-y-3">
-            <h2 id="assist-ads-title" className="text-lg font-semibold">
-              2. Location, photo and ad
-            </h2>
-            <TutorListingsManager shell={(content) => <div className="space-y-4">{content}</div>} />
-          </section>
-        )}
         <section className="rounded-2xl border p-5 space-y-3" aria-labelledby="assist-done-title">
           <h2 id="assist-done-title" className="text-lg font-semibold">
-            3. Finish
+            2. Finish
           </h2>
           <p className="text-sm text-muted-foreground">
-            When the profile and ad are published, mark the request complete. The Tutor sees that
-            the team has finished and can change anything later.
+            {online
+              ? "Mark the request complete. The Tutor sees that the team has finished and can change anything later."
+              : "Publish the Tutor's ad first. A request can be completed only when the ad is online."}
           </p>
           <label className="block text-sm font-semibold" htmlFor="assist-note">
             Team note (optional)
@@ -250,7 +258,9 @@ function Workspace({
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
-          <Button onClick={() => onComplete(note.trim() || undefined)}>Mark as complete</Button>
+          <Button disabled={!online} onClick={() => onComplete(note.trim() || undefined)}>
+            Mark as complete
+          </Button>
         </section>
       </div>
     </TutorApiContext.Provider>
@@ -279,11 +289,7 @@ export function TutorOnboardingOperations() {
       if (result.ok) setRows(result.data.requests);
       else fail(result.error);
     });
-  const act = (
-    row: StaffOnboardingRequest,
-    operation: "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL",
-    reason?: string,
-  ) =>
+  const act = (row: StaffOnboardingRequest, operation: Operation, reason?: string) =>
     flight.run(async () => {
       setError(undefined);
       setNotice(undefined);
@@ -291,7 +297,7 @@ export function TutorOnboardingOperations() {
       if (!result.ok) return fail(result.error);
       const updated = result.data.request;
       setRows((old) => old?.map((r) => (r.id === updated.id ? updated : r)));
-      if (operation === "CLAIM") setWorking(updated);
+      if (operation === "CLAIM" || operation === "REOPEN") setWorking(updated);
       if (operation === "COMPLETE") {
         setWorking(undefined);
         setNotice(`${updated.display_name}'s request is complete.`);

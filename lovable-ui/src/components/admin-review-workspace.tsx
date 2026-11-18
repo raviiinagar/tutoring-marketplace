@@ -18,8 +18,8 @@ const tools = [
   },
   {
     to: "/staff/listings",
-    title: "Teaching offers",
-    description: "Review subjects, rates and teaching offer details.",
+    title: "Ads",
+    description: "Review subjects, rates and ad details.",
     icon: BookOpen,
   },
   {

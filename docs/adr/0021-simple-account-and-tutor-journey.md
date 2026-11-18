@@ -51,3 +51,17 @@ Looking at the choice creates nothing. A Tutor who has already started the one-f
 - **Naming:** "ads" is used consistently on the dashboard.
 - **My Account:** Learners no longer see the identity-verification card, and receipts appear once (the tab).
 - **Directory with no Tutors:** it no longer suggests changing filters that are not set.
+
+**Decision, 19 November 2026: becoming a Tutor means a live ad.** The owner decided that the account is created at sign-up and is never public. Becoming a Tutor, whether the Tutor creates the ad or the team does, ends in one result: the first ad, published. Learners and Tutors never see the profile as a separate thing; the "About you" text is filled in within the same form and is shared by all of a Tutor's ads.
+- **One name:** the teaching offer is called an "ad" everywhere on the site, including the admin console.
+- **Team path:**
+  - Staff fill in the same one form as "Create it myself", acting for the Tutor through the claimed request. It saves the profile and the ad together and publishes them.
+  - `COMPLETE` succeeds only once the Tutor has at least one published ad (409 `AD_NOT_PUBLISHED`), so a team request can never end with a profile but no ad.
+  - A completed request can be reopened (`REOPEN`). It returns to the staff member who reopens it, under the Tutor's original consent, so a missing or wrong ad can be fixed. The reopen is audited.
+- **Visibility:**
+  - With `DIRECTORY_REQUIRES_AD=true`, which the hosted site sets, only Tutors with an available ad appear in the directory, and a Tutor without one has no public profile page.
+  - A Tutor without a live ad sees "Learners can't find you yet" on their dashboard, with a link to publish their first ad.
+  - The Tutor's "send to our team" form stays available until the Tutor has an ad online.
+- **Not changed:**
+  - Enquiries are still made on an ad and still need access coverage.
+  - Contacting a Tutor directly from a profile without an ad is out of scope.

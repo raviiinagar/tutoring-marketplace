@@ -21,7 +21,7 @@ A request has `id`, `reference` (`TM-` and six characters, for the Tutor to quot
 | Method/path | Behaviour |
 |---|---|
 | GET `/v1/staff/tutor-onboarding?status=ACTIVE\|COMPLETED\|CANCELLED` | Audited. Up to 100 requests (active ones oldest first) with the Tutor's `display_name`, `email`, contact, consent and the assignee |
-| POST `/v1/staff/tutor-onboarding/:id/actions` | `{operation, revision, reason?}`. `CLAIM` (open, or take over a claimed request), `RELEASE` (back to open), `COMPLETE` (claimed only; `reason` is kept as the staff note) and `CANCEL` (open or claimed; `reason` of 10–240 characters required). A stale revision or invalid state returns 409. Staff cannot act on their own request (403 `SELF_ASSIST`) |
+| POST `/v1/staff/tutor-onboarding/:id/actions` | `{operation, revision, reason?}`. `CLAIM` (open, or take over a claimed request), `RELEASE` (back to open), `COMPLETE` (claimed only, and only once the Tutor has at least one published ad, else 409 `AD_NOT_PUBLISHED`; `reason` is kept as the staff note), `REOPEN` (completed only; it returns to the staff member who reopens it, as in progress, to fix the ad under the original consent; 409 `ACTIVE_REQUEST` if the Tutor already has another open request) and `CANCEL` (open or claimed; `reason` of 10–240 characters required). A stale revision or invalid state returns 409. Staff cannot act on their own request (403 `SELF_ASSIST`) |
 
 ### Acting for the Tutor
 

@@ -249,7 +249,7 @@ export function TutorSearchFilters({
           Sort offers
           <select
             className="input w-auto"
-            aria-label="Sort teaching offers"
+            aria-label="Sort ads"
             value={filters.sort || ""}
             disabled={busy}
             onChange={(e) =>
@@ -270,7 +270,7 @@ export function TutorSearchFilters({
       </div>
       {filters.sort && filters.rate_unit && (
         <p role="status" className="text-xs text-muted-foreground">
-          {filters.rate_unit === "HOUR" ? "Hourly" : "Per-lesson"} teaching offers, price{" "}
+          {filters.rate_unit === "HOUR" ? "Hourly" : "Per-lesson"} ads, price{" "}
           {filters.sort === "PRICE_ASC" ? "low to high" : "high to low"}. Public introduction rates
           are shown separately when offer-only filters are cleared.
         </p>
@@ -324,7 +324,7 @@ export function TutorSearchFilters({
                     : "All search filters"}
             </DialogTitle>
             <DialogDescription>
-              Refine available teaching offers. Changes apply when you select Apply filters.
+              Refine available ads. Changes apply when you select Apply filters.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-6" onSubmit={submit}>

@@ -87,7 +87,7 @@ export function TutorPro({ identityApproved }: { identityApproved: boolean }) {
             period has started.
           </Notice>
           <Button asChild>
-            <Link to="/tutor/listings">Manage teaching offers</Link>
+            <Link to="/tutor/listings">Manage my ads</Link>
           </Button>
         </>
       ) : (

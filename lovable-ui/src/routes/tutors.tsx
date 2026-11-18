@@ -82,7 +82,7 @@ export const Route = createFileRoute("/tutors")({
       {
         name: "description",
         content:
-          "Browse currently available, reviewed online and in-person teaching offers across eight learning domains in India.",
+          "Browse currently available, reviewed online and in-person ads across eight learning domains in India.",
       },
       { name: "robots", content: "noindex,follow" },
     ],
@@ -216,9 +216,9 @@ function TutorSearch() {
             initialCatalogue={catalogue}
           />
         )}
-        <h2 className="mb-5 text-2xl font-semibold">Available teaching offers</h2>
+        <h2 className="mb-5 text-2xl font-semibold">Available ads</h2>
         <div>
-          <section aria-label="Available teaching offers" aria-busy={loading}>
+          <section aria-label="Available ads" aria-busy={loading}>
             {loading ? (
               <p role="status" className="rounded-2xl border p-8">
                 Finding currently available offers…
@@ -234,7 +234,7 @@ function TutorSearch() {
               page && (
                 <>
                   <p role="status" className="mb-5 text-sm text-muted-foreground">
-                    {page.offers.length} available teaching offer
+                    {page.offers.length} available ad
                     {page.offers.length === 1 ? "" : "s"} on this page.
                   </p>
                   {!page.offers.length ? (
@@ -280,7 +280,7 @@ function TutorSearch() {
                       {hasOfferOnlyFilters(search) && (
                         <p className="mb-4 text-xs text-muted-foreground">
                           Public introductions show self-declared subjects and indicative hourly
-                          tuition. Exact offer filters and price ordering apply to teaching offers.
+                          tuition. Exact offer filters and price ordering apply to ads.
                         </p>
                       )}
                       <AvailabilitySignup key={key} filters={search} />

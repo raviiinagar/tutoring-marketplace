@@ -255,7 +255,7 @@ test("with photo review on, a new portrait stays private until Trust approves it
   );
 });
 
-test("with the directory switch on, only Tutors with an available ad are listed; their profile stays reachable", async () => {
+test("with the directory switch on, only Tutors with an available ad are listed or have a public page", async () => {
   assert.throws(
     () =>
       loadConfig({
@@ -287,7 +287,8 @@ test("with the directory switch on, only Tutors with an available ad are listed;
       (p: any) => p.id === intro.public_id,
     );
   assert.equal(await listed(), false);
-  await get("/v1/tutor-profiles/" + intro.public_id).expect(200);
+  // ADR0021: no ad, no public page, so a visitor never lands on a Tutor they cannot contact.
+  await get("/v1/tutor-profiles/" + intro.public_id).expect(404);
   const draft = (await post("/v1/me/listings", offer, tutor.cookie).expect(201))
     .body.listing;
   await post(
@@ -296,4 +297,5 @@ test("with the directory switch on, only Tutors with an available ad are listed;
     tutor.cookie,
   ).expect(200);
   assert.equal(await listed(), true);
+  await get("/v1/tutor-profiles/" + intro.public_id).expect(200);
 });

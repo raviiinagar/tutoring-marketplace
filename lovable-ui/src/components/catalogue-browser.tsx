@@ -260,7 +260,7 @@ export function CatalogueBrowser({ initialCatalogue }: { initialCatalogue?: Cata
             </div>
           )}
           <p className="category-availability-note">
-            These are catalogue options. Search results show current teaching offers and
+            These are catalogue options. Search results show current ads and
             availability.
           </p>
         </>

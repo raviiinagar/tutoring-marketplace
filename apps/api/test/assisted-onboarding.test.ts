@@ -181,6 +181,11 @@ test("Support staff set up and publish a Tutor's profile and ad from the Tutor's
   const preview = await get(as("/tutor/photo/" + photo.id), admin.staffCookie).expect(200);
   assert.equal(preview.headers["content-type"], "image/jpeg");
   const draft = (await post(as("/listings"), offer, admin.staffCookie).expect(201)).body.listing;
+  // ADR0021: becoming a Tutor means a live ad; a private draft is not enough to complete.
+  assert.equal(
+    (await act(created.id, { operation: "COMPLETE", revision: claimed.revision }, admin.staffCookie).expect(409)).body.code,
+    "AD_NOT_PUBLISHED",
+  );
   const published = (await post(as("/listings/" + draft.id + "/actions/PUBLISH"), { revision: draft.revision }, admin.staffCookie).expect(200))
     .body.listing;
   assert.equal(published.status, "PUBLISHED");
@@ -205,6 +210,23 @@ test("Support staff set up and publish a Tutor's profile and ad from the Tutor's
   assert.equal(done.status, "COMPLETED");
   await get(as("/listings"), admin.staffCookie).expect(409);
   assert.equal((await get(help, tutor.cookie).expect(200)).body.request.status, "COMPLETED");
+
+  // A completed request can be reopened to fix the ad, and returns to whoever reopens it.
+  await act(created.id, { operation: "REOPEN", revision: done.revision }, trust.staffCookie).expect(403);
+  await act(created.id, { operation: "REOPEN", revision: done.revision + 1 }, admin.staffCookie).expect(409);
+  const reopened = (await act(created.id, { operation: "REOPEN", revision: done.revision }, admin.staffCookie).expect(200)).body.request;
+  assert.equal(reopened.status, "IN_PROGRESS");
+  assert.equal(reopened.assigned_to_me, true);
+  assert.equal(reopened.completed_at, null);
+  assert.equal((await act(created.id, { operation: "REOPEN", revision: reopened.revision }, admin.staffCookie).expect(409)).body.code, "INVALID_REQUEST_STATE");
+  assert.equal((await get(as("/listings"), admin.staffCookie).expect(200)).body.listings[0].status, "PUBLISHED");
+  assert.equal((await get(help, tutor.cookie).expect(200)).body.request.status, "IN_PROGRESS");
+  const reopenAudit = (
+    await database.pool.query("SELECT count(*)::int AS n FROM audit_events WHERE user_id=$1 AND event_type='TUTOR_ONBOARDING_REOPEN'", [admin.id])
+  ).rows[0].n;
+  assert.equal(reopenAudit, 1);
+  const again = (await act(created.id, { operation: "COMPLETE", revision: reopened.revision }, admin.staffCookie).expect(200)).body.request;
+  assert.equal(again.status, "COMPLETED");
 });
 
 test("the Tutor can withdraw at any time and staff cannot set up their own profile", async () => {

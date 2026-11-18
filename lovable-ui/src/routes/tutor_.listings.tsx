@@ -26,7 +26,7 @@ export const Route = createFileRoute("/tutor_/listings")({
   component: TutorListingsPage,
   head: () => ({
     meta: [
-      { title: "Teaching offers — Tutor Marketplace" },
+      { title: "My ads — Tutor Marketplace" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -181,7 +181,7 @@ function TutorListingsPage() {
   }, [account.anonymous, navigate]);
   if (!account.user)
     return (
-      <AuthShell title="Teaching offers">
+      <AuthShell title="My ads">
         {account.error ? (
           <>
             <Notice tone="error">{account.error}</Notice>
@@ -654,10 +654,10 @@ export function TutorListingsManager({
       {editorOpen && (
         <section
           className="mt-8 rounded-3xl border bg-card p-5 sm:p-7"
-          aria-label="Teaching offer editor"
+          aria-label="Ad editor"
         >
           <h2 ref={editorHeading} tabIndex={-1} className="text-xl font-semibold outline-none">
-            {editing ? "Edit teaching offer" : "Create teaching offer"}
+            {editing ? "Edit ad" : "Create ad"}
           </h2>
           {!simpleCreate && (
             <>

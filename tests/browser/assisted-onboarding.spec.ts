@@ -88,50 +88,31 @@ test("a Tutor sends their details to the team and a Support admin sets up and pu
     await expect(card).toContainText(reference);
     await expect(card.getByRole("link", { name: "+919000000001" })).toHaveAttribute("href", "https://wa.me/919000000001");
     await card.getByRole("button", { name: "Claim", exact: true }).click();
-    await expect(staff.getByText("Setting up a Tutor profile for")).toBeVisible();
+    await expect(staff.getByText("Creating the first ad for")).toBeVisible();
+    // ADR0021: the request cannot be completed before the Tutor's ad is online.
+    await expect(staff.getByRole("button", { name: "Mark as complete", exact: true })).toBeDisabled();
 
-    await staff.getByRole("checkbox", { name: "Physics", exact: true }).check();
-    await staff.getByRole("button", { name: "Next", exact: true }).click();
-    await staff.getByLabel("Your public name", { exact: true }).fill("Fictional Assisted Tutor");
-    await staff.getByLabel("About you, skills and experience", { exact: true }).fill("Patient Physics lessons set up by the team.");
-    await staff.getByRole("button", { name: "Next", exact: true }).click();
-    await staff.getByLabel("Hourly tuition rate (INR)", { exact: true }).fill("500");
-    await staff.getByRole("button", { name: "Next", exact: true }).click();
+    // The same one form the Tutor sees under "Create it myself", filled in for them.
+    await staff.getByRole("combobox", { name: "Subject", exact: true }).selectOption("subject-physics");
+    await staff.getByRole("combobox", { name: "Teaching category", exact: true }).selectOption("school");
+    await staff.getByRole("combobox", { name: "Students you teach", exact: true }).selectOption("level-class-10");
+    await staff.getByRole("combobox", { name: "School board", exact: true }).selectOption("curriculum-cbse");
+    await staff.getByRole("combobox", { name: "Teaching language", exact: true }).selectOption("language-english");
+    await expect(staff.getByLabel("Your public name", { exact: true })).toHaveValue("Fictional Assisted Tutor");
+    await staff.getByLabel("About you and your classes", { exact: true }).fill("Patient Physics lessons set up by the team.");
+    await staff.getByLabel("Hourly rate (INR)", { exact: true }).fill("500");
     await staff.getByRole("checkbox", { name: "I am at least 18 and will provide my own teaching services.", exact: true }).check();
-    await staff.getByRole("button", { name: "Next", exact: true }).click();
-    await staff.getByRole("button", { name: "Save introduction and continue", exact: true }).click();
-    await expect(staff.getByRole("button", { name: "Edit introduction", exact: true })).toBeVisible();
-
-    await staff.getByRole("button", { name: "Create an ad", exact: true }).click();
-    const step = async (heading: string) => {
-      await staff.getByRole("button", { name: "Continue", exact: true }).click();
-      await expect(staff.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-    };
-    await step("Title of your ad");
-    await staff.getByLabel("Ad title", { exact: true }).fill("Patient Physics lessons with clear explanations and guided practice for curious school learners");
-    await step("About the class");
-    await staff.getByLabel("About the class", { exact: true }).fill("Practical Physics examples.");
-    await step("About you");
-    await step("Location of the class");
-    await staff.getByLabel("Your city", { exact: true }).fill("Kota");
-    await step("Languages you teach in");
-    await step("Hourly fee");
-    await step("Adjust your fees");
-    await step("Profile picture");
     const portrait = await sharp({ create: { width: 128, height: 160, channels: 3, background: "#abcdef" } }).png().toBuffer();
-    await staff.getByLabel("Portrait image", { exact: true }).setInputFiles({
+    await staff.getByLabel("Profile photo", { exact: true }).setInputFiles({
       name: "tutor.png",
       mimeType: "image/png",
       buffer: Buffer.concat([portrait, Buffer.from("FICTIONAL-TUTOR-EVIDENCE")]),
     });
-    await staff.getByRole("checkbox", { name: /This is the Tutor's own adult portrait/ }).check();
-    await staff.getByRole("button", { name: "Upload photo", exact: true }).click();
-    await expect(staff.getByText(/Portrait uploaded/)).toBeVisible();
-    await step("Check your ad before publishing");
-    await staff.getByRole("button", { name: "Save as draft", exact: true }).click();
-    const publication = staff.getByRole("complementary", { name: "Ad publication", exact: true });
-    await publication.getByRole("button", { name: "Publish my ad", exact: true }).click();
-    await expect(publication).toContainText("Your ad is online");
+    await staff.getByRole("checkbox", { name: /This is my own adult portrait/ }).check();
+    await staff.getByRole("button", { name: "Preview my ad", exact: true }).click();
+    await expect(staff.getByRole("heading", { name: "Preview your ad", exact: true })).toBeVisible();
+    await staff.getByRole("button", { name: "Publish for free", exact: true }).click();
+    await expect(staff.getByText("The Tutor's ad is online. You can mark the request complete.")).toBeVisible();
     expect(await staff.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await info.attach("assisted-workspace", { body: await staff.screenshot({ fullPage: true }), contentType: "image/png" });
 
@@ -145,6 +126,14 @@ test("a Tutor sends their details to the team and a Support admin sets up and pu
     await expect(staff.getByText("Fictional Assisted Tutor's request is complete.")).toBeVisible();
     await page.reload();
     await expect(page.getByText("Our team finished setting up your profile.", { exact: false })).toBeVisible();
+
+    // A completed request can be reopened to change the ad, then completed again.
+    await staff.getByRole("button", { name: "Completed", exact: true }).click();
+    const completed = staff.getByRole("listitem").filter({ hasText: tutorEmail });
+    await completed.getByRole("button", { name: "Reopen", exact: true }).click();
+    await expect(staff.getByText("The Tutor's ad is online. You can mark the request complete.")).toBeVisible();
+    await staff.getByRole("button", { name: "Mark as complete", exact: true }).click();
+    await expect(staff.getByText("Fictional Assisted Tutor's request is complete.")).toBeVisible();
   } finally {
     if (granted) await operator("revoke", staffEmail);
     await staffContext.close();

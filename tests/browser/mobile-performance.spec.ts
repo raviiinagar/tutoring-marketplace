@@ -68,7 +68,7 @@ test("built public journeys meet the adopted mobile lab LCP profile", async ({
           const offers = (
             path === "/"
               ? homeOffers
-              : page.getByRole("region", { name: "Available teaching offers" })
+              : page.getByRole("region", { name: "Available ads" })
           ).getByRole("article");
           await expect(offers).toHaveCount(6);
           if (path === "/") {

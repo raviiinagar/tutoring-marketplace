@@ -61,7 +61,7 @@ function Requests() {
             <div className="space-y-3 rounded-xl border bg-muted/30 p-5">
               <h2 className="font-semibold">No enquiries yet</h2>
               <p className="text-sm text-muted-foreground">
-                Find a teaching offer, choose a Learner profile and send an enquiry. Your Tutor
+                Find an ad, choose a Learner profile and send an enquiry. Your Tutor
                 responses will appear here.
               </p>
               <Button asChild>
@@ -105,7 +105,7 @@ function Requests() {
                 params={{ listingId: row.listing_id }}
                 className="link mt-4 inline-block"
               >
-                View teaching offer
+                View ad
               </Link>
               <Link
                 to="/safety/$kind/$targetId"
