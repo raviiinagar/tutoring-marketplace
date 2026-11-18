@@ -9,7 +9,7 @@ import {
   type NotificationPreferenceView,
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
-import { Check, ShieldCheck, Bell, CreditCard } from "lucide-react";
+import { Check, ShieldCheck, Bell } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AccountPhotoCard } from "./account-photo-card";
 import { RoleChooser } from "./role-chooser";
@@ -380,48 +380,32 @@ export function AccountSettings() {
           </section>
         </div>
         <div className="min-w-0 space-y-6">
-          <section className={card} aria-labelledby="identification-title">
-            <h2 id="identification-title" className="text-center text-base font-bold">
-              Identification
-            </h2>
-            <div
-              aria-hidden
-              className="mx-auto my-7 flex size-32 items-center justify-center rounded-full bg-[#f7f7f7]"
-            >
-              <ShieldCheck className="size-12 text-[#ff6268]" />
-            </div>
-            <p className="text-center text-sm leading-relaxed text-muted-foreground">
-              Identity verification is optional. Email verification and identity review are
-              separate.
-            </p>
-            {tutor && identityVerified !== undefined && (
-              <p className="mt-4 text-center text-sm font-semibold">
-                {identityVerified ? "Identity reviewed" : "Identity not verified"}
+          {/* Identity verification is a Tutor option, so Learners do not see it (ADR0021). */}
+          {tutor && (
+            <section className={card} aria-labelledby="identification-title">
+              <h2 id="identification-title" className="text-center text-base font-bold">
+                Identification
+              </h2>
+              <div
+                aria-hidden
+                className="mx-auto my-7 flex size-32 items-center justify-center rounded-full bg-[#f7f7f7]"
+              >
+                <ShieldCheck className="size-12 text-[#ff6268]" />
+              </div>
+              <p className="text-center text-sm leading-relaxed text-muted-foreground">
+                Identity verification is optional. Email verification and identity review are
+                separate.
               </p>
-            )}
-            {tutor ? (
+              {tutor && identityVerified !== undefined && (
+                <p className="mt-4 text-center text-sm font-semibold">
+                  {identityVerified ? "Identity reviewed" : "Identity not verified"}
+                </p>
+              )}
               <Button asChild variant="outline" className="mt-6 w-full rounded-full">
                 <Link to="/tutor">Manage optional identity verification</Link>
               </Button>
-            ) : (
-              <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
-                If you choose to teach, optional identity verification is available in your Tutor
-                profile.
-              </p>
-            )}
-          </section>
-          <section className={card} aria-labelledby="receipts-title">
-            <h2 id="receipts-title" className="text-center text-base font-bold">
-              My Receipts
-            </h2>
-            <CreditCard aria-hidden className="mx-auto my-6 size-10 text-[#ff6268]" />
-            <p className="text-center text-sm leading-relaxed text-muted-foreground">
-              View your payments, receipts and refunds.
-            </p>
-            <Button asChild variant="outline" className="mt-6 w-full rounded-full">
-              <Link to="/payments/history">View my receipts</Link>
-            </Button>
-          </section>
+            </section>
+          )}
           <section className={card} aria-labelledby="privacy-title">
             <h2 id="privacy-title" className="mb-4 text-base font-bold">
               Your data and account

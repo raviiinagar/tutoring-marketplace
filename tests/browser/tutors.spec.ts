@@ -55,13 +55,14 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     await page.getByRole("button",{name:"Submit fictional ID sample",exact:true}).click();
     expect((await identityUploaded).status()).toBe(200);
     await expect(page.getByText("Waiting for review",{exact:true})).toBeVisible();
-    await page.locator("summary").filter({hasText:/^Public profile photo/}).click();
-
+    // ADR0021: the photo is added in My Account.
+    await page.goto("/account/settings");
     const portrait=await sharp({create:{width:320,height:400,channels:3,background:'#d589ab'}}).withMetadata({exif:{IFD0:{ImageDescription:'FICTIONAL-TUTOR-EVIDENCE'}}}).jpeg().toBuffer();
-    await page.getByLabel('Portrait image',{exact:true}).setInputFiles({name:'fictional-portrait.jpg',mimeType:'image/jpeg',buffer:portrait});
-    await page.getByRole("checkbox",{name:"This is my own adult portrait, and I agree to display it publicly once scanning passes.",exact:true}).check();
-    await page.getByRole("button",{name:"Upload photo",exact:true}).click();
-    await expect(page.getByText(/Ready for your public profile/)).toBeVisible();
+    await page.getByRole("checkbox",{name:/This is a clear photo of me/}).check();
+    await page.getByLabel('Profile photo file',{exact:true}).setInputFiles({name:'fictional-portrait.jpg',mimeType:'image/jpeg',buffer:portrait});
+    await expect(page.getByText("Photo updated.",{exact:true})).toBeVisible();
+    await page.goto("/tutor");
+    await page.locator("summary").filter({hasText:/^Identity verification/}).click();
     const pendingState=await (await page.request.get("/v1/me/tutor")).json();
     expect(pendingState.profile.status).toBe("SUBMITTED");
     expect(pendingState.claims).toHaveLength(2);
@@ -78,8 +79,9 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
     expect(reviewedState.profile.identity_verified).toBe(true);
     expect(reviewedState.profile.publication_status).toBe("DRAFT");
 
-    await reviewer.goto('/staff/photos');await reviewer.getByLabel('Reason for photo review', { exact: true }).fill('Review fictional adult portrait for public display');await reviewer.getByRole('article').filter({hasText:'Fictional Physics Tutor'}).getByRole('button',{name:'Inspect photo',exact:true}).click();await expect(reviewer.getByRole('img',{name:'Tutor portrait submitted for review'})).toBeVisible();await reviewer.getByRole('button',{name:'Approve photo',exact:true}).click();await expect(reviewer.getByText('Photo: APPROVED',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Refresh photo status',exact:true}).click();
-    await expect(page.getByText(/Photo: Approved for eligible teaching offers/)).toBeVisible();
+    await reviewer.goto('/staff/photos');await reviewer.getByLabel('Reason for photo review', { exact: true }).fill('Review fictional adult portrait for public display');await reviewer.getByRole('article').filter({hasText:'Fictional Physics Tutor'}).getByRole('button',{name:'Inspect photo',exact:true}).click();await expect(reviewer.getByRole('img',{name:'Tutor portrait submitted for review'})).toBeVisible();await reviewer.getByRole('button',{name:'Approve photo',exact:true}).click();await expect(reviewer.getByText('Photo: APPROVED',{exact:true})).toBeVisible();
+    // ADR0021: the photo now lives in My Account, so check the owner's photo state directly.
+    await expect.poll(async()=>(await (await page.request.get("/v1/me/tutor/photo")).json()).photo?.status).toBe("APPROVED");
     // Retain the setup fixture in history and leave a clean ad-manager create
     // case. Identity/photo approvals still must not publish that private ad.
     const beforeArchive=(await (await page.request.get("/v1/me/listings")).json()).listings.find((row:{id:string})=>row.id===existingDraft.id);

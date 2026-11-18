@@ -8,7 +8,6 @@ import { CheckCircle2, FileCheck, ShieldCheck } from "lucide-react";
 import { api, describeFailure, type TutorState, type TutorPolicy, type Catalogue } from "@/lib/api";
 import { AuthShell, Notice, useSingleFlight } from "./account/ui";
 import { Button } from "./ui/button";
-import { TutorPhotoEditor } from "./tutor-photo-editor";
 import { TutorPro } from "./tutor-pro";
 import { TeamSetup } from "./team-setup";
 import { BecomeTutorChooser, type TutorSetupPath } from "./become-tutor-chooser";
@@ -169,8 +168,9 @@ export function TutorOnboarding() {
         <p role="status">Loading your profile…</p>
       ) : (
         <div className="space-y-6">
-          <TeamSetup hasProfile={!!p} />
-          {p && (
+          {/* Once the profile is public, the team offer and progress steps are done (ADR0021). */}
+          <TeamSetup hasProfile={!!p} profilePublic={profilePublic} />
+          {p && !profilePublic && (
             <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
               {[
                 ["Profile saved", !!p],
@@ -382,17 +382,19 @@ export function TutorOnboarding() {
                   )}
                 </section>
               </details>
-              <details className="onboarding-section">
-                <summary className="cursor-pointer font-semibold">
-                  Public profile photo · optional
-                </summary>
-                <p className="my-3 text-sm text-muted-foreground">
-                  You can add your own portrait later. It can appear publicly once scanning passes.
+              <section className="onboarding-section">
+                <h2 className="font-semibold">Profile photo</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Your photo is added and changed in{" "}
+                  <Link to="/account/settings" className="link">
+                    My Account
+                  </Link>
+                  . It appears on your public profile and ads.
                 </p>
-                <TutorPhotoEditor />
-              </details>
+              </section>
               <TutorPresenceEditor />
-              <TutorPro identityApproved={!!p?.adult_declared_at} />
+              {/* Tutor Pro matters only once an ad is online, as on the dashboard (ADR0021). */}
+              {profilePublic && <TutorPro identityApproved={!!p?.adult_declared_at} />}
             </>
           )}
         </div>

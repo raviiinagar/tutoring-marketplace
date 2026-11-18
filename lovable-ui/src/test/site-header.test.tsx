@@ -191,7 +191,7 @@ it("pending session announces checking without a false logged-in state", () => {
   expect(screen.queryByRole("link", { name: "Sign in" })).toBeNull();
   expect(screen.queryByRole("button", { name: /My account/ })).toBeNull();
 });
-it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped account menu", async () => {
+it("signed-in teaching-only Tutor sees only teaching links in a keyboard-accessible account menu", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
@@ -200,17 +200,44 @@ it("signed-in Tutor has direct onboarding and a keyboard-accessible grouped acco
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const account = await within(nav).findByRole("button", { name: "T My account" });
-  expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
+  expect(within(nav).getByRole("link", { name: "Teaching dashboard" })).toHaveAttribute(
     "href",
     "/tutor/dashboard",
   );
+  expect(within(nav).queryByRole("link", { name: "Become a Tutor" })).toBeNull();
+  fireEvent.keyDown(account, { key: "ArrowDown" });
+  const menu = await screen.findByRole("menu");
+  for (const name of ["Dashboard", "My Account", "My ads", "My messages"])
+    expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
+  expect(within(menu).getByRole("menuitem", { name: "Dashboard" })).toHaveAttribute(
+    "href",
+    "/tutor/dashboard",
+  );
+  // ADR0021: no learner pages for an account that only teaches.
+  for (const name of ["Saved Tutors", "My enquiries", "Become a Tutor"])
+    expect(within(menu).queryByRole("menuitem", { name })).toBeNull();
+  expect(within(nav).queryByRole("link", { name: "Sign in" })).toBeNull();
+  fireEvent.keyDown(menu, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+});
+it("an account that learns and teaches keeps learner links and reaches its teaching dashboard", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
+  });
+  mount();
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  const account = await within(nav).findByRole("button", { name: "T My account" });
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");
   for (const name of ["Dashboard", "My Account", "Saved Tutors", "My enquiries", "My messages"])
     expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
-  expect(within(nav).queryByRole("link", { name: "Sign in" })).toBeNull();
-  fireEvent.keyDown(menu, { key: "Escape" });
-  await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+  expect(within(menu).getByRole("menuitem", { name: "Teaching dashboard" })).toHaveAttribute(
+    "href",
+    "/tutor/dashboard",
+  );
+  expect(within(menu).queryByRole("menuitem", { name: "Become a Tutor" })).toBeNull();
 });
 it("a signed-in Learner enters unified onboarding without selecting a role first", async () => {
   vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user } });

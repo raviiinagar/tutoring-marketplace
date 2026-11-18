@@ -298,9 +298,6 @@ export function TutorPresenceEditor() {
               Location and hours have not been shared yet.
             </p>
           )}
-          <Link className="link text-sm" to="/tutor/listings">
-            Manage teaching offers
-          </Link>
         </form>
       )}
     </section>

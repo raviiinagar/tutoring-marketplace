@@ -38,3 +38,16 @@ Looking at the choice creates nothing. A Tutor who has already started the one-f
 - Privacy export includes an account's reports. Account deletion removes its reports and the reports on its photos.
 
 **Not changed.** Identity verification stays optional and separate. A photo, a role choice or a report never creates verification, badges or publication rights. Tuition, platform access and Tutor Pro are unchanged.
+
+**Follow-up, 18 November 2026: one mode, one set of links.** An audit of what each kind of account sees found leftovers, which the owner asked to remove (feedback links stay as they are):
+- **Header menu:**
+  - a Teach-only account's menu shows only teaching links: Dashboard, My messages, My ads and My Account. There are no Saved Tutors, enquiries or heart icon, and its pages keep the teaching bar;
+  - an account that already teaches sees "Teaching dashboard" instead of "Become a Tutor".
+- **New Tutor's dashboard:** with no profile and no ad, it shows one "Create your first ad" step instead of four empty panels.
+- **The Tutor profile page:**
+  - drops the team-help offer and the set-up steps once the profile is public;
+  - shows Tutor Pro only then;
+  - points to My Account for the photo instead of a second photo editor.
+- **Naming:** "ads" is used consistently on the dashboard.
+- **My Account:** Learners no longer see the identity-verification card, and receipts appear once (the tab).
+- **Directory with no Tutors:** it no longer suggests changing filters that are not set.

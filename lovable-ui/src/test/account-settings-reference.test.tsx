@@ -101,7 +101,9 @@ it("keeps the reference account cards truthful for a learner without identity or
   expect(screen.getByRole("link", { name: "My Receipts" }).getAttribute("href")).toBe(
     "/payments/history",
   );
-  expect(screen.getByText(/Identity verification is optional/)).toBeTruthy();
+  // ADR0021: identity verification is a Tutor option, and receipts have one place (the tab).
+  expect(screen.queryByRole("heading", { name: "Identification" })).toBeNull();
+  expect(screen.queryByRole("link", { name: "View my receipts" })).toBeNull();
   expect(screen.getByRole("radio", { name: /^Learn/ })).toBeChecked();
   // ADR0021: every account manages its one profile photo here, Learners too.
   expect(await screen.findByRole("button", { name: "Upload photo" })).toBeDisabled();

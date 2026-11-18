@@ -220,8 +220,13 @@ it("keeps identity verification optional and collapsed while offering free ads",
     .closest("details")!;
   expect(identity).not.toHaveAttribute("open");
   expect(screen.getByRole("link", { name: "Create or manage my ads" })).toBeVisible();
-  expect(screen.getByText(/Your profile and teaching ads are free/)).toBeVisible();
-  expect(screen.getByRole("button", { name: "Continue to test payment" })).toBeDisabled();
+  // ADR0021: Tutor Pro waits until the profile is public; the photo lives in My Account.
+  expect(screen.queryByText(/Your profile and teaching ads are free/)).toBeNull();
+  const photo = screen.getByRole("heading", { name: "Profile photo" }).closest("section")!;
+  expect(within(photo).getByRole("link", { name: "My Account" })).toHaveAttribute(
+    "href",
+    "/account/settings",
+  );
 });
 it("one upload automatically submits identity and restores scan and pending review status after reload", async () => {
   vi.spyOn(api, "submitTutorIdentity").mockImplementation(async () => {
@@ -281,7 +286,7 @@ it("profile editing uses the unified wizard, names the public email consent and 
   expect(
     await screen.findByRole("heading", { name: "Which subjects do you teach?" }),
   ).toBeVisible();
-  expect(screen.getByText("Public profile photo · optional")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Profile photo" })).toBeVisible();
   expect(screen.getByText(/No qualification document required/)).toBeVisible();
 });
 
@@ -294,6 +299,10 @@ it("does not infer verified identity from a public eligible profile", async () =
   mount();
   expect(await screen.findByRole("link", { name: "View your public profile" })).toBeVisible();
   expect(screen.getByText(/Identity not verified/)).toBeVisible();
+  // ADR0021: a public profile shows Tutor Pro, and no longer the set-up steps.
+  expect(screen.getByText(/Your profile and teaching ads are free/)).toBeVisible();
+  expect(screen.getByRole("button", { name: "Continue to test payment" })).toBeDisabled();
+  expect(screen.queryByRole("list", { name: "Profile progress" })).toBeNull();
   expect(screen.queryByText(/Your identity verification is current/)).not.toBeInTheDocument();
 });
 it("keeps the editor open when a slower duplicate profile load finishes after Edit profile", async () => {

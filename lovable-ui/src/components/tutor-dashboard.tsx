@@ -76,16 +76,33 @@ export function TutorDashboard() {
   // ADR0021: the Tutor level and Tutor Pro only matter once an ad is online, so a new Tutor
   // sees just their profile, ads and messages.
   const online = !!data.offers.data?.listings.some((l) => l.status === "PUBLISHED" && l.eligible);
+  // A new Tutor with no profile and no ad has nothing to manage yet: one clear next step
+  // instead of four empty panels (ADR0021).
+  if (data.profile.data?.profile === null && data.offers.data?.listings.length === 0)
+    return (
+      <AuthShell wide dashboard title="Your teaching workspace">
+        <section className={panel + " max-w-2xl bg-gradient-to-b from-amber-50 to-card"}>
+          <h2 className="text-xl font-semibold">Create your first ad</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Send your details to our team and we create it for you, or create it yourself in one
+            short form. Both are free.
+          </p>
+          <Button className="mt-5 rounded-full" asChild>
+            <Link to="/tutor">Become a Tutor</Link>
+          </Button>
+        </section>
+      </AuthShell>
+    );
   return (
     <AuthShell
       wide
       dashboard
       title="Your teaching workspace"
-      intro="Manage your profile, teaching offers and learner enquiries."
+      intro="Manage your profile, ads and learner enquiries."
     >
       <div className="mb-6 flex flex-wrap gap-3">
         <Button className="rounded-full" asChild>
-          <Link to="/tutor/listings">Manage teaching offers</Link>
+          <Link to="/tutor/listings">Manage my ads</Link>
         </Button>
       </div>
       {/* Having this workspace is not the same as being visible to learners.
@@ -200,13 +217,13 @@ export function TutorDashboard() {
         <div className="min-w-0 space-y-6">
           <section className={panel}>
             <div className="flex flex-wrap justify-between gap-3">
-              <h2 className="text-xl font-semibold">Teaching offers</h2>
+              <h2 className="text-xl font-semibold">My ads</h2>
               <Link to="/tutor/listings" className="link text-sm">
-                View all offers
+                View all ads
               </Link>
             </div>
             <div className="mt-5">
-              <Data query={data.offers} label="Teaching offers">
+              <Data query={data.offers} label="Your ads">
                 {(result) => (
                   <>
                     <div className="mb-5 grid grid-cols-3 gap-2">

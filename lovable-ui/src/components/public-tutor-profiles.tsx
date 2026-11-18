@@ -214,8 +214,9 @@ export function PublicTutorDirectory({
         </div>
       ) : (
         <p className="rounded-2xl border bg-secondary p-6 text-sm">
-          No Tutor profiles match these filters yet. Try another subject, city or time, or browse
-          available teaching offers below.
+          {filterKey !== "{}" || subject
+            ? "No Tutor profiles match these filters yet. Try another subject, city or time."
+            : "No Tutors are listed yet. Please check back soon."}
         </p>
       )}
       {cursor && (
