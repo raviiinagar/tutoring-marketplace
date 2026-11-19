@@ -298,7 +298,7 @@ export function LearnerDashboard() {
               title="Your Access Pass"
               action={
                 <Link to="/payments" className="ws-link">
-                  Pass and payments <ChevronRight aria-hidden className="size-4" />
+                  View pass and payments <ChevronRight aria-hidden className="size-4" />
                 </Link>
               }
             >
