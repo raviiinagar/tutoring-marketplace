@@ -34,7 +34,7 @@ export function TutorWorkspaceNavigation() {
       </Link>
       <Link
         to="/connections"
-        activeOptions={{ exact: true }}
+        activeOptions={{ exact: true, includeSearch: false }}
         activeProps={activeProps}
         className={linkClass}
       >

@@ -463,7 +463,7 @@ export function ChatRoom({
                       {message.your_message ? "You" : peer}
                     </p>
                     <div
-                      className={`rounded-2xl px-4 py-3 ${message.your_message ? "rounded-br-md bg-coral-soft" : "rounded-bl-md bg-secondary"}`}
+                      className={`chat-bubble rounded-2xl px-4 py-3 ${message.your_message ? "chat-bubble-mine rounded-br-md" : "chat-bubble-peer rounded-bl-md"}`}
                     >
                       <p className="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]">
                         {message.text}
