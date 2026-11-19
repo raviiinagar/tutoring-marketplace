@@ -18,15 +18,15 @@ const request = {
   connection_id: null,
   test_only: true,
 };
+/** Enquiries live in their own tab beside Chats; its badge counts what still needs a reply. */
 async function openRequests(page: Page) {
-  const summary = page.locator(".inbox-requests > summary");
-  await expect(summary).toHaveText("Requests (1 pending)");
-  await expect(page.locator(".inbox-requests")).toHaveAttribute("open", "");
-  await summary.focus();
-  await summary.press("Enter");
-  await expect(page.locator(".inbox-requests")).not.toHaveAttribute("open");
-  await summary.press("Enter");
-  await expect(page.locator(".inbox-requests")).toHaveAttribute("open", "");
+  const tab = page.getByRole("tab", { name: /^Enquiries/ });
+  await expect(tab).toHaveText("Enquiries1 pending");
+  await expect(tab).toHaveAttribute("aria-selected", "false");
+  await tab.focus();
+  await tab.press("Enter");
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#inbox-pane-enquiries")).toBeVisible();
 }
 for (const viewport of [
   { width: 1366, height: 650 },
@@ -149,9 +149,9 @@ test("Learner requests distinguish error, empty and safe sent status without ena
     ),
   );
   await page.goto("/connections");
-  const summary = page.locator(".inbox-requests > summary");
-  await summary.focus();
-  await summary.press("Enter");
+  const tab = page.getByRole("tab", { name: /^Enquiries/ });
+  await tab.focus();
+  await tab.press("Enter");
   const section = page.getByRole("region", { name: "Sent requests" });
   await expect(section.getByRole("alert")).toBeVisible();
   await expect(section.getByText("No sent requests yet.")).toHaveCount(0);

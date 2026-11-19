@@ -95,7 +95,7 @@ it("shows the honest empty inbox with a working teacher-search destination", asy
     data: { connections: [], next_cursor: null },
   });
   render(<Connections />);
-  expect(await screen.findByRole("heading", { name: "No message" })).toBeTruthy();
+  expect(await screen.findByRole("heading", { name: "No messages yet" })).toBeTruthy();
   expect(
     screen.getByText(
       "You haven't found a teacher yet. Search for a teacher to start your learning journey.",
@@ -107,7 +107,7 @@ it("shows the honest empty inbox with a working teacher-search destination", asy
       .getByRole("link", { name: "Search for a teacher" })
       .getAttribute("href"),
   ).toBe("/tutors");
-  expect(screen.queryByRole("heading", { name: "Your conversations" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "Choose a conversation" })).toBeNull();
 });
 
 it("does not present loading or failed API reads as an empty successful inbox", async () => {
@@ -121,12 +121,12 @@ it("does not present loading or failed API reads as an empty successful inbox", 
   );
   render(<Connections />);
   expect(screen.getByText(/Loading Connections/)).toHaveAttribute("role", "status");
-  expect(screen.queryByRole("heading", { name: "No message" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "No messages yet" })).toBeNull();
   await act(async () => {
     resolve({ ok: false, error: { kind: "unavailable" } });
   });
   expect(await screen.findByRole("alert")).toBeTruthy();
-  expect(screen.queryByRole("heading", { name: "No message" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "No messages yet" })).toBeNull();
   expect(screen.queryByText("No results", { exact: true })).toBeNull();
 });
 
@@ -153,8 +153,8 @@ it("filters actual conversations and preserves selectable active and unavailable
   expect(screen.queryByRole("link", { name: /Fictional Guitar teacher/ })).toBeNull();
   fireEvent.change(screen.getByRole("searchbox"), { target: { value: "unmatched" } });
   expect(screen.getByText("No results", { exact: true })).toBeTruthy();
-  expect(screen.getByRole("heading", { name: "Your conversations" })).toBeTruthy();
-  expect(screen.queryByRole("heading", { name: "No message" })).toBeNull();
+  expect(screen.getByRole("heading", { name: "Choose a conversation" })).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: "No messages yet" })).toBeNull();
 });
 
 it("redirects an expired account session to sign in", async () => {
@@ -166,7 +166,7 @@ it("redirects an expired account session to sign in", async () => {
   await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/auth/signin", replace: true }));
 });
 
-it("gives an empty Tutor inbox its own copy and a focused link to Requests", async () => {
+it("gives an empty Tutor inbox its own copy and a focused link to Enquiries", async () => {
   vi.spyOn(api, "connections").mockResolvedValue({
     ok: true,
     status: 200,
@@ -182,6 +182,6 @@ it("gives an empty Tutor inbox its own copy and a focused link to Requests", asy
   const link = within(pane).getByRole("link", { name: "View pending requests" });
   expect(link).toHaveAttribute("href", "#inbox-requests");
   fireEvent.click(link);
-  expect(screen.getByText("Requests", { exact: true })).toHaveFocus();
+  expect(screen.getByRole("tab", { name: /^Enquiries/ })).toHaveFocus();
   expect(screen.getByRole("region", { name: "Incoming requests" })).toBeVisible();
 });

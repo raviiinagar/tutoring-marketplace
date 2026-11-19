@@ -152,12 +152,12 @@ expect((await page.request.get('/v1/listings/'+listingId)).status()).toBe(200);
     await page.getByRole('link',{name:'View Connection',exact:true}).click();await page.getByRole('button',{name:'Show verified contact',exact:true}).click();await expect(page.getByRole('link',{name:learnerEmail,exact:true})).toBeVisible();
     // Durable chat through both adult browsers, including an acknowledgement lost in transit.
     // Chat now opens inside the My messages inbox through its Messages section.
-    await visitor.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Messages',exact:true}).click();
+    await visitor.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Chat',exact:true}).click();
     await expect(visitor.getByRole('log',{name:'Conversation messages',exact:true})).toBeVisible();
     await visitor.getByLabel('Message',{exact:true}).fill('Please explain momentum with a worked example.');
     await visitor.getByRole('button',{name:'Send message',exact:true}).click();
     await expect(visitor.getByRole('log')).toContainText('Please explain momentum with a worked example.');
-    await page.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Messages',exact:true}).click();
+    await page.getByRole('navigation',{name:'Conversation sections',exact:true}).getByRole('link',{name:'Chat',exact:true}).click();
     await expect(page.getByRole('log')).toContainText('Please explain momentum with a worked example.');
     await page.getByLabel('Message',{exact:true}).fill('Let us start with two colliding balls.');
     await page.getByRole('button',{name:'Send message',exact:true}).click();

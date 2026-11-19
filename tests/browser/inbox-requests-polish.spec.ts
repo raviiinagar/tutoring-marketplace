@@ -39,11 +39,11 @@ test("Tutor notices a pending request without focus moving and can reach it from
     });
   });
   await page.goto("/connections");
-  const search = page.getByRole("searchbox", { name: "All my contacts" });
+  const search = page.getByRole("searchbox", { name: "Search conversations" });
   await search.focus();
   release();
-  const summary = page.locator(".inbox-requests > summary");
-  await expect(summary).toContainText("1");
+  const tab = page.getByRole("tab", { name: /^Enquiries/ });
+  await expect(tab).toContainText("1");
   await page.evaluate(() => document.fonts.ready);
   await info.attach(
     `requests-polish-${process.env.INBOX_POLISH_PHASE ?? "after"}-1366x650`,
@@ -53,16 +53,13 @@ test("Tutor notices a pending request without focus moving and can reach it from
     },
   );
   await expect(search).toBeFocused();
-  await expect(page.locator(".inbox-requests")).toHaveAttribute("open", "");
-  await expect(summary).toHaveText("Requests (1 pending)");
+  await expect(tab).toHaveText("Enquiries1 pending");
+  await expect(tab).toHaveAttribute("aria-selected", "false");
   const pane = page.getByRole("region", { name: "Messages", exact: true });
   await expect(pane).toContainText(
     "No conversations yet. Accepted enquiries appear here.",
   );
   await expect(pane).not.toContainText("You haven't found a teacher yet.");
-  await summary.focus();
-  await summary.press("Enter");
-  await expect(page.locator(".inbox-requests")).not.toHaveAttribute("open");
   const link = pane.getByRole("link", {
     name: "View pending requests",
     exact: true,
@@ -70,7 +67,8 @@ test("Tutor notices a pending request without focus moving and can reach it from
   await expect(link).toHaveAttribute("href", "#inbox-requests");
   await link.focus();
   await link.press("Enter");
-  await expect(summary).toBeFocused();
+  await expect(tab).toBeFocused();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
   await expect(
     page.getByRole("button", { name: "Accept enquiry", exact: true }),
   ).toBeVisible();

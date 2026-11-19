@@ -1,10 +1,9 @@
 import { PeerAvatar } from "@/components/peer-avatar";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft, Inbox, Info, MessagesSquare, RefreshCw, Search, Video } from "lucide-react";
 import { api, describeFailure, type ConnectionSummary } from "@/lib/api";
 import { AuthShell, Notice } from "@/components/account/ui";
-import { Button } from "@/components/ui/button";
 import { connectionReason } from "@/components/connection-reason";
 import { ChatRoom } from "@/components/chat-room";
 import { ConnectionDetails } from "@/components/connection-details";
@@ -32,7 +31,7 @@ export const Route = createFileRoute("/connections")({
   component: InboxRoute,
   head: () => ({
     meta: [
-      { title: "My messages â€” Tutor Marketplace" },
+      { title: "My messages — Tutor Marketplace" },
       { name: "robots", content: "noindex" },
       { name: "referrer", content: "no-referrer" },
     ],
@@ -159,6 +158,17 @@ export function Connections({
     (sum, row) => sum + (row.available ? (row.unread_count ?? 0) : 0),
     0,
   );
+  const [tab, setTab] = useState<"chats" | "enquiries">("chats");
+  const [pending, setPending] = useState(0);
+  const enquiriesTab = useRef<HTMLButtonElement>(null);
+  // Opening a conversation always shows the conversation list beside it.
+  useEffect(() => {
+    if (conversation) setTab("chats");
+  }, [conversation]);
+  const showEnquiries = () => {
+    setTab("enquiries");
+    enquiriesTab.current?.focus();
+  };
   return (
     <AuthShell
       title="My messages"
@@ -173,95 +183,174 @@ export function Connections({
             My messages
             {totalUnread > 0 && <small>{totalUnread} unread</small>}
           </p>
-          <InboxRequests
-            key={String(teachingWorkspace)}
-            tutor={teachingWorkspace}
-            onAccepted={openAccepted}
-          />
-          <label htmlFor="contacts-search" className="text-sm font-semibold">
-            All my contacts
-          </label>
-          <input
-            id="contacts-search"
-            className="mt-3"
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search contacts"
-          />
-          {loading && (
-            <p role="status" className="py-5 text-sm">
-              Loading Connectionsâ€¦
-            </p>
-          )}
-          {error && <Notice tone="error">{error}</Notice>}
-          {!loading && !error && !filtered.length && <p className="py-5 text-sm">No results</p>}
-          <ul aria-label="Conversation list">
-            {filtered.map((row) => (
-              <li key={row.id}>
-                <Link
-                  to="/connections"
-                  search={{ conversation: row.id }}
-                  resetScroll={false}
-                  data-connection={row.id}
-                  aria-current={conversation === row.id ? "true" : undefined}
-                  className={`reference-contact-row${row.peer ? " reference-contact-row-peer" : ""}`}
-                >
-                  {row.peer && <PeerAvatar peer={row.peer} className="size-11 text-base" />}
-                  <span className="reference-contact-text">
-                    <strong>{row.peer ? row.peer.display_name : row.offer.title}</strong>
-                    {row.peer && <small className="reference-contact-ad">{row.offer.title}</small>}
-                    {!row.available ? (
-                      <small>{connectionReason(row.unavailable_reason)}</small>
-                    ) : row.unread_count === null ? (
-                      <small>Open messages</small>
-                    ) : row.unread_count === 0 ? (
-                      <small className="sr-only">0 unread messages</small>
-                    ) : null}
-                  </span>
-                  {row.available && !!row.unread_count && (
-                    <small className="inbox-unread">
-                      {row.unread_count}
-                      <span className="sr-only"> unread messages</span>
-                    </small>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {!loading && !error && !rows.length && !teachingWorkspace && (
-            <Button asChild className="mt-4 w-full md:hidden">
-              <Link to="/tutors">Search for a teacher</Link>
-            </Button>
-          )}
-          <nav aria-label="Connection pages" className="my-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" disabled={loading} onClick={() => void load()}>
-              Refresh Connections
-            </Button>
-            {cursor && (
-              <Button
-                variant="outline"
-                size="sm"
+          <div
+            className="inbox-seg"
+            role="tablist"
+            aria-label="Show"
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+              event.preventDefault();
+              const next = tab === "chats" ? "enquiries" : "chats";
+              setTab(next);
+              document.getElementById("inbox-tab-" + next)?.focus();
+            }}
+          >
+            <button
+              type="button"
+              role="tab"
+              id="inbox-tab-chats"
+              aria-controls="inbox-pane-chats"
+              aria-selected={tab === "chats"}
+              onClick={() => setTab("chats")}
+            >
+              <MessagesSquare aria-hidden="true" className="size-[18px]" />
+              Chats
+            </button>
+            <button
+              ref={enquiriesTab}
+              type="button"
+              role="tab"
+              id="inbox-tab-enquiries"
+              aria-controls="inbox-pane-enquiries"
+              aria-selected={tab === "enquiries"}
+              onClick={() => setTab("enquiries")}
+            >
+              <Inbox aria-hidden="true" className="size-[18px]" />
+              Enquiries
+              {pending > 0 && (
+                <span className="inbox-unread">
+                  {pending}
+                  <span className="sr-only"> pending</span>
+                </span>
+              )}
+            </button>
+          </div>
+          <div
+            id="inbox-pane-chats"
+            role="tabpanel"
+            aria-labelledby="inbox-tab-chats"
+            hidden={tab !== "chats"}
+            className="inbox-pane"
+          >
+            <div className="inbox-search">
+              <Search aria-hidden="true" className="inbox-search-icon size-[18px]" />
+              <label htmlFor="contacts-search" className="sr-only">
+                Search conversations
+              </label>
+              <input
+                id="contacts-search"
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by name or subject"
+              />
+              <button
+                type="button"
+                className="inbox-refresh"
+                aria-label="Refresh Connections"
+                title="Refresh Connections"
                 disabled={loading}
-                onClick={() => setCursor(undefined)}
+                onClick={() => void load()}
               >
-                First Connections
-              </Button>
+                <RefreshCw aria-hidden="true" className="size-[18px]" />
+              </button>
+            </div>
+            {loading && (
+              <p role="status" className="inbox-note">
+                Loading Connections…
+              </p>
             )}
-            {next && (
-              <Button size="sm" disabled={loading} onClick={() => setCursor(next)}>
-                Next Connections
-              </Button>
+            {error && <Notice tone="error">{error}</Notice>}
+            {!loading && !error && !filtered.length && <p className="inbox-note">No results</p>}
+            <ul aria-label="Conversation list" className="inbox-list">
+              {filtered.map((row) => (
+                <li key={row.id}>
+                  <Link
+                    to="/connections"
+                    search={{ conversation: row.id }}
+                    resetScroll={false}
+                    data-connection={row.id}
+                    aria-current={conversation === row.id ? "true" : undefined}
+                    className={`reference-contact-row${row.peer ? " reference-contact-row-peer" : ""}`}
+                  >
+                    {row.peer && <PeerAvatar peer={row.peer} className="size-11 text-base" />}
+                    <span className="reference-contact-text">
+                      <strong>{row.peer ? row.peer.display_name : row.offer.title}</strong>
+                      {row.peer && (
+                        <small className="reference-contact-ad">{row.offer.title}</small>
+                      )}
+                      {!row.available ? (
+                        <small>{connectionReason(row.unavailable_reason)}</small>
+                      ) : row.unread_count === null ? (
+                        <small>Open messages</small>
+                      ) : row.unread_count === 0 ? (
+                        <small className="sr-only">0 unread messages</small>
+                      ) : null}
+                    </span>
+                    {row.available && !!row.unread_count && (
+                      <small className="inbox-unread">
+                        {row.unread_count}
+                        <span className="sr-only"> unread messages</span>
+                      </small>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {!loading && !error && !rows.length && !teachingWorkspace && (
+              <Link to="/tutors" className="ws-btn ws-btn-primary inbox-find md:hidden">
+                Search for a teacher
+              </Link>
             )}
-          </nav>
-          <Link to="/requests" className="link mt-3 block">
-            My class requests
-          </Link>
-          {teachingWorkspace && (
-            <Link to="/tutor/requests" className="link mt-3 block">
-              Enquiries from learners
-            </Link>
-          )}
+            {(cursor || next) && (
+              <nav aria-label="Connection pages" className="inbox-pages">
+                {cursor && (
+                  <button
+                    type="button"
+                    className="ws-btn ws-btn-soft ws-btn-sm"
+                    disabled={loading}
+                    onClick={() => setCursor(undefined)}
+                  >
+                    First Connections
+                  </button>
+                )}
+                {next && (
+                  <button
+                    type="button"
+                    className="ws-btn ws-btn-soft ws-btn-sm"
+                    disabled={loading}
+                    onClick={() => setCursor(next)}
+                  >
+                    Next Connections
+                  </button>
+                )}
+              </nav>
+            )}
+          </div>
+          <div
+            id="inbox-pane-enquiries"
+            role="tabpanel"
+            aria-labelledby="inbox-tab-enquiries"
+            hidden={tab !== "enquiries"}
+            className="inbox-pane"
+          >
+            <InboxRequests
+              key={String(teachingWorkspace)}
+              tutor={teachingWorkspace}
+              onAccepted={openAccepted}
+              onPendingChange={setPending}
+            />
+            <div className="inbox-more">
+              <Link to="/requests" className="ws-link">
+                My class requests
+              </Link>
+              {teachingWorkspace && (
+                <Link to="/tutor/requests" className="ws-link">
+                  Enquiries from learners
+                </Link>
+              )}
+            </div>
+          </div>
         </aside>
         <section
           ref={pane}
@@ -276,10 +365,10 @@ export function Connections({
                   to="/connections"
                   search={{}}
                   resetScroll={false}
-                  className="messaging-back link"
+                  className="messaging-back"
                   aria-label="Back to conversations"
                 >
-                  <ArrowLeft size={18} aria-hidden="true" />
+                  <ChevronLeft size={24} aria-hidden="true" />
                 </Link>
                 {selected?.peer && (
                   <PeerAvatar peer={selected.peer} className="messaging-avatar size-11 text-base" />
@@ -293,28 +382,25 @@ export function Connections({
                 <nav aria-label="Conversation sections" className="messaging-sections">
                   {(
                     [
-                      ["messages", "Messages"],
-                      ["details", "Details"],
-                      ["classes", "Classes & Google Meet"],
+                      ["messages", "Chat", MessagesSquare],
+                      ["details", "Details", Info],
+                      ["classes", "Classes", Video],
                     ] as const
-                  ).map(([section, label]) => (
+                  ).map(([section, label, Icon]) => (
                     <Link
                       key={section}
                       to="/connections"
                       search={{ conversation, view: section === "messages" ? undefined : section }}
                       resetScroll={false}
                       aria-current={view === section ? "page" : undefined}
-                      className="link"
                     >
+                      <Icon aria-hidden="true" className="size-4" />
                       {label}
                     </Link>
                   ))}
                 </nav>
               </header>
-              {!unavailable && view === "messages" && (
-                <InboxNextClass key={conversation} connectionId={conversation} />
-              )}
-              <div className="messaging-pane-body" key={conversation}>
+              <div className="messaging-pane-body" key={"body-" + conversation}>
                 {unavailable ? (
                   <ConnectionDetails
                     connectionId={conversation}
@@ -338,46 +424,45 @@ export function Connections({
                     connectionId={conversation}
                     onUnreadChange={updateUnread}
                     onTitleChange={updateTitle}
+                    banner={<InboxNextClass connectionId={conversation} />}
                   />
                 )}
               </div>
             </>
           ) : (
-            <>
-              {!loading && !error && (
-                <div className="reference-inbox-notice">
-                  <h2>{rows.length ? "Your conversations" : "No message"}</h2>
-                  <p>
-                    {rows.length
-                      ? "Choose a conversation to read messages and arrange your next class."
-                      : teachingWorkspace
-                        ? "No conversations yet. Accepted enquiries appear here."
-                        : "You haven't found a teacher yet. Search for a teacher to start your learning journey."}
-                  </p>
-                  {!rows.length && teachingWorkspace && (
-                    <a
-                      href="#inbox-requests"
-                      className="link mt-3 inline-block"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        const requests = document.getElementById("inbox-requests");
-                        if (requests instanceof HTMLDetailsElement) {
-                          requests.open = true;
-                          requests.querySelector("summary")?.focus();
-                        }
-                      }}
-                    >
-                      View pending requests
-                    </a>
-                  )}
-                </div>
-              )}
-              {!teachingWorkspace && (
-                <Button asChild className="reference-inbox-cta">
-                  <Link to="/tutors">Search for a teacher</Link>
-                </Button>
-              )}
-            </>
+            !loading &&
+            !error && (
+              <div className="inbox-empty">
+                <span className="inbox-empty-tile" aria-hidden="true">
+                  <MessagesSquare className="size-7" />
+                </span>
+                <h2>{rows.length ? "Choose a conversation" : "No messages yet"}</h2>
+                <p>
+                  {rows.length
+                    ? "Pick someone on the left to read their messages, see their enquiry and plan your next class."
+                    : teachingWorkspace
+                      ? "No conversations yet. Accepted enquiries appear here."
+                      : "You haven't found a teacher yet. Search for a teacher to start your learning journey."}
+                </p>
+                {!rows.length && teachingWorkspace && (
+                  <a
+                    href="#inbox-requests"
+                    className="ws-btn ws-btn-ink ws-btn-sm"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      showEnquiries();
+                    }}
+                  >
+                    View pending requests
+                  </a>
+                )}
+                {!teachingWorkspace && !rows.length && (
+                  <Link to="/tutors" className="ws-btn ws-btn-primary ws-btn-sm">
+                    Search for a teacher
+                  </Link>
+                )}
+              </div>
+            )
           )}
         </section>
       </div>

@@ -21,9 +21,11 @@ for (const tutor of [false, true])
       });
       await expect(navigation).toBeVisible();
       await expect(
+        // The link sits in the Enquiries tab, so it is counted even while Chats is shown.
         page.getByRole("link", {
           name: "Enquiries from learners",
           exact: true,
+          includeHidden: true,
         }),
       ).toHaveCount(tutor ? 1 : 0);
       const physics = page.getByRole("link", { name: /Physics conversation/ });
@@ -86,9 +88,7 @@ for (const tutor of [false, true])
         page.getByRole("link", { name: "peer@example.test", exact: true }),
       ).toBeVisible();
       expect(fixtures.disclosures()).toBe(1);
-      await page
-        .getByRole("link", { name: "Classes & Google Meet", exact: true })
-        .click();
+      await page.getByRole("link", { name: "Classes", exact: true }).click();
       await expect(
         page.getByRole("heading", {
           name: "Classes & Google Meet",
@@ -110,9 +110,18 @@ for (const tutor of [false, true])
         body: await page.screenshot({ fullPage: true }),
         contentType: "image/png",
       });
-      await page
-        .getByRole("link", { name: "Back to conversations", exact: true })
-        .click();
+      // The back control is shown on phones; on wider screens the list stays beside the chat,
+      // so the same link is activated directly there to check focus returns to the list.
+      const back = page.getByRole("link", {
+        name: "Back to conversations",
+        exact: true,
+        includeHidden: true,
+      });
+      if (width === 390) await back.click();
+      else
+        await back.evaluate((element) =>
+          (element as HTMLAnchorElement).click(),
+        );
       await expect(
         page.getByRole("link", { name: /Physics conversation/ }),
       ).toBeFocused();
@@ -152,10 +161,10 @@ for (const tutor of [false, true])
             .getByRole("link", {
               name:
                 section === "messages"
-                  ? "Messages"
+                  ? "Chat"
                   : section === "details"
                     ? "Details"
-                    : "Classes & Google Meet",
+                    : "Classes",
               exact: true,
             }),
         ).toHaveAttribute("aria-current", "page", { timeout: 30000 });
@@ -173,7 +182,10 @@ for (const tutor of [false, true])
           ? page.getByRole("complementary", { name: "Conversations" })
           : page.getByRole("region", { name: "Messages" });
       // Learners are pointed to search; the Tutor inbox leaves it out (da5676c).
-      const search = emptySearch.getByRole("link", { name: "Search for a teacher", exact: true });
+      const search = emptySearch.getByRole("link", {
+        name: "Search for a teacher",
+        exact: true,
+      });
       if (tutor) await expect(search).toHaveCount(0);
       else {
         await expect(search).toBeVisible();
