@@ -250,7 +250,7 @@ it("opens a deep selection, retains composer constraints, and returns to list fo
   expect(screen.getByText(/Adult participants only/)).toHaveTextContent("Text messages only.");
   expect(container.querySelector("[data-selected=true]")).not.toBeNull();
   fireEvent.click(screen.getByRole("link", { name: "Back to conversations" }));
-  expect(await screen.findByRole("heading", { name: "Your conversations" })).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "Choose a conversation" })).toBeVisible();
   expect(container.querySelector("[data-selected=false]")).not.toBeNull();
 });
 it("shows unavailable Connection reasons and server denial in the pane without starting chat or disclosing contacts", async () => {
@@ -275,7 +275,7 @@ it("keeps Details and Classes inside the pane and reveals verified email only on
   expect(await screen.findByRole("link", { name: "tutor@example.test" })).toBeVisible();
   fireEvent(window, new Event("blur"));
   expect(screen.queryByText("tutor@example.test")).toBeNull();
-  fireEvent.click(screen.getByRole("link", { name: "Classes & Google Meet" }));
+  fireEvent.click(screen.getByRole("link", { name: "Classes" }));
   expect(await screen.findByRole("heading", { name: "Classes & Google Meet" })).toBeVisible();
   expect(api.classes).toHaveBeenCalledWith("one");
   expect(screen.queryByText("tutor@example.test")).toBeNull();

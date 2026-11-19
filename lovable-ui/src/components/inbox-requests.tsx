@@ -1,32 +1,93 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Check, Clock, Hourglass } from "lucide-react";
 import { api, describeFailure, type ContactRequest, type IncomingRequest } from "@/lib/api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
-import { RequestDeadline, requestTimeRemaining } from "@/components/request-deadline";
+import { requestTimeRemaining } from "@/components/request-deadline";
 import { connectionReason } from "@/components/connection-reason";
-import { Button } from "@/components/ui/button";
+import { timeLeft } from "@/lib/workspace";
 
-/** Requests are not conversations and cannot disclose contact information. */
+type Row = IncomingRequest | ContactRequest;
+const DAY = 24 * 3600000;
+const initials = (text: string) =>
+  text
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]!.toUpperCase())
+    .join("");
+
+function RequestStatus({ row, remaining, tutor }: { row: Row; remaining: number; tutor: boolean }) {
+  const status = row.status === "PENDING" && remaining <= 0 ? "EXPIRED" : row.status;
+  const deadline = (
+    <>
+      <span className="sr-only">{`Status: ${status}`}</span>
+      <span className="sr-only">
+        {" "}
+        Response deadline:{" "}
+        <time dateTime={row.expires_at}>{new Date(row.expires_at).toLocaleString()}</time>
+      </span>
+    </>
+  );
+  if (status === "PENDING")
+    return (
+      <p className={`inbox-chip${remaining <= DAY ? " inbox-chip-soon" : " inbox-chip-wait"}`}>
+        <Hourglass aria-hidden="true" className="size-4" />
+        {tutor ? `Reply within ${timeLeft(remaining)}` : `Waiting · ${timeLeft(remaining)} left`}
+        {deadline}
+      </p>
+    );
+  return (
+    <>
+      <p className={`inbox-chip${status === "ACCEPTED" ? " inbox-chip-ok" : ""}`}>
+        {status === "ACCEPTED" ? (
+          <Check aria-hidden="true" className="size-4" />
+        ) : (
+          <Clock aria-hidden="true" className="size-4" />
+        )}
+        {status === "ACCEPTED"
+          ? "Accepted"
+          : status === "DECLINED"
+            ? "Declined"
+            : status === "CANCELLED"
+              ? "Cancelled"
+              : "Expired"}
+        {deadline}
+      </p>
+      {status === "EXPIRED" && (
+        <p className="inbox-req-note">
+          The response window has ended. A new enquiry needs current access.
+        </p>
+      )}
+    </>
+  );
+}
+
+/**
+ * Enquiries are not conversations and cannot disclose contact information. The inbox shows
+ * them in their own "Enquiries" tab; the parent learns how many still need attention.
+ */
 export function InboxRequests({
   tutor,
   onAccepted,
+  onPendingChange,
 }: {
   tutor: boolean;
   onAccepted: (connectionId: string) => void;
+  onPendingChange?: (pending: number) => void;
 }) {
   const navigate = useNavigate();
-  const [rows, setRows] = useState<(IncomingRequest | ContactRequest)[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [cursor, setCursor] = useState<string>();
   const [next, setNext] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
-  const [expanded, setExpanded] = useState<boolean>();
   const [elapsed, setElapsed] = useState(0);
   const receivedAt = useRef(performance.now());
   const generation = useRef(0);
   const active = useRef(true);
-  const summary = useRef<HTMLElement>(null);
+  const panel = useRef<HTMLElement>(null);
   const action = useSingleFlight();
   const load = useCallback(async () => {
     const attempt = ++generation.current;
@@ -70,7 +131,6 @@ export function InboxRequests({
   const decide = (row: IncomingRequest, decision: "ACCEPT" | "DECLINE") => {
     if (!tutor || loading || !(decision === "ACCEPT" ? row.can_accept : row.can_decline)) return;
     void action.run(async () => {
-      setExpanded(true);
       setNotice(undefined);
       const result = await api.decideRequest(row.id, decision);
       if (!active.current) return;
@@ -83,156 +143,170 @@ export function InboxRequests({
         return;
       } else
         setNotice(result.data.status === "DECLINED" ? "Enquiry declined." : "Acceptance recorded.");
-      summary.current?.focus();
+      panel.current?.focus();
     });
   };
-  const pendingCount = tutor
-    ? rows.filter(
-        (row) =>
-          "can_accept" in row &&
-          (row.can_accept || row.can_decline) &&
-          row.status === "PENDING" &&
-          requestTimeRemaining(row, elapsed) > 0,
-      ).length
-    : 0;
+  const pendingCount = rows.filter(
+    (row) =>
+      row.status === "PENDING" &&
+      requestTimeRemaining(row, elapsed) > 0 &&
+      (!tutor || ("can_accept" in row && (row.can_accept || row.can_decline))),
+  ).length;
+  useEffect(() => onPendingChange?.(pendingCount), [pendingCount, onPendingChange]);
   return (
-    <details
+    <section
+      ref={panel}
       id="inbox-requests"
-      className="inbox-requests mb-4 border-b pb-4"
-      open={expanded ?? pendingCount > 0}
-      onToggle={(event) => setExpanded(event.currentTarget.open)}
+      tabIndex={-1}
+      aria-label={tutor ? "Incoming requests" : "Sent requests"}
+      className="inbox-req-panel"
     >
-      <summary ref={summary} className="cursor-pointer text-sm font-semibold">
-        Requests{pendingCount ? ` (${pendingCount} pending)` : ""}
-      </summary>
-      <section
-        aria-label={tutor ? "Incoming requests" : "Sent requests"}
-        className="mt-3 space-y-4"
-      >
-        <p className="text-xs text-muted-foreground">
-          {tutor ? "Incoming enquiries" : "Your sent enquiries"}. A pending request does not open a
-          chat or share contacts.
+      <p className="inbox-req-intro">
+        {tutor
+          ? "Accept to start chatting. Each enquiry stays open for 72 hours."
+          : "Your sent enquiries. Tutors have 72 hours to reply."}{" "}
+        A pending request does not open a chat or share contacts.
+      </p>
+      {notice && <Notice tone="success">{notice}</Notice>}
+      {error && <Notice tone="error">{error}</Notice>}
+      {loading && !rows.length ? (
+        <p role="status" className="inbox-req-note">
+          Loading requests…
         </p>
-        <p className="text-xs text-muted-foreground">Pending counts cover only the loaded page.</p>
-        {notice && <Notice tone="success">{notice}</Notice>}
-        {error && <Notice tone="error">{error}</Notice>}
-        {loading && !rows.length ? (
-          <p role="status">Loading requests…</p>
-        ) : !error && !rows.length ? (
-          <p>No {tutor ? "incoming" : "sent"} requests yet.</p>
-        ) : (
-          rows.map((row) => (
-            <article
-              key={row.id}
-              className="space-y-2 rounded-lg border p-3 text-sm [overflow-wrap:anywhere]"
-            >
-              <h2 className="font-semibold">{row.offer.title}</h2>
-              {row.test_only && (
-                <p className="text-xs">Fictional test request. No payment was made.</p>
-              )}
-              {"learner_usable" in row && row.learner_usable && row.learner_alias && (
-                <p>Learner: {row.learner_alias}</p>
-              )}
-              {!("learner_usable" in row) || row.learner_usable ? (
-                row.learning_requirements ? (
-                  <>
-                    <p className="whitespace-pre-wrap">{row.learning_requirements}</p>
-                    <p className="whitespace-pre-wrap">Preferred times: {row.preferred_times}</p>
-                  </>
-                ) : (
-                  <p>Private enquiry details are currently unavailable.</p>
-                )
-              ) : (
-                <p>The Learner profile is unavailable. Its private enquiry details are hidden.</p>
-              )}
-              {"unavailable_reason" in row && row.unavailable_reason && (
-                <p>{connectionReason(row.unavailable_reason)}</p>
-              )}
-              <RequestDeadline request={row}>
-                {(pending) =>
-                  tutor &&
-                  pending &&
-                  "can_accept" in row && (
-                    <div className="flex flex-wrap gap-2">
-                      {row.can_accept && (
-                        <Button
-                          size="sm"
-                          disabled={loading || action.loading}
-                          onClick={() => decide(row, "ACCEPT")}
-                        >
-                          Accept enquiry
-                        </Button>
+      ) : !error && !rows.length ? (
+        <p className="inbox-req-empty">No {tutor ? "incoming" : "sent"} requests yet.</p>
+      ) : (
+        <ul className="inbox-req-list">
+          {rows.map((row) => {
+            const remaining = requestTimeRemaining(row, elapsed);
+            const pending = row.status === "PENDING" && remaining > 0;
+            const visible = !("learner_usable" in row) || row.learner_usable;
+            return (
+              <li key={row.id}>
+                <article className="inbox-req">
+                  <div className="inbox-req-head">
+                    <span className="inbox-req-avatar" aria-hidden="true">
+                      {initials(
+                        ("learner_alias" in row && row.learner_usable && row.learner_alias) ||
+                          row.offer.title,
                       )}
-                      {row.can_decline && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={loading || action.loading}
-                          onClick={() => decide(row, "DECLINE")}
-                        >
-                          Decline enquiry
-                        </Button>
+                    </span>
+                    <div className="min-w-0">
+                      <h2>{row.offer.title}</h2>
+                      {"learner_usable" in row && row.learner_usable && row.learner_alias && (
+                        <p>Learner: {row.learner_alias}</p>
                       )}
                     </div>
-                  )
-                }
-              </RequestDeadline>
-              {row.status === "ACCEPTED" && row.connection_id && (
-                <Link
-                  to="/connections"
-                  search={{ conversation: row.connection_id }}
-                  resetScroll={false}
-                  className="link block"
-                >
-                  Open conversation
-                </Link>
-              )}
-              <Link
-                to="/safety/$kind/$targetId"
-                params={{ kind: "request", targetId: row.id }}
-                className="link block"
-              >
-                Report or block request
-              </Link>
-            </article>
-          ))
-        )}
-        <nav aria-label="Request pages" className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="outline"
+                  </div>
+                  {row.test_only && (
+                    <p className="inbox-req-note">Fictional test request. No payment was made.</p>
+                  )}
+                  {visible ? (
+                    row.learning_requirements ? (
+                      <>
+                        <p className="inbox-req-quote">{row.learning_requirements}</p>
+                        <p className="inbox-req-times">
+                          <span>Preferred times</span> {row.preferred_times}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="inbox-req-note">
+                        Private enquiry details are currently unavailable.
+                      </p>
+                    )
+                  ) : (
+                    <p className="inbox-req-note">
+                      The Learner profile is unavailable. Its private enquiry details are hidden.
+                    </p>
+                  )}
+                  {"unavailable_reason" in row && row.unavailable_reason && (
+                    <p className="inbox-req-note">{connectionReason(row.unavailable_reason)}</p>
+                  )}
+                  <RequestStatus row={row} remaining={remaining} tutor={tutor} />
+                  {tutor &&
+                    pending &&
+                    "can_accept" in row &&
+                    (row.can_accept || row.can_decline) && (
+                      <div className="inbox-req-actions">
+                        {row.can_accept && (
+                          <button
+                            type="button"
+                            className="ws-btn ws-btn-primary ws-btn-sm"
+                            disabled={loading || action.loading}
+                            onClick={() => decide(row, "ACCEPT")}
+                          >
+                            <Check aria-hidden="true" className="size-4" />
+                            Accept enquiry
+                          </button>
+                        )}
+                        {row.can_decline && (
+                          <button
+                            type="button"
+                            className="ws-btn ws-btn-soft ws-btn-sm"
+                            disabled={loading || action.loading}
+                            onClick={() => decide(row, "DECLINE")}
+                          >
+                            Decline enquiry
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  <div className="inbox-req-links">
+                    {row.status === "ACCEPTED" && row.connection_id && (
+                      <Link
+                        to="/connections"
+                        search={{ conversation: row.connection_id }}
+                        resetScroll={false}
+                        className="ws-link"
+                      >
+                        Open conversation
+                      </Link>
+                    )}
+                    <Link
+                      to="/safety/$kind/$targetId"
+                      params={{ kind: "request", targetId: row.id }}
+                      className="inbox-req-report"
+                    >
+                      Report or block request
+                    </Link>
+                  </div>
+                </article>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="inbox-req-note">Pending counts cover only the loaded page.</p>
+      <nav aria-label="Request pages" className="inbox-req-pages">
+        <button
+          type="button"
+          className="ws-btn ws-btn-soft ws-btn-sm"
+          disabled={loading || action.loading}
+          onClick={() => void load()}
+        >
+          Refresh requests
+        </button>
+        {cursor && (
+          <button
+            type="button"
+            className="ws-btn ws-btn-soft ws-btn-sm"
             disabled={loading || action.loading}
-            onClick={() => void load()}
+            onClick={() => setCursor(undefined)}
           >
-            Refresh requests
-          </Button>
-          {cursor && (
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={loading || action.loading}
-              onClick={() => {
-                setExpanded(undefined);
-                setCursor(undefined);
-              }}
-            >
-              First requests
-            </Button>
-          )}
-          {next && (
-            <Button
-              size="sm"
-              disabled={loading || action.loading}
-              onClick={() => {
-                setExpanded(undefined);
-                setCursor(next);
-              }}
-            >
-              Next requests
-            </Button>
-          )}
-        </nav>
-      </section>
-    </details>
+            First requests
+          </button>
+        )}
+        {next && (
+          <button
+            type="button"
+            className="ws-btn ws-btn-soft ws-btn-sm"
+            disabled={loading || action.loading}
+            onClick={() => setCursor(next)}
+          >
+            Next requests
+          </button>
+        )}
+      </nav>
+    </section>
   );
 }

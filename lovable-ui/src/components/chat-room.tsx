@@ -1,6 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, MessageCircle, Send, ShieldCheck, WifiOff } from "lucide-react";
+import {
+  ArrowDown,
+  Check,
+  CheckCheck,
+  Flag,
+  MessageCircle,
+  SendHorizontal,
+  ShieldCheck,
+  WifiOff,
+} from "lucide-react";
 import {
   api,
   describeFailure,
@@ -10,7 +19,6 @@ import {
   type ChatState,
 } from "@/lib/api";
 import { Notice } from "@/components/account/ui";
-import { Button } from "@/components/ui/button";
 
 type Pending = { id: string; text: string; retry: boolean };
 type Commands = {
@@ -34,7 +42,7 @@ function resizeComposer(element: HTMLTextAreaElement) {
   const maximum = line * 5 + padding + border;
   const height = Math.min(
     maximum,
-    Math.max(line * 2 + padding + border, element.scrollHeight + border),
+    Math.max(line + padding + border, element.scrollHeight + border),
   );
   element.style.height = height + "px";
   element.style.overflowY = element.scrollHeight + border > maximum ? "auto" : "hidden";
@@ -44,10 +52,13 @@ export function ChatRoom({
   connectionId,
   onUnreadChange,
   onTitleChange,
+  banner,
 }: {
   connectionId: string;
   onUnreadChange?: (id: string, unread: number) => void;
   onTitleChange?: (id: string, title: string) => void;
+  /** Pinned at the top of the conversation, such as the next planned class. */
+  banner?: ReactNode;
 }) {
   const [state, setState] = useState<ChatState>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -372,30 +383,26 @@ export function ChatRoom({
       : state?.learner_kind === "CHILD"
         ? "Guardian"
         : "Learner";
+  const dayLabel = (iso: string) => {
+    const date = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return date.toLocaleDateString(undefined, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      ...(date.getFullYear() === today.getFullYear() ? {} : { year: "numeric" }),
+    });
+  };
+  const remaining = 2000 - draft.length;
   return (
-    <section className="messaging-chat flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <div className="messaging-chat-strip">
-        <p role="status" className="messaging-status">
-          {status === "Connected" ? (
-            <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
-          ) : (
-            <WifiOff size={12} aria-hidden="true" />
-          )}
-          {status}
-        </p>
-        <p className="messaging-notice">
-          <ShieldCheck size={14} aria-hidden="true" />
-          Adult participants only. Discuss learning here; pay Tuition Fees directly to the Tutor.
-          Text messages only.
-        </p>
-        <Link
-          to="/safety/$kind/$targetId"
-          params={{ kind: "connection", targetId: connectionId }}
-          className="link messaging-report"
-        >
-          Report or block
-        </Link>
-      </div>
+    <section className="messaging-chat flex min-h-0 flex-1 flex-col overflow-hidden">
+      <p role="status" className={status === "Connected" ? "sr-only" : "messaging-status-pill"}>
+        {status !== "Connected" && <WifiOff size={14} aria-hidden="true" />}
+        {status}
+      </p>
       {error && (
         <div className="px-5 pt-4">
           <Notice tone="error">{error}</Notice>
@@ -425,23 +432,38 @@ export function ChatRoom({
             aria-live="polite"
             aria-relevant="additions"
             tabIndex={0}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7"
+            className="messaging-log min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
+            {banner && <div className="messaging-banner">{banner}</div>}
+            <p className="messaging-note">
+              <ShieldCheck size={14} aria-hidden="true" />
+              <span>
+                Adult participants only. Discuss learning here; pay Tuition Fees directly to the
+                Tutor. Text messages only.{" "}
+                <Link
+                  to="/safety/$kind/$targetId"
+                  params={{ kind: "connection", targetId: connectionId }}
+                  className="messaging-note-link"
+                >
+                  Report or block
+                </Link>
+              </span>
+            </p>
             {state?.has_older && (
-              <div className="mb-5 text-center">
-                <Button
-                  variant="outline"
-                  size="sm"
+              <div className="mb-4 text-center">
+                <button
+                  type="button"
+                  className="messaging-earlier"
                   disabled={olderBusy}
                   onClick={() => commands.current?.older()}
                 >
                   {olderBusy ? "Loading earlier messages" : "Load earlier messages"}
-                </Button>
+                </button>
               </div>
             )}
             {!messages.length && (
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <MessageCircle className="mb-4 text-coral-strong" size={32} />
+              <div className="messaging-start">
+                <MessageCircle className="mb-3 text-coral-strong" size={32} aria-hidden="true" />
                 <p className="font-medium">
                   {state ? "Start the conversation" : "Loading conversation"}
                 </p>
@@ -450,66 +472,77 @@ export function ChatRoom({
                 </p>
               </div>
             )}
-            <ol className="space-y-4">
-              {messages.map((message) => (
-                <li
-                  key={message.sequence}
-                  className={`flex ${message.your_message ? "justify-end" : "justify-start"}`}
-                >
-                  <div className="max-w-[88%] sm:max-w-[75%]">
-                    <p
-                      className={`mb-1 text-xs text-muted-foreground ${message.your_message ? "text-right" : ""}`}
-                    >
-                      {message.your_message ? "You" : peer}
-                    </p>
-                    <div
-                      className={`chat-bubble rounded-2xl px-4 py-3 ${message.your_message ? "chat-bubble-mine rounded-br-md" : "chat-bubble-peer rounded-bl-md"}`}
-                    >
-                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed [overflow-wrap:anywhere]">
-                        {message.text}
+            <ol className="messaging-list">
+              {messages.map((message, index) => {
+                const day = dayLabel(message.created_at);
+                const newDay = index === 0 || dayLabel(messages[index - 1]!.created_at) !== day;
+                const seen = message.sequence <= (state?.peer_read_sequence ?? 0);
+                return (
+                  <li
+                    key={message.sequence}
+                    className={`messaging-item ${message.your_message ? "is-mine" : "is-peer"}`}
+                  >
+                    {newDay && (
+                      <span className="messaging-day" aria-hidden="true">
+                        {day}
+                      </span>
+                    )}
+                    <div className="messaging-bubble-wrap">
+                      <div
+                        className={`chat-bubble ${message.your_message ? "chat-bubble-mine" : "chat-bubble-peer"}`}
+                      >
+                        <span className="sr-only">{message.your_message ? "You" : peer}: </span>
+                        <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                          {message.text}
+                        </p>
+                      </div>
+                      <p className="messaging-meta">
+                        <time
+                          dateTime={message.created_at}
+                          title={new Date(message.created_at).toLocaleString()}
+                        >
+                          <span className="sr-only">{day}, </span>
+                          {new Date(message.created_at).toLocaleTimeString("en-IN", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </time>
+                        {message.your_message && (
+                          <span className={seen ? "messaging-seen" : ""}>
+                            {seen ? (
+                              <CheckCheck size={14} aria-hidden="true" />
+                            ) : (
+                              <Check size={14} aria-hidden="true" />
+                            )}
+                            {seen ? "Seen" : "Sent"}
+                          </span>
+                        )}
+                        <a
+                          className="messaging-flag"
+                          href={
+                            "/safety/connection/" +
+                            encodeURIComponent(connectionId) +
+                            "?message=" +
+                            message.sequence
+                          }
+                          aria-label={"Report message " + message.sequence}
+                          title="Report this message"
+                        >
+                          <Flag size={13} aria-hidden="true" />
+                        </a>
                       </p>
                     </div>
-                    <p
-                      className={`mt-1 text-[11px] text-muted-foreground ${message.your_message ? "text-right" : ""}`}
-                    >
-                      <a
-                        className="link mr-2"
-                        href={
-                          "/safety/connection/" +
-                          encodeURIComponent(connectionId) +
-                          "?message=" +
-                          message.sequence
-                        }
-                        aria-label={"Report message " + message.sequence}
-                      >
-                        Report message {message.sequence}
-                      </a>
-                      <time dateTime={message.created_at}>
-                        {new Date(message.created_at).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </time>
-                      {message.your_message && (
-                        <>
-                          {" "}
-                          · {message.sequence <= (state?.peer_read_sequence ?? 0) ? "Read" : "Sent"}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ol>
           </div>
           {below && (
-            <div className="mb-3 text-center">
-              <Button variant="outline" size="sm" onClick={jump}>
-                <ArrowDown size={14} />
+            <div className="messaging-jump">
+              <button type="button" onClick={jump}>
+                <ArrowDown size={14} aria-hidden="true" />
                 Latest messages
-              </Button>
+              </button>
             </div>
           )}
           <form
@@ -519,46 +552,54 @@ export function ChatRoom({
               commands.current?.send(draft);
             }}
           >
-            <label htmlFor="chat-message" className="sr-only">
-              Message
-            </label>
-            <textarea
-              ref={editor}
-              id="chat-message"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              maxLength={2000}
-              rows={2}
-              disabled={!state || Boolean(pending)}
-              placeholder="Write a message about your learning…"
-              aria-describedby="chat-hint"
-              className="input messaging-input"
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-                  event.preventDefault();
-                  commands.current?.send(draft);
-                }
-              }}
-            />
-            <div className="messaging-composer-actions">
-              <p id="chat-hint" className="messaging-hint text-muted-foreground">
-                {draft.length}/2000 · Shift + Enter for a new line
-              </p>
+            <div className="messaging-box">
+              <label htmlFor="chat-message" className="sr-only">
+                Message
+              </label>
+              <textarea
+                ref={editor}
+                id="chat-message"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={2000}
+                rows={1}
+                disabled={!state || Boolean(pending)}
+                placeholder="Write a message"
+                aria-describedby="chat-hint"
+                className="messaging-input"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    commands.current?.send(draft);
+                  }
+                }}
+              />
               {pending?.retry ? (
-                <Button type="button" onClick={() => commands.current?.retry()}>
-                  Retry message
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  disabled={!state || !draft.trim() || Boolean(pending)}
-                  className="rounded-full px-4"
+                <button
+                  type="button"
+                  className="messaging-retry"
+                  onClick={() => commands.current?.retry()}
                 >
-                  <Send size={15} />
-                  {pending ? "Sending…" : "Send message"}
-                </Button>
+                  Retry message
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="messaging-send"
+                  disabled={!state || !draft.trim() || Boolean(pending)}
+                  aria-label={pending ? "Sending…" : "Send message"}
+                  title="Send message"
+                >
+                  <SendHorizontal size={20} aria-hidden="true" />
+                </button>
               )}
             </div>
+            <p id="chat-hint" className="messaging-hint">
+              <span>Enter to send · Shift + Enter for a new line</span>
+              <span className={remaining < 200 ? "messaging-count" : "sr-only"}>
+                {draft.length.toLocaleString("en-IN")}/2,000
+              </span>
+            </p>
           </form>
         </>
       )}

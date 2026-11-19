@@ -55,6 +55,7 @@ const response = (requests: IncomingRequest[]) => ({
   data: { requests, next_cursor: null },
 });
 const accepted = vi.fn();
+const pendingChange = vi.fn();
 beforeEach(() => {
   vi.spyOn(api, "tutorRequests").mockResolvedValue(response([request()]));
   vi.spyOn(api, "contactRequests").mockResolvedValue({
@@ -69,13 +70,14 @@ afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
   accepted.mockReset();
+  pendingChange.mockReset();
   navigate.mockReset();
 });
 async function open(tutor = true) {
-  const view = render(<InboxRequests tutor={tutor} onAccepted={accepted} />);
-  await screen.findByRole("heading", { name: "Physics enquiry", hidden: true });
-  // jsdom does not implement the native summary toggle, so open it explicitly.
-  view.container.querySelector("details")!.open = true;
+  const view = render(
+    <InboxRequests tutor={tutor} onAccepted={accepted} onPendingChange={pendingChange} />,
+  );
+  await screen.findByRole("heading", { name: "Physics enquiry" });
   return view;
 }
 it("separates requests from chat and offers only server-allowed Tutor decisions", async () => {
@@ -128,9 +130,10 @@ it("declines without opening chat and refreshes the authoritative status", async
     response([request({ status: "DECLINED", can_accept: false, can_decline: false })]),
   );
   fireEvent.click(screen.getByRole("button", { name: "Decline enquiry" }));
-  expect(await screen.findByText("Status: DECLINED")).toBeVisible();
+  expect(await screen.findByText("Declined")).toBeVisible();
   expect(await screen.findByText("Enquiry declined.")).toBeVisible();
-  expect(screen.getByText("Requests", { exact: true })).toHaveFocus();
+  // Focus returns to the enquiries panel after a decision.
+  expect(screen.getByRole("region", { name: "Incoming requests" })).toHaveFocus();
   expect(accepted).not.toHaveBeenCalled();
 });
 it("refreshes a stale decision without claiming success or creating a conversation", async () => {
@@ -149,7 +152,7 @@ it("refreshes a stale decision without claiming success or creating a conversati
   );
   fireEvent.click(screen.getByRole("button", { name: "Accept enquiry" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("The request has expired.");
-  expect(screen.getByText("Status: EXPIRED")).toBeVisible();
+  expect(screen.getByText("Expired")).toBeVisible();
   await waitFor(() => expect(api.tutorRequests).toHaveBeenCalledTimes(2));
   expect(accepted).not.toHaveBeenCalled();
   expect(screen.queryByRole("button", { name: "Accept enquiry" })).toBeNull();
@@ -159,7 +162,7 @@ it("treats equality as expired using server_time even when the server flags are 
     response([request({ expires_at: "2026-11-07T00:00:00Z" })]),
   );
   await open();
-  expect(screen.getByText("Status: EXPIRED")).toBeVisible();
+  expect(screen.getByText("Expired")).toBeVisible();
   expect(screen.queryByRole("button", { name: "Accept enquiry" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Decline enquiry" })).toBeNull();
   expect(api.decideRequest).not.toHaveBeenCalled();
@@ -169,7 +172,7 @@ it("shows sent status and only the usable learner alias, with no Tutor action", 
   expect(screen.getByRole("region", { name: "Sent requests" })).toHaveTextContent(
     "Learner: Young learner",
   );
-  expect(screen.getByText("Status: PENDING")).toBeVisible();
+  expect(screen.getByText(/^Waiting · .+ left$/)).toBeVisible();
   expect(screen.queryByRole("button", { name: "Accept enquiry" })).toBeNull();
   expect(api.tutorRequests).not.toHaveBeenCalled();
   vi.mocked(api.contactRequests).mockResolvedValue({
@@ -187,14 +190,13 @@ it("shows sent status and only the usable learner alias, with no Tutor action", 
 });
 it("distinguishes errors from empty results and recovers through refresh", async () => {
   vi.mocked(api.tutorRequests).mockResolvedValue({ ok: false, error: { kind: "unavailable" } });
-  const view = render(<InboxRequests tutor onAccepted={accepted} />);
-  view.container.querySelector("details")!.open = true;
+  render(<InboxRequests tutor onAccepted={accepted} />);
   expect(await screen.findByRole("alert")).toBeVisible();
   expect(screen.queryByText("No incoming requests yet.")).toBeNull();
   vi.mocked(api.tutorRequests).mockResolvedValue(response([]));
   fireEvent.click(screen.getByRole("button", { name: "Refresh requests" }));
   expect(await screen.findByText("No incoming requests yet.")).toBeVisible();
-  expect(screen.getByText("Requests", { exact: true })).toBeVisible();
+  expect(screen.getByRole("region", { name: "Incoming requests" })).toBeVisible();
 });
 it("paginates with the server cursor and labels the count as page-local", async () => {
   vi.mocked(api.tutorRequests).mockResolvedValueOnce({
@@ -203,7 +205,7 @@ it("paginates with the server cursor and labels the count as page-local", async 
     data: { requests: [request()], next_cursor: "server-cursor" },
   });
   await open();
-  expect(screen.getByText("Requests (1 pending)")).toBeVisible();
+  expect(pendingChange).toHaveBeenLastCalledWith(1);
   expect(screen.getByText("Pending counts cover only the loaded page.")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Next requests" }));
   await waitFor(() => expect(api.tutorRequests).toHaveBeenLastCalledWith("server-cursor"));
@@ -238,20 +240,20 @@ it("ignores a late acceptance after leaving the inbox", async () => {
 });
 
 for (const capability of ["can_accept", "can_decline"] as const)
-  it(`opens an actionable request by default for ${capability} without stealing focus`, async () => {
+  it(`counts an actionable request for ${capability} without stealing focus`, async () => {
     vi.mocked(api.tutorRequests).mockResolvedValue(
       response([request({ can_accept: false, can_decline: false, [capability]: true })]),
     );
     const view = render(
       <>
         <button>Keep focus</button>
-        <InboxRequests tutor onAccepted={accepted} />
+        <InboxRequests tutor onAccepted={accepted} onPendingChange={pendingChange} />
       </>,
     );
     const button = screen.getByRole("button", { name: "Keep focus" });
     button.focus();
-    await screen.findByText("Requests (1 pending)");
-    expect(view.container.querySelector("details")).toHaveAttribute("open");
+    await waitFor(() => expect(pendingChange).toHaveBeenLastCalledWith(1));
+    expect(view.container.querySelector("article")).toBeVisible();
     expect(button).toHaveFocus();
   });
 
@@ -260,12 +262,11 @@ for (const changes of [
   { status: "ACCEPTED" as const },
   { expires_at: "2026-11-07T00:00:00Z" },
 ])
-  it(`defaults to collapsed with no count for non-actionable ${JSON.stringify(changes)}`, async () => {
+  it(`counts nothing for non-actionable ${JSON.stringify(changes)}`, async () => {
     vi.mocked(api.tutorRequests).mockResolvedValue(response([request(changes)]));
-    const view = render(<InboxRequests tutor onAccepted={accepted} />);
-    await screen.findByRole("heading", { name: "Physics enquiry", hidden: true });
-    expect(view.container.querySelector("summary")).toHaveTextContent(/^Requests$/);
-    expect(view.container.querySelector("details")).not.toHaveAttribute("open");
+    render(<InboxRequests tutor onAccepted={accepted} onPendingChange={pendingChange} />);
+    await screen.findByRole("heading", { name: "Physics enquiry" });
+    expect(pendingChange).toHaveBeenLastCalledWith(0);
   });
 
 it("counts only actionable pending requests and stops counting at the server deadline", async () => {
@@ -279,9 +280,9 @@ it("counts only actionable pending requests and stops counting at the server dea
     ]),
   );
   await act(async () => {
-    render(<InboxRequests tutor onAccepted={accepted} />);
+    render(<InboxRequests tutor onAccepted={accepted} onPendingChange={pendingChange} />);
   });
-  expect(screen.getByText("Requests (2 pending)")).toBeVisible();
+  expect(pendingChange).toHaveBeenLastCalledWith(2);
   act(() => vi.advanceTimersByTime(1000));
-  expect(screen.getByText("Requests (1 pending)")).toBeVisible();
+  expect(pendingChange).toHaveBeenLastCalledWith(1);
 });
