@@ -45,7 +45,14 @@ function GoogleMark() {
  * "Continue with Google". A full-page navigation to the API, which sends the browser to Google
  * and back; it appears only when the server has Google sign-in configured.
  */
-export function GoogleSignInButton({ returnTo }: { returnTo?: string | undefined }) {
+export function GoogleSignInButton({
+  returnTo,
+  divider = "or",
+}: {
+  returnTo?: string | undefined;
+  /** The words between the Google button and the email form. */
+  divider?: string;
+}) {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -64,13 +71,13 @@ export function GoogleSignInButton({ returnTo }: { returnTo?: string | undefined
     <div className="space-y-4">
       <a
         href={href}
-        className="flex min-h-12 w-full items-center justify-center gap-3 rounded-full border bg-background px-5 font-semibold hover:bg-secondary/60"
+        className="flex min-h-[50px] w-full items-center justify-center gap-3 rounded-full border-[1.5px] bg-background px-5 font-semibold hover:bg-secondary/60"
       >
         <GoogleMark />
         Continue with Google
       </a>
-      <p className="flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-        or
+      <p className="flex items-center gap-3 text-[13px] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+        {divider}
       </p>
     </div>
   );

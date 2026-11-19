@@ -13,8 +13,17 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/components/account/ui", async () => ({
   ...(await vi.importActual<typeof import("@/components/account/ui")>("@/components/account/ui")),
-  AuthShell: ({ children, intro }: { children: React.ReactNode; intro?: React.ReactNode }) => (
+  AuthShell: ({
+    children,
+    intro,
+    aside,
+  }: {
+    children: React.ReactNode;
+    intro?: React.ReactNode;
+    aside?: React.ReactNode;
+  }) => (
     <main>
+      {aside}
       {intro}
       {children}
     </main>
@@ -44,9 +53,10 @@ it("signup and reset show the same password-length rule", async () => {
 it("tells parents to use their own account, with no separate child profile", () => {
   const Signup = SignupRoute.options.component!;
   render(<Signup />);
+  // ADR0015: adult-only accounts. The guidance sits in the panel's lead, which also shows on phones.
   expect(
     screen.getByText(
-      "This creates your own account. Parents booking classes for a child use their own account; no separate child profile is needed.",
+      "One free account to learn, to teach, or both. Parents book classes for their child from their own account; no separate child profile is needed.",
     ),
   ).toBeInTheDocument();
   expect(screen.queryByText(/later update/i)).toBeNull();

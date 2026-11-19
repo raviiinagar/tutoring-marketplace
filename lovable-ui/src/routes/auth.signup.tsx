@@ -12,6 +12,8 @@ import {
 } from "@/lib/validation";
 import { AuthShell, Field, Notice, SubmitButton, useSingleFlight } from "@/components/account/ui";
 import { GoogleSignInButton } from "@/components/google-sign-in";
+import { AuthStory } from "@/components/auth-story";
+import { GraduationCap, LockKeyhole, Search, Users } from "lucide-react";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({
@@ -63,22 +65,47 @@ function SignUp() {
   return (
     <AuthShell
       title="Create your account"
-      intro={
-        <p>
-          This creates your own account. Parents booking classes for a child use their own account;
-          no separate child profile is needed.
-        </p>
+      intro="It's free. Continue with Google or use your email."
+      aside={
+        <AuthStory
+          title="Find your Tutor, or start teaching."
+          lead="One free account to learn, to teach, or both. Parents book classes for their child from their own account; no separate child profile is needed."
+          perks={[
+            {
+              icon: Search,
+              title: "Learn",
+              text: "Find Tutors by subject, class and city, save them and message them.",
+            },
+            {
+              icon: GraduationCap,
+              title: "Teach",
+              text: "Publish your ad for free, yourself or with our team's help.",
+            },
+            {
+              icon: Users,
+              title: "Parents, too",
+              text: "Book classes for your child from your own account.",
+            },
+          ]}
+          note="You choose Learn, Teach or Both after signing up, and can change it any time."
+        />
       }
       footer={
         <>
-          Already have an account?{" "}
-          <Link to="/auth/signin" className="link">
-            Sign in
-          </Link>
+          <p>
+            Already have an account?{" "}
+            <Link to="/auth/signin" className="link font-semibold">
+              Sign in
+            </Link>
+          </p>
+          <p className="mt-3 flex items-center justify-center gap-2 text-[13px]">
+            <LockKeyhole aria-hidden className="size-4" />
+            We send one email to verify your address. Your email is never shown publicly.
+          </p>
         </>
       }
     >
-      <GoogleSignInButton />
+      <GoogleSignInButton divider="or sign up with email" />
       <form noValidate onSubmit={onSubmit} className="mt-5 space-y-5">
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field
@@ -107,7 +134,7 @@ function SignUp() {
           onChange={(e) => setPassword(e.target.value)}
           error={errors.password}
         />
-        <SubmitButton loading={loading} loadingText="Creating account…">
+        <SubmitButton loading={loading} loadingText="Creating account…" className="auth-primary">
           Create account
         </SubmitButton>
       </form>

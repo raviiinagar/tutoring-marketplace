@@ -697,3 +697,13 @@ main { scroll-margin-top: 90px; }
 .announcement-link { display:inline-block; padding-block:12px; margin-block:-12px; }
 .brand-link { display:inline-flex; align-items:center; min-height:44px; }
 .subject-scroll-button { min-width:44px; }
+
+/* Sign-in and sign-up, design A (19 November 2026). */
+.auth-story { background: linear-gradient(160deg, #fff8e1 0%, #fff4cc 55%, #ffe9a8 100%); }
+.auth-story::after { content: ""; position: absolute; right: -80px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgb(255 98 104 / 0.22), rgb(255 98 104 / 0) 70%); pointer-events: none; }
+.auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 28px 22px; box-shadow: 0 1px 2px rgb(31 26 23 / 0.04), 0 20px 48px -28px rgb(31 26 23 / 0.25); }
+@media (min-width: 1024px) { .auth-card { padding: 44px 44px 36px; } }
+.auth-split .input { min-height: 50px; border-radius: 14px; }
+/* White text needs at least 4.5:1, so the main action uses the darker coral. */
+.auth-primary { background: #d63447; color: #fff; border-radius: 999px; min-height: 50px; }
+.auth-primary:hover { background: #b4283a; }
