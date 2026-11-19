@@ -12,7 +12,7 @@ for (const width of [1440, 390]) {
     try {
     await page.goto('/tutor/listings');
     await page.getByRole('button', { name: 'Create an ad', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Create teaching offer', exact: true })).toBeFocused();
+    await expect(page.getByRole('heading', { name: 'Create ad', exact: true })).toBeFocused();
     await expect(page.getByRole('list', { name: 'Offer editing progress', exact: true })).toHaveCount(0);
     await expect(page.getByLabel('About the class', { exact: true })).toHaveValue(before.biography);
     await expect(page.getByLabel('Tuition rate (INR)', { exact: true })).toHaveValue('650');

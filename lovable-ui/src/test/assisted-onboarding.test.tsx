@@ -186,12 +186,63 @@ it("Support staff claim a request and open the Tutor's own wizard acting for tha
   );
   fireEvent.click(within(card).getByRole("button", { name: "Claim" }));
   await waitFor(() => expect(action).toHaveBeenCalledWith(row.id, "CLAIM", 1, undefined));
-  expect(await screen.findByText("Setting up a Tutor profile for")).toBeVisible();
-  // The workspace reads the Tutor's profile through the staff route for this request.
+  expect(await screen.findByText("Creating the first ad for")).toBeVisible();
+  // The workspace reads the Tutor's profile and ads through the staff route for this request.
   await waitFor(() =>
     expect(
       calls.some((c) => c.url.endsWith("/v1/staff/tutor-onboarding/" + row.id + "/as-tutor/tutor")),
     ).toBe(true),
   );
-  expect(calls.some((c) => c.url.includes("/v1/me/"))).toBe(false);
+  await waitFor(() =>
+    expect(
+      calls.some((c) =>
+        c.url.endsWith("/v1/staff/tutor-onboarding/" + row.id + "/as-tutor/listings"),
+      ),
+    ).toBe(true),
+  );
+  // ADR0021: with no ad online yet, the request cannot be completed.
+  expect(await screen.findByText(/Publish the Tutor's ad first/)).toBeVisible();
+  expect(screen.getByRole("button", { name: "Mark as complete" })).toBeDisabled();
+  // Nothing reads the staff member's own account as if it were the Tutor's.
+  expect(calls.some((c) => c.url.includes("/v1/me"))).toBe(false);
+});
+
+it("a completed request can be reopened and comes back to the staff member's workspace", async () => {
+  const row: StaffOnboardingRequest = {
+    ...request,
+    status: "COMPLETED",
+    completed_at: "2026-11-18T11:00:00.000Z",
+    revision: 4,
+    user_id: "tutor-1",
+    display_name: "Fictional Tutor",
+    email: "fixture@example.invalid",
+    assigned_to: "staff-1",
+    assignee_name: "Fictional staff",
+    assigned_to_me: true,
+    staff_note: null,
+    consent_version: "assisted-onboarding-v1",
+    consent_accepted_at: request.created_at,
+  };
+  vi.spyOn(api, "staffOnboardingRequests").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { requests: [row] },
+  });
+  const action = vi.spyOn(api, "staffOnboardingAction").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { request: { ...row, status: "IN_PROGRESS", completed_at: null, revision: 5 } },
+  });
+  vi.spyOn(api, "catalogue").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { domains: [], terms: [] },
+  });
+  wrap(<TutorOnboardingOperations />);
+  fireEvent.click(screen.getByRole("button", { name: "Load requests" }));
+  const card = (await screen.findByText("fixture@example.invalid")).closest("li")!;
+  expect(within(card).queryByRole("button", { name: "Claim" })).toBeNull();
+  fireEvent.click(within(card).getByRole("button", { name: "Reopen" }));
+  await waitFor(() => expect(action).toHaveBeenCalledWith(row.id, "REOPEN", 4, undefined));
+  expect(await screen.findByText("Creating the first ad for")).toBeVisible();
 });

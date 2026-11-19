@@ -23,7 +23,7 @@ export const Route = createFileRoute("/staff_/safety")({
 const operations: Record<SafetyOperation, string> = {
   RESTRICT_ACCOUNT: "Restrict reported account",
   LIFT_ACCOUNT: "Lift this case’s account restriction",
-  RESTRICT_LISTING: "Restrict this teaching offer",
+  RESTRICT_LISTING: "Restrict this ad",
   LIFT_LISTING: "Lift this case’s offer restriction",
   RESTRICT_CONNECTION: "Restrict this Connection",
   LIFT_CONNECTION: "Lift this case’s Connection restriction",

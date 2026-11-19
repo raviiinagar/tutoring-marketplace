@@ -111,12 +111,30 @@ export function TutorDashboard() {
       <Data query={data.offers} label="Publication state">
         {(result) => {
           const live = result.listings.filter((l) => l.status === "PUBLISHED" && l.eligible).length;
+          if (live)
+            return (
+              <p className="mb-6 rounded-2xl border bg-muted/30 p-4 text-sm" role="status">
+                {`Your teaching workspace is open and ${live} ${live === 1 ? "ad is" : "ads are"} published and visible to learners.`}
+              </p>
+            );
+          // ADR0021: a Tutor is found and contacted through an ad, so say so plainly.
           return (
-            <p className="mb-6 rounded-2xl border bg-muted/30 p-4 text-sm" role="status">
-              {live
-                ? `Your teaching workspace is open and ${live} ${live === 1 ? "ad is" : "ads are"} published and visible to learners.`
-                : "Your teaching workspace is open. Nothing is published yet, so learners cannot see your ads. You publish each ad yourself when it is ready."}
-            </p>
+            <section
+              role="status"
+              aria-labelledby="not-found-yet"
+              className="mb-6 rounded-2xl border-2 border-primary bg-[#fff7d6] p-5"
+            >
+              <h2 id="not-found-yet" className="text-lg font-semibold">
+                Learners can't find you yet
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Nothing is published yet, so learners cannot see or contact you. Publish your first
+                ad. It's free and takes a minute.
+              </p>
+              <Button className="mt-4 rounded-full" asChild>
+                <Link to="/tutor/listings">Publish my first ad</Link>
+              </Button>
+            </section>
           );
         }}
       </Data>

@@ -62,7 +62,7 @@ function Profile() {
       navigation={[
         { id: "about", label: "About" },
         { id: "availability", label: "Location & availability" },
-        { id: "teaching-offers", label: "Teaching offers" },
+        { id: "teaching-offers", label: "Ads" },
         { id: "recommendations", label: "Recommendations" },
       ]}
       actions={
@@ -91,7 +91,7 @@ function Profile() {
             href="#teaching-offers"
             className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
-            {p.offers.length ? "View teaching offers" : "Contact & teaching offers"}
+            {p.offers.length ? "View ads" : "Contact & ads"}
           </a>
           {p.contact && (
             <a
@@ -126,7 +126,7 @@ function Profile() {
         <TutorPresenceSummary presence={p.presence} detail />
       </section>
       <section id="teaching-offers" className="scroll-mt-28 border-t pt-7">
-        <h2 className="text-2xl font-semibold">Contact & teaching offers</h2>
+        <h2 className="text-2xl font-semibold">Contact & ads</h2>
         {p.contact && (
           <p className="mt-4 break-words text-sm">
             Public email, shared with the Tutor's consent:{" "}
@@ -146,7 +146,7 @@ function Profile() {
                 </p>
                 <Button className="mt-4 rounded-full" variant="outline" asChild>
                   <Link to="/tutors/$listingId" params={{ listingId: offer.id }}>
-                    View offer & send an enquiry
+                    View ad & send an enquiry
                   </Link>
                 </Button>
               </article>
@@ -154,7 +154,7 @@ function Profile() {
           </div>
         ) : (
           <p className="mt-4 rounded-2xl bg-secondary p-5 text-sm leading-relaxed">
-            No available teaching offers yet. Check back later to enquire about classes.
+            No ads yet. Check back later to enquire about classes.
           </p>
         )}
         <p className="mt-5 text-xs leading-relaxed text-muted-foreground">

@@ -193,7 +193,7 @@ export function PublicTutorDirectory({
       </div>
       {advanced ? (
         <p className="text-sm text-muted-foreground">
-          See the teaching offers below for your exact learning goal and price filters.
+          See the ads below for your exact learning goal and price filters.
         </p>
       ) : error ? (
         <>

@@ -43,8 +43,8 @@ const activityLabel = (type: string) =>
     ACCESS_PASS_ACTIVATED: "Access Pass activated",
     TUTOR_CLAIM_APPROVE: "Tutor evidence approved",
     TUTOR_CLAIM_REJECT: "Tutor evidence declined",
-    LISTING_APPROVE: "Teaching offer approved",
-    LISTING_CHANGES_REQUESTED: "Teaching offer needs changes",
+    LISTING_APPROVE: "Ad approved",
+    LISTING_CHANGES_REQUESTED: "Ad needs changes",
   })[type] ||
   type
     .toLowerCase()

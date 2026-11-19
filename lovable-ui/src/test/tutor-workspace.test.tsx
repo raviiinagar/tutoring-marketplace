@@ -209,10 +209,15 @@ it("gives a new Tutor with no profile or ad one first step instead of empty pane
 });
 it("separates having a teaching workspace from having a published ad", async () => {
   mount();
-  // Workspace access alone must never read as public visibility.
+  // Workspace access alone must never read as public visibility (ADR0021: say it plainly).
+  expect(await screen.findByRole("heading", { name: "Learners can't find you yet" })).toBeVisible();
   expect(
-    await screen.findByText(/Nothing is published yet, so learners cannot see your ads/),
+    screen.getByText(/Nothing is published yet, so learners cannot see or contact you/),
   ).toBeVisible();
+  expect(screen.getByRole("link", { name: "Publish my first ad" })).toHaveAttribute(
+    "href",
+    "/tutor/listings",
+  );
 });
 it("ignores old private listings after the authoritative account changes", async () => {
   let finish!: (value: Awaited<ReturnType<typeof api.listings>>) => void;

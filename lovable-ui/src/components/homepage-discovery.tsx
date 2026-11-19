@@ -117,12 +117,12 @@ export function HowItWorks() {
           },
           {
             title: "Meet your teacher",
-            text: "Read introductions, compare tuition and explore the teaching offers that fit your goals.",
+            text: "Read introductions, compare tuition and explore the ads that fit your goals.",
             icon: UserRound,
           },
           {
             title: "Make a connection",
-            text: "Send an enquiry through an eligible teaching offer. Once connected, chat and plan a class together.",
+            text: "Send an enquiry through an eligible ad. Once connected, chat and plan a class together.",
             icon: MessageCircle,
           },
         ].map((step, i) => (
@@ -236,7 +236,7 @@ export function TutorLocations() {
         </p>
       ) : (
         <p className="mt-4 text-xs text-muted-foreground">
-          City and area are Tutor-declared. Check the current teaching offer for class mode and
+          City and area are Tutor-declared. Check the current ad for class mode and
           availability.
         </p>
       )}

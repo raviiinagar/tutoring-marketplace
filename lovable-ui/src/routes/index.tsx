@@ -83,7 +83,7 @@ function Index() {
                   Meet your next teacher
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Online and in-person teaching offers. Tuition paid directly to your Tutor.
+                  Online and in-person ads. Tuition paid directly to your Tutor.
                 </p>
               </div>
               <Link

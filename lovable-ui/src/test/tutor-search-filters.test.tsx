@@ -69,7 +69,7 @@ it("sort and chips produce complete next URL filters with dependent resets", () 
   const { rerender } = render(
     <TutorSearchFilters filters={{ subject_id: "physics" }} onApply={apply} />,
   );
-  fireEvent.change(screen.getByLabelText("Sort teaching offers"), {
+  fireEvent.change(screen.getByLabelText("Sort ads"), {
     target: { value: "PRICE_ASC" },
   });
   expect(apply).toHaveBeenLastCalledWith({

@@ -47,7 +47,7 @@ const items = [
   },
   {
     group: "Trust & safety",
-    label: "Teaching offers",
+    label: "Ads",
     to: "/staff/listings",
     icon: BookOpen,
     scope: "TRUST",

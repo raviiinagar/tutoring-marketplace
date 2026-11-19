@@ -215,7 +215,7 @@ it("reuses saved details without changing the shared profile or requiring an onl
   expect(screen.getByRole("spinbutton", { name: "Tuition rate (INR)" })).toHaveValue(500);
   expect(screen.queryByRole("textbox", { name: "About you" })).not.toBeInTheDocument();
   expect(screen.queryByLabelText("Your city")).not.toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Create teaching offer" })).toHaveFocus();
+  expect(screen.getByRole("heading", { name: "Create ad" })).toHaveFocus();
   fireEvent.click(screen.getByRole("button", { name: "Preview my ad" }));
   await screen.findByRole("heading", { name: "Check your ad before publishing" });
   expect(screen.getByRole("button", { name: "Publish my ad" })).toBeDisabled();

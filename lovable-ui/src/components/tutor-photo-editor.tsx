@@ -107,7 +107,7 @@ export function TutorPhotoEditor() {
                     ? "Ready for your public profile"
                     : {
                         PENDING: "Uploaded — waiting for Trust review",
-                        APPROVED: "Approved for eligible teaching offers",
+                        APPROVED: "Approved for eligible ads",
                         REJECTED: "Not approved",
                         REMOVED: "Removed",
                       }[state.photo.status]}
@@ -134,7 +134,7 @@ export function TutorPhotoEditor() {
               {state.photo.status === "PENDING" && !state.photo.self_published && (
                 <p className="text-sm text-muted-foreground">
                   Your portrait is saved. It will appear publicly only after approval on an eligible
-                  teaching offer.
+                  ad.
                 </p>
               )}
               {state.photo.scan_status === "CLEAN" &&

@@ -1893,7 +1893,7 @@ export const api = {
     ),
   staffOnboardingAction: (
     id: string,
-    operation: "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL",
+    operation: "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL" | "REOPEN",
     revision: number,
     reason?: string,
   ) =>

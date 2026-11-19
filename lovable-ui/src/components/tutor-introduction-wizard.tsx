@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
 
 const steps = ["Subjects", "About you", "Your rate", "Ready to teach", "Review"];
 const tips = [
-  "Start with the subjects you know. Choose up to 10; specific class levels and teaching formats belong to your teaching offers.",
+  "Start with the subjects you know. Choose up to 10; specific class levels and teaching formats belong to your ads.",
   "Help learners understand your approach, skills and experience. Write in your own words and keep contact details out of your introduction.",
   "Set an indicative hourly tuition rate. Learners arrange tuition payments directly with you; your platform pass is separate.",
   "Confirm that you are an adult and describe your teaching honestly. Identity verification is optional and separate from publishing your ad.",
@@ -354,7 +354,7 @@ export function TutorIntroductionWizard({
                 onChange={(e) =>
                   change("hourly_rate_paise", Math.round(Number(e.target.value) * 100))
                 }
-                hint="You can set different lesson rates in your teaching offers later."
+                hint="You can set different lesson rates in your ads later."
               />
             )}
             {step === 3 && (
@@ -423,7 +423,7 @@ export function TutorIntroductionWizard({
                       />
                       <span>
                         Show my verified email publicly to everyone when my Tutor Pro pass is active
-                        and a teaching offer is published. I can withdraw this consent here.
+                        and an ad is published. I can withdraw this consent here.
                       </span>
                     </label>
                     <label className="flex items-start gap-3 text-sm">
