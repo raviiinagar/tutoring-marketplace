@@ -65,3 +65,8 @@ Looking at the choice creates nothing. A Tutor who has already started the one-f
 - **Not changed:**
   - Enquiries are still made on an ad and still need access coverage.
   - Contacting a Tutor directly from a profile without an ad is out of scope.
+
+**Existing profiles without an ad (19 November 2026).** The owner confirmed that the Tutors who had published a profile with no ad consented to the team publishing their first ad. An operator command, described in `docs/ops/profile-ads-operator.md`, gives each one an ad built from their own profile.
+- **What comes from the profile:** subject, hourly rate, About text and teaching mode. Languages default to Hindi and English. The owner supplies the level and the board or exam.
+- **How it is applied:** a read-only plan comes first. Then each ad is created and published through the normal ad service acting for the Tutor, audited under the operator with the consent reason.
+- **Safety:** nothing bypasses the ad, photo or safety rules, and re-running never duplicates an ad.
