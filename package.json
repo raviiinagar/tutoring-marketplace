@@ -25,6 +25,7 @@
     "start:api": "node --env-file=.env apps/api/dist/main.js",
     "start:worker": "node --env-file=.env apps/api/dist/worker.js",
     "start:ui": "npm --prefix lovable-ui start",
+    "profile-ads:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/profile-ads-operator.ts",
     "privacy:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/privacy-operator.ts",
     "test:recovery": "node node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json --test --test-concurrency=1 apps/api/test/recovery.test.ts apps/api/test/recovery-storage.test.ts",
     "recovery:operator": "node --env-file=.env node_modules/tsx/dist/cli.mjs --tsconfig apps/api/tsconfig.json apps/api/src/recovery-operator.ts",
