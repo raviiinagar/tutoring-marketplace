@@ -17,6 +17,7 @@ import {
 import {
   ArrowUpRight,
   ChevronDown,
+  CircleAlert,
   CircleHelp,
   Eye,
   EyeOff,
@@ -31,6 +32,7 @@ import { AnnouncementTicker } from "@/components/beta-announcements";
 import { useBetaFeatures } from "@/lib/beta-features";
 import { homepageSections, siteFeatures } from "@/lib/site-visibility";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { api, describeFailure, type Catalogue } from "@/lib/api";
 import { TeacherSearchBar } from "@/components/teacher-search-bar";
@@ -508,6 +510,7 @@ export function AuthShell({
   reference = false,
   fullWidth = false,
   teachingWorkspace = false,
+  aside,
 }: {
   title: string;
   intro?: ReactNode;
@@ -518,6 +521,8 @@ export function AuthShell({
   reference?: boolean;
   fullWidth?: boolean;
   teachingWorkspace?: boolean;
+  /** A panel beside the form (sign-in and sign-up); the form becomes the right column. */
+  aside?: ReactNode;
 }) {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
@@ -564,28 +569,54 @@ export function AuthShell({
         ) : (
           <SiteHeader />
         )}
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className={`account-workspace mx-auto w-full ${referenceLayout && fullWidth ? "max-w-none" : referenceLayout ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
-        >
-          <div
-            className={
-              dashboard || referenceLayout
-                ? "animate-rise account-content"
-                : "card-surface animate-rise account-content"
-            }
+        {aside ? (
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="account-workspace auth-split mx-auto w-full max-w-[1180px] px-5 pb-16 pt-6 sm:pt-10 lg:pt-12"
           >
-            <h1
-              className={reference ? "sr-only" : "break-words text-3xl font-semibold sm:text-4xl"}
+            <div className="grid items-stretch gap-6 lg:grid-cols-2 lg:gap-10">
+              {aside}
+              <div className="auth-card animate-rise account-content self-center">
+                <h1 className="break-words font-display text-[32px] font-semibold leading-tight tracking-tight">
+                  {title}
+                </h1>
+                {intro && <div className="mt-1.5 text-muted-foreground">{intro}</div>}
+                <div className="mt-6">{children}</div>
+                {footer && (
+                  <div className="mt-6 border-t pt-5 text-center text-muted-foreground">
+                    {footer}
+                  </div>
+                )}
+              </div>
+            </div>
+          </main>
+        ) : (
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className={`account-workspace mx-auto w-full ${referenceLayout && fullWidth ? "max-w-none" : referenceLayout ? "max-w-[1240px]" : dashboard ? "max-w-6xl" : wide ? "max-w-4xl" : "max-w-2xl"} px-5 pb-16 pt-6 sm:pt-10`}
+          >
+            <div
+              className={
+                dashboard || referenceLayout
+                  ? "animate-rise account-content"
+                  : "card-surface animate-rise account-content"
+              }
             >
-              {title}
-            </h1>
-            {intro && <div className="mt-3 text-muted-foreground">{intro}</div>}
-            <div className={reference ? "" : "mt-8"}>{children}</div>
-          </div>
-          {footer && <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>}
-        </main>
+              <h1
+                className={reference ? "sr-only" : "break-words text-3xl font-semibold sm:text-4xl"}
+              >
+                {title}
+              </h1>
+              {intro && <div className="mt-3 text-muted-foreground">{intro}</div>}
+              <div className={reference ? "" : "mt-8"}>{children}</div>
+            </div>
+            {footer && (
+              <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>
+            )}
+          </main>
+        )}
         <SiteFooter />
       </div>
     </AccountReady.Provider>
@@ -596,9 +627,11 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   error?: string | undefined;
   hint?: string | undefined;
+  /** A small link beside the label, such as "Forgot password?". */
+  action?: ReactNode;
 };
 
-export function Field({ label, error, hint, id, ...rest }: FieldProps) {
+export function Field({ label, error, hint, id, action, ...rest }: FieldProps) {
   const ready = useContext(AccountReady);
   const [visible, setVisible] = useState(false);
   const password = rest.type === "password";
@@ -610,9 +643,12 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
     [hint ? hintId : null, error ? errId : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={fid} className="block text-sm font-semibold">
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={fid} className="block text-sm font-semibold">
+          {label}
+        </label>
+        {action && <span className="text-sm font-semibold">{action}</span>}
+      </div>
       {hint && (
         <p id={hintId} className="text-sm text-muted-foreground">
           {hint}
@@ -621,7 +657,7 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
       <div className="relative">
         <input
           id={fid}
-          className={password ? "input pr-14" : "input"}
+          className={password ? "input pr-24" : "input"}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           {...rest}
@@ -631,7 +667,7 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
         {password && (
           <button
             type="button"
-            className="absolute inset-y-0 right-0 flex min-w-12 items-center justify-center rounded-r-lg text-muted-foreground hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
+            className="absolute inset-y-1 right-1 flex items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-secondary/70 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50"
             aria-label={`${visible ? "Hide" : "Show"} ${label.toLowerCase()}`}
             aria-controls={fid}
             aria-pressed={visible}
@@ -640,16 +676,22 @@ export function Field({ label, error, hint, id, ...rest }: FieldProps) {
             onClick={() => setVisible((value) => !value)}
           >
             {visible ? (
-              <EyeOff aria-hidden className="size-5" />
+              <EyeOff aria-hidden className="size-4" />
             ) : (
-              <Eye aria-hidden className="size-5" />
+              <Eye aria-hidden className="size-4" />
             )}
+            <span aria-hidden>{visible ? "Hide" : "Show"}</span>
           </button>
         )}
       </div>
       {error && (
-        <p id={errId} role="alert" className="text-sm font-medium text-destructive">
-          {error}
+        <p
+          id={errId}
+          role="alert"
+          className="flex items-start gap-1.5 text-sm font-medium text-destructive"
+        >
+          <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>{error}</span>
         </p>
       )}
     </div>
@@ -661,17 +703,19 @@ export function SubmitButton({
   children,
   loadingText,
   disabled = false,
+  className,
 }: {
   loading: boolean;
   children: ReactNode;
   loadingText: string;
   disabled?: boolean;
+  className?: string;
 }) {
   const ready = useContext(AccountReady);
   return (
     <Button
       type="submit"
-      className="min-h-12 w-full text-base font-semibold"
+      className={cn("min-h-12 w-full text-base font-semibold", className)}
       disabled={disabled || loading || !ready}
       aria-disabled={disabled || loading || !ready}
     >

@@ -14,6 +14,8 @@ import { accountSessionKey } from "@/lib/session";
 import { enquiryTarget } from "@/lib/enquiry";
 import { GoogleSignInButton, GoogleSignInNotice } from "@/components/google-sign-in";
 import { landingAfterSignIn } from "@/lib/teaching-presence";
+import { AuthStory } from "@/components/auth-story";
+import { Heart, LockKeyhole, MessageSquare, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth/signin")({
   validateSearch: (search: Record<string, unknown>): { enquire?: string; google?: string } => {
@@ -82,26 +84,63 @@ function SignIn() {
 
   return (
     <AuthShell
-      title="Welcome back"
+      title="Sign in"
+      intro="Welcome back. Continue with Google or your email."
+      aside={
+        <AuthStory
+          title="Pick up right where you left off."
+          lead="Your Tutors, messages and enquiries, all in one place. Online or in person, across India."
+          perks={[
+            {
+              icon: MessageSquare,
+              title: "One inbox for every Tutor",
+              text: "Continue your conversations and plan the next class.",
+            },
+            {
+              icon: Heart,
+              title: "Saved Tutors and enquiries",
+              text: "Everything you shortlisted is waiting for you.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "See who is identity-verified",
+              text: "Verified Tutors carry a clear badge on their profile.",
+            },
+          ]}
+          note="Teaching? Your ads and learner enquiries are here too."
+        />
+      }
       footer={
         <>
-          New here?{" "}
-          <Link to="/auth/signup" className="link">
-            Create an account
-          </Link>
+          <p>
+            New to Tutor Marketplace?{" "}
+            <Link to="/auth/signup" className="link font-semibold">
+              Create a free account
+            </Link>
+          </p>
+          <p className="mt-3 flex items-center justify-center gap-2 text-[13px]">
+            <LockKeyhole aria-hidden className="size-4" />
+            Secure sign-in. Your email is never shown publicly.
+          </p>
         </>
       }
     >
       <GoogleSignInNotice outcome={google} />
       <div className="mt-5">
-        <GoogleSignInButton returnTo={enquire ? "/teachers/" + enquire : undefined} />
+        <GoogleSignInButton
+          returnTo={enquire ? "/teachers/" + enquire : undefined}
+          divider="or sign in with email"
+        />
       </div>
       <form noValidate onSubmit={onSubmit} className="mt-5 space-y-5">
         {formError && <Notice tone="error">{formError}</Notice>}
         <Field
           label="Email"
           type="email"
+          inputMode="email"
           autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           error={errors.email}
@@ -113,13 +152,15 @@ function SignIn() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           error={errors.password}
+          action={
+            <Link to="/auth/forgot-password" className="link">
+              Forgot password?
+            </Link>
+          }
         />
-        <SubmitButton loading={loading} loadingText="Signing in…">
+        <SubmitButton loading={loading} loadingText="Signing in…" className="auth-primary">
           Sign in
         </SubmitButton>
-        <Link to="/auth/forgot-password" className="link inline-block">
-          Forgot password?
-        </Link>
       </form>
     </AuthShell>
   );
