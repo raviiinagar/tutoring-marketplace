@@ -114,7 +114,7 @@ function SignIn() {
         <>
           <p>
             New to Tutor Marketplace?{" "}
-            <Link to="/auth/signup" className="link font-semibold">
+            <Link to="/auth/signup" className="link whitespace-nowrap font-semibold">
               Create a free account
             </Link>
           </p>

@@ -54,7 +54,7 @@ for (const width of [1440, 390]) test(`saved owner photo stays consistent across
   await checkPhoto(page, replacement); await expect(page.getByRole('main').getByAltText('Your profile photo')).toBeVisible();
   await page.getByRole('button', { name: 'Remove photo', exact: true }).click();
   await expect(page.getByAltText('Your profile photo')).toHaveCount(0);
-  await page.goto('/account'); await expect(page.getByRole('heading', { name: 'Fictional Audit Learner', exact: true })).toBeVisible();
+  await page.goto('/account'); await expect(page.getByRole('heading', { name: /, Fictional Audit Learner$/ })).toBeVisible(); // greeting + own name
   await expect(page.getByAltText('Your profile photo')).toHaveCount(0);
   expect((await page.request.get('/v1/listings/' + ad.id)).status()).toBe(404);
   expect((await new AxeBuilder({ page }).withRules(['label-content-name-mismatch']).analyze()).violations).toEqual([]);

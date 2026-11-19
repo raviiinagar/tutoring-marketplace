@@ -106,7 +106,8 @@ it("shows actual access and honest empty learning states without invented phone 
   mount(<LearnerDashboard />);
   await screen.findByText("No enquiries yet");
   expect(screen.getByText("Email verified")).toBeTruthy();
-  fireEvent.click(screen.getByText("Learning tools and access"));
+  // Learning tools are always visible now (no collapsed box), and the access facts stay real.
+  expect(screen.getByRole("navigation", { name: "Learning tools and access" })).toBeTruthy();
   expect(screen.getByText(/of 5 pending enquiries/).textContent).toContain("3");
   expect(screen.getByText(/No current Access Pass/)).toBeTruthy();
   expect(screen.queryByText(/Phone verified|Completed lessons/)).toBeNull();

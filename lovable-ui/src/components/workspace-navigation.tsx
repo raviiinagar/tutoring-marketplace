@@ -31,7 +31,12 @@ export function WorkspaceNavigation() {
       >
         Dashboard
       </Link>
-      <Link to="/connections" activeProps={activeProps} className={linkClass}>
+      <Link
+        to="/connections"
+        activeOptions={{ includeSearch: false }}
+        activeProps={activeProps}
+        className={linkClass}
+      >
         My messages
       </Link>
       {hasAds && (

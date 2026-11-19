@@ -4,9 +4,9 @@ export async function openAccountSettings(page: Page) {
   await page.getByRole("link", { name: /^My account$/i }).click();
   await expect(page.getByRole("heading", { name: "General Information", exact: true })).toBeVisible();
 }
+/** The Learner dashboard shows its learning tools and Access Pass card directly (no collapsed box). */
 export async function openLearningTools(page: Page) {
-  const summary = page.locator("summary").filter({ hasText: /^Learning tools and access$/ });
-  if (!(await summary.evaluate(element => element.parentElement!.hasAttribute("open")))) await summary.click();
+  await expect(page.getByRole("navigation", { name: "Learning tools and access", exact: true })).toBeVisible();
 }
 export async function openAccountHelp(page: Page) {
   await openAccountSettings(page);

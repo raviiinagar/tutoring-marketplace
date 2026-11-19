@@ -58,8 +58,11 @@ export function useTutorDashboard() {
   const profile = useTutorData(id, "profile", api.tutor),
     offers = useTutorData(id, "offers", api.listings),
     pro = useTutorData(id, "pro", api.tutorPro),
-    requests = useTutorData(id, "requests", () => api.tutorRequests());
-  const expired = [profile, offers, pro, requests].some(
+    requests = useTutorData(id, "requests", () => api.tutorRequests()),
+    // City and teaching hours (a setup step) and unread messages (a dashboard number).
+    presence = useTutorData(id, "presence", api.tutorPresence),
+    conversations = useTutorData(id, "conversations", () => api.connections());
+  const expired = [profile, offers, pro, requests, presence, conversations].some(
     (q) => q.error instanceof TutorDataError && q.error.unauthorized,
   );
   useEffect(() => {
@@ -80,7 +83,9 @@ export function useTutorDashboard() {
         offers.refetch(),
         pro.refetch(),
         requests.refetch(),
+        presence.refetch(),
+        conversations.refetch(),
       ]);
   };
-  return { ...account, profile, offers, pro, requests, refresh };
+  return { ...account, profile, offers, pro, requests, presence, conversations, refresh };
 }

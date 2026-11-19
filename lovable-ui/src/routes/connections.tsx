@@ -10,6 +10,7 @@ import { ChatRoom } from "@/components/chat-room";
 import { ConnectionDetails } from "@/components/connection-details";
 import { ClassInvitations } from "@/components/class-invitations";
 import { InboxRequests } from "@/components/inbox-requests";
+import { InboxNextClass } from "@/components/inbox-next-class";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
 
 export type InboxView = "messages" | "details" | "classes";
@@ -154,6 +155,10 @@ export function Connections({
     previous.current = conversation;
   }, [conversation]);
   const unavailable = selected?.available === false;
+  const totalUnread = rows.reduce(
+    (sum, row) => sum + (row.available ? (row.unread_count ?? 0) : 0),
+    0,
+  );
   return (
     <AuthShell
       title="My messages"
@@ -164,6 +169,10 @@ export function Connections({
     >
       <div className="reference-inbox messaging-inbox" data-selected={Boolean(conversation)}>
         <aside ref={contacts} className="reference-inbox-sidebar" aria-label="Conversations">
+          <p className="inbox-title" aria-hidden="true">
+            My messages
+            {totalUnread > 0 && <small>{totalUnread} unread</small>}
+          </p>
           <InboxRequests
             key={String(teachingWorkspace)}
             tutor={teachingWorkspace}
@@ -202,14 +211,20 @@ export function Connections({
                   <span className="reference-contact-text">
                     <strong>{row.peer ? row.peer.display_name : row.offer.title}</strong>
                     {row.peer && <small className="reference-contact-ad">{row.offer.title}</small>}
-                    <small>
-                      {row.available
-                        ? row.unread_count === null
-                          ? "Open messages"
-                          : `${row.unread_count} unread messages`
-                        : connectionReason(row.unavailable_reason)}
-                    </small>
+                    {!row.available ? (
+                      <small>{connectionReason(row.unavailable_reason)}</small>
+                    ) : row.unread_count === null ? (
+                      <small>Open messages</small>
+                    ) : row.unread_count === 0 ? (
+                      <small className="sr-only">0 unread messages</small>
+                    ) : null}
                   </span>
+                  {row.available && !!row.unread_count && (
+                    <small className="inbox-unread">
+                      {row.unread_count}
+                      <span className="sr-only"> unread messages</span>
+                    </small>
+                  )}
                 </Link>
               </li>
             ))}
@@ -266,9 +281,15 @@ export function Connections({
                 >
                   <ArrowLeft size={18} aria-hidden="true" />
                 </Link>
-                <h2 className="messaging-title" title={title} tabIndex={0}>
-                  {title}
-                </h2>
+                {selected?.peer && (
+                  <PeerAvatar peer={selected.peer} className="messaging-avatar size-11 text-base" />
+                )}
+                <div className="messaging-heading">
+                  <h2 className="messaging-title" title={title} tabIndex={0}>
+                    {selected?.peer ? selected.peer.display_name : title}
+                  </h2>
+                  {selected?.peer && <p className="messaging-subtitle">{title}</p>}
+                </div>
                 <nav aria-label="Conversation sections" className="messaging-sections">
                   {(
                     [
@@ -290,6 +311,9 @@ export function Connections({
                   ))}
                 </nav>
               </header>
+              {!unavailable && view === "messages" && (
+                <InboxNextClass key={conversation} connectionId={conversation} />
+              )}
               <div className="messaging-pane-body" key={conversation}>
                 {unavailable ? (
                   <ConnectionDetails

@@ -15,7 +15,7 @@ async function signup(page:Page,email:string){
 // from it. Child profiles and Guardian reviews are retired.
 test('a parent uses their own adult profile; child profiles and Guardian reviews are retired',async({page})=>{
   test.setTimeout(180_000);const ownerEmail=`parent-${Date.now()}@example.test`;
-  await signup(page,ownerEmail);await openLearningTools(page);await page.getByRole('link',{name:'Learner profiles',exact:true}).click();
+  await signup(page,ownerEmail);await openLearningTools(page);await page.getByRole('link',{name:'My learner profile',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Create your Learner profile',exact:true})).toBeVisible();
   await expect(page.getByText(/Booking classes for your child\? Use your own profile/)).toBeVisible();
   await expect(page.getByRole('checkbox',{name:/child profile/i})).toHaveCount(0);
