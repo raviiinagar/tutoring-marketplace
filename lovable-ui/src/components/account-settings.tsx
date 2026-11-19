@@ -9,7 +9,17 @@ import {
   type NotificationPreferenceView,
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
-import { Check, ShieldCheck, Bell } from "lucide-react";
+import {
+  Bell,
+  Check,
+  Database,
+  LifeBuoy,
+  LockKeyhole,
+  LogOut,
+  MapPin,
+  ShieldCheck,
+  ShieldUser,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AccountPhotoCard } from "./account-photo-card";
 import { RoleChooser } from "./role-chooser";
@@ -40,6 +50,7 @@ export function AccountSettings() {
     preferenceEpoch = useRef(0);
 
   const [identityVerified, setIdentityVerified] = useState<boolean>();
+  const [city, setCity] = useState<string | null>();
   const generation = useRef(0),
     active = useRef(true),
     actor = useRef<string | undefined>(undefined);
@@ -65,15 +76,18 @@ export function AccountSettings() {
         preferenceDirty.current = false;
 
         setIdentityVerified(undefined);
+        setCity(undefined);
       }
       actor.current = res.data.user.id;
       setUser(res.data.user);
       queryClient.setQueryData(accountSessionKey, res);
-      const [staff, listed, notifications, tutor] = await Promise.all([
+      const isTutor = res.data.user.roles.includes("TUTOR");
+      const [staff, listed, notifications, tutor, presence] = await Promise.all([
         api.staffAccess(),
         api.sessions(),
         api.notificationPreferences(),
-        res.data.user.roles.includes("TUTOR") ? api.tutor() : Promise.resolve(undefined),
+        isTutor ? api.tutor() : Promise.resolve(undefined),
+        isTutor ? api.tutorPresence() : Promise.resolve(undefined),
       ]);
       if (!active.current || attempt !== generation.current) return;
       setHasStaff(staff.ok);
@@ -87,6 +101,10 @@ export function AccountSettings() {
       } else setPreferenceError(describeFailure(notifications.error));
 
       if (tutor?.ok) setIdentityVerified(tutor.data.profile?.identity_verified === true);
+      if (presence?.ok) {
+        const place = presence.data.presence.location;
+        setCity(place ? [place.city, place.state].filter(Boolean).join(", ") : null);
+      }
     } else if (res.error.kind === "http" && res.error.status === 401) {
       setUser(null);
       setSessions([]);
@@ -227,219 +245,253 @@ export function AccountSettings() {
     );
 
   const tutor = user.roles.includes("TUTOR");
-  const card = "min-w-0 rounded-lg bg-white p-6 sm:p-8";
+  const card = "acc-card min-w-0";
   return (
     <AuthShell reference dashboard title="My Account">
-      <div className="mb-6">
-        <RoleChooser
-          user={user}
-          busy={security.loading}
-          onChoose={(roles) => void chooseRoles(roles)}
-        />
-        {securityError && !user.roles_chosen && <Notice tone="error">{securityError}</Notice>}
-      </div>
-      <nav aria-label="Account sections" className="mb-7 flex gap-8 text-sm font-semibold">
-        <a
-          href="#profile"
-          aria-current="page"
-          className="inline-flex min-h-11 items-center border-b-2 border-foreground"
-        >
-          My Profile
-        </a>
-        <Link
-          to="/payments/history"
-          className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground"
-        >
-          My Receipts
-        </Link>
-      </nav>
-      <div id="profile" className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="min-w-0 space-y-6">
-          <section className={card} aria-labelledby="general-information-title">
-            <h2 id="general-information-title" className="mb-7 text-center text-base font-bold">
-              General Information
-            </h2>
-            <form
-              className="space-y-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void saveName();
-              }}
-            >
-              <Field
-                label="Account name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                minLength={2}
-                maxLength={80}
-                required
-                autoComplete="name"
-                disabled={profileSave.loading}
-              />
-              <div className="rounded-lg border p-4">
-                <p className="mb-2 text-xs text-muted-foreground">Email address</p>
-                <p className="break-all text-sm font-medium">{user.email}</p>
-                <p
-                  className={
-                    "mt-2 flex items-center gap-2 text-xs " +
-                    (user.email_verified ? "text-emerald-700" : "text-muted-foreground")
-                  }
-                >
-                  {user.email_verified && <Check aria-hidden className="size-4" />}
-                  {user.email_verified ? "Email verified" : "Email not verified"}
-                </p>
-              </div>
-              {profileError && <Notice tone="error">{profileError}</Notice>}
-              {profileNotice && <Notice tone="success">{profileNotice}</Notice>}
-              <Button
-                type="submit"
-                className="min-h-12 w-full rounded-full"
-                disabled={
-                  profileSave.loading || name.trim().length < 2 || name.trim() === user.display_name
-                }
-              >
-                {profileSave.loading ? "Saving..." : "Save general information"}
-              </Button>
-            </form>
-          </section>
-          <section className={card} aria-labelledby="notification-title">
-            <h2
-              id="notification-title"
-              className="mb-6 flex items-center justify-center gap-2 text-base font-bold"
-            >
-              Notifications <Bell aria-hidden className="size-4" />
-            </h2>
-            <h3 className="mb-3 text-xs font-bold tracking-wide">EMAIL</h3>
-            {preferences ? (
+      <div className="acc-page">
+        <div className="mb-6">
+          <RoleChooser
+            user={user}
+            busy={security.loading}
+            onChoose={(roles) => void chooseRoles(roles)}
+          />
+          {securityError && !user.roles_chosen && <Notice tone="error">{securityError}</Notice>}
+        </div>
+        <nav aria-label="Account sections" className="mb-7 flex gap-8 text-sm font-semibold">
+          <a
+            href="#profile"
+            aria-current="page"
+            className="inline-flex min-h-11 items-center border-b-2 border-foreground"
+          >
+            My Profile
+          </a>
+          <Link
+            to="/payments/history"
+            className="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground"
+          >
+            My Receipts
+          </Link>
+        </nav>
+        <div id="profile" className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="min-w-0 space-y-6">
+            <section className={card} aria-labelledby="general-information-title">
+              <h2 id="general-information-title" className="mb-7 text-center text-base font-bold">
+                General Information
+              </h2>
               <form
-                className="space-y-3"
+                className="space-y-5"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void savePreferences();
+                  void saveName();
                 }}
               >
-                {(
-                  [
-                    ["enquiry_email", "Class requests"],
-                    ["chat_email", "New messages"],
-                    ["availability_email", "Tutor availability"],
-                    ["marketing_email", "News and offers"],
-                  ] as const
-                ).map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="flex min-h-16 cursor-pointer items-center gap-3 rounded-lg bg-[#f7f7f7] px-4 py-3 text-sm"
+                <Field
+                  label="Account name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  minLength={2}
+                  maxLength={80}
+                  required
+                  autoComplete="name"
+                  disabled={profileSave.loading}
+                />
+                <div className="rounded-lg border p-4">
+                  <p className="mb-2 text-xs text-muted-foreground">Email address</p>
+                  <p className="break-all text-sm font-medium">{user.email}</p>
+                  <p
+                    className={
+                      "mt-2 flex items-center gap-2 text-xs " +
+                      (user.email_verified ? "text-emerald-700" : "text-muted-foreground")
+                    }
                   >
-                    <input
-                      type="checkbox"
-                      className="size-5 accent-[#ff6268]"
-                      checked={preferences.preferences[key]}
-                      disabled={preferenceSave.loading}
-                      onChange={(event) => {
-                        preferenceDirty.current = true;
-                        setPreferences({
-                          ...preferences,
-                          preferences: { ...preferences.preferences, [key]: event.target.checked },
-                        });
-                      }}
-                    />
-                    {label}
-                  </label>
-                ))}
-                <p className="py-2 text-xs leading-relaxed text-muted-foreground">
-                  {preferences.policy.notice}
-                </p>
-                {preferenceError && <Notice tone="error">{preferenceError}</Notice>}
-                {preferenceNotice && <Notice tone="success">{preferenceNotice}</Notice>}
+                    {user.email_verified && <Check aria-hidden className="size-4" />}
+                    {user.email_verified ? "Email verified" : "Email not verified"}
+                  </p>
+                </div>
+                {profileError && <Notice tone="error">{profileError}</Notice>}
+                {profileNotice && <Notice tone="success">{profileNotice}</Notice>}
                 <Button
                   type="submit"
-                  className="w-full rounded-full"
-                  disabled={preferenceSave.loading}
+                  className="min-h-12 w-full rounded-full"
+                  disabled={
+                    profileSave.loading ||
+                    name.trim().length < 2 ||
+                    name.trim() === user.display_name
+                  }
                 >
-                  {preferenceSave.loading ? "Saving..." : "Save notification preferences"}
+                  {profileSave.loading ? "Saving..." : "Save general information"}
                 </Button>
               </form>
-            ) : preferenceError ? (
-              <div className="space-y-3">
-                <Notice tone="error">{preferenceError}</Notice>
-                <Button variant="outline" onClick={() => void load()}>
-                  Retry notification settings
-                </Button>
-              </div>
-            ) : (
-              <p role="status" className="text-sm text-muted-foreground">
-                Loading notification settings...
-              </p>
-            )}
-            <Link
-              to="/notifications"
-              className="mt-5 inline-flex min-h-10 items-center text-sm underline underline-offset-4"
-            >
-              View notification history
-            </Link>
-          </section>
-        </div>
-        <div className="min-w-0 space-y-6">
-          {/* Identity verification is a Tutor option, so Learners do not see it (ADR0021). */}
-          {tutor && (
-            <section className={card} aria-labelledby="identification-title">
-              <h2 id="identification-title" className="text-center text-base font-bold">
-                Identification
-              </h2>
-              <div
-                aria-hidden
-                className="mx-auto my-7 flex size-32 items-center justify-center rounded-full bg-[#f7f7f7]"
+            </section>
+            <section className={card} aria-labelledby="notification-title">
+              <h2
+                id="notification-title"
+                className="mb-6 flex items-center justify-center gap-2 text-base font-bold"
               >
-                <ShieldCheck className="size-12 text-[#ff6268]" />
-              </div>
-              <p className="text-center text-sm leading-relaxed text-muted-foreground">
-                Identity verification is optional. Email verification and identity review are
-                separate.
-              </p>
-              {tutor && identityVerified !== undefined && (
-                <p className="mt-4 text-center text-sm font-semibold">
-                  {identityVerified ? "Identity reviewed" : "Identity not verified"}
+                Notifications <Bell aria-hidden className="size-4" />
+              </h2>
+              <h3 className="mb-3 text-xs font-bold tracking-wide">EMAIL</h3>
+              {preferences ? (
+                <form
+                  className="space-y-3"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void savePreferences();
+                  }}
+                >
+                  {(
+                    [
+                      ["enquiry_email", "Class requests"],
+                      ["chat_email", "New messages"],
+                      ["availability_email", "Tutor availability"],
+                      ["marketing_email", "News and offers"],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <label
+                      key={key}
+                      className="flex min-h-16 cursor-pointer items-center gap-3 rounded-lg bg-[#f7f7f7] px-4 py-3 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        className="size-5 accent-[#ff6268]"
+                        checked={preferences.preferences[key]}
+                        disabled={preferenceSave.loading}
+                        onChange={(event) => {
+                          preferenceDirty.current = true;
+                          setPreferences({
+                            ...preferences,
+                            preferences: {
+                              ...preferences.preferences,
+                              [key]: event.target.checked,
+                            },
+                          });
+                        }}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                  <p className="py-2 text-xs leading-relaxed text-muted-foreground">
+                    {preferences.policy.notice}
+                  </p>
+                  {preferenceError && <Notice tone="error">{preferenceError}</Notice>}
+                  {preferenceNotice && <Notice tone="success">{preferenceNotice}</Notice>}
+                  <Button
+                    type="submit"
+                    className="w-full rounded-full"
+                    disabled={preferenceSave.loading}
+                  >
+                    {preferenceSave.loading ? "Saving..." : "Save notification preferences"}
+                  </Button>
+                </form>
+              ) : preferenceError ? (
+                <div className="space-y-3">
+                  <Notice tone="error">{preferenceError}</Notice>
+                  <Button variant="outline" onClick={() => void load()}>
+                    Retry notification settings
+                  </Button>
+                </div>
+              ) : (
+                <p role="status" className="text-sm text-muted-foreground">
+                  Loading notification settings...
                 </p>
               )}
-              <Button asChild variant="outline" className="mt-6 w-full rounded-full">
-                <Link to="/tutor">Manage optional identity verification</Link>
-              </Button>
-            </section>
-          )}
-          <section className={card} aria-labelledby="privacy-title">
-            <h2 id="privacy-title" className="mb-4 text-base font-bold">
-              Your data and account
-            </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Request a copy of your data or manage account deletion through your privacy settings.
-            </p>
-            <Link
-              to="/privacy"
-              className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4"
-            >
-              Open privacy settings
-            </Link>
-          </section>
-        </div>
-        <div className="min-w-0 space-y-6">
-          <AccountPhotoCard user={user} className={card} />
-          <section className={card}>
-            <details id="security" className="scroll-mt-28">
-              <summary className="cursor-pointer py-2 font-bold">Security and sessions</summary>
               <Link
-                to="/auth/forgot-password"
-                className="my-3 inline-flex min-h-11 items-center text-sm underline"
+                to="/notifications"
+                className="mt-5 inline-flex min-h-10 items-center text-sm underline underline-offset-4"
               >
+                View notification history
+              </Link>
+            </section>
+          </div>
+          <div className="min-w-0 space-y-6">
+            {tutor && city !== undefined && (
+              <section className={card} aria-labelledby="city-title">
+                <h2 id="city-title" className="acc-title">
+                  <MapPin aria-hidden className="size-[18px]" />
+                  Your city
+                </h2>
+                <p className="acc-city">{city || "No city added yet"}</p>
+                <p className="acc-muted">
+                  Only your city is shown to learners, never your address.
+                </p>
+                <Link to="/tutor" className="acc-link">
+                  {city ? "Change city" : "Add your city"}
+                </Link>
+              </section>
+            )}
+            {/* Identity verification is a Tutor option, so Learners do not see it (ADR0021). */}
+            {tutor && (
+              <section className={card} aria-labelledby="identification-title">
+                <h2 id="identification-title" className="text-center text-base font-bold">
+                  Identification
+                </h2>
+                <div
+                  aria-hidden
+                  className="mx-auto my-7 flex size-32 items-center justify-center rounded-full bg-[#f7f7f7]"
+                >
+                  <ShieldCheck className="size-12 text-[#ff6268]" />
+                </div>
+                <p className="text-center text-sm leading-relaxed text-muted-foreground">
+                  Identity verification is optional. Email verification and identity review are
+                  separate.
+                </p>
+                {tutor && identityVerified !== undefined && (
+                  <p className="mt-4 text-center text-sm font-semibold">
+                    {identityVerified ? "Identity reviewed" : "Identity not verified"}
+                  </p>
+                )}
+                <Button asChild variant="outline" className="mt-6 w-full rounded-full">
+                  <Link to="/tutor">Manage optional identity verification</Link>
+                </Button>
+              </section>
+            )}
+          </div>
+          <div className="min-w-0 space-y-6">
+            <AccountPhotoCard user={user} className={card} />
+            {hasStaff && (
+              <section className="acc-admin" aria-labelledby="admin-title">
+                <h2 id="admin-title">
+                  <ShieldUser aria-hidden className="size-5" />
+                  Admin
+                </h2>
+                <p>You have staff access. Manage Tutors, ads, payments and support.</p>
+                <Link to="/staff">Open admin dashboard</Link>
+              </section>
+            )}
+          </div>
+        </div>
+        {securityError && (
+          <div className="mt-5">
+            <Notice tone="error">{securityError}</Notice>
+          </div>
+        )}
+        {signOutError && (
+          <div className="mt-5">
+            <Notice tone="error">{signOutError}</Notice>
+          </div>
+        )}
+        <footer className="acc-foot" aria-label="More account options">
+          <Link to="/privacy" className="acc-foot-link">
+            <Database aria-hidden className="size-4" />
+            Your data and privacy
+          </Link>
+          <details id="security" className="acc-fold scroll-mt-28">
+            <summary>
+              <LockKeyhole aria-hidden className="size-4" />
+              Security and sessions
+            </summary>
+            <div>
+              <Link to="/auth/forgot-password" className="acc-link">
                 Reset password
               </Link>
-              <h3 className="my-3 text-sm font-bold">Active sessions</h3>
+              <h3 className="acc-sub">Active sessions</h3>
               <ul className="space-y-3">
                 {sessions.map((session) => (
-                  <li key={session.id} className="rounded-lg border p-3">
+                  <li key={session.id} className="acc-session">
                     <p className="text-sm font-medium">
                       {session.current ? "This session" : "Other session"}
                     </p>
-                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       Signed in {new Date(session.created_at).toLocaleString()}. Expires{" "}
                       {new Date(session.expires_at).toLocaleString()}.
                     </p>
@@ -464,58 +516,32 @@ export function AccountSettings() {
               >
                 Sign out other sessions
               </Button>
-            </details>
-          </section>
-          <section className={card}>
-            <details>
-              <summary className="cursor-pointer py-2 font-bold">Help and support</summary>
-              <div className="mt-3 flex flex-col items-start gap-2 text-sm">
-                <Link to="/support" className="min-h-10 underline">
-                  Support and appeals
-                </Link>
-                <Link to="/feedback" className="min-h-10 underline">
-                  Beta feedback and suggestions
-                </Link>
-                {siteFeatures.community && (
-                  <Link to="/community" className="min-h-10 underline">
-                    Community chat
-                  </Link>
-                )}
-                <Link to="/safety" className="min-h-10 underline">
-                  Safety and reports
-                </Link>
-                <Link to="/reviews" className="min-h-10 underline">
-                  My reviews
-                </Link>
-                {hasStaff && (
-                  <Link to="/staff" className="min-h-10 underline">
-                    Open admin dashboard
-                  </Link>
-                )}
-              </div>
-            </details>
-          </section>
-        </div>
+            </div>
+          </details>
+          <details className="acc-fold">
+            <summary>
+              <LifeBuoy aria-hidden className="size-4" />
+              Help and support
+            </summary>
+            <div className="acc-help">
+              <Link to="/support">Support and appeals</Link>
+              <Link to="/feedback">Beta feedback and suggestions</Link>
+              {siteFeatures.community && <Link to="/community">Community chat</Link>}
+              <Link to="/safety">Safety and reports</Link>
+              <Link to="/reviews">My reviews</Link>
+            </div>
+          </details>
+          <button
+            type="button"
+            className="acc-signout"
+            onClick={onSignOut}
+            disabled={signOut.loading}
+          >
+            <LogOut aria-hidden className="size-4" />
+            {signOut.loading ? "Signing out..." : "Sign out"}
+          </button>
+        </footer>
       </div>
-      {securityError && (
-        <div className="mt-5">
-          <Notice tone="error">{securityError}</Notice>
-        </div>
-      )}
-      {signOutError && (
-        <div className="mt-5">
-          <Notice tone="error">{signOutError}</Notice>
-        </div>
-      )}
-      <Button
-        type="button"
-        variant="outline"
-        className="mt-8 min-h-12 rounded-full px-8"
-        onClick={onSignOut}
-        disabled={signOut.loading}
-      >
-        {signOut.loading ? "Signing out..." : "Sign out"}
-      </Button>
     </AuthShell>
   );
 }

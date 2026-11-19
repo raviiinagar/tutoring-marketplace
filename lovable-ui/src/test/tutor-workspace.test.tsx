@@ -166,7 +166,8 @@ it("shows actual offer and Pro state without inventing revenue or visitor metric
   mount();
   await screen.findByText(listing.offer.title);
   expect(await screen.findByText("Not active")).toBeTruthy();
-  expect(screen.getByText("No incoming enquiries yet")).toBeTruthy();
+  // The minimal dashboard leaves enquiries to My messages (the menu shows how many wait).
+  expect(screen.queryByRole("heading", { name: "Learner enquiries" })).toBeNull();
   expect(screen.queryByText(/Total earnings|Profile views|Booked lessons/)).toBeNull();
 });
 it("keeps a failed listings response distinct from an empty dashboard", async () => {
@@ -279,11 +280,10 @@ it("counts paused ads as offline without claiming unavailable published ads are 
     },
   });
   mount();
-  await screen.findByText("Offline", { selector: "p.text-xs" });
-  expect(screen.getByText("Offline", { selector: "p.text-xs" }).parentElement).toHaveTextContent(
-    "1Offline",
-  );
-  expect(screen.getByText("Available").parentElement).toHaveTextContent("0Available");
+  // Each ad shows its own state; neither ad is presented as available to learners.
+  expect(await screen.findByText("Offline")).toBeVisible();
+  expect(screen.getByText("Unavailable")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Learners can't find you yet" })).toBeVisible();
 });
 
 it("invites a Learner from teaching offers into the introduction without reading private Tutor data", async () => {

@@ -1,5 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  Award,
+  Check,
+  Copy,
+  GraduationCap,
+  Mail,
+  Send,
+  ShieldCheck,
+  Star,
+  UserRound,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api, describeFailure, type User } from "@/lib/api";
 import { reputationApi, type RecommendationRelationship } from "@/lib/tutor-reputation-api";
@@ -27,12 +38,7 @@ export function TutorEvaluationsPage() {
     if (account.anonymous) void navigate({ to: "/auth/signin", replace: true });
   }, [account.anonymous, navigate]);
   return (
-    <AuthShell
-      wide
-      dashboard
-      title="Your evaluations"
-      intro="Build your Tutor profile with genuine recommendations and student feedback."
-    >
+    <AuthShell wide dashboard title="Your evaluations">
       {account.user?.roles.includes("TUTOR") ? (
         <TutorRecommendations key={account.user.id} user={account.user} />
       ) : account.user ? (
@@ -55,123 +61,240 @@ function TutorRecommendations({ user }: { user: User }) {
   const query = useReputationRead(user.id, "recommendations", reputationApi.recommendations);
   const profile = useReputationRead(user.id, "profile", api.tutor);
   const [copied, setCopied] = useState(false),
-    [copyError, setCopyError] = useState(false);
+    [copyError, setCopyError] = useState(false),
+    [tab, setTab] = useState<"rec" | "level" | "diploma">("rec");
   const publicId =
     profile.data?.ok && profile.data.data.profile?.eligible
       ? profile.data.data.profile.public_id
       : undefined;
   const path = publicId ? "/recommendations/" + encodeURIComponent(publicId) : undefined;
   const link = path && typeof window !== "undefined" ? window.location.origin + path : undefined;
+  const ask = link
+    ? `Hi! I teach on Tutor Marketplace. Could you write a short recommendation about my teaching? ${link}`
+    : "";
+  const tabs = [
+    ["rec", "Recommendations", Star],
+    ["level", "My level", Award],
+    ["diploma", "Diploma", GraduationCap],
+  ] as const;
   return (
-    <div className="space-y-6">
-      <TutorProgressionPanel id={user.id} />
-      <DiplomaEvidence userId={user.id} />
-      <section className="space-y-4 rounded-3xl border p-5 sm:p-7">
-        <h2 className="text-xl font-semibold">Ask for recommendations</h2>
-        <p className="text-sm text-muted-foreground">
-          Invite former students, colleagues, family or acquaintances who know your work. A
-          recommendation is a network endorsement, not a verified lesson or a star review. Every
-          submission is reviewed before publication.
-        </p>
-        {link ? (
-          <>
-            <Field label="Your recommendation link" value={link} readOnly />
-            <div className="flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(link);
-                    setCopied(true);
-                    setCopyError(false);
-                  } catch {
-                    setCopyError(true);
-                    setCopied(false);
-                  }
-                }}
-              >
-                {copied ? "Link copied" : "Copy recommendation link"}
-              </Button>
-              <a className="link inline-flex min-h-11 items-center" href={path}>
-                Open recommendation page
-              </a>
+    <div className="ev-wrap">
+      <div
+        className="ev-nav"
+        role="tablist"
+        aria-label="Evaluations"
+        aria-orientation="vertical"
+        onKeyDown={(event) => {
+          const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+          if (!step) return;
+          event.preventDefault();
+          const index = tabs.findIndex(([id]) => id === tab);
+          const next = tabs[(index + step + tabs.length) % tabs.length]![0];
+          setTab(next);
+          document.getElementById("ev-tab-" + next)?.focus();
+        }}
+      >
+        {tabs.map(([id, label, Icon]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            id={"ev-tab-" + id}
+            aria-controls={"ev-panel-" + id}
+            aria-selected={tab === id}
+            tabIndex={tab === id ? 0 : -1}
+            onClick={() => setTab(id)}
+          >
+            <Icon aria-hidden className="size-[18px]" />
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="min-w-0">
+        <section
+          className="ev-panel ev-center"
+          role="tabpanel"
+          id="ev-panel-rec"
+          aria-labelledby="ev-tab-rec"
+          hidden={tab !== "rec"}
+        >
+          <div className="ev-benefits">
+            <div>
+              <span className="ws-tile" aria-hidden="true">
+                <UserRound className="size-7" />
+              </span>
+              Shown on your profile
             </div>
-            {copyError && (
-              <p role="status" className="text-sm">
-                Select and copy the link above.
-              </p>
-            )}
-          </>
-        ) : profile.isPending ? (
-          <p role="status">Loading profile link…</p>
-        ) : profile.isError || profile.data?.ok === false ? (
-          <>
-            <Notice tone="error">Could not load your profile link.</Notice>
-            <Button variant="outline" onClick={() => void profile.refetch()}>
-              Retry profile link
-            </Button>
-          </>
-        ) : (
-          <p className="text-sm">
-            Your link becomes available when your profile is published.{" "}
-            <Link className="link" to="/tutor">
-              Check profile and identity status
-            </Link>
-            .
+            <div>
+              <span className="ws-tile ws-tile-butter" aria-hidden="true">
+                <Award className="size-7" />
+              </span>
+              Counts towards Experienced
+            </div>
+            <div>
+              <span className="ws-tile ws-tile-ok" aria-hidden="true">
+                <ShieldCheck className="size-7" />
+              </span>
+              Checked by our team
+            </div>
+          </div>
+          <hr className="ev-hr" />
+          <h2>Ask people who know your teaching</h2>
+          <p className="ev-text">
+            Former students, colleagues, family or friends can recommend you. A recommendation is a
+            network endorsement, not a verified lesson or a star review. Each one appears on your
+            profile after our team has reviewed it.
           </p>
-        )}
-      </section>
-      <section className="space-y-4 rounded-3xl border p-5 sm:p-7">
-        <h2 className="text-xl font-semibold">Recommendation status</h2>
-        {query.isPending ? (
-          <p role="status">Loading recommendations…</p>
-        ) : query.isError || query.data?.ok === false ? (
-          <>
-            <Notice tone="error">
-              Could not load recommendations. This is not an empty result.
-            </Notice>
-            <Button variant="outline" onClick={() => void query.refetch()}>
-              Retry recommendations
-            </Button>
-          </>
-        ) : query.data?.ok ? (
-          query.data.data.recommendations.length ? (
-            <ul className="space-y-3">
-              {query.data.data.recommendations.map((row) => (
-                <li className="rounded-2xl border p-4" key={row.id}>
-                  <p className="font-semibold">
-                    {relationshipLabels[row.relationship]} · {recommendationStatuses[row.status]}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Submitted {new Date(row.created_at).toLocaleDateString()}
-                  </p>
-                  {row.review_reason && (
-                    <p className="mt-2 text-sm">Staff feedback: {row.review_reason}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
+          <hr className="ev-hr" />
+          {link ? (
+            <>
+              <p className="ev-label">Ask for a recommendation via</p>
+              <div className="ev-via">
+                <a
+                  className="ws-btn ws-btn-primary ws-btn-sm"
+                  href={
+                    "mailto:?subject=" +
+                    encodeURIComponent("Could you recommend my teaching?") +
+                    "&body=" +
+                    encodeURIComponent(ask)
+                  }
+                >
+                  <Mail aria-hidden className="size-[18px]" />
+                  Email
+                </a>
+                <a
+                  className="ws-btn ws-btn-soft ws-btn-sm"
+                  href={"https://wa.me/?text=" + encodeURIComponent(ask)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Send aria-hidden className="size-[18px]" />
+                  WhatsApp
+                </a>
+              </div>
+              <hr className="ev-hr" />
+              <p className="ev-label">Or share your link</p>
+              <div className="ev-linkrow">
+                <label htmlFor="ev-link" className="sr-only">
+                  Your recommendation link
+                </label>
+                <input id="ev-link" value={link} readOnly />
+                <button
+                  type="button"
+                  className="ws-btn ws-btn-ink ws-btn-sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(link);
+                      setCopied(true);
+                      setCopyError(false);
+                    } catch {
+                      setCopyError(true);
+                      setCopied(false);
+                    }
+                  }}
+                >
+                  <Copy aria-hidden className="size-[18px]" />
+                  {copied ? "Link copied" : "Copy link"}
+                </button>
+              </div>
+              {copyError && (
+                <p role="status" className="ev-text">
+                  Select and copy the link above.
+                </p>
+              )}
+            </>
+          ) : profile.isPending ? (
+            <p role="status">Loading profile link…</p>
+          ) : profile.isError || profile.data?.ok === false ? (
+            <>
+              <Notice tone="error">Could not load your profile link.</Notice>
+              <Button variant="outline" onClick={() => void profile.refetch()}>
+                Retry profile link
+              </Button>
+            </>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No recommendations received yet. Share your link with someone who knows your work.
+            <p className="ev-text">
+              Your link becomes available when your profile is published.{" "}
+              <Link className="link" to="/tutor">
+                Check profile and identity status
+              </Link>
+              .
             </p>
-          )
-        ) : null}
-        <p className="text-xs text-muted-foreground">
-          This list shows up to 100 recent submissions. The level calculation uses all eligible
-          published recommendations.
-        </p>
-      </section>
-      <section className="rounded-3xl border p-5">
-        <h2 className="font-semibold">Student reviews</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Connected learners and guardians use the existing review flow after an eligible
-          interaction. Recommendations do not replace those reviews.
-        </p>
-        <Link className="link mt-3 inline-block" to="/connections">
-          Open Connections
-        </Link>
-      </section>
+          )}
+          <hr className="ev-hr" />
+          <p className="ev-label">Your recommendations</p>
+          {query.isPending ? (
+            <p role="status">Loading recommendations…</p>
+          ) : query.isError || query.data?.ok === false ? (
+            <>
+              <Notice tone="error">
+                Could not load recommendations. This is not an empty result.
+              </Notice>
+              <Button variant="outline" onClick={() => void query.refetch()}>
+                Retry recommendations
+              </Button>
+            </>
+          ) : query.data?.ok ? (
+            query.data.data.recommendations.length ? (
+              <ul className="ev-rows">
+                {query.data.data.recommendations.map((row) => (
+                  <li key={row.id}>
+                    <span
+                      className={`ev-dot${row.status === "PUBLISHED" ? " is-ok" : ""}`}
+                      aria-hidden="true"
+                    >
+                      {row.status === "PUBLISHED" && <Check className="size-3.5" />}
+                    </span>
+                    <span>
+                      <b>{relationshipLabels[row.relationship]}</b>
+                      <small>
+                        {recommendationStatuses[row.status]} ·{" "}
+                        {new Date(row.created_at).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </small>
+                      {row.review_reason && (
+                        <small>Feedback from our team: {row.review_reason}</small>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="ev-text">
+                No recommendations yet. Share your link with someone who knows your work.
+              </p>
+            )
+          ) : null}
+        </section>
+        <section
+          className="ev-panel"
+          role="tabpanel"
+          id="ev-panel-level"
+          aria-labelledby="ev-tab-level"
+          hidden={tab !== "level"}
+        >
+          <TutorProgressionPanel id={user.id} />
+          <p className="ev-text ev-reviews">
+            Student reviews come from connected learners after an eligible interaction; they are
+            separate from recommendations.{" "}
+            <Link className="link" to="/connections">
+              Open My messages
+            </Link>
+          </p>
+        </section>
+        <section
+          className="ev-panel"
+          role="tabpanel"
+          id="ev-panel-diploma"
+          aria-labelledby="ev-tab-diploma"
+          hidden={tab !== "diploma"}
+        >
+          <DiplomaEvidence userId={user.id} />
+        </section>
+      </div>
     </div>
   );
 }
@@ -258,7 +381,7 @@ function DiplomaEvidence({ userId }: { userId: string }) {
     });
   };
   return (
-    <details className="rounded-3xl border p-5 sm:p-7">
+    <details className="ev-diploma" open>
       <summary className="min-h-7 cursor-pointer font-semibold">Optional diploma evidence</summary>
       <p className="mt-3 text-sm text-muted-foreground">
         A diploma is optional for your public introduction. Uploading it is separate from identity

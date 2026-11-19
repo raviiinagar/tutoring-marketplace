@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { AuthShell, Field, Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { accountSessionKey } from "@/lib/session";
 import { useTutorAccount } from "@/lib/tutor-dashboard";
@@ -25,10 +26,7 @@ export const Route = createFileRoute("/tutor_/listings")({
   ssr: false,
   component: TutorListingsPage,
   head: () => ({
-    meta: [
-      { title: "My ads — Tutor Marketplace" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "My ads — Tutor Marketplace" }, { name: "robots", content: "noindex" }],
   }),
 });
 const initial: TeachingOffer = {
@@ -615,13 +613,17 @@ export function TutorListingsManager({
         {error && <Notice tone="error">{error}</Notice>}
         {notice && <Notice tone="success">{notice}</Notice>}
       </div>
-      <div className="my-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Identity verification is optional. Your ad goes online after you publish it.
-        </p>
-        <Button variant="outline" disabled={loading} onClick={() => void load()}>
-          Refresh ads
-        </Button>
+      <div className="ma-refresh-row">
+        <button
+          type="button"
+          className="ma-refresh"
+          aria-label="Refresh ads"
+          title="Refresh ads"
+          disabled={loading}
+          onClick={() => void load()}
+        >
+          <RefreshCw aria-hidden className="size-[18px]" />
+        </button>
       </div>
       {!ready ? (
         <p role="status">
@@ -652,10 +654,7 @@ export function TutorListingsManager({
         </p>
       )}
       {editorOpen && (
-        <section
-          className="mt-8 rounded-3xl border bg-card p-5 sm:p-7"
-          aria-label="Ad editor"
-        >
+        <section className="mt-8 rounded-3xl border bg-card p-5 sm:p-7" aria-label="Ad editor">
           <h2 ref={editorHeading} tabIndex={-1} className="text-xl font-semibold outline-none">
             {editing ? "Edit ad" : "Create ad"}
           </h2>
@@ -1119,16 +1118,7 @@ export function TutorListingsManager({
   return shell ? (
     shell(content)
   ) : (
-    <AuthShell
-      dashboard
-      title="My ads"
-      intro="Create your teaching ad for free. Publish when you are ready and update it whenever you like."
-      footer={
-        <Link to="/tutor/dashboard" className="link">
-          Back to Tutor dashboard
-        </Link>
-      }
-    >
+    <AuthShell dashboard title="My ads">
       {content}
     </AuthShell>
   );
