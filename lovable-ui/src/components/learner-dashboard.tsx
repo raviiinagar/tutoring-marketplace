@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { accountInitial } from "@/lib/account-photo";
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";

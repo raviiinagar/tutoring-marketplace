@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Check, Clock, Hourglass } from "lucide-react";

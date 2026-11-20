@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTutorApi } from "@/lib/tutor-api";
 import { Link } from "@tanstack/react-router";

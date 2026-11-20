@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { PeerAvatar } from "@/components/peer-avatar";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
