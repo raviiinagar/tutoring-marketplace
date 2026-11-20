@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {

@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { accountSessionKey } from "@/lib/session";
 import { useTeachingPresence } from "@/lib/teaching-presence";
+import { lazy, Suspense } from "react";
+
+const EnquiryCount = lazy(() => import("./enquiry-count"));
 
 const linkClass = "reference-workspace-link";
 const activeProps = { "aria-current": "page", className: "reference-workspace-active" } as const;
@@ -22,6 +25,8 @@ export function TutorWorkspaceNavigation() {
   const { summary } = useTeachingPresence();
   const learns = !user || user.roles.includes("LEARNER");
   const online = (summary?.online ?? 0) > 0;
+  // Enquiries are not on the dashboard any more, so the menu shows how many still need a reply.
+  const tutorId = user?.roles.includes("TUTOR") ? user.id : undefined;
   return (
     <nav aria-label="Teaching workspace navigation" className="reference-workspace-nav">
       <Link
@@ -39,6 +44,11 @@ export function TutorWorkspaceNavigation() {
         className={linkClass}
       >
         My messages
+        {tutorId && (
+          <Suspense fallback={null}>
+            <EnquiryCount tutorId={tutorId} />
+          </Suspense>
+        )}
       </Link>
       <Link
         to="/tutor/listings"

@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarClock, CalendarPlus } from "lucide-react";

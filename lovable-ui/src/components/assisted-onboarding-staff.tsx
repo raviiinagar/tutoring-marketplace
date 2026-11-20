@@ -12,7 +12,7 @@ import { assistedTutorApi, TutorApiContext } from "@/lib/tutor-api";
 import { Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { SimpleTutorSetup } from "@/components/simple-tutor-setup";
-import { TutorListingsManager } from "@/routes/tutor_.listings";
+import { TutorListingsManager } from "@/components/tutor-listings-page";
 
 type Operation = "CLAIM" | "RELEASE" | "COMPLETE" | "CANCEL" | "REOPEN";
 

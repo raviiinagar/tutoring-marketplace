@@ -1,86 +1,25 @@
+import "../workspace.css";
 import { useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
+  Camera,
   ChevronRight,
   Eye,
-  Hourglass,
-  Inbox,
   MapPin,
   Megaphone,
-  MessagesSquare,
   Pencil,
-  Plus,
   Sparkles,
-  Star,
 } from "lucide-react";
 import { AuthShell, Notice } from "./account/ui";
 import { Button } from "./ui/button";
 import { useTutorDashboard } from "@/lib/tutor-dashboard";
 import { focusTutorOffers, offerAvailability, offerStatusLabels } from "@/lib/tutor-workspace";
 import { reputationApi } from "@/lib/tutor-reputation-api";
-import type { IncomingRequest, TeachingListing } from "@/lib/api";
+import type { TeachingListing } from "@/lib/api";
 import { AccountAvatar } from "./account-avatar";
-import { TutorProgressionPanel, useReputationRead } from "./tutor-progression";
-import {
-  Chip,
-  JourneyTrack,
-  ProgressRing,
-  SectionData,
-  ShareProfileButton,
-  StatTile,
-  WsCard,
-} from "./workspace-ui";
-import { greeting, isPendingNow, timeLeft, useEnquiryState } from "@/lib/workspace";
-
-const RECOMMENDATIONS_FOR_NEXT_LEVEL = 2;
-
-function EnquiryRow({ request }: { request: IncomingRequest }) {
-  const { status, remaining } = useEnquiryState(request);
-  return (
-    <li className="ws-row">
-      <span className="ws-row-icon" aria-hidden="true">
-        <Inbox className="size-5" />
-      </span>
-      <div className="min-w-0">
-        <b className="break-words">{request.offer.title}</b>
-        {request.learning_requirements && (
-          <p className="ws-row-meta ws-clamp">{request.learning_requirements}</p>
-        )}
-        <div className="ws-row-actions">
-          {status === "PENDING" ? (
-            <Chip tone={remaining <= 24 * 3600000 ? "warn" : "wait"} icon={Hourglass}>
-              Reply within {timeLeft(remaining)}
-            </Chip>
-          ) : status === "ACCEPTED" ? (
-            <Chip tone="ok">Accepted</Chip>
-          ) : (
-            <Chip>
-              {status === "DECLINED"
-                ? "Declined"
-                : status === "CANCELLED"
-                  ? "Cancelled"
-                  : "Expired"}
-            </Chip>
-          )}
-          {status === "PENDING" ? (
-            <Link to="/connections" className="ws-link">
-              Reply <ChevronRight aria-hidden="true" className="size-4" />
-            </Link>
-          ) : status === "ACCEPTED" && request.connection_id ? (
-            <Link
-              to="/connections"
-              search={{ conversation: request.connection_id }}
-              className="ws-link"
-            >
-              Open chat <ChevronRight aria-hidden="true" className="size-4" />
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    </li>
-  );
-}
+import { useReputationRead } from "./tutor-progression";
+import { Chip, SectionData, ShareProfileButton, WsCard } from "./workspace-ui";
 
 function AdRow({ item }: { item: TeachingListing }) {
   const live = item.status === "PUBLISHED" && item.eligible;
@@ -191,138 +130,23 @@ export function TutorDashboard() {
     profile?.eligible && profile.public_id && typeof window !== "undefined"
       ? `${window.location.origin}/profiles/${profile.public_id}`
       : undefined;
-  const presence = data.presence.data?.presence;
-  const placeAndHours = !!presence?.location && presence.weekly_slots.length > 0;
-  const recommendations =
-    progression.data?.ok === true ? progression.data.data.counts.recommendations : undefined;
-  const steps = [
-    {
-      title: "Profile and first ad",
-      done: online,
-      icon: Megaphone,
-      note: online ? (
-        "Done"
-      ) : (
-        <Link to="/tutor/listings" className="ws-link">
-          Publish an ad
-        </Link>
-      ),
-    },
-    {
-      title: "City and hours",
-      done: placeAndHours,
-      icon: MapPin,
-      note: placeAndHours ? (
-        "Done"
-      ) : (
-        <Link to="/tutor" className="ws-link">
-          Add now
-        </Link>
-      ),
-    },
-    {
-      title: `${RECOMMENDATIONS_FOR_NEXT_LEVEL} recommendations`,
-      done: (recommendations ?? 0) >= RECOMMENDATIONS_FOR_NEXT_LEVEL,
-      icon: Star,
-      note:
-        (recommendations ?? 0) >= RECOMMENDATIONS_FOR_NEXT_LEVEL ? (
-          "Done"
-        ) : (
-          <Link to="/tutor/evaluations" className="ws-link">
-            {recommendations === undefined
-              ? "Ask"
-              : `${recommendations} of ${RECOMMENDATIONS_FOR_NEXT_LEVEL} · Ask`}
-          </Link>
-        ),
-    },
-    {
-      title: "Verify identity",
-      done: !!profile?.identity_verified,
-      icon: BadgeCheck,
-      note: profile?.identity_verified ? (
-        "Done"
-      ) : (
-        <Link to="/tutor" className="ws-link">
-          Optional
-        </Link>
-      ),
-    },
-  ];
-  const done = steps.filter((s) => s.done).length;
+  const place = data.presence.data?.presence.location;
+  const city = place ? [place.city, place.state].filter(Boolean).join(", ") : undefined;
   const name = (profile?.display_name || data.user.display_name).trim();
-  const pending = data.requests.data?.requests.filter((r) => isPendingNow(r)).length;
-  const unread = data.conversations.data?.connections.reduce(
-    (sum, c) => sum + (c.unread_count ?? 0),
-    0,
-  );
-  const known = (value: number | undefined, failed: boolean) =>
-    value !== undefined ? value : failed ? "–" : "…";
+  const progress = progression.data?.ok === true ? progression.data.data : undefined;
+  const levels = progress?.levels ?? [
+    { id: "NEW", label: "New" },
+    { id: "EXPERIENCED", label: "Experienced" },
+    { id: "SUPER_TEACHER", label: "Super Teacher" },
+    { id: "AMBASSADOR", label: "Ambassador" },
+  ];
 
+  // Approved minimal dashboard (D1): profile, level and ads. Enquiries live in My messages,
+  // where the menu shows how many still need a reply; nothing is removed from the product.
   return (
     <AuthShell wide dashboard reference title="Your teaching workspace">
-      <div className="ws">
-        <section className="ws-hero" aria-labelledby="ws-hi">
-          <div className="ws-hero-top">
-            <div className="ws-hero-photo">
-              <ProgressRing done={done} total={steps.length}>
-                <AccountAvatar user={data.user} decorative className="ws-avatar" />
-              </ProgressRing>
-              <p className="ws-ring-caption">
-                {done} of {steps.length} steps done
-              </p>
-            </div>
-            <div className="min-w-0">
-              {data.offers.data &&
-                (online ? (
-                  <span className="ws-live">
-                    <i aria-hidden="true" />
-                    {live} {live === 1 ? "ad" : "ads"} live · learners can find you
-                  </span>
-                ) : (
-                  <span className="ws-live ws-live-off">Not visible to learners yet</span>
-                ))}
-              <h2 id="ws-hi" className="ws-hello">
-                {greeting()}, <span>{name}</span>
-              </h2>
-              <p className="ws-hero-text">
-                {!online
-                  ? "Publish an ad so learners can find and contact you."
-                  : done === steps.length
-                    ? "Your profile is complete. Share it to reach more learners."
-                    : `${steps.length - done} more ${steps.length - done === 1 ? "step" : "steps"} to a complete profile.`}
-                {profile && !profile.eligible && (
-                  <> Profile: {profile.publication_status?.toLowerCase() || "private draft"}.</>
-                )}
-              </p>
-            </div>
-            <div className="ws-cta">
-              {shareUrl ? (
-                <ShareProfileButton url={shareUrl} />
-              ) : (
-                <Link to="/tutor/listings" className="ws-btn ws-btn-primary">
-                  Manage my ads
-                </Link>
-              )}
-              {profile?.eligible && profile.public_id && (
-                <Link
-                  to="/profiles/$profileId"
-                  params={{ profileId: profile.public_id }}
-                  className="ws-btn ws-btn-soft"
-                >
-                  <Eye aria-hidden="true" className="size-[18px]" />
-                  View public profile
-                </Link>
-              )}
-              <Link to="/tutor" className="ws-link ws-cta-link">
-                Manage profile & identity
-              </Link>
-            </div>
-          </div>
-          <JourneyTrack label="Your path to more students" steps={steps} />
-        </section>
-
-        {/* Having this workspace is not the same as being visible to learners.
-            State it plainly, so an owner is never left guessing whether their work is public. */}
+      <div className="md">
+        {/* Having this workspace is not the same as being visible to learners. */}
         {data.offers.data && !online && (
           <section role="status" aria-labelledby="not-found-yet" className="ws-alert">
             <div>
@@ -337,98 +161,100 @@ export function TutorDashboard() {
             </Link>
           </section>
         )}
-
-        <section className="ws-stats" aria-label="Your numbers">
-          <StatTile
-            icon={Megaphone}
-            tone="ok"
-            value={known(listings ? live : undefined, data.offers.isError)}
-            label={live === 1 ? "Ad live" : "Ads live"}
-            to="/tutor/listings"
-          />
-          <StatTile
-            icon={Inbox}
-            value={known(pending, data.requests.isError)}
-            label="New enquiries"
-            to="/connections"
-          />
-          <StatTile
-            icon={MessagesSquare}
-            tone="peach"
-            value={known(unread, data.conversations.isError)}
-            label="Unread messages"
-            to="/connections"
-          />
-          <StatTile
-            icon={Star}
-            tone="butter"
-            value={known(recommendations, progression.isError || progression.data?.ok === false)}
-            label="Recommendations"
-            to="/tutor/evaluations"
-          />
-        </section>
-
-        <div className="ws-layout">
-          <WsCard
-            title="Learner enquiries"
-            action={
-              <Link to="/tutor/requests" className="ws-link">
-                See all <ChevronRight aria-hidden="true" className="size-4" />
+        <div className="md-grid">
+          <section className="md-card md-profile" aria-labelledby="md-name">
+            <div className="md-photo">
+              <AccountAvatar user={data.user} decorative className="md-photo-img" />
+              <Link
+                to="/account/settings"
+                className="md-photo-btn"
+                aria-label="Change profile photo"
+              >
+                <Camera aria-hidden="true" className="size-[18px]" />
               </Link>
-            }
-          >
-            <SectionData query={data.requests} label="Tutor enquiries">
-              {(result) =>
-                result.requests.length ? (
-                  <ul className="ws-rows">
-                    {result.requests.slice(0, 3).map((request) => (
-                      <EnquiryRow key={request.id} request={request} />
-                    ))}
-                  </ul>
+            </div>
+            <h2 id="md-name">{name}</h2>
+            {city && (
+              <p className="md-city">
+                <MapPin aria-hidden="true" className="size-4" />
+                {city}
+              </p>
+            )}
+            <div className="md-checks">
+              <p>
+                Email
+                {data.user.email_verified ? (
+                  <span className="md-ok">
+                    <BadgeCheck aria-hidden="true" className="size-4" />
+                    Verified
+                  </span>
                 ) : (
-                  <div className="ws-empty">
-                    <span className="ws-empty-art" aria-hidden="true">
-                      <Inbox className="size-7" />
-                    </span>
-                    <h3>No incoming enquiries yet</h3>
-                    <p>
-                      When a learner contacts you, it appears here with the time left to reply. An
-                      enquiry is a request to connect, not a confirmed booking.
-                    </p>
-                    {shareUrl && <ShareProfileButton url={shareUrl} className="ws-btn-sm" />}
-                  </div>
-                )
-              }
-            </SectionData>
-          </WsCard>
+                  <Link to="/account/settings">Verify email</Link>
+                )}
+              </p>
+              <p>
+                Identity
+                {profile?.identity_verified ? (
+                  <span className="md-ok">
+                    <BadgeCheck aria-hidden="true" className="size-4" />
+                    Verified
+                  </span>
+                ) : (
+                  <Link to="/tutor">Verify (optional)</Link>
+                )}
+              </p>
+            </div>
+            <div className="md-links">
+              {profile?.eligible && profile.public_id && (
+                <Link
+                  to="/profiles/$profileId"
+                  params={{ profileId: profile.public_id }}
+                  className="ws-btn ws-btn-soft ws-btn-sm"
+                >
+                  <Eye aria-hidden="true" className="size-4" />
+                  Public profile
+                </Link>
+              )}
+              {shareUrl && <ShareProfileButton url={shareUrl} label="Share" tone="soft" />}
+            </div>
+          </section>
 
-          <WsCard
-            title="My ads"
-            action={
-              <Link to="/tutor/listings" className="ws-link">
-                Manage ads <ChevronRight aria-hidden="true" className="size-4" />
-              </Link>
-            }
-          >
-            <SectionData query={data.offers} label="Your ads">
-              {(result) => (
-                <>
-                  <div className="ws-counts">
-                    {(
-                      [
-                        ["Available", live],
-                        ["Drafts", result.listings.filter((l) => l.status === "DRAFT").length],
-                        ["Offline", result.listings.filter((l) => l.status === "PAUSED").length],
-                      ] as const
-                    ).map(([label, count]) => (
-                      <div key={label}>
-                        <p className="ws-count">{count}</p>
-                        <p className="text-xs">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {result.listings.length ? (
-                    <ul className="ws-ads">
+          <div className="md-main">
+            {online && (
+              <section className="md-level" aria-label="Your Tutor level">
+                <ol>
+                  {levels.map((level) => {
+                    const current = progress?.level === level.id;
+                    return (
+                      <li key={level.id} className={current ? "is-now" : undefined}>
+                        <span>
+                          {current ? <span className="md-now">{level.label}</span> : level.label}
+                        </span>
+                        <i aria-hidden="true" />
+                        {current && <span className="sr-only">Current level</span>}
+                      </li>
+                    );
+                  })}
+                </ol>
+                <p className="md-up">
+                  <Link to="/tutor/evaluations">
+                    Grow my level <ChevronRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </p>
+              </section>
+            )}
+            <WsCard
+              title="My ads"
+              action={
+                <Link to="/tutor/listings" className="ws-link">
+                  Manage <ChevronRight aria-hidden="true" className="size-4" />
+                </Link>
+              }
+            >
+              <SectionData query={data.offers} label="Your ads">
+                {(result) =>
+                  result.listings.length ? (
+                    <ul className="md-ads">
                       {focusTutorOffers(result.listings)
                         .slice(0, 3)
                         .map((item) => (
@@ -443,48 +269,36 @@ export function TutorDashboard() {
                         before publishing your ad for free. Identity verification is optional.
                       </p>
                     </div>
-                  )}
-                  <Link to="/tutor/listings" className="ws-new-ad">
-                    <Plus aria-hidden="true" className="size-[18px]" />
-                    Create another ad
-                  </Link>
-                </>
-              )}
-            </SectionData>
-          </WsCard>
-        </div>
-
-        {online && (
-          <div className="ws-layout">
-            <TutorProgressionPanel id={data.user.id} compact />
-            <WsCard
-              title="Tutor Pro"
-              action={
-                <Link to="/tutor" hash="tutor-pro" className="ws-link">
-                  Options <ChevronRight aria-hidden="true" className="size-4" />
-                </Link>
-              }
-            >
-              <SectionData query={data.pro} label="Tutor Pro">
-                {(pro) => (
-                  <div className="ws-pro">
-                    <span className="ws-tile ws-tile-butter" aria-hidden="true">
-                      <Sparkles className="size-5" />
-                    </span>
-                    <div>
-                      <p className="font-semibold">{pro.active ? "Active" : "Not active"}</p>
-                      <p className="ws-row-meta">
-                        {pro.active
-                          ? `Valid until ${new Date(pro.active.ends_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.`
-                          : "Optional. Show your verified email on your profile. Your ads stay online without it, and it does not verify identity or qualifications."}
-                      </p>
-                    </div>
-                  </div>
-                )}
+                  )
+                }
               </SectionData>
             </WsCard>
           </div>
-        )}
+
+          {online && (
+            <section className="md-pro" aria-labelledby="md-pro-title">
+              <h2 id="md-pro-title">
+                <Sparkles aria-hidden="true" className="size-5" />
+                Tutor Pro
+              </h2>
+              <SectionData query={data.pro} label="Tutor Pro">
+                {(pro) => (
+                  <>
+                    <p className="md-pro-state">{pro.active ? "Active" : "Not active"}</p>
+                    <p>
+                      {pro.active
+                        ? `Valid until ${new Date(pro.active.ends_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.`
+                        : "Optional. Show your verified email on your profile. Your ads stay online without it."}
+                    </p>
+                  </>
+                )}
+              </SectionData>
+              <Link to="/tutor" hash="tutor-pro" className="md-pro-link">
+                Learn more
+              </Link>
+            </section>
+          )}
+        </div>
       </div>
     </AuthShell>
   );

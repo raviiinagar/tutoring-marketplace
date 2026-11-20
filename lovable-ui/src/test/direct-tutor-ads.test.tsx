@@ -92,7 +92,6 @@ it("shows the ad's teaching sections and publishes a draft for free without Pro 
   ])
     expect(screen.getByRole("heading", { name })).toBeVisible();
   expect(screen.getByText(ad.offer.title)).toBeVisible();
-  expect(screen.getByText("Publishing is free. Identity verification is optional.")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Publish my ad" }));
   expect(onAction).toHaveBeenCalledExactlyOnceWith(ad, "PUBLISH");
 });
@@ -147,9 +146,7 @@ it("archives only after confirmation and explains that established history is re
   const { onAction } = mount();
   fireEvent.click(screen.getByRole("button", { name: "Delete advert" }));
   const dialog = screen.getByRole("alertdialog");
-  expect(dialog).toHaveTextContent(
-    "Existing enquiries, payments and conversations are kept.",
-  );
+  expect(dialog).toHaveTextContent("Existing enquiries, payments and conversations are kept.");
   expect(onAction).not.toHaveBeenCalled();
   fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
   expect(onAction).not.toHaveBeenCalled();

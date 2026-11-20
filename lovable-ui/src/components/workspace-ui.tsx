@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import type { UseQueryResult } from "@tanstack/react-query";
@@ -201,10 +202,12 @@ export function ShareProfileButton({
   url,
   className = "",
   label = "Share my profile",
+  tone = "primary",
 }: {
   url: string;
   className?: string;
   label?: string;
+  tone?: "primary" | "soft";
 }) {
   const [message, setMessage] = useState("");
   useEffect(() => {
@@ -229,7 +232,7 @@ export function ShareProfileButton({
     <>
       <button
         type="button"
-        className={`ws-btn ws-btn-primary ${className}`}
+        className={`ws-btn ws-btn-${tone}${tone === "soft" ? " ws-btn-sm" : ""} ${className}`}
         onClick={() => void share()}
       >
         <Share2 aria-hidden="true" className="size-[18px]" />

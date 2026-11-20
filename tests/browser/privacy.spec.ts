@@ -44,7 +44,8 @@ test("verified export and deletion complete with a read-only receipt on mobile",
   await signup(page, email);
   await openAccountSettings(page);
   await page
-    .getByRole("link", { name: "Open privacy settings", exact: true })
+    // My Account keeps data and privacy as a footer link (approved minimal layout).
+    .getByRole("link", { name: "Your data and privacy", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Your data and privacy", exact: true }),

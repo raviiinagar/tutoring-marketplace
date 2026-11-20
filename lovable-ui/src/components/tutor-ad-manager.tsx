@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTutorApi } from "@/lib/tutor-api";
 import { Link } from "@tanstack/react-router";
@@ -62,39 +63,37 @@ export function TutorAdManager({
   const label = (id: string | undefined) =>
     catalogue?.terms.find((term) => term.id === id)?.label || id || "Not specified";
   const section = (title: string, body: ReactNode, step: number) => (
-    <section className="min-w-0 py-4">
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <h3 className="text-base font-semibold text-primary">{title}</h3>
-        <Button
-          variant="ghost"
-          size="sm"
+    <section className="ma-sec min-w-0">
+      <div className="ma-sec-head">
+        <h3>{title}</h3>
+        <button
+          type="button"
+          className="ma-edit"
           disabled={disabled}
           onClick={() => ad && onEdit(ad, step)}
           aria-label={"Modify " + title.toLowerCase()}
         >
-          <Pencil aria-hidden className="size-4" />
-          <span className="sr-only">Modify {title.toLowerCase()}</span>
-        </Button>
+          <Pencil aria-hidden className="size-[18px]" />
+        </button>
       </div>
-      <div className="rounded-3xl border bg-card p-5 break-words text-sm leading-relaxed text-muted-foreground">
-        {body}
-      </div>
+      <div className="ma-val">{body}</div>
     </section>
   );
   return (
     <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[190px_minmax(0,1fr)_250px]">
       <aside
         aria-label="Your ads"
-        className="order-1 min-w-0 space-y-3 rounded-3xl bg-secondary/60 p-4 xl:sticky xl:top-28"
+        className="ma-list order-1 min-w-0 space-y-3 xl:sticky xl:top-28"
       >
-        <Button
-          className="w-full rounded-full"
+        <button
+          type="button"
+          className="ws-btn ws-btn-primary ws-btn-sm w-full"
           disabled={disabled || !canCreate}
           onClick={onCreate}
         >
           <Plus aria-hidden className="size-4" />
           Create an ad
-        </Button>
+        </button>
         {ads.map((item) => (
           <button
             type="button"
@@ -102,17 +101,14 @@ export function TutorAdManager({
             disabled={disabled}
             aria-pressed={item.id === selected}
             onClick={() => setSelected(item.id)}
-            className={
-              "block w-full rounded-2xl border p-4 text-left " +
-              (item.id === selected
-                ? "border-amber-300 bg-amber-50"
-                : "border-transparent bg-card hover:border-border")
-            }
+            className="ma-ad"
           >
             <span className="block truncate text-sm font-semibold">
               {label(item.offer.subject_id)}
             </span>
-            <span className="mt-1 block text-xs text-muted-foreground">
+            <span
+              className={`ma-ad-status${item.status === "PUBLISHED" && item.eligible ? " is-online" : ""}`}
+            >
               {item.status === "PUBLISHED"
                 ? item.eligible
                   ? "Online"
@@ -123,7 +119,7 @@ export function TutorAdManager({
         ))}
       </aside>
       {!ad ? (
-        <div className="rounded-3xl border bg-card p-8">
+        <div className="ma-card p-8">
           <h2 className="text-2xl font-semibold">Share what you love teaching</h2>
           <p className="mt-3 text-sm text-muted-foreground">
             Create your first ad for free. Add your teaching details, then publish when you are
@@ -132,7 +128,7 @@ export function TutorAdManager({
         </div>
       ) : (
         <>
-          <div className="order-3 min-w-0 xl:order-2" aria-label="Ad sections">
+          <div className="ma-card order-3 min-w-0 xl:order-2" aria-label="Ad sections">
             {section("Courses taught", label(ad.offer.subject_id), 0)}
             {section(
               "Ad title",
@@ -157,14 +153,14 @@ export function TutorAdManager({
               0,
             )}
             {section("Languages", ad.offer.language_ids.map(label).join(", "), 5)}
-            <section className="py-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="font-semibold">About you</h3>
-                <Link to="/tutor" className="link inline-flex min-h-10 items-center text-sm">
-                  Modify
+            <section className="ma-sec">
+              <div className="ma-sec-head">
+                <h3>About you</h3>
+                <Link to="/tutor" className="ma-edit" aria-label="Modify about you">
+                  <Pencil aria-hidden className="size-[18px]" />
                 </Link>
               </div>
-              <p className="rounded-3xl border bg-card p-5 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+              <p className="ma-val whitespace-pre-wrap">
                 {profile?.biography || "Add your introduction in your profile."}
               </p>
             </section>
@@ -194,22 +190,19 @@ export function TutorAdManager({
                 : `${ad.offer.trial_kind === "FREE" ? "Free" : `₹${(ad.offer.trial_price_paise || 0) / 100}`} · ${ad.offer.trial_minutes} minutes`,
               7,
             )}
-            <section className="py-6">
-              <h3 className="font-semibold">Recommendations</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Invite people who know your teaching to share their experience.
-              </p>
-              <Link
-                to="/tutor/evaluations"
-                className="link mt-3 inline-flex min-h-10 items-center text-sm"
-              >
+            <section className="ma-sec">
+              <div className="ma-sec-head">
+                <h3>Recommendations</h3>
+              </div>
+              <p className="ma-val">Invite people who know your teaching to recommend you.</p>
+              <Link to="/tutor/evaluations" className="ws-link">
                 Manage recommendations
               </Link>
             </section>
           </div>
           <aside
             aria-label="Ad publication"
-            className="order-2 min-w-0 space-y-5 rounded-3xl border bg-card p-6 xl:order-3 xl:sticky xl:top-28"
+            className="ma-card ma-side order-2 min-w-0 space-y-4 p-6 xl:order-3 xl:sticky xl:top-28"
           >
             <div className="mx-auto flex aspect-[4/5] w-full max-w-40 items-center justify-center overflow-hidden rounded-3xl bg-amber-100 text-4xl font-semibold text-amber-950">
               {photo &&
@@ -236,7 +229,7 @@ export function TutorAdManager({
                 {ad.offer.rate_unit === "HOUR" ? "/hr" : "/lesson"}
               </strong>
             </p>
-            <div className="rounded-2xl bg-amber-50 p-4">
+            <div className={`ma-status${online ? " is-online" : ""}`}>
               <p className="font-semibold" role="status">
                 {online
                   ? "Your ad is online"
@@ -246,9 +239,7 @@ export function TutorAdManager({
                       ? "Your ad is a draft"
                       : "Your ad is unavailable"}
               </p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                {offerAvailability(ad)}
-              </p>
+              <p className="mt-1 text-[13px] leading-relaxed">{offerAvailability(ad)}</p>
             </div>
             {(online || ad.status === "PAUSED") && (
               <button
@@ -294,7 +285,10 @@ export function TutorAdManager({
               </p>
             )}
             {ad.review_reason && (
-              <p className="text-xs text-muted-foreground">Previous feedback: {ad.review_reason}</p>
+              <div className="ma-feedback">
+                <p className="font-semibold">Feedback from our team</p>
+                <p className="mt-1 break-words">{ad.review_reason}</p>
+              </div>
             )}
             {ad.safety_reason && (
               <p role="alert" className="text-xs text-destructive">
@@ -323,9 +317,6 @@ export function TutorAdManager({
               <Trash2 aria-hidden className="size-4" />
               Delete advert
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Publishing is free. Identity verification is optional.
-            </p>
           </aside>
         </>
       )}
