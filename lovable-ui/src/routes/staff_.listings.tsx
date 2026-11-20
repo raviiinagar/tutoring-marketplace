@@ -3,7 +3,7 @@ import {useEffect,useState,type FormEvent} from 'react';
 import {api,describeFailure,type TeachingListing,type ListingQueueItem,type Catalogue} from '@/lib/api';
 import {AuthShell,Field,Notice,SubmitButton,useSingleFlight} from '@/components/account/ui';
 import {Button} from '@/components/ui/button';
-import {OfferSummary} from './tutor_.listings';
+import {OfferSummary} from '@/components/tutor-listings-page';
 export const Route=createFileRoute('/staff_/listings')({ssr:false,component:ListingReviews,head:()=>({meta:[{title:'Listing review — Tutor Marketplace'},{name:'robots',content:'noindex'}]})});
 function ListingReviews(){
   const [queue,setQueue]=useState<ListingQueueItem[]>([]);const [selected,setSelected]=useState('');const [listing,setListing]=useState<TeachingListing>();const [catalogue,setCatalogue]=useState<Catalogue>();const [reason,setReason]=useState('');const [outcome,setOutcome]=useState<'APPROVE'|'CHANGES_REQUESTED'>('APPROVE');const [error,setError]=useState<string>();const {loading,run}=useSingleFlight();
