@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { accountSessionKey } from "@/lib/session";
 import { useTeachingPresence } from "@/lib/teaching-presence";
-import { requestTimeRemaining } from "./request-deadline";
+import { lazy, Suspense } from "react";
+
+const EnquiryCount = lazy(() => import("./enquiry-count"));
 
 const linkClass = "reference-workspace-link";
 const activeProps = { "aria-current": "page", className: "reference-workspace-active" } as const;
@@ -25,23 +27,6 @@ export function TutorWorkspaceNavigation() {
   const online = (summary?.online ?? 0) > 0;
   // Enquiries are not on the dashboard any more, so the menu shows how many still need a reply.
   const tutorId = user?.roles.includes("TUTOR") ? user.id : undefined;
-  const enquiries = useQuery({
-    queryKey: ["tutor-enquiry-count", tutorId ?? "signed-out"],
-    enabled: !!tutorId,
-    retry: false,
-    staleTime: 30000,
-    queryFn: async () => {
-      const result = await api.tutorRequests();
-      if (!result.ok) return 0;
-      return result.data.requests.filter(
-        (row) =>
-          row.status === "PENDING" &&
-          (row.can_accept || row.can_decline) &&
-          requestTimeRemaining(row, 0) > 0,
-      ).length;
-    },
-  });
-  const waiting = enquiries.data ?? 0;
   return (
     <nav aria-label="Teaching workspace navigation" className="reference-workspace-nav">
       <Link
@@ -59,14 +44,10 @@ export function TutorWorkspaceNavigation() {
         className={linkClass}
       >
         My messages
-        {waiting > 0 && (
-          <span className="nav-count">
-            {waiting}
-            <span className="sr-only">
-              {" "}
-              {waiting === 1 ? "enquiry" : "enquiries"} waiting for a reply
-            </span>
-          </span>
+        {tutorId && (
+          <Suspense fallback={null}>
+            <EnquiryCount tutorId={tutorId} />
+          </Suspense>
         )}
       </Link>
       <Link
