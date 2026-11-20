@@ -18,6 +18,7 @@ import {
   hasPublicationPhoto,
 } from "@/lib/tutor-workspace";
 import { Button } from "./ui/button";
+import { offerSubjectLabel } from "@/lib/offer-labels";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -104,7 +105,7 @@ export function TutorAdManager({
             className="ma-ad"
           >
             <span className="block truncate text-sm font-semibold">
-              {label(item.offer.subject_id)}
+              {offerSubjectLabel(item.offer, (id) => label(id))}
             </span>
             <span
               className={`ma-ad-status${item.status === "PUBLISHED" && item.eligible ? " is-online" : ""}`}
@@ -129,7 +130,11 @@ export function TutorAdManager({
       ) : (
         <>
           <div className="ma-card order-3 min-w-0 xl:order-2" aria-label="Ad sections">
-            {section("Courses taught", label(ad.offer.subject_id), 0)}
+            {section(
+              "Courses taught",
+              offerSubjectLabel(ad.offer, (id) => label(id)),
+              0,
+            )}
             {section(
               "Ad title",
               <p className="text-lg font-semibold text-foreground">{ad.offer.title}</p>,
@@ -139,7 +144,11 @@ export function TutorAdManager({
               "Venue",
               ad.offer.teaching_mode === "ONLINE"
                 ? "Online"
-                : ["In person", ad.class_location?.area, ad.class_location?.city]
+                : [
+                    ad.offer.teaching_mode === "BOTH" ? "Online and in person" : "In person",
+                    ad.class_location?.area,
+                    ad.class_location?.city,
+                  ]
                     .filter(Boolean)
                     .join(" · "),
               4,

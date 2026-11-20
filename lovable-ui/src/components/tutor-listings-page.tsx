@@ -23,6 +23,12 @@ import { hasPublicationPhoto } from "@/lib/tutor-workspace";
 import { TutorPhotoEditor } from "@/components/tutor-photo-editor";
 import { introductionFromProfile } from "@/components/tutor-introduction-wizard";
 import { useTutorApi } from "@/lib/tutor-api";
+import {
+  OTHER_SUBJECT_ID,
+  offerSubjectLabel,
+  teachesInPerson,
+  teachingModeLabel,
+} from "@/lib/offer-labels";
 const initial: TeachingOffer = {
   title: "",
   description: "",
@@ -118,7 +124,7 @@ export function OfferSummary({
     <dl className="space-y-2 text-sm">
       <div>
         <dt className="font-semibold">Class mode</dt>
-        <dd>{offer.teaching_mode === "IN_PERSON" ? "In person" : "Online"}</dd>
+        <dd>{teachingModeLabel(offer.teaching_mode)}</dd>
       </div>
       {offer.class_location && (
         <div>
@@ -133,10 +139,12 @@ export function OfferSummary({
       <div>
         <dt className="font-semibold">Teaching combination</dt>
         <dd>
-          {[offer.subject_id, offer.level_id, offer.curriculum_id, offer.exam_id]
-            .filter((id): id is string => !!id)
-            .map(label)
-            .join(" · ")}
+          {[
+            offerSubjectLabel(offer, (id) => label(id)),
+            ...[offer.level_id, offer.curriculum_id, offer.exam_id]
+              .filter((id): id is string => !!id)
+              .map(label),
+          ].join(" · ")}
         </dd>
       </div>
       <div>
@@ -338,18 +346,21 @@ export function TutorListingsManager({
       );
     }
   }, [ready, approvalsReady, catalogue, editing, eligibleSubjects]);
-  const suggestedTitle = (subjectId: string) =>
-    `${(catalogue?.terms.find((term) => term.id === subjectId)?.label || "").slice(0, 40)} lessons for students. Read about my teaching approach, class format and fees below.`;
+  const suggestedTitle = (subjectId: string, typed?: string) =>
+    `${(subjectId === OTHER_SUBJECT_ID ? typed || "" : catalogue?.terms.find((term) => term.id === subjectId)?.label || "").slice(0, 40)} lessons for students. Read about my teaching approach, class format and fees below.`;
   const change = <K extends keyof TeachingOffer>(key: K, value: TeachingOffer[K]) =>
-    setOffer((current) => ({
-      ...current,
-      [key]: value,
-      ...(simpleCreate &&
-      key === "subject_id" &&
-      current.title === suggestedTitle(current.subject_id)
-        ? { title: suggestedTitle(String(value || "")) }
-        : {}),
-    }));
+    setOffer((current) => {
+      const next = { ...current, [key]: value };
+      // Only an "Other" subject carries a typed name.
+      if (key === "subject_id" && value !== OTHER_SUBJECT_ID) next.custom_subject = undefined;
+      const autoTitle =
+        simpleCreate &&
+        (key === "subject_id" || key === "custom_subject") &&
+        current.title === suggestedTitle(current.subject_id, current.custom_subject);
+      return autoTitle
+        ? { ...next, title: suggestedTitle(next.subject_id, next.custom_subject) }
+        : next;
+    });
   const save = (e: FormEvent) => {
     e.preventDefault();
     void run(async () => {
@@ -457,6 +468,11 @@ export function TutorListingsManager({
             {t.label}
           </option>
         ))}
+        {kind === "SUBJECT" &&
+          (eligibleSubjects.includes(OTHER_SUBJECT_ID) ||
+            offer.subject_id === OTHER_SUBJECT_ID) && (
+            <option value={OTHER_SUBJECT_ID}>Not in the list? Type your subject</option>
+          )}
       </select>
     </label>
   );
@@ -496,6 +512,15 @@ export function TutorListingsManager({
   // Saves what a step owns outside the ad (biography, public place) and checks
   // the step, then moves on. Returns false to stay on the step.
   const leaveStep = async (target = step): Promise<boolean> => {
+    const typed = (offer.custom_subject || "").trim();
+    if (
+      target === 0 &&
+      offer.subject_id === OTHER_SUBJECT_ID &&
+      (typed.length < 2 || typed.length > 60)
+    ) {
+      setError("Type your subject in 2 to 60 characters.");
+      return false;
+    }
     if (target === 1 && wordCount(offer.title) < 12) {
       setError("Write at least 12 words in your ad title.");
       return false;
@@ -518,7 +543,7 @@ export function TutorListingsManager({
       if (r.data.profile) setProfile(r.data.profile);
     }
     if (target === 4) {
-      const needsLocation = !simpleCreate || offer.teaching_mode === "IN_PERSON";
+      const needsLocation = !simpleCreate || teachesInPerson(offer.teaching_mode);
       if (needsLocation && !place.city.trim()) {
         setError("Add the city where you teach. Only your city and area appear publicly.");
         return false;
@@ -527,9 +552,13 @@ export function TutorListingsManager({
         setError("Your teaching location could not be loaded. Refresh the page and try again.");
         return false;
       }
-      const modes = presence.teaching_modes.includes(offer.teaching_mode)
-        ? presence.teaching_modes
-        : [...presence.teaching_modes, offer.teaching_mode];
+      // An ad for both modes needs both saved on the Tutor's teaching preferences.
+      const needed: ("ONLINE" | "IN_PERSON")[] =
+        offer.teaching_mode === "BOTH" ? ["ONLINE", "IN_PERSON"] : [offer.teaching_mode];
+      const modes = [
+        ...presence.teaching_modes,
+        ...needed.filter((mode) => !presence.teaching_modes.includes(mode)),
+      ];
       const changed =
         modes.length !== presence.teaching_modes.length ||
         (needsLocation &&
@@ -576,7 +605,7 @@ export function TutorListingsManager({
     return true;
   };
   const validateCreation = async () => {
-    for (const target of [1, 2, 5, 4, 8]) {
+    for (const target of [0, 1, 2, 5, 4, 8]) {
       if (!(await leaveStep(target))) return false;
     }
     return true;
@@ -728,6 +757,17 @@ export function TutorListingsManager({
                         </select>
                       </label>
                       {select("Subject", "SUBJECT", "subject_id")}
+                      {offer.subject_id === OTHER_SUBJECT_ID && (
+                        <Field
+                          label="Your subject"
+                          required
+                          value={offer.custom_subject || ""}
+                          minLength={2}
+                          maxLength={60}
+                          hint="Shown on your ad as its subject. No links or phone numbers."
+                          onChange={(e) => change("custom_subject", e.target.value)}
+                        />
+                      )}
                       {select("Learner Level", "LEVEL", "level_id")}
                       {(!simpleCreate || offer.domain_id === "school") &&
                         select(
@@ -799,7 +839,7 @@ export function TutorListingsManager({
                     ))}
                   {showStep(4) && (
                     <div className="space-y-5">
-                      <fieldset className="grid gap-3 sm:grid-cols-2">
+                      <fieldset className="grid gap-3 sm:grid-cols-3">
                         <legend className="mb-2 font-medium">
                           Where do your classes take place?
                         </legend>
@@ -807,6 +847,7 @@ export function TutorListingsManager({
                           [
                             ["ONLINE", "Online", "Classes by video call"],
                             ["IN_PERSON", "In person", "At your place or the learner's"],
+                            ["BOTH", "Online and in person", "Learners choose either"],
                           ] as const
                         ).map(([mode, label, help]) => (
                           <label
@@ -827,7 +868,7 @@ export function TutorListingsManager({
                           </label>
                         ))}
                       </fieldset>
-                      {(!simpleCreate || offer.teaching_mode === "IN_PERSON") && (
+                      {(!simpleCreate || teachesInPerson(offer.teaching_mode)) && (
                         <>
                           <Field
                             label="Your city"

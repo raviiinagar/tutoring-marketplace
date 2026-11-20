@@ -392,3 +392,66 @@ it("keeps the suggested title aligned with the subject without overwriting a cus
   expect(title).toHaveValue("A custom title written by the Tutor");
   expect(api.createListing).not.toHaveBeenCalled();
 });
+
+it("lets a Tutor type a subject that is not listed and saves it with the ad (ADR0022)", async () => {
+  vi.mocked(api.listings).mockResolvedValue(
+    success({
+      listings: [],
+      eligible_subject_ids: ["subject-physics", "subject-other"],
+      tutor_pro_active: false,
+      publication_policy: "direct-ads-v1",
+    }),
+  );
+  await openForm();
+  const subject = screen.getByRole("combobox", { name: "Subject" });
+  fireEvent.change(subject, { target: { value: "subject-other" } });
+  const typed = screen.getByRole("textbox", { name: "Your subject" });
+  // The typed subject is required: an empty one never reaches the server.
+  submit("Save as draft");
+  await screen.findByText("Type your subject in 2 to 60 characters.");
+  expect(api.createListing).not.toHaveBeenCalled();
+  fireEvent.change(typed, { target: { value: "Classical Guitar" } });
+  expect(screen.getByRole("textbox", { name: "Ad title" })).toHaveDisplayValue(
+    /^Classical Guitar lessons/,
+  );
+  submit("Save as draft");
+  await screen.findByText("Your ad is saved as a private draft.");
+  expect(api.createListing).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ subject_id: "subject-other", custom_subject: "Classical Guitar" }),
+  );
+  // Choosing a listed subject again drops the typed name.
+  fireEvent.change(subject, { target: { value: "subject-physics" } });
+  expect(screen.queryByRole("textbox", { name: "Your subject" })).not.toBeInTheDocument();
+});
+
+it("offers online and in person together, which needs a city and saves both modes", async () => {
+  const presence = {
+    revision: 3,
+    location: null,
+    teaching_modes: ["ONLINE" as const],
+    accepting_students: true,
+    weekly_slots: [],
+    timezone: "Asia/Kolkata" as const,
+    updated_at: null,
+  };
+  vi.mocked(api.tutorPresence).mockResolvedValue(success({ presence }));
+  vi.mocked(api.saveTutorPresence).mockImplementation(async (input) =>
+    success({
+      presence: { ...input, revision: 4, updated_at: "2026-11-20" },
+      offers_need_review: 0,
+    }),
+  );
+  await openForm();
+  fireEvent.click(screen.getByRole("radio", { name: /Online and in person/ }));
+  fireEvent.submit(screen.getByRole("button", { name: "Preview my ad" }).closest("form")!);
+  await screen.findByText("Add the city where you teach. Only your city and area appear publicly.");
+  fireEvent.change(screen.getByLabelText("Your city", { exact: false }), {
+    target: { value: "Kota" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Preview my ad" }));
+  await screen.findByRole("heading", { name: "Check your ad before publishing" });
+  expect(screen.getByText("Online and in person")).toBeVisible();
+  expect(api.saveTutorPresence).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ teaching_modes: ["ONLINE", "IN_PERSON"] }),
+  );
+});

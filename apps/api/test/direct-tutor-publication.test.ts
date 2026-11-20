@@ -55,7 +55,7 @@ test('migration preserves prior eligible publication but never exposes private o
 });
 test('explicit free ad publication works without identity or Pro, while drafts and identity facts stay truthful',async()=>{
  const a=await account(),p=await intro(a);assert.equal(p.status,'DRAFT');assert.equal(p.publication_status,'DRAFT');assert.equal(p.identity_verified,false);await get('/v1/tutor-profiles/'+p.public_id).expect(404);
- const own=(await get('/v1/me/listings',a.cookie).expect(200)).body;assert.equal(own.publication_policy,'direct-ads-v1');assert.equal(own.identity_optional,true);assert.equal(own.free_publication,true);assert.deepEqual(own.eligible_subject_ids,['subject-physics']);assert.equal(own.tutor_pro_active,false);
+ const own=(await get('/v1/me/listings',a.cookie).expect(200)).body;assert.equal(own.publication_policy,'direct-ads-v1');assert.equal(own.identity_optional,true);assert.equal(own.free_publication,true);assert.deepEqual(own.eligible_subject_ids,['subject-physics','subject-other']);assert.equal(own.tutor_pro_active,false);
  let l=(await post('/v1/me/listings',offer,a.cookie).expect(201)).body.listing;await get('/v1/listings/'+l.id).expect(404);l=(await post('/v1/me/listings/'+l.id+'/actions/PUBLISH',{revision:l.revision},a.cookie).expect(200)).body.listing;assert.equal(l.status,'PUBLISHED');assert.equal(l.eligible,true);assert.equal(l.identity_verified,false);
  const publicProfile=(await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile;assert.equal(publicProfile.identity_label,'Identity not verified');assert.equal(publicProfile.contact,null);
  const discovery=(await get('/v1/discovery/'+l.id).expect(200)).body.listing;assert.equal(discovery.identity_verified,false);assert.deepEqual(discovery.evidence_labels,[]);

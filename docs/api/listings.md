@@ -28,7 +28,7 @@ All private writes require same-origin strict JSON and HttpOnly account cookies;
 
 | Method/path | Body / behavior |
 |---|---|
-| GET `/v1/me/listings` | Own offers, effective states/availability and current `eligible_subject_ids` for creation |
+| GET `/v1/me/listings` | Own offers, effective states/availability and current `eligible_subject_ids` for creation (includes `subject-other` when typed subjects are allowed, ADR0022) |
 | POST `/v1/me/listings` | Strict offer fields; create draft |
 | POST `/v1/me/listings/:id` | `{revision,offer}`; save revised draft |
 | POST `/v1/me/listings/:id/actions/:action` | `{revision}`; SUBMIT, PAUSE or RESUME |
@@ -43,3 +43,8 @@ Public responses whitelist offer terms and an accurate evidence-review disclaime
 ## Local testing
 
 Use separate fictional Tutor and Trust reviewer accounts. Complete Tutor evidence approval first, then create a draft at `/tutor/listings`, submit, inspect and approve at `/staff/listings`. Refresh the Tutor's saved offers. Pause/resume, edit/resubmit, and staff safety suspension/lift can all be tested without a payment provider. Fictional evidence remains nonproduction-only; real scanning/privacy/launch dependencies from task 06 still apply.
+
+## Typed subjects and both modes (ADR0022)
+
+- `subject_id: "subject-other"` requires `custom_subject` (2–60 characters, no links or contact details); any other subject refuses it. The ad publishes immediately.
+- `teaching_mode` accepts `ONLINE`, `IN_PERSON` or `BOTH`. `BOTH` needs both modes and a public city in the Tutor's teaching preferences, appears in online and in-person searches, and shows `class_location`.

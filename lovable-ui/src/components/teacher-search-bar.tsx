@@ -50,7 +50,9 @@ export function TeacherSearchBar({
   useEffect(() => setReady(true), []);
   useEffect(() => {
     setSubject(
-      catalogue?.terms.find((t) => t.id === (initial.subject_id || initial.exam_id))?.label || "",
+      catalogue?.terms.find((t) => t.id === (initial.subject_id || initial.exam_id))?.label ||
+        initial.subject_text ||
+        "",
     );
     setPlace(initial.teaching_mode === "ONLINE" ? "Online" : initial.location || "");
     setCountry(initial.country);
@@ -163,14 +165,22 @@ export function TeacherSearchBar({
               : [t.label, ...t.aliases].some((a) => normalize(a) === normalize(subject))),
         )
       : undefined;
-    if (subject.trim() && !term) {
-      setError("Choose a subject or exam from the suggestions.");
+    // A subject that is not listed still searches: it matches subjects Tutors typed on their ads.
+    const typed = subject.trim().replace(/\s+/g, " ");
+    if (typed && !term && (typed.length < 2 || typed.length > 60)) {
+      setError("Type 2 to 60 characters, or choose a subject from the suggestions.");
       setMenu("subject");
       return;
     }
     const online = normalize(place) === "online";
     const next: DiscoveryFilters = {
-      ...(term ? (term.kind === "EXAM" ? { exam_id: term.id } : { subject_id: term.id }) : {}),
+      ...(term
+        ? term.kind === "EXAM"
+          ? { exam_id: term.id }
+          : { subject_id: term.id }
+        : typed
+          ? { subject_text: typed }
+          : {}),
       ...(online
         ? { teaching_mode: "ONLINE" as const }
         : place.trim()

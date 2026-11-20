@@ -62,20 +62,20 @@ test('new offer eligibility follows active declared Subjects independently of op
  const user=await tutor(true,['subject-commerce']);
  assert.equal((await get('/v1/me/tutor',user.cookie)).body.profile.eligible,true);
  const state=(await get('/v1/me/listings',user.cookie).expect(200)).body;
- assert.deepEqual(state.eligible_subject_ids,['subject-commerce']);assert.deepEqual(state.listings,[]);
+ assert.deepEqual(state.eligible_subject_ids,['subject-commerce','subject-other']);assert.deepEqual(state.listings,[]);
  await post('/v1/me/listings',offer,user.cookie).expect(403);
  await post('/v1/me/listings',completeFixtureOffer({...offer,title:'Commerce explained through examples',subject_id:'subject-commerce'}),user.cookie).expect(201);
  await database.pool.query("UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1 AND subject_id='subject-commerce'",[user.id,clock]);
  // Subject declarations are independent of optional qualification approvals.
- assert.deepEqual((await get('/v1/me/listings',user.cookie).expect(200)).body.eligible_subject_ids,['subject-commerce']);
+ assert.deepEqual((await get('/v1/me/listings',user.cookie).expect(200)).body.eligible_subject_ids,['subject-commerce','subject-other']);
  await database.pool.query("UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1 AND subject_id='subject-commerce'",[user.id,new Date(clock.getTime()+86400000)]);
- assert.deepEqual((await get('/v1/me/listings',user.cookie)).body.eligible_subject_ids,['subject-commerce']);
+ assert.deepEqual((await get('/v1/me/listings',user.cookie)).body.eligible_subject_ids,['subject-commerce','subject-other']);
  await database.pool.query("UPDATE catalogue_terms SET active=false WHERE id='subject-commerce'");
  assert.deepEqual((await get('/v1/me/listings',user.cookie).expect(200)).body.eligible_subject_ids,[]);
  await database.pool.query("UPDATE catalogue_terms SET active=true WHERE id='subject-commerce'");
  const current=(await get('/v1/me/tutor',user.cookie)).body.profile;
  await post('/v1/me/tutor/introduction',{display_name:profile.display_name,biography:fixtureBiography,subject_ids:['subject-mathematics'],hourly_rate_paise:50000,identity_country:'IN',identity_document:'AADHAAR',adult_confirmed:true,public_email_consent:false,expected_public_revision:current.public_revision},user.cookie).expect(200);
- const revised=(await get('/v1/me/listings',user.cookie).expect(200)).body;assert.deepEqual(revised.eligible_subject_ids,['subject-mathematics']);assert.equal(revised.listings.length,1);
+ const revised=(await get('/v1/me/listings',user.cookie).expect(200)).body;assert.deepEqual(revised.eligible_subject_ids,['subject-mathematics','subject-other']);assert.equal(revised.listings.length,1);
  await post('/v1/me/listings',{...offer,subject_id:'subject-commerce'},user.cookie).expect(403);
 
 });

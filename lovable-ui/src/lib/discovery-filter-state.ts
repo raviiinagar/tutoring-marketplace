@@ -1,6 +1,7 @@
 import type { Catalogue, DiscoveryFilters } from "./api";
 export type DiscoveryFilterKey = keyof DiscoveryFilters;
 const offerOnly = [
+  "subject_text",
   "trial_kind",
   "sort",
   "domain_id",
@@ -51,7 +52,14 @@ export function mergeTeacherSearch(
   catalogue?: Catalogue,
 ): DiscoveryFilters {
   const next = { ...current };
-  for (const field of ["subject_id", "exam_id", "teaching_mode", "location", "country"] as const)
+  for (const field of [
+    "subject_id",
+    "subject_text",
+    "exam_id",
+    "teaching_mode",
+    "location",
+    "country",
+  ] as const)
     delete next[field];
   Object.assign(next, selection);
   const selected = catalogue?.terms.find(
@@ -105,6 +113,7 @@ export function discoveryFilterChips(
   );
   for (const key of ["subject_id", "exam_id", "level_id", "curriculum_id", "language_id"] as const)
     add(key, label(filters[key]));
+  add("subject_text", filters.subject_text || "");
   add("teaching_mode", filters.teaching_mode === "ONLINE" ? "Online" : "In person");
   add("location", filters.location || "");
   add("country", filters.country || "");
@@ -154,7 +163,8 @@ export function discoverySearchTitle(filters: DiscoveryFilters, catalogue?: Cata
   const term = catalogue?.terms.find(
     (item) => item.active && item.id === (filters.subject_id || filters.exam_id),
   );
-  const goal = term ? `${term.label} Tutors` : "Find your next Tutor";
+  const typed = filters.subject_text?.trim();
+  const goal = term ? `${term.label} Tutors` : typed ? `${typed} Tutors` : "Find your next Tutor";
   if (filters.teaching_mode === "ONLINE") return `${goal} online`;
   const location = typeof filters.location === "string" ? filters.location.trim() : "";
   if (location) return `${goal} in ${location}`;

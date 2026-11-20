@@ -12,6 +12,7 @@ Task 08 connects `/tutors` search and `/tutors/:listingId` public detail pages t
 |---|---|
 | `domain_id` | Learning Domain |
 | `subject_id`, `level_id`, `curriculum_id`, `exam_id` | Exact fields on the same offer |
+| `subject_text` | 2–60 characters matched (case-insensitive) against the typed subjects of "Other" ads only (ADR0022) |
 | `language_id` | One of the offer's declared Teaching Languages |
 | `rate_unit` | HOUR or LESSON |
 | `min_rate_paise`, `max_rate_paise` | Inclusive integer-paise INR bounds; require an explicit rate unit |

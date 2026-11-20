@@ -51,7 +51,7 @@ export class TutorsService {
     if(!owner||owner.status!=='ACTIVE'||!owner.email_verified_at||!owner.roles.includes('TUTOR'))return false;
     try{await requireSafetyClear(client,'ACCOUNT',userId);}catch(error){if(error instanceof ApiProblem)return false;throw error;}
     if(p.onboarding_version!==2&&!isAdult(decrypt<{birth_date:string}>(p.encrypted_birth_date,this.config.authSecret).birth_date,this.now()))return false;
-    if(p.onboarding_version===2){if(!p.subject_ids.length)return false;const active=(await client.query("SELECT id FROM catalogue_terms WHERE id=ANY($1::text[]) AND kind='SUBJECT' AND active",[p.subject_ids])).rows;return active.length===p.subject_ids.length&&(!subject||p.subject_ids.includes(subject));}
+    if(p.onboarding_version===2){if(!p.subject_ids.length)return false;const active=(await client.query("SELECT id FROM catalogue_terms WHERE id=ANY($1::text[]) AND kind='SUBJECT' AND active",[p.subject_ids])).rows;return active.length===p.subject_ids.length&&!p.subject_ids.includes('subject-other')&&(!subject||subject==='subject-other'||p.subject_ids.includes(subject));}
     const claims=(await client.query("SELECT c.subject_id FROM tutor_claims c JOIN tutor_evidence e ON e.id=c.evidence_id AND e.user_id=c.user_id WHERE c.user_id=$1 AND c.profile_revision=$2 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' AND c.expires_at>$3 AND e.scan_status='CLEAN' AND (NOT $4::boolean OR NOT e.test_only)",[userId,p.revision,this.now(),this.config.mode==='production'])).rows;
     return claims.some(c=>!subject||c.subject_id===subject);
   }
@@ -76,7 +76,7 @@ export class TutorsService {
   });}
   async saveIntroduction(token:TutorActor,input:z.infer<typeof tutorIntroInput>,correlation:string){return this.database.transaction(async client=>{
     const {user,assistedBy}=await actingTutor(this.auth,client,token);if(!user.roles.includes('TUTOR')){await client.query("UPDATE users SET roles=array_append(roles,'TUTOR') WHERE id=$1",[user.id]);await this.audit(client,user.id,'TUTOR_ROLE_SELECTED',user.id,correlation);}
-    const found=(await client.query("SELECT id FROM catalogue_terms WHERE id=ANY($1::text[]) AND kind='SUBJECT' AND active",[input.subject_ids])).rows;if(found.length!==input.subject_ids.length)throw problem('INVALID_SUBJECT','Choose active Subjects.');
+    const found=(await client.query("SELECT id FROM catalogue_terms WHERE id=ANY($1::text[]) AND kind='SUBJECT' AND active AND id<>'subject-other'",[input.subject_ids])).rows;if(found.length!==input.subject_ids.length)throw problem('INVALID_SUBJECT','Choose active Subjects.');
     const old=(await client.query('SELECT * FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];
     // Only the Tutor can consent to showing their email publicly (ADR0018).
     if(assistedBy&&input.public_email_consent!==!!old?.public_email_consent_at)throw problem('TUTOR_CONSENT_REQUIRED','Only the Tutor can change public email consent.',403);

@@ -73,7 +73,8 @@ test('Trust edits are durable and audited; inactive terms disappear publicly and
   const operator=await fixture(['TRUST']);const mfa=await enroll(operator.cookie);
   await post('/v1/staff/catalogue/terms',term,mfa.cookie).expect(200);
   await get('/v1/catalogue/resolve/SUBJECT/fixture-subject').expect(200).expect(r=>assert.equal(r.body.term.id,term.id));
-  const publicTerms=(await get('/v1/catalogue')).body.terms;assert.deepEqual((await get('/v1/staff/catalogue',mfa.cookie)).body.terms,publicTerms);
+  const publicTerms=(await get('/v1/catalogue')).body.terms;// ADR0022: the "Other" term behind typed subjects is staff-visible only; it is never a public choice.
+  const staffTerms=(await get('/v1/staff/catalogue',mfa.cookie)).body.terms;assert.ok(staffTerms.some((row:{id:string})=>row.id==='subject-other'));assert.ok(!publicTerms.some((row:{id:string})=>row.id==='subject-other'));assert.deepEqual(staffTerms.filter((row:{id:string})=>row.id!=='subject-other'),publicTerms);
   const selected={domain_id:'career',subject_id:term.id,level_id:'level-beginner',language_id:'language-hindi'};await post('/v1/catalogue/validations',selected).expect(200);
   await post('/v1/staff/catalogue/terms',{...term,active:false},mfa.cookie).expect(200);
   assert.ok(!(await get('/v1/catalogue')).body.terms.some((row:{id:string})=>row.id===term.id));
