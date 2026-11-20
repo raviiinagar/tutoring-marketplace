@@ -149,7 +149,7 @@ it("publishes for free while preserving subject, profile and safety restrictions
 });
 it("keeps Tutor Pro and the Tutor level out of the way until an ad is online (ADR0021)", async () => {
   mount();
-  await screen.findByText(listing.offer.title);
+  await screen.findByRole("heading", { name: "Learners can't find you yet" });
   expect(screen.queryByRole("heading", { name: "Tutor Pro" })).toBeNull();
   expect(screen.queryByLabelText("Tutor level")).toBeNull();
 });
@@ -164,19 +164,25 @@ it("shows actual offer and Pro state without inventing revenue or visitor metric
     },
   });
   mount();
-  await screen.findByText(listing.offer.title);
   expect(await screen.findByText("Not active")).toBeTruthy();
-  // The minimal dashboard leaves enquiries to My messages (the menu shows how many wait).
-  expect(screen.queryByRole("heading", { name: "Learner enquiries" })).toBeNull();
+  // Approved dashboard (20 Nov 2026): enquiries are back; My ads has its own tab and the
+  // Tutor level lives in Evaluations.
+  expect(screen.getByRole("heading", { name: "Enquiries" })).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "No enquiries yet" })).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "My ads" })).toBeNull();
+  expect(screen.queryByText(listing.offer.title)).toBeNull();
+  expect(screen.queryByLabelText("Your Tutor level")).toBeNull();
   expect(screen.queryByText(/Total earnings|Profile views|Booked lessons/)).toBeNull();
 });
 it("keeps a failed listings response distinct from an empty dashboard", async () => {
   vi.mocked(api.listings).mockResolvedValueOnce({ ok: false, error: { kind: "unavailable" } });
   mount();
   await screen.findByText("Your ads could not be loaded.");
-  expect(screen.queryByText("Ready to describe your classes?")).toBeNull();
+  // Unknown is not the same as offline: no claim that learners cannot find this Tutor.
+  expect(screen.queryByRole("heading", { name: "Learners can't find you yet" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry your ads" }));
-  await screen.findByText(listing.offer.title);
+  await screen.findByRole("heading", { name: "Learners can't find you yet" });
+  expect(screen.queryByText("Your ads could not be loaded.")).toBeNull();
 });
 it("does not request private Tutor data for an account without the Tutor role", async () => {
   vi.mocked(api.me).mockResolvedValue({
@@ -255,6 +261,8 @@ it("ignores old private listings after the authoritative account changes", async
     }),
   );
   expect(screen.queryByText(listing.offer.title)).toBeNull();
+  // The first account's late listings must not replace the second account's first step.
+  expect(screen.getByRole("heading", { name: "Create your first ad" })).toBeVisible();
 });
 it("hides private workspace data and requests sign-in after a private 401", async () => {
   vi.mocked(api.tutorPro).mockResolvedValue({
@@ -280,10 +288,78 @@ it("counts paused ads as offline without claiming unavailable published ads are 
     },
   });
   mount();
-  // Each ad shows its own state; neither ad is presented as available to learners.
-  expect(await screen.findByText("Offline")).toBeVisible();
-  expect(screen.getByText("Unavailable")).toBeVisible();
-  expect(screen.getByRole("heading", { name: "Learners can't find you yet" })).toBeVisible();
+  // Neither ad is presented as available to learners (each ad's own state is on My ads).
+  expect(await screen.findByRole("heading", { name: "Learners can't find you yet" })).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "Tutor Pro" })).toBeNull();
+});
+
+const enquiry = {
+  server_time: "2026-11-20T10:00:00.000Z",
+  reminder: null,
+  id: "request-first",
+  offer: listing.offer,
+  status: "PENDING" as const,
+  expires_at: "2026-11-22T10:00:00.000Z",
+  created_at: "2026-11-19T10:00:00.000Z",
+  learning_requirements: "Fictional learner needs help with electrostatics.",
+  preferred_times: "Weekday evenings",
+  can_accept: true,
+  can_decline: true,
+  unavailable_reason: null,
+  connection_id: null,
+  test_only: false,
+};
+it("shows enquiries on the dashboard with the time left to reply and a way into the chat", async () => {
+  vi.mocked(api.tutorRequests).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: {
+      requests: [
+        enquiry,
+        {
+          ...enquiry,
+          id: "request-accepted",
+          status: "ACCEPTED",
+          learning_requirements: "Fictional revision of optics.",
+          preferred_times: null,
+          can_accept: false,
+          can_decline: false,
+          connection_id: "connection-first",
+        },
+        {
+          ...enquiry,
+          id: "request-expired",
+          expires_at: "2026-11-20T09:00:00.000Z",
+          learning_requirements: "Fictional expired enquiry.",
+          preferred_times: null,
+        },
+      ],
+      next_cursor: null,
+    },
+  });
+  mount();
+  expect(
+    await screen.findByText("Fictional learner needs help with electrostatics."),
+  ).toBeVisible();
+  expect(screen.getByText("Weekday evenings")).toBeVisible();
+  expect(screen.getByText("Reply within 2 days")).toBeVisible();
+  expect(screen.getByRole("link", { name: "Reply" })).toHaveAttribute("href", "/connections");
+  expect(screen.getByText("Accepted")).toBeVisible();
+  expect(screen.getByRole("link", { name: "Open chat" })).toBeVisible();
+  // A past deadline reads as expired, never as still waiting for a reply.
+  expect(screen.getByText("Expired")).toBeVisible();
+  // Only the enquiry that still waits is counted.
+  expect(
+    screen.getByRole("heading", { name: /^Enquiries\s*1 waiting for a reply$/ }),
+  ).toBeVisible();
+});
+it("keeps a failed enquiries response distinct from having no enquiries", async () => {
+  vi.mocked(api.tutorRequests).mockResolvedValueOnce({ ok: false, error: { kind: "unavailable" } });
+  mount();
+  expect(await screen.findByText("Your enquiries could not be loaded.")).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "No enquiries yet" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Retry your enquiries" }));
+  expect(await screen.findByRole("heading", { name: "No enquiries yet" })).toBeVisible();
 });
 
 it("invites a Learner from teaching offers into the introduction without reading private Tutor data", async () => {

@@ -1,8 +1,8 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProgressDetails, TutorProgression } from "@/components/tutor-progression";
-import { RecommendationPage } from "@/components/tutor-recommendations";
+import { RecommendationPage, TutorEvaluationsPage } from "@/components/tutor-recommendations";
 import { StaffRecommendationsPage } from "@/components/staff-recommendations";
 import { api, type User } from "@/lib/api";
 import { reputationApi, type TutorProgress } from "@/lib/tutor-reputation-api";
@@ -244,4 +244,33 @@ it("staff decisions carry the inspected revision and an audited reason", async (
       reason: "Relevant and privacy compliant",
     }),
   );
+});
+
+it("shows the Tutor level strip at the top of Evaluations > My level", async () => {
+  vi.spyOn(reputationApi, "progression").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: progress,
+  });
+  vi.spyOn(reputationApi, "recommendations").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { recommendations: [] },
+  });
+  vi.spyOn(api, "tutor").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { profile: null, claims: [], evidence: [] },
+  });
+  vi.spyOn(api, "tutorPolicy").mockResolvedValue({ ok: false, error: { kind: "unavailable" } });
+  mount(<TutorEvaluationsPage />);
+  fireEvent.click(await screen.findByRole("tab", { name: "My level" }));
+  const strip = await screen.findByRole("region", { name: "Your Tutor level" });
+  expect(strip).toBeVisible();
+  expect(
+    within(strip)
+      .getAllByRole("listitem")
+      .map((item) => item.textContent),
+  ).toEqual(["NewCurrent level", "Experienced", "Super Teacher", "Ambassador"]);
+  expect(within(strip).getByText("You are New. Next: Experienced.")).toBeVisible();
 });

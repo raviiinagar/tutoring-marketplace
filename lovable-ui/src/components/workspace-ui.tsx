@@ -154,12 +154,15 @@ export function StatTile({
 
 export function WsCard({
   title,
+  badge,
   action,
   children,
   id,
   className = "",
 }: {
   title: string;
+  /** Shown after the title inside the heading, e.g. a count. */
+  badge?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   id?: string;
@@ -169,7 +172,10 @@ export function WsCard({
   return (
     <section id={id} className={`ws-card ${className}`} aria-labelledby={headingId}>
       <div className="ws-card-head">
-        <h2 id={headingId}>{title}</h2>
+        <h2 id={headingId}>
+          {title}
+          {badge}
+        </h2>
         {action}
       </div>
       {children}
