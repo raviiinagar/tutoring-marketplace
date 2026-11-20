@@ -8,6 +8,7 @@ import {Database} from './database.js';
 import {AuthService} from './auth.js';
 import {sessionCookieName,type Config} from './config.js';
 import {ApiProblem} from './errors.js';
+import type {PlaceCoordinates} from './place-coordinates.js';
 export const weekdays=['MON','TUE','WED','THU','FRI','SAT','SUN'] as const;
 export const publicPlaceText=z.string().trim().transform(s=>s.normalize('NFKC').replace(/\s+/g,' ')).pipe(z.string().min(1).max(80)).refine(s=>/\p{L}/u.test(s),'Enter a named city, area or country.').refine(s=>!/(?:https?:|www\.|@|\+?\d[\d\s().-]{8,}\d|[\p{Cc}\p{Cf}])/u.test(s),'Use a city or area, without contact details or an exact address.');
 const normalizePlace=(s:string)=>s.replace(/\bbangalore\b/gi,'Bengaluru');
@@ -32,10 +33,12 @@ export async function requireTutorMode(client:PoolClient,userId:string,mode:stri
  if(!(p?.teaching_modes??['ONLINE']).includes(mode)||mode==='IN_PERSON'&&!p?.location?.city)throw new ApiProblem(409,'TEACHING_LOCATION_REQUIRED','Save the matching teaching mode and public city in your Tutor location settings first.');
 }
 export class TutorPresenceService{
- constructor(private readonly db:Database,private readonly auth:AuthService,private readonly now:()=>Date=()=>new Date()){}
- async own(token?:TutorActor){return this.db.transaction(async c=>{const {user}=await actingTutor(this.auth,c,token);return {presence:await this.snapshot(c,user.id)};});}
- private async snapshot(c:PoolClient,id:string){const p=(await c.query('SELECT *,revision AS presence_revision,updated_at AS presence_updated_at FROM tutor_presence WHERE user_id=$1',[id])).rows[0];return publicPresence(p??{});}
- async save(token:TutorActor,v:z.infer<typeof presenceInput>,correlation:string){return this.db.transaction(async c=>{
+ constructor(private readonly db:Database,private readonly auth:AuthService,private readonly now:()=>Date=()=>new Date(),private readonly places?:PlaceCoordinates){}
+ /** The owner's presence, with city-level map coordinates once they are known (looked up once, then cached). */
+ private async withMap<T extends {presence:ReturnType<typeof publicPresence>&{coordinates:unknown}}>(result:T):Promise<T>{if(result.presence.location&&!result.presence.coordinates&&this.places)result.presence.coordinates=await this.places.ensure(result.presence.location);return result;}
+ async own(token?:TutorActor){return this.withMap(await this.db.transaction(async c=>{const {user}=await actingTutor(this.auth,c,token);return {presence:await this.snapshot(c,user.id)};}));}
+ private async snapshot(c:PoolClient,id:string){const p=(await c.query('SELECT *,revision AS presence_revision,updated_at AS presence_updated_at FROM tutor_presence WHERE user_id=$1',[id])).rows[0];const presence=publicPresence(p??{});return {...presence,coordinates:this.places?await this.places.cached(c,presence.location):null};}
+ async save(token:TutorActor,v:z.infer<typeof presenceInput>,correlation:string){return this.withMap(await this.db.transaction(async c=>{
   const {user}=await actingTutor(this.auth,c,token);if(!user.roles.includes('TUTOR'))throw new ApiProblem(403,'TUTOR_ROLE_REQUIRED','Choose the Tutor role before saving teaching preferences.');const profile=(await c.query('SELECT user_id FROM tutor_profiles WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];if(!profile)throw new ApiProblem(409,'TUTOR_PROFILE_REQUIRED','Save your Tutor introduction first.');
   const old=(await c.query('SELECT * FROM tutor_presence WHERE user_id=$1 FOR UPDATE',[user.id])).rows[0];if((old?.revision??0)!==v.expected_revision)throw new ApiProblem(409,'PRESENCE_CHANGED','Your location or hours changed. Refresh before saving.');
   const slots=[...v.weekly_slots].sort((a,b)=>weekdays.indexOf(a.day)-weekdays.indexOf(b.day)||a.start_minute-b.start_minute);
@@ -44,7 +47,7 @@ export class TutorPresenceService{
   const changed=await c.query(`UPDATE teaching_listings SET status='CHANGES_REQUESTED',approved=false,revision=revision+1,review_reason='Class location or teaching mode changed. Update and resubmit this offer.',updated_at=$3 WHERE user_id=$1 AND status IN ('PUBLISHED','PAUSED','REVIEW') AND ((payload->>'teaching_mode'='IN_PERSON' AND $2) OR NOT (payload->>'teaching_mode'=ANY($4::text[])))`,[user.id,locationChanged,this.now(),v.teaching_modes]);
   await c.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,metadata,created_at) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),user.id,'TUTOR_PRESENCE_UPDATED',correlation,{target:user.id,location_changed:locationChanged,offers_need_review:changed.rowCount,accepting_students:v.accepting_students},this.now()]);
   return {presence:await this.snapshot(c,user.id),offers_need_review:changed.rowCount};
- });}
+ }));}
 }
 @Controller('v1/me/tutor/presence')
 export class TutorPresenceController{

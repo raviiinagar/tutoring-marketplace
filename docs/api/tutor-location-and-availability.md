@@ -13,3 +13,17 @@ Public profiles, discovery offers and offer detail include a safe `presence` pro
 Discovery and public profile queries accept `location` (case-insensitive city/area/region substring), optional exact `country`, `teaching_mode`, `day`, `at_time` (0–1439, requires day), and `accepting_only=true`. Time matches start-inclusive/end-exclusive declared hours in IST. Discovery additionally matches the exact offer mode; existing offer taxonomy/price filters remain authoritative. Profile search supports Subject plus presence filters; the UI directs exact-offer-only filters to offer results. Weekly hours are usual preferences, not live calendar availability or a booking.
 
 Teaching offers and Contact Requests accept one `ONLINE` or `IN_PERSON` mode. In-person offers require saved matching preferences. Requests snapshot the coarse `class_location`; full erasure removes saved presence and strips this retained snapshot field. Account exports include owned preferences. Legacy availability alerts continue to cover online offers only; the UI suppresses signup for unsupported location/time filters.
+
+## City map in My Account (20 November 2026)
+
+The owner's `GET /v1/me/tutor/presence` response also carries `coordinates` (`{latitude, longitude}` or `null`). It is used only for the owner's "Your city" card.
+
+**Lookup**
+- When `GEOCODING_ENABLED=true`, the API looks a saved public place up once on OpenStreetMap Nominatim. It sends only the normalised "city, state, country" text, uses an identifying User-Agent, and makes at most one request per second.
+- The result goes into the shared `place_coordinates` cache (migration 044), which holds no account data.
+- When nothing is found, the miss is cached and retried after a day. Network errors are not cached.
+
+**Shape and visibility**
+- Coordinates are city-level and are never an address.
+- They are not part of public discovery or public profiles.
+- With the flag off, `coordinates` is `null` and the card shows the city name without a map.
