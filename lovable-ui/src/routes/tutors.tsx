@@ -32,6 +32,7 @@ const filterNames = [
   "accepting_only",
   "domain_id",
   "subject_id",
+  "subject_text",
   "level_id",
   "curriculum_id",
   "exam_id",

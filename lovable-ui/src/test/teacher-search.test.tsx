@@ -65,11 +65,16 @@ it("Online search clears locality and works with keyboard selection", async () =
   expect(search).toHaveBeenCalledWith({ teaching_mode: "ONLINE" });
   expect(screen.queryByRole("listbox")).toBeNull();
 });
-it("unknown subjects do not silently search unrelated teachers and Escape closes suggestions", async () => {
+it("unknown subjects search only typed subjects, never unrelated teachers, and Escape closes suggestions", async () => {
   const search = vi.fn();
   render(<TeacherSearchBar catalogue={catalogue} onSearch={search} />);
   const input = await screen.findByRole("combobox", { name: "Subject or exam" });
-  fireEvent.change(input, { target: { value: "Nonexistent subject" } });
+  // ADR0022: words that match no listed subject search the subjects Tutors typed on their ads.
+  fireEvent.change(input, { target: { value: "  Classical   guitar " } });
+  fireEvent.submit(screen.getByRole("form", { name: "Find a teacher" }));
+  expect(search).toHaveBeenCalledWith({ subject_text: "Classical guitar" });
+  search.mockClear();
+  fireEvent.change(input, { target: { value: "x" } });
   fireEvent.submit(screen.getByRole("form", { name: "Find a teacher" }));
   await screen.findByRole("alert");
   expect(search).not.toHaveBeenCalled();

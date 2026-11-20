@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Notice, useSingleFlight } from "@/components/account/ui";
 import { RequestDeadline } from "./request-deadline";
 import { enquiryTarget, enquiryTextError } from "@/lib/enquiry";
+import { teachingModeLabel } from "@/lib/offer-labels";
 
 export function ContactRequestForm({
   listing,
@@ -193,7 +194,7 @@ export function ContactRequestForm({
       <h2 className="text-2xl font-semibold">Contact {listing.tutor.display_name}</h2>
       <p className="mt-3 break-words text-sm font-medium">{listing.offer.title}</p>
       <p className="mt-1 text-sm text-muted-foreground">
-        {listing.offer.teaching_mode === "IN_PERSON" ? "In person" : "Online"} · ₹
+        {teachingModeLabel(listing.offer.teaching_mode)} · ₹
         {(listing.offer.rate_paise / 100).toLocaleString("en-IN")} /{" "}
         {listing.offer.rate_unit === "HOUR"
           ? "hour"

@@ -9,6 +9,7 @@ import { ContactRequestForm } from "@/components/contact-request-form";
 import { PublicReviews } from "@/components/reviews";
 import { AvailabilitySignup } from "@/components/availability-signup";
 import type { PublicTeacherPage, PublicCategoryPage } from "@/lib/api";
+import { OTHER_SUBJECT_ID, offerSubjectLabel } from "@/lib/offer-labels";
 export function PublicRefresh() {
   const router = useRouter();
   useEffect(() => {
@@ -29,7 +30,7 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
       name={name}
       photoUrl={listing.tutor.photo_url}
       title={listing.offer.title}
-      subjects={[label(listing.offer.subject_id)]}
+      subjects={[offerSubjectLabel(listing.offer, label)]}
       navigation={[
         { id: "about-class", label: "About the class" },
         { id: "availability", label: "Location & availability" },
@@ -77,7 +78,10 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
             listing.presence ?? {
               revision: 0,
               location: listing.class_location ?? listing.offer.class_location ?? null,
-              teaching_modes: [listing.offer.teaching_mode],
+              teaching_modes:
+                listing.offer.teaching_mode === "BOTH"
+                  ? ["ONLINE", "IN_PERSON"]
+                  : [listing.offer.teaching_mode],
               accepting_students: null,
               weekly_slots: [],
               timezone: "Asia/Kolkata",
@@ -112,13 +116,15 @@ export function TeacherPage({ page }: { page: PublicTeacherPage }) {
           Private identity documents are never shown on this page.
         </p>
       </details>
-      <Link
-        to="/learn/$domain/$subject"
-        params={{ domain: listing.offer.domain_id, subject: listing.offer.subject_id }}
-        className="link mt-6 inline-block"
-      >
-        More Tutors for this subject
-      </Link>
+      {listing.offer.subject_id !== OTHER_SUBJECT_ID && (
+        <Link
+          to="/learn/$domain/$subject"
+          params={{ domain: listing.offer.domain_id, subject: listing.offer.subject_id }}
+          className="link mt-6 inline-block"
+        >
+          More Tutors for this subject
+        </Link>
+      )}
     </TutorProfileLayout>
   );
 }

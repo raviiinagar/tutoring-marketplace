@@ -11,19 +11,22 @@ import {StaffService} from './staff.js';
 import {CatalogueService,selectionInput} from './catalogue.js';
 import {TutorsService} from './tutors.js';
 import {ApiProblem} from './errors.js';
+import {OTHER_SUBJECT_ID,customSubjectText} from './custom-subject.js';
 
 const noContact=(value:string)=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(value);
 const text=(min:number,max:number)=>z.string().trim().min(min).max(max).refine(noContact,'Keep contact details and links out of public offers.');
 export const offerInput=z.strictObject({
   title:text(10,160),description:text(1,1500),
   domain_id:selectionInput.shape.domain_id,subject_id:selectionInput.shape.subject_id,level_id:selectionInput.shape.level_id,
-  curriculum_id:selectionInput.shape.curriculum_id,exam_id:selectionInput.shape.exam_id,
+  curriculum_id:selectionInput.shape.curriculum_id,exam_id:selectionInput.shape.exam_id,custom_subject:customSubjectText.optional(),
   language_ids:z.array(selectionInput.shape.language_id).min(1).max(3).refine(ids=>new Set(ids).size===ids.length),
-  currency:z.literal('INR'),teaching_mode:z.enum(['ONLINE','IN_PERSON']),rate_paise:z.number().int().min(100).max(10000000),
+  currency:z.literal('INR'),teaching_mode:z.enum(['ONLINE','IN_PERSON','BOTH']),rate_paise:z.number().int().min(100).max(10000000),
   rate_unit:z.enum(['HOUR','LESSON']),lesson_minutes:z.number().int().min(30).max(180).optional(),
   trial_kind:z.enum(['NONE','FREE','PAID']),trial_minutes:z.number().int().min(15).max(90).optional(),trial_price_paise:z.number().int().min(100).max(10000000).optional(),
 }).superRefine((v,c)=>{
   const invalid=(message:string)=>c.addIssue({code:'custom',message});
+  if(v.subject_id===OTHER_SUBJECT_ID&&!v.custom_subject)invalid('Type your subject.');
+  if(v.subject_id!==OTHER_SUBJECT_ID&&v.custom_subject!==undefined)invalid('Only an "Other" subject takes a typed name.');
   if((v.rate_unit==='LESSON')!==!!v.lesson_minutes)invalid('Specify lesson duration only for per-lesson rates.');
   if((v.trial_kind!=='NONE')!==!!v.trial_minutes||(v.trial_kind==='PAID')!==!!v.trial_price_paise)invalid('Trial duration and price must match the trial type.');
   if(v.domain_id==='school'&&!v.curriculum_id)invalid('School offers require a Curriculum.');
@@ -53,7 +56,7 @@ export class ListingsService {
       // Eligibility failures are ordinary state; database/programming failures must propagate.
       try{if(!existingRequest){if(profile?.accepting_students===false)throw fail('TUTOR_NOT_ACCEPTING','This Tutor is not accepting new students.');await requireTutorMode(client,row.user_id,row.payload.teaching_mode);}await requireSafetyClear(client,'LISTING',row.id);await this.tutors.requireQualified(client,row.user_id,row.payload.subject_id);await this.selection(client,row.payload);eligible=true;}catch(error){if(!(error instanceof ApiProblem))throw error;}
     }
-    return {id:row.id,user_id:row.user_id,offer:row.payload,presence:publicPresence(profile??{}),class_location:row.payload.teaching_mode==='IN_PERSON'?profile?.location??null:null,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':row.status,eligible,requires_profile_review:false,publication_policy:row.publication_policy,archived_at:row.archived_at,identity_verified:await identityVerified(client,row.user_id,this.now(),this.tutors.productionMode()),review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
+    return {id:row.id,user_id:row.user_id,offer:row.payload,presence:publicPresence(profile??{}),class_location:row.payload.teaching_mode!=='ONLINE'?profile?.location??null:null,revision:row.revision,profile_revision:row.profile_revision,status:row.safety_suspended?'SAFETY_SUSPENDED':row.status,eligible,requires_profile_review:false,publication_policy:row.publication_policy,archived_at:row.archived_at,identity_verified:await identityVerified(client,row.user_id,this.now(),this.tutors.productionMode()),review_reason:row.review_reason,reviewed_by:row.reviewed_by,reviewed_at:row.reviewed_at,safety_reason:row.safety_reason};
   }
   async own(token?:TutorActor){return this.database.transaction(async client=>{
     const {user}=await actingTutor(this.auth,client,token);this.role(user);
@@ -63,6 +66,8 @@ export class ListingsService {
     const candidates=declared?.onboarding_version===2?declared.subject_ids.map((subject_id:string)=>({subject_id})):(await client.query("SELECT DISTINCT c.subject_id FROM tutor_claims c JOIN tutor_profiles p ON p.user_id=c.user_id AND p.revision=c.profile_revision JOIN catalogue_terms t ON t.id=c.subject_id AND t.kind='SUBJECT' AND t.active WHERE c.user_id=$1 AND c.kind IN ('QUALIFICATION','EXPERIENCE') AND c.status='APPROVED' ORDER BY c.subject_id",[user.id])).rows;
     const eligible_subject_ids:string[]=[];
     for(const candidate of candidates){try{await this.tutors.requireQualified(client,user.id,candidate.subject_id,false);eligible_subject_ids.push(candidate.subject_id);}catch(error){if(!(error instanceof ApiProblem)||![403,404].includes(error.getStatus()))throw error;}}
+    // ADR0022: a Tutor who may publish ads may also publish one for a typed subject, while the "Other" term is active.
+    if(declared?.onboarding_version===2&&eligible_subject_ids.length&&(await client.query("SELECT 1 FROM catalogue_terms WHERE id=$1 AND kind='SUBJECT' AND active",[OTHER_SUBJECT_ID])).rowCount)eligible_subject_ids.push(OTHER_SUBJECT_ID);
     let tutor_pro_active=true;try{await this.tutors.requirePro(client,user.id);}catch(error){if(!(error instanceof ApiProblem))throw error;tutor_pro_active=false;}return {listings,eligible_subject_ids,tutor_pro_active,publication_policy:publicationPolicy,identity_optional:true,free_publication:true};
   });}
   async create(token:TutorActor,offer:Offer,correlation:string){return this.database.transaction(async client=>{

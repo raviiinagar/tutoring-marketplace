@@ -3,14 +3,15 @@ import {TutorPortrait} from './tutor-portrait';
 import {Link} from '@tanstack/react-router';
 import {Star} from 'lucide-react';
 import type {Catalogue,PublicOffer,TeachingOffer} from '@/lib/api';
+import {offerSubjectLabel,teachingModeLabel} from '@/lib/offer-labels';
 export function PublicOfferTerms({offer,catalogue}:{offer:TeachingOffer;catalogue:Catalogue|undefined}){
   const label=(id:string)=>catalogue?.terms.find(t=>t.id===id)?.label||id;
-  return <div className="space-y-3 text-sm"><p className="text-muted-foreground">{[offer.subject_id,offer.level_id,offer.curriculum_id,offer.exam_id].filter((id):id is string=>!!id).map(label).join(' · ')}</p><p>{offer.teaching_mode==='IN_PERSON'?'In person':'Online'} · {offer.language_ids.map(label).join(', ')}</p>{offer.class_location&&<p>{[offer.class_location.area,offer.class_location.city,offer.class_location.country].filter(Boolean).join(', ')}</p>}<p className="font-display text-xl font-semibold">{compactTutorRate(offer.rate_paise)} <span className="font-sans text-sm font-normal text-muted-foreground">/ {offer.rate_unit==='HOUR'?'hour':`lesson (${offer.lesson_minutes} min)`}</span></p><p>{offer.trial_kind==='NONE'?'No trial offered':`${offer.trial_kind==='FREE'?'Free trial':`Paid trial: ₹${((offer.trial_price_paise||0)/100).toLocaleString('en-IN')}`} · ${offer.trial_minutes} minutes`}</p></div>;
+  return <div className="space-y-3 text-sm"><p className="text-muted-foreground">{[offerSubjectLabel(offer,label),...[offer.level_id,offer.curriculum_id,offer.exam_id].filter((id):id is string=>!!id).map(label)].join(' · ')}</p><p>{teachingModeLabel(offer.teaching_mode)} · {offer.language_ids.map(label).join(', ')}</p>{offer.class_location&&<p>{[offer.class_location.area,offer.class_location.city,offer.class_location.country].filter(Boolean).join(', ')}</p>}<p className="font-display text-xl font-semibold">{compactTutorRate(offer.rate_paise)} <span className="font-sans text-sm font-normal text-muted-foreground">/ {offer.rate_unit==='HOUR'?'hour':`lesson (${offer.lesson_minutes} min)`}</span></p><p>{offer.trial_kind==='NONE'?'No trial offered':`${offer.trial_kind==='FREE'?'Free trial':`Paid trial: ₹${((offer.trial_price_paise||0)/100).toLocaleString('en-IN')}`} · ${offer.trial_minutes} minutes`}</p></div>;
 }
 export function PublicOfferCard({listing,catalogue,priority=false}:{listing:PublicOffer;catalogue:Catalogue|undefined;priority?:boolean}){
   const name=listing.tutor.display_name;
   const slug=listing.public_path?.slice(10)||listing.offer.subject_id.replace(/^subject-/,'')+'-'+listing.id;
-  const subject=catalogue?.terms.find(t=>t.id===listing.offer.subject_id)?.label||listing.offer.subject_id.replace(/^subject-/,'');
+  const subject=offerSubjectLabel(listing.offer,id=>catalogue?.terms.find(t=>t.id===id)?.label||id.replace(/^subject-/,''));
   const summary=listing.review_summary;
   return <article className="teacher-card">
     <Link to="/teachers/$slug" params={{slug}} className="teacher-cover">

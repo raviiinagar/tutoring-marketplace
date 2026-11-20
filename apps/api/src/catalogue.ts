@@ -16,7 +16,7 @@ export class CatalogueService {
   constructor(private readonly database:Database,private readonly staff:StaffService){}
   private async snapshot(client:PoolClient,includeInactive:boolean){
     const domains=(await client.query('SELECT id,label FROM learning_domains ORDER BY position')).rows;
-    const terms=(await client.query(`SELECT t.id,t.kind,t.label,t.active,t.aliases,t.domain_ids FROM catalogue_terms t ${includeInactive?'':'WHERE active'} ORDER BY kind,label,id`)).rows;
+    const terms=(await client.query(`SELECT t.id,t.kind,t.label,t.active,t.aliases,t.domain_ids FROM catalogue_terms t ${includeInactive?'':"WHERE active AND id<>'subject-other'"} ORDER BY kind,label,id`)).rows;
     return {domains,terms};
   }
   async publicCatalogue(){return this.database.transaction(client=>this.snapshot(client,false));}

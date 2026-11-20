@@ -30,7 +30,8 @@ export function addPresenceFilters(input:FilterValues,add:(sql:(p:string)=>strin
 export function publicPresence(row:Record<string,any>){return {revision:row.presence_revision??0,location:row.location??null,teaching_modes:row.teaching_modes??['ONLINE'],accepting_students:row.presence_revision?row.accepting_students:null,weekly_slots:row.weekly_slots??[],timezone:'Asia/Kolkata' as const,updated_at:row.presence_updated_at?new Date(row.presence_updated_at).toISOString():null};}
 export async function requireTutorMode(client:PoolClient,userId:string,mode:string){
  const p=(await client.query('SELECT * FROM tutor_presence WHERE user_id=$1',[userId])).rows[0];
- if(!(p?.teaching_modes??['ONLINE']).includes(mode)||mode==='IN_PERSON'&&!p?.location?.city)throw new ApiProblem(409,'TEACHING_LOCATION_REQUIRED','Save the matching teaching mode and public city in your Tutor location settings first.');
+ const modes:string[]=p?.teaching_modes??['ONLINE'];const needed=mode==='BOTH'?['ONLINE','IN_PERSON']:[mode];
+ if(needed.some(m=>!modes.includes(m))||needed.includes('IN_PERSON')&&!p?.location?.city)throw new ApiProblem(409,'TEACHING_LOCATION_REQUIRED','Save the matching teaching mode and public city in your Tutor location settings first.');
 }
 export class TutorPresenceService{
  constructor(private readonly db:Database,private readonly auth:AuthService,private readonly now:()=>Date=()=>new Date(),private readonly places?:PlaceCoordinates){}
@@ -44,7 +45,7 @@ export class TutorPresenceService{
   const slots=[...v.weekly_slots].sort((a,b)=>weekdays.indexOf(a.day)-weekdays.indexOf(b.day)||a.start_minute-b.start_minute);
   await c.query(`INSERT INTO tutor_presence(user_id,location,teaching_modes,accepting_students,weekly_slots,timezone,updated_at) VALUES($1,$2,$3,$4,$5,'Asia/Kolkata',$6) ON CONFLICT(user_id) DO UPDATE SET location=$2,teaching_modes=$3,accepting_students=$4,weekly_slots=$5,revision=tutor_presence.revision+1,updated_at=$6`,[user.id,v.location,v.teaching_modes,v.accepting_students,JSON.stringify(slots),this.now()]);
   const locationChanged=['city','area','state','country'].some(k=>(old?.location?.[k]??'').toLowerCase()!==(v.location?.[k as keyof typeof v.location]??'').toLowerCase());
-  const changed=await c.query(`UPDATE teaching_listings SET status='CHANGES_REQUESTED',approved=false,revision=revision+1,review_reason='Class location or teaching mode changed. Update and resubmit this offer.',updated_at=$3 WHERE user_id=$1 AND status IN ('PUBLISHED','PAUSED','REVIEW') AND ((payload->>'teaching_mode'='IN_PERSON' AND $2) OR NOT (payload->>'teaching_mode'=ANY($4::text[])))`,[user.id,locationChanged,this.now(),v.teaching_modes]);
+  const changed=await c.query(`UPDATE teaching_listings SET status='CHANGES_REQUESTED',approved=false,revision=revision+1,review_reason='Class location or teaching mode changed. Update and resubmit this offer.',updated_at=$3 WHERE user_id=$1 AND status IN ('PUBLISHED','PAUSED','REVIEW') AND ((payload->>'teaching_mode' IN ('IN_PERSON','BOTH') AND $2) OR (CASE WHEN payload->>'teaching_mode'='BOTH' THEN NOT ($4::text[] @> ARRAY['ONLINE','IN_PERSON']) ELSE NOT (payload->>'teaching_mode'=ANY($4::text[])) END))`,[user.id,locationChanged,this.now(),v.teaching_modes]);
   await c.query('INSERT INTO audit_events(id,user_id,event_type,correlation_id,metadata,created_at) VALUES($1,$2,$3,$4,$5,$6)',[randomUUID(),user.id,'TUTOR_PRESENCE_UPDATED',correlation,{target:user.id,location_changed:locationChanged,offers_need_review:changed.rowCount,accepting_students:v.accepting_students},this.now()]);
   return {presence:await this.snapshot(c,user.id),offers_need_review:changed.rowCount};
  }));}

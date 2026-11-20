@@ -14,7 +14,7 @@ import {ApiProblem} from './errors.js';
 import {encrypt,decrypt,tokenHash} from './security.js';
 const contactPattern=/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d|(?:whatsapp|telegram|instagram)\s*[:@]|@[a-z][\w.]{2,})/i;
 const privateText=(min:number,max:number)=>z.string().trim().min(min).max(max).refine(value=>!contactPattern.test(value),'Keep emails, phone numbers, social handles and links out of the enquiry.').refine(value=>!/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value),'Remove control characters.');
-export const contactRequestInput=z.strictObject({request_key:z.uuid(),listing_id:z.uuid(),listing_revision:z.number().int().positive(),learner_id:z.uuid(),subject_id:z.string().regex(/^[a-z][a-z0-9-]{1,79}$/),teaching_mode:z.enum(['ONLINE','IN_PERSON']),learning_requirements:privateText(20,500),preferred_times:privateText(5,160)});
+export const contactRequestInput=z.strictObject({request_key:z.uuid(),listing_id:z.uuid(),listing_revision:z.number().int().positive(),learner_id:z.uuid(),subject_id:z.string().regex(/^[a-z][a-z0-9-]{1,79}$/),teaching_mode:z.enum(['ONLINE','IN_PERSON','BOTH']),learning_requirements:privateText(20,500),preferred_times:privateText(5,160)});
 export const requestListInput=z.strictObject({cursor:z.uuid().optional()});
 type Input=z.infer<typeof contactRequestInput>;
 const hour=3600000;

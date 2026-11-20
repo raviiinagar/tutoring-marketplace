@@ -392,12 +392,14 @@ export type TeachingOffer = {
   description: string;
   domain_id: string;
   subject_id: string;
+  /** The typed subject name when subject_id is "subject-other" (ADR0022). */
+  custom_subject?: string | undefined;
   level_id: string;
   curriculum_id?: string | undefined;
   exam_id?: string | undefined;
   language_ids: string[];
   currency: "INR";
-  teaching_mode: "ONLINE" | "IN_PERSON";
+  teaching_mode: "ONLINE" | "IN_PERSON" | "BOTH";
   rate_paise: number;
   rate_unit: "HOUR" | "LESSON";
   lesson_minutes?: number | undefined;
@@ -463,6 +465,8 @@ export type DiscoveryFilters = {
   accepting_only?: "true" | undefined;
   domain_id?: string | undefined;
   subject_id?: string | undefined;
+  /** Words matched against typed subjects when no listed subject matches. */
+  subject_text?: string | undefined;
   level_id?: string | undefined;
   curriculum_id?: string | undefined;
   exam_id?: string | undefined;
@@ -768,7 +772,7 @@ export type ContactRequestInput = {
   listing_revision: number;
   learner_id: string;
   subject_id: string;
-  teaching_mode: "ONLINE" | "IN_PERSON";
+  teaching_mode: "ONLINE" | "IN_PERSON" | "BOTH";
   learning_requirements: string;
   preferred_times: string;
 };
