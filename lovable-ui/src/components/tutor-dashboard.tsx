@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {

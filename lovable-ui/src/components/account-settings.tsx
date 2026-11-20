@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";

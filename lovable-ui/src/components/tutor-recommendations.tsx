@@ -1,3 +1,4 @@
+import "../workspace.css";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
