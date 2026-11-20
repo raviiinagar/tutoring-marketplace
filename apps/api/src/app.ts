@@ -1,3 +1,4 @@
+import {PlaceCoordinates,nominatimGeocoder} from './place-coordinates.js';
 import {TutorOnboardingDrafts,TutorOnboardingDraftsController} from './tutor-onboarding-drafts.js';
 import {TutorReputationService,TutorReputationController} from './tutor-reputation.js';
 import {SavedTutorsService,SavedTutorsController} from './saved-tutors.js';
@@ -254,7 +255,7 @@ export async function createApplication(config: Config,database: Database,now:()
   const community=new CommunityService(database,config,auth,staff,now);
   const communityRealtime=new CommunityRealtime(community,config);
   const paymentEvents=new PaymentEvents(database,config,paymentProvider,now);
-  const tutorPresence=new TutorPresenceService(database,auth,now);
+  const tutorPresence=new TutorPresenceService(database,auth,now,new PlaceCoordinates(database,config.geocoding?nominatimGeocoder(config.geocoding):undefined,now));
   const assistedOnboarding=new AssistedOnboardingService(database,config,auth,staff,now);
   const googleSignIn=new GoogleSignIn(database,config,auth,now);
   const publicTutors=new PublicTutors(database,config,now);

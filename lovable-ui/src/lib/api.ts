@@ -444,6 +444,8 @@ export type TutorPresence = {
   weekly_slots: WeeklySlot[];
   timezone: "Asia/Kolkata";
   updated_at: string | null;
+  /** City-level map position for the owner's "Your city" card; never an address. */
+  coordinates?: { latitude: number; longitude: number } | null;
 };
 export type PresenceWrite = Omit<
   TutorPresence,

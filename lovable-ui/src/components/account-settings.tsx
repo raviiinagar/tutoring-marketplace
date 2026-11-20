@@ -26,6 +26,19 @@ import { RoleChooser } from "./role-chooser";
 import { accountSessionKey } from "@/lib/session";
 import { siteFeatures } from "@/lib/site-visibility";
 
+/** OpenStreetMap embed around a city (about 10 km across) with a marker at its centre. */
+function osmEmbed({ latitude, longitude }: { latitude: number; longitude: number }) {
+  const box = [longitude - 0.06, latitude - 0.05, longitude + 0.06, latitude + 0.05]
+    .map((n) => n.toFixed(4))
+    .join(",");
+  return (
+    "https://www.openstreetmap.org/export/embed.html?bbox=" +
+    encodeURIComponent(box) +
+    "&layer=mapnik&marker=" +
+    encodeURIComponent(latitude.toFixed(4) + "," + longitude.toFixed(4))
+  );
+}
+
 export function AccountSettings() {
   const navigate = useNavigate();
   const hash = useLocation({ select: (location) => location.hash });
@@ -51,6 +64,7 @@ export function AccountSettings() {
 
   const [identityVerified, setIdentityVerified] = useState<boolean>();
   const [city, setCity] = useState<string | null>();
+  const [cityMap, setCityMap] = useState<{ latitude: number; longitude: number } | null>(null);
   const generation = useRef(0),
     active = useRef(true),
     actor = useRef<string | undefined>(undefined);
@@ -104,6 +118,7 @@ export function AccountSettings() {
       if (presence?.ok) {
         const place = presence.data.presence.location;
         setCity(place ? [place.city, place.state].filter(Boolean).join(", ") : null);
+        setCityMap(place ? (presence.data.presence.coordinates ?? null) : null);
       }
     } else if (res.error.kind === "http" && res.error.status === 401) {
       setUser(null);
@@ -411,6 +426,15 @@ export function AccountSettings() {
                   Your city
                 </h2>
                 <p className="acc-city">{city || "No city added yet"}</p>
+                {city && cityMap && (
+                  <iframe
+                    className="acc-map"
+                    title={"Map of " + city}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    src={osmEmbed(cityMap)}
+                  />
+                )}
                 <p className="acc-muted">
                   Only your city is shown to learners, never your address.
                 </p>
