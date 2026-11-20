@@ -61,14 +61,14 @@ export function ProgressDetails({ progress }: { progress: TutorProgress }) {
         <div className="rounded-2xl bg-amber-50 p-4">
           <dt className="text-sm">Published recommendations</dt>
           <dd className="mt-1 text-2xl font-bold">{progress.counts.recommendations}</dd>
-          <p className="text-xs text-muted-foreground">Network endorsements reviewed by staff.</p>
+          <dd className="text-xs text-muted-foreground">Network endorsements reviewed by staff.</dd>
         </div>
         <div className="rounded-2xl bg-secondary p-4">
           <dt className="text-sm">Published student reviews</dt>
           <dd className="mt-1 text-2xl font-bold">{progress.counts.student_reviews}</dd>
-          <p className="text-xs text-muted-foreground">
+          <dd className="text-xs text-muted-foreground">
             From eligible Connections; separate from recommendations.
-          </p>
+          </dd>
         </div>
       </dl>
       <ol

@@ -30,4 +30,8 @@ it("validates optional inbox selection without accepting arbitrary view or non-s
     conversation: undefined,
     view: undefined,
   });
+  // Only the Enquiries tab can be chosen from a link (the dashboard's Enquiries card).
+  expect(inboxSearch({ tab: "enquiries" }).tab).toBe("enquiries");
+  expect(inboxSearch({ tab: "chats" }).tab).toBeUndefined();
+  expect(inboxSearch({ tab: ["enquiries"] }).tab).toBeUndefined();
 });

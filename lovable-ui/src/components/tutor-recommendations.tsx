@@ -1,5 +1,5 @@
 import "../workspace.css";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Award,
@@ -58,6 +58,38 @@ export function TutorEvaluationsPage() {
     </AuthShell>
   );
 }
+/** New, Experienced, Super Teacher, Ambassador, with the current level marked (moved here
+ * from the dashboard, 20 Nov 2026). Uses the same progression read as the level checklist. */
+function LevelStrip({ userId }: { userId: string }) {
+  const query = useReputationRead(userId, "progression", reputationApi.progression);
+  if (!query.data?.ok) return null;
+  const { level, levels } = query.data.data;
+  const at = levels.findIndex((item) => item.id === level);
+  const now = at >= 0 ? levels[at] : undefined;
+  const next = at >= 0 ? levels[at + 1] : undefined;
+  return (
+    <section className="md-level ev-level" aria-label="Your Tutor level">
+      <ol style={{ "--levels": levels.length } as CSSProperties}>
+        {levels.map((item) => {
+          const current = item.id === level;
+          return (
+            <li key={item.id} className={current ? "is-now" : undefined}>
+              <span>{current ? <span className="md-now">{item.label}</span> : item.label}</span>
+              <i aria-hidden="true" />
+              {current && <span className="sr-only">Current level</span>}
+            </li>
+          );
+        })}
+      </ol>
+      {now && (
+        <p className="md-level-cap">
+          You are {now.label}.{next ? ` Next: ${next.label}.` : ""}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function TutorRecommendations({ user }: { user: User }) {
   const query = useReputationRead(user.id, "recommendations", reputationApi.recommendations);
   const profile = useReputationRead(user.id, "profile", api.tutor);
@@ -277,6 +309,7 @@ function TutorRecommendations({ user }: { user: User }) {
           aria-labelledby="ev-tab-level"
           hidden={tab !== "level"}
         >
+          <LevelStrip userId={user.id} />
           <TutorProgressionPanel id={user.id} />
           <p className="ev-text ev-reviews">
             Student reviews come from connected learners after an eligible interaction; they are

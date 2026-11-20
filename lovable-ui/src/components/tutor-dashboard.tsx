@@ -4,53 +4,65 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Camera,
+  Check,
   ChevronRight,
   Eye,
+  Hourglass,
+  Inbox,
   MapPin,
   Megaphone,
-  Pencil,
   Sparkles,
 } from "lucide-react";
 import { AuthShell, Notice } from "./account/ui";
 import { Button } from "./ui/button";
 import { useTutorDashboard } from "@/lib/tutor-dashboard";
-import { focusTutorOffers, offerAvailability, offerStatusLabels } from "@/lib/tutor-workspace";
-import { reputationApi } from "@/lib/tutor-reputation-api";
-import type { TeachingListing } from "@/lib/api";
+import { isPendingNow, timeLeft, useEnquiryState } from "@/lib/workspace";
+import type { IncomingRequest } from "@/lib/api";
 import { AccountAvatar } from "./account-avatar";
-import { useReputationRead } from "./tutor-progression";
 import { Chip, SectionData, ShareProfileButton, WsCard } from "./workspace-ui";
 
-function AdRow({ item }: { item: TeachingListing }) {
-  const live = item.status === "PUBLISHED" && item.eligible;
+function EnquiryRow({ request }: { request: IncomingRequest }) {
+  const { status, remaining } = useEnquiryState(request);
   return (
-    <li className="ws-ad">
+    <li className="md-enq">
+      <span className="md-enq-icon" aria-hidden="true">
+        <Inbox className="size-5" />
+      </span>
       <div className="min-w-0">
-        <Chip tone={live ? "ok" : item.status === "SAFETY_SUSPENDED" ? "warn" : "neutral"}>
-          {item.status === "PUBLISHED" && !item.eligible
-            ? "Unavailable"
-            : offerStatusLabels[item.status]}
-        </Chip>
-        <h3 className="break-words">{item.offer.title}</h3>
-        <p className="ws-row-meta">{offerAvailability(item)}</p>
-        <div className="ws-pills">
-          <span>{item.offer.teaching_mode === "ONLINE" ? "Online" : "In person"}</span>
-          <span>
-            ₹{(item.offer.rate_paise / 100).toLocaleString("en-IN")} /{" "}
-            {item.offer.rate_unit === "HOUR" ? "hour" : "class"}
-          </span>
-        </div>
-        {item.review_reason && (
-          <p className="mt-2 text-sm">Review feedback: {item.review_reason}</p>
+        <b className="break-words">{request.offer.title}</b>
+        {request.learning_requirements && (
+          <p className="md-enq-text ws-clamp">{request.learning_requirements}</p>
         )}
-        {item.safety_reason && (
-          <p className="mt-2 text-sm">Safety decision: {item.safety_reason}</p>
-        )}
+        {request.preferred_times && <p className="md-enq-text">{request.preferred_times}</p>}
       </div>
-      <Link to="/tutor/listings" className="ws-btn ws-btn-soft ws-btn-sm">
-        <Pencil aria-hidden="true" className="size-4" />
-        Edit
-      </Link>
+      <div className="md-enq-side">
+        {status === "PENDING" ? (
+          <Chip tone={remaining <= 24 * 3600000 ? "warn" : "wait"} icon={Hourglass}>
+            Reply within {timeLeft(remaining)}
+          </Chip>
+        ) : status === "ACCEPTED" ? (
+          <Chip tone="ok" icon={Check}>
+            Accepted
+          </Chip>
+        ) : (
+          <Chip>
+            {status === "DECLINED" ? "Declined" : status === "CANCELLED" ? "Cancelled" : "Expired"}
+          </Chip>
+        )}
+        {status === "PENDING" ? (
+          <Link to="/connections" search={{ tab: "enquiries" }} className="ws-link">
+            Reply <ChevronRight aria-hidden="true" className="size-4" />
+          </Link>
+        ) : status === "ACCEPTED" && request.connection_id ? (
+          <Link
+            to="/connections"
+            search={{ conversation: request.connection_id }}
+            className="ws-link"
+          >
+            Open chat <ChevronRight aria-hidden="true" className="size-4" />
+          </Link>
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -58,11 +70,6 @@ function AdRow({ item }: { item: TeachingListing }) {
 export function TutorDashboard() {
   const data = useTutorDashboard(),
     navigate = useNavigate();
-  const progression = useReputationRead(
-    data.user?.roles.includes("TUTOR") ? data.user.id : undefined,
-    "progression",
-    reputationApi.progression,
-  );
   useEffect(() => {
     if (data.anonymous) void navigate({ to: "/auth/signin", replace: true });
   }, [data.anonymous, navigate]);
@@ -133,19 +140,22 @@ export function TutorDashboard() {
   const place = data.presence.data?.presence.location;
   const city = place ? [place.city, place.state].filter(Boolean).join(", ") : undefined;
   const name = (profile?.display_name || data.user.display_name).trim();
-  const progress = progression.data?.ok === true ? progression.data.data : undefined;
-  const levels = progress?.levels ?? [
-    { id: "NEW", label: "New" },
-    { id: "EXPERIENCED", label: "Experienced" },
-    { id: "SUPER_TEACHER", label: "Super Teacher" },
-    { id: "AMBASSADOR", label: "Ambassador" },
-  ];
+  const waiting = data.requests.data?.requests.filter((r) => isPendingNow(r)).length ?? 0;
 
-  // Approved minimal dashboard (D1): profile, level and ads. Enquiries live in My messages,
-  // where the menu shows how many still need a reply; nothing is removed from the product.
+  // Approved dashboard ("E1 final", 20 Nov 2026): profile, enquiries and the optional Tutor Pro.
+  // My ads has its own tab, and the Tutor level lives in Evaluations > My level.
   return (
     <AuthShell wide dashboard reference title="Your teaching workspace">
       <div className="md">
+        {/* Without the ads we cannot say whether learners can find this Tutor. */}
+        {data.offers.isError && (
+          <div className="space-y-3">
+            <Notice tone="error">Your ads could not be loaded.</Notice>
+            <Button variant="outline" onClick={() => void data.offers.refetch()}>
+              Retry your ads
+            </Button>
+          </div>
+        )}
         {/* Having this workspace is not the same as being visible to learners. */}
         {data.offers.data && !online && (
           <section role="status" aria-labelledby="not-found-yet" className="ws-alert">
@@ -220,53 +230,36 @@ export function TutorDashboard() {
           </section>
 
           <div className="md-main">
-            {online && (
-              <section className="md-level" aria-label="Your Tutor level">
-                <ol>
-                  {levels.map((level) => {
-                    const current = progress?.level === level.id;
-                    return (
-                      <li key={level.id} className={current ? "is-now" : undefined}>
-                        <span>
-                          {current ? <span className="md-now">{level.label}</span> : level.label}
-                        </span>
-                        <i aria-hidden="true" />
-                        {current && <span className="sr-only">Current level</span>}
-                      </li>
-                    );
-                  })}
-                </ol>
-                <p className="md-up">
-                  <Link to="/tutor/evaluations">
-                    Grow my level <ChevronRight aria-hidden="true" className="size-4" />
-                  </Link>
-                </p>
-              </section>
-            )}
             <WsCard
-              title="My ads"
+              title="Enquiries"
+              badge={
+                waiting > 0 && (
+                  <span className="md-enq-count">
+                    {waiting}
+                    <span className="sr-only"> waiting for a reply</span>
+                  </span>
+                )
+              }
               action={
-                <Link to="/tutor/listings" className="ws-link">
-                  Manage <ChevronRight aria-hidden="true" className="size-4" />
+                <Link to="/connections" search={{ tab: "enquiries" }} className="ws-link">
+                  See all <ChevronRight aria-hidden="true" className="size-4" />
                 </Link>
               }
             >
-              <SectionData query={data.offers} label="Your ads">
+              <SectionData query={data.requests} label="Your enquiries">
                 {(result) =>
-                  result.listings.length ? (
-                    <ul className="md-ads">
-                      {focusTutorOffers(result.listings)
-                        .slice(0, 3)
-                        .map((item) => (
-                          <AdRow key={item.id} item={item} />
-                        ))}
+                  result.requests.length ? (
+                    <ul className="md-enqs">
+                      {result.requests.slice(0, 5).map((request) => (
+                        <EnquiryRow key={request.id} request={request} />
+                      ))}
                     </ul>
                   ) : (
                     <div className="ws-empty ws-empty-left">
-                      <h3>Ready to describe your classes?</h3>
+                      <h3>No enquiries yet</h3>
                       <p>
-                        Choose an available subject, add your teaching details and review the rate
-                        before publishing your ad for free. Identity verification is optional.
+                        When a learner contacts you, it appears here with the time left to reply. An
+                        enquiry is a request to connect, not a confirmed booking.
                       </p>
                     </div>
                   )

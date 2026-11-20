@@ -16,6 +16,8 @@ export type InboxView = "messages" | "details" | "classes";
 export function inboxSearch(search: Record<string, unknown>): {
   conversation?: string | undefined;
   view?: InboxView | undefined;
+  /** Opens the Enquiries tab, e.g. from the dashboard's Enquiries card. */
+  tab?: "enquiries" | undefined;
 } {
   return {
     conversation:
@@ -23,6 +25,7 @@ export function inboxSearch(search: Record<string, unknown>): {
         ? search["conversation"]
         : undefined,
     view: search["view"] === "details" || search["view"] === "classes" ? search["view"] : undefined,
+    tab: search["tab"] === "enquiries" ? "enquiries" : undefined,
   };
 }
 export const Route = createFileRoute("/connections")({
@@ -38,12 +41,13 @@ export const Route = createFileRoute("/connections")({
   }),
 });
 function InboxRoute() {
-  const { conversation, view } = Route.useSearch();
+  const { conversation, view, tab } = Route.useSearch();
   const { user } = useTutorAccount();
   return (
     <Connections
       conversation={conversation}
       view={view}
+      tab={tab}
       teachingWorkspace={user?.roles.includes("TUTOR") ?? false}
     />
   );
@@ -51,10 +55,12 @@ function InboxRoute() {
 export function Connections({
   conversation,
   view = "messages",
+  tab: startTab,
   teachingWorkspace = false,
 }: {
   conversation?: string | undefined;
   view?: InboxView | undefined;
+  tab?: "enquiries" | undefined;
   teachingWorkspace?: boolean;
 }) {
   const navigate = useNavigate();
@@ -158,7 +164,9 @@ export function Connections({
     (sum, row) => sum + (row.available ? (row.unread_count ?? 0) : 0),
     0,
   );
-  const [tab, setTab] = useState<"chats" | "enquiries">("chats");
+  const [tab, setTab] = useState<"chats" | "enquiries">(
+    startTab === "enquiries" && !conversation ? "enquiries" : "chats",
+  );
   const [pending, setPending] = useState(0);
   const enquiriesTab = useRef<HTMLButtonElement>(null);
   // Opening a conversation always shows the conversation list beside it.

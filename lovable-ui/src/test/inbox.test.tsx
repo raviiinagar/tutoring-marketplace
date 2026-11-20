@@ -395,3 +395,17 @@ it("preserves Shift+Enter and retries an unknown send outcome with the same mess
   expect(send.mock.calls[0]).toEqual(["one", expect.any(String), "Explain momentum"]);
   await waitFor(() => expect(composer).toHaveValue(""));
 });
+
+it("opens on the Enquiries tab from the dashboard link, but a chosen conversation wins", async () => {
+  const { unmount } = render(<Connections tab="enquiries" />);
+  expect(await screen.findByRole("tab", { name: /Enquiries/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  unmount();
+  render(<Connections tab="enquiries" conversation="one" />);
+  expect(await screen.findByRole("tab", { name: /Chats/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+});
