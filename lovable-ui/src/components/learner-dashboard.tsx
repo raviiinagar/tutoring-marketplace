@@ -426,8 +426,10 @@ function LearnerEnquiry({ request }: { request: ContactRequest }) {
 
 /** Tutors see their teaching summary; everyone else is invited to teach with a free ad. */
 function TeachingSection() {
-  const { isTutor } = useTeachingPresence();
+  const { isTutor, learnerOnly } = useTeachingPresence();
   if (isTutor) return <TeachingCard />;
+  // An account that chose "Learn" is not invited to teach here (owner, 21 Nov 2026).
+  if (learnerOnly) return null;
   return (
     <section className="ws-teach" aria-labelledby="become-tutor">
       <span className="ws-tile" aria-hidden="true">

@@ -62,6 +62,15 @@ export function useTeachingPresence() {
   const summary = tutor ? (ads.data ?? null) : null;
   return {
     isTutor: tutor,
+    /**
+     * A signed-in account that chose "Learn" (owner, 21 Nov 2026): no "Become a Tutor"
+     * anywhere. It can switch to Teach in My Account. Signed-out visitors still see it.
+     */
+    learnerOnly:
+      !!user &&
+      user.roles_chosen !== false &&
+      user.roles.includes("LEARNER") &&
+      !user.roles.includes("TUTOR"),
     summary,
     /** True once the owner has at least one ad of any kind, a private draft included. */
     hasAds: (summary?.total ?? 0) > 0,

@@ -199,7 +199,7 @@ export function SiteHeader({
   // ADR0021 (owner's choice): "Become a Tutor" until the account has an ad online, then
   // "Teaching dashboard". Before publishing it opens /tutor, where a new Tutor chooses how
   // to create the ad and a started one continues it.
-  const { summary: teaching } = useTeachingPresence();
+  const { summary: teaching, learnerOnly } = useTeachingPresence();
   const published = (teaching?.online ?? 0) > 0;
   const teacherPath = !user ? "/auth/signup" : published ? "/tutor/dashboard" : "/tutor";
   const teacherLabel = published ? "Teaching dashboard" : "Become a Tutor";
@@ -212,7 +212,7 @@ export function SiteHeader({
         ...workspaceLinks,
         { to: "/saved-tutors", label: "Saved Tutors" },
         { to: "/requests", label: "My enquiries" },
-        { to: teacherPath, label: teacherLabel },
+        ...(learnerOnly ? [] : [{ to: teacherPath, label: teacherLabel }]),
       ]
     : [
         { to: "/tutor/dashboard", label: "Dashboard" },
@@ -298,25 +298,25 @@ export function SiteHeader({
             >
               <CircleHelp aria-hidden className="size-5" />
             </a>
-            {accountStyle && user ? (
-              learns && (
-                <Link
-                  to="/saved-tutors"
-                  aria-label="Saved Tutors"
-                  className="reference-header-icon"
-                >
-                  <Heart aria-hidden className="size-5" />
-                </Link>
-              )
-            ) : (
-              <Link
-                to={teacherPath}
-                hash={teacherHash}
-                className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
-              >
-                {teacherLabel}
-              </Link>
-            )}
+            {accountStyle && user
+              ? learns && (
+                  <Link
+                    to="/saved-tutors"
+                    aria-label="Saved Tutors"
+                    className="reference-header-icon"
+                  >
+                    <Heart aria-hidden className="size-5" />
+                  </Link>
+                )
+              : !learnerOnly && (
+                  <Link
+                    to={teacherPath}
+                    hash={teacherHash}
+                    className="header-nav-pill inline-flex min-h-11 items-center rounded-full px-5"
+                  >
+                    {teacherLabel}
+                  </Link>
+                )}
             {pending ? (
               <span role="status" className="text-sm text-muted-foreground">
                 Checking account...
@@ -434,7 +434,7 @@ export function SiteHeader({
             {beta.community && <Link to="/community">Community</Link>}
             {beta.feedback && <Link to="/feedback">Beta feedback</Link>}
             <a href={helpHref}>Help</a>
-            {learns && (
+            {learns && !learnerOnly && (
               <Link to={teacherPath} hash={teacherHash}>
                 {teacherLabel}
               </Link>
@@ -466,6 +466,7 @@ export function SiteHeader({
 
 /** The site footer, shared by every member and public page. */
 export function SiteFooter() {
+  const { learnerOnly } = useTeachingPresence();
   return (
     <footer className="site-footer border-t bg-background">
       <div className="mx-auto flex max-w-[1184px] flex-wrap items-center justify-between gap-4 px-5 py-7 sm:px-6">
@@ -480,9 +481,11 @@ export function SiteFooter() {
           <Link to="/tutors" className="inline-flex min-h-11 items-center">
             Find Tutors
           </Link>
-          <Link to="/tutor" className="inline-flex min-h-11 items-center">
-            Become a Tutor
-          </Link>
+          {!learnerOnly && (
+            <Link to="/tutor" className="inline-flex min-h-11 items-center">
+              Become a Tutor
+            </Link>
+          )}
           {siteFeatures.community && (
             <Link to="/community" className="inline-flex min-h-11 items-center">
               Community
