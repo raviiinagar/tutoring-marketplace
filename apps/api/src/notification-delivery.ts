@@ -8,6 +8,8 @@ export type NotificationEmail = {
   to: string;
   subject: string;
   text: string;
+  /** Optional HTML alternative; the plain text is always sent too. */
+  html?: string | undefined;
   url: string;
 };
 export type CriticalSms = { id: string; reference: string; url: string; kind?:'OPERATIONS'|'REFUND' };
@@ -48,6 +50,7 @@ export class ConfiguredNotificationDelivery implements NotificationDelivery {
             to: message.to,
             subject: message.subject,
             text: message.text,
+            ...(message.html ? { html: message.html } : {}),
             notification_url: message.url,
             development_only: true,
             captured_at: new Date().toISOString(),
@@ -78,6 +81,7 @@ export class ConfiguredNotificationDelivery implements NotificationDelivery {
         to: message.to,
         subject: message.subject,
         text: message.text,
+        ...(message.html ? { html: message.html } : {}),
         messageId:
           "<" +
           message.id +

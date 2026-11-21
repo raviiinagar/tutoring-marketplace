@@ -11,6 +11,7 @@ import type { Request } from "express";
 import {
   NotificationsService,
   notificationPreferencesInput,
+  teachReminderStopInput,
 } from "./notifications.js";
 import { sessionCookieName, type Config } from "./config.js";
 import { ApiProblem } from "./errors.js";
@@ -47,5 +48,12 @@ export class NotificationsController {
         "Check notification preferences and the current notice version.",
       );
     return this.notifications.updatePreferences(this.token(r), input.data);
+  }
+  /** Signed link from a Become-a-Tutor reminder (ADR0023); works without signing in. */
+  @Post("teach-reminders/stop") @HttpCode(200) stopTeachReminders(@Body() body: unknown) {
+    const input = teachReminderStopInput.safeParse(body);
+    if (!input.success)
+      throw new ApiProblem(400, "INVALID_LINK", "This link is not valid. Sign in to change your email settings.");
+    return this.notifications.stopTeachReminders(input.data.token);
   }
 }

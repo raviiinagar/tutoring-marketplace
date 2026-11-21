@@ -44,3 +44,10 @@ The create/fetch resource and acceptance semantics follow the official [Twilio M
 ## Verification
 
 `apps/api/test/notifications.test.ts` exercises the public APIs, committed real-PostgreSQL events and worker boundary with an isolated external sender: outage recovery, request replay, preferences, mandatory financial notices, chat read/block checks, verified availability unsubscribe, Support/MFA isolation, unknown-SMS reconciliation, Guardian withdrawal, production fake refusal and concurrent budget enforcement. Adapter tests cover malformed success, server uncertainty and unique-alert binding. UI/browser tests cover explicit preference saving, mandatory controls, persistence, mobile overflow and scoped staff monitoring. Final results are recorded on ticket 20.
+
+## Become-a-Tutor reminders (ADR0023)
+
+- Templates `TEACH_REMINDER_1` (1 day) and `TEACH_REMINDER_2` (7 days), category `TEACHING`, queued once per account when it gains the Tutor role.
+- Delivered only while the account still teaches, has no published ad and has not opted out; otherwise `SUPPRESSED` (`NOT_TEACHING`, `ALREADY_TEACHING`, `PREFERENCE_DISABLED`).
+- Sent as plain text with an HTML alternative. `TEAM_WHATSAPP` / `TEAM_EMAIL` provide the team contact.
+- `teaching_reminder_email` (default true) is optional in `POST /v1/me/notification-preferences`; `POST /v1/me/teach-reminders/stop {token}` handles the signed email link without sign-in.

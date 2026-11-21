@@ -892,6 +892,8 @@ export type NotificationPreferences = {
   chat_email: boolean;
   availability_email: boolean;
   marketing_email: boolean;
+  /** Reminders to create a first Tutor ad (ADR0023); absent from older API responses. */
+  teaching_reminder_email?: boolean;
   notice_version: "notification-preferences-v1";
 };
 export type NotificationPreferenceView = {
@@ -2296,6 +2298,8 @@ export const api = {
     request<NotificationPreferenceView>("GET", "/v1/me/notification-preferences"),
   saveNotificationPreferences: (input: NotificationPreferences) =>
     request<NotificationPreferenceView>("POST", "/v1/me/notification-preferences", input),
+  stopTeachReminders: (token: string) =>
+    request<{ stopped: boolean }>("POST", "/v1/me/teach-reminders/stop", { token }),
   notificationQueue: (reason: string) =>
     request<NotificationQueue>(
       "GET",

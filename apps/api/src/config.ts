@@ -28,6 +28,8 @@ export interface Config {
   directoryRequiresAd?: boolean;
   /** City-level map lookups for the Tutor "Your city" card (GEOCODING_ENABLED). */
   geocoding?: { url: string; userAgent: string } | undefined;
+  /** Public team contact shown in "Become a Tutor" reminders (ADR0023): TEAM_WHATSAPP digits, TEAM_EMAIL. */
+  teamContact?: { whatsapp?: string | undefined; email?: string | undefined };
   /** Beta feedback switch (ADR0016); off in production unless BETA_FEEDBACK_ENABLED=true. */
   betaFeedback?: boolean;
   /** Beta community chat switch (ADR0017); off in production unless BETA_COMMUNITY_ENABLED=true. */
@@ -137,7 +139,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const betaCommunityFlag=env.BETA_COMMUNITY_ENABLED;
   if(betaCommunityFlag!==undefined&&!['true','false'].includes(betaCommunityFlag))throw new Error('BETA_COMMUNITY_ENABLED must be true or false');
   const betaCommunity=betaCommunityFlag===undefined?mode!=='production':betaCommunityFlag==='true';
-  return { google,directoryRequiresAd,geocoding,photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
+  const teamWhatsapp=env.TEAM_WHATSAPP?.trim()||undefined,teamEmail=env.TEAM_EMAIL?.trim()||undefined;
+  if(teamWhatsapp&&!/^\d{10,15}$/.test(teamWhatsapp))throw new Error('TEAM_WHATSAPP must be 10-15 digits in international form');
+  if(teamEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(teamEmail))throw new Error('TEAM_EMAIL must be an email address');
+  const teamContact={whatsapp:teamWhatsapp,email:teamEmail};
+  return { teamContact,google,directoryRequiresAd,geocoding,photoReviewRequired,betaCommunity,betaFeedback,staffPolicy,recoveryStore,deploymentEnvironment,operations:ownerId?{ownerId}:undefined, privacy:privacyConfig(env,mode),mode: mode as Config["mode"], databaseUrl: env.DATABASE_URL, authSecret: env.AUTH_SECRET, webOrigin, allowedOrigins, port, sms, mailTransport, mailDir: resolve(env.DEV_MAIL_DIR || ".local/mail"), smtp, guardianMode:guardianMode as Config['guardianMode'],evidenceScanner:evidenceScanner as Config['evidenceScanner'],clamav,payments };
 }
 export const sessionCookieName = (config: Config) => config.mode === "production" ? "__Host-tm_session" : "tm_session";
 

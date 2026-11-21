@@ -25,6 +25,8 @@ export const notificationLabel = (template: string) =>
     REFUND_CASE_DECIDED: "Refund review outcome",
     AVAILABILITY_MATCH: "Tutor availability",
     OPERATOR_REFUND_ALERT: "Critical refund alert",
+    TEACH_REMINDER_1: "Reminder to create your Tutor ad",
+    TEACH_REMINDER_2: "Reminder to create your Tutor ad",
   })[template] || "Service update";
 export const deliveryLabel = (status: string) =>
   ({
@@ -81,6 +83,11 @@ export function NotificationSettings() {
       "Requires a separate verified subscription. Turning this off withdraws your current alerts; turning it on requires a new subscription.",
     ],
     [
+      "teaching_reminder_email",
+      "Reminders to create my Tutor ad",
+      "Up to two emails after you choose to teach, only until your first ad is online.",
+    ],
+    [
       "marketing_email",
       "Marketing updates",
       "Optional and off by default. No marketing campaigns are currently sent.",
@@ -120,7 +127,7 @@ export function NotificationSettings() {
                 type="checkbox"
                 aria-label={label}
                 className="mt-1 size-4 accent-primary"
-                checked={preferences[key]}
+                checked={preferences[key] ?? true}
                 onChange={(e) => {
                   setPreferences({ ...preferences, [key]: e.target.checked });
                   setSaved(false);
