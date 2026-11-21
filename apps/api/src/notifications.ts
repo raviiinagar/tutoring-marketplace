@@ -24,19 +24,30 @@ import {
   DeliveryUnknownError,
   type NotificationDelivery,
 } from "./notification-delivery.js";
+import {
+  readTeachStopToken,
+  teachChoicesText,
+  teachReminderHtml,
+  teachStopToken,
+  TEACH_TEMPLATES,
+} from "./teach-reminder-email.js";
 type Row = Record<string, any>;
 export const notificationPreferencesInput = z.strictObject({
   enquiry_email: z.boolean(),
   chat_email: z.boolean(),
   availability_email: z.boolean(),
   marketing_email: z.boolean(),
+  /** Optional so older clients keep working; absent means unchanged (ADR0023). */
+  teaching_reminder_email: z.boolean().optional(),
   notice_version: z.literal("notification-preferences-v1"),
 });
+export const teachReminderStopInput = z.strictObject({ token: z.string().min(10).max(200) });
 const defaults = {
   enquiry_email: true,
   chat_email: true,
   availability_email: true,
   marketing_email: false,
+  teaching_reminder_email: true,
   notice_version: "notification-preferences-v1",
 };
 export class NotificationsService {
@@ -103,6 +114,7 @@ export class NotificationsService {
               chat_email: row.chat_email,
               availability_email: row.availability_email,
               marketing_email: row.marketing_email,
+              teaching_reminder_email: row.teaching_reminder_email,
               notice_version: row.notice_version,
             }
           : defaults,
@@ -123,7 +135,7 @@ export class NotificationsService {
     await this.database.transaction(async (client) => {
       const { user } = await this.auth.safetyIdentity(client, token);
       await client.query(
-        "INSERT INTO notification_preferences(user_id,enquiry_email,chat_email,availability_email,marketing_email,notice_version,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(user_id) DO UPDATE SET enquiry_email=EXCLUDED.enquiry_email,chat_email=EXCLUDED.chat_email,availability_email=EXCLUDED.availability_email,marketing_email=EXCLUDED.marketing_email,notice_version=EXCLUDED.notice_version,updated_at=EXCLUDED.updated_at",
+        "INSERT INTO notification_preferences(user_id,enquiry_email,chat_email,availability_email,marketing_email,notice_version,updated_at,teaching_reminder_email) VALUES($1,$2,$3,$4,$5,$6,$7,COALESCE($8,true)) ON CONFLICT(user_id) DO UPDATE SET enquiry_email=EXCLUDED.enquiry_email,chat_email=EXCLUDED.chat_email,availability_email=EXCLUDED.availability_email,marketing_email=EXCLUDED.marketing_email,notice_version=EXCLUDED.notice_version,updated_at=EXCLUDED.updated_at,teaching_reminder_email=COALESCE($8,notification_preferences.teaching_reminder_email)",
         [
           user.id,
           input.enquiry_email,
@@ -132,6 +144,7 @@ export class NotificationsService {
           input.marketing_email,
           input.notice_version,
           this.now(),
+          input.teaching_reminder_email ?? null,
         ],
       );
       if (!input.availability_email) {
@@ -171,6 +184,29 @@ export class NotificationsService {
       );
     });
     return this.preferences(token);
+  }
+  /** "Stop these reminders" from a Become-a-Tutor email; signed link, no sign-in needed. */
+  async stopTeachReminders(token: string) {
+    const userId = readTeachStopToken(this.config.authSecret, token);
+    if (!userId)
+      throw new ApiProblem(400, "INVALID_LINK", "This link is not valid. Sign in to change your email settings.");
+    await this.database.transaction(async (client) => {
+      const user = (await client.query("SELECT id FROM users WHERE id=$1", [userId])).rows[0];
+      if (!user) return;
+      await client.query(
+        "INSERT INTO notification_preferences(user_id,enquiry_email,chat_email,availability_email,marketing_email,notice_version,updated_at,teaching_reminder_email) VALUES($1,true,true,true,false,$2,$3,false) ON CONFLICT(user_id) DO UPDATE SET teaching_reminder_email=false,updated_at=EXCLUDED.updated_at",
+        [userId, defaults.notice_version, this.now()],
+      );
+      await client.query(
+        "UPDATE notification_outbox SET status='SUPPRESSED',last_error='PREFERENCE_DISABLED',updated_at=$2 WHERE recipient_id=$1 AND category='TEACHING' AND status='PENDING'",
+        [userId, this.now()],
+      );
+      await client.query(
+        "INSERT INTO audit_events(id,user_id,event_type,correlation_id,created_at,metadata) VALUES($1,$2,'TEACH_REMINDERS_STOPPED',$3,$4,$5)",
+        [randomUUID(), userId, randomUUID(), this.now(), { target: userId }],
+      );
+    });
+    return { stopped: true };
   }
   private async bridgeAvailability() {
     return this.database.transaction(async (client) => {
@@ -261,6 +297,8 @@ export class NotificationsService {
     to?: string;
     url?: string;
     unsubscribe?: string;
+    unsubscribeLabel?: string;
+    name?: string;
     suppressed?: string;
     defer?: string;
   }> {
@@ -296,7 +334,7 @@ export class NotificationsService {
     return this.database.transaction(async (client) => {
       const user = (
         await client.query(
-          "SELECT id,email FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",
+          "SELECT id,email,display_name,roles FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",
           [job.recipient_id],
         )
       ).rows[0];
@@ -312,9 +350,31 @@ export class NotificationsService {
         !job.mandatory &&
         ((job.category === "ENQUIRY" && !prefs.enquiry_email) ||
           (job.category === "CHAT" && !prefs.chat_email) ||
-          (job.category === "MARKETING" && !prefs.marketing_email))
+          (job.category === "MARKETING" && !prefs.marketing_email) ||
+          (job.category === "TEACHING" && prefs.teaching_reminder_email === false))
       )
         return { suppressed: "PREFERENCE_DISABLED" };
+      if (job.category === "TEACHING") {
+        // Only someone who still teaches and has nothing online yet (ADR0023).
+        if (!user.roles.includes("TUTOR")) return { suppressed: "NOT_TEACHING" };
+        const online = (
+          await client.query(
+            "SELECT 1 FROM teaching_listings WHERE user_id=$1 AND status='PUBLISHED' AND archived_at IS NULL LIMIT 1",
+            [user.id],
+          )
+        ).rowCount;
+        if (online) return { suppressed: "ALREADY_TEACHING" };
+        return {
+          to: user.email,
+          url: this.config.webOrigin + "/tutor",
+          name: user.display_name,
+          unsubscribe:
+            this.config.webOrigin +
+            "/reminders/stop#token=" +
+            teachStopToken(this.config.authSecret, user.id),
+          unsubscribeLabel: "Stop these reminders:",
+        };
+      }
       let path = "/payments/history";
       if (job.category === "ENQUIRY") {
         const expected =
@@ -701,13 +761,31 @@ export class NotificationsService {
           subject: (job.test_only ? "[Test] " : "") + job.subject,
           text:
             job.body
+              .replaceAll(
+                "[[choices]]",
+                teachChoicesText(permission.url!),
+              )
               .replaceAll("[[url]]", permission.url!)
               .replaceAll("[[reference]]", job.target_id)
               .replaceAll("\\n", "\n") +
+            (job.category === "TEACHING"
+              ? '\n\nYou get this because you chose "Teach" on Tutor Marketplace.'
+              : "") +
             (permission.unsubscribe
-              ? "\n\nUnsubscribe this optional availability alert:\n" +
+              ? "\n\n" +
+                (permission.unsubscribeLabel ??
+                  "Unsubscribe this optional availability alert:") +
+                "\n" +
                 permission.unsubscribe
               : ""),
+          html: (TEACH_TEMPLATES as readonly string[]).includes(job.template)
+            ? teachReminderHtml({
+                template: job.template,
+                name: permission.name ?? "",
+                createUrl: permission.url!,
+                stopUrl: permission.unsubscribe!,
+              })
+            : undefined,
           url: permission.url!,
         });
         await this.finish(job, "SENT", null, result.reference);

@@ -42,6 +42,7 @@ import { Route as DevInboxRouteImport } from './routes/dev.inbox'
 import { Route as PaymentsHistoryRouteImport } from './routes/payments_.history'
 import { Route as ProfilesProfileIdRouteImport } from './routes/profiles_.$profileId'
 import { Route as RecommendationsProfileIdRouteImport } from './routes/recommendations_.$profileId'
+import { Route as RemindersStopRouteImport } from './routes/reminders.stop'
 import { Route as ReviewsConnectionIdRouteImport } from './routes/reviews_.$connectionId'
 import { Route as StaffAdminsRouteImport } from './routes/staff_.admins'
 import { Route as StaffCatalogueRouteImport } from './routes/staff_.catalogue'
@@ -236,6 +237,11 @@ const RecommendationsProfileIdRoute =
     path: '/recommendations/$profileId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const RemindersStopRoute = RemindersStopRouteImport.update({
+  id: '/reminders/stop',
+  path: '/reminders/stop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReviewsConnectionIdRoute = ReviewsConnectionIdRouteImport.update({
   id: '/reviews_/$connectionId',
   path: '/reviews/$connectionId',
@@ -406,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/recommendations/$profileId': typeof RecommendationsProfileIdRoute
+  '/reminders/stop': typeof RemindersStopRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -468,6 +475,7 @@ export interface FileRoutesByTo {
   '/payments/history': typeof PaymentsHistoryRoute
   '/profiles/$profileId': typeof ProfilesProfileIdRoute
   '/recommendations/$profileId': typeof RecommendationsProfileIdRoute
+  '/reminders/stop': typeof RemindersStopRoute
   '/reviews/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff/admins': typeof StaffAdminsRoute
   '/staff/catalogue': typeof StaffCatalogueRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/payments_/history': typeof PaymentsHistoryRoute
   '/profiles_/$profileId': typeof ProfilesProfileIdRoute
   '/recommendations_/$profileId': typeof RecommendationsProfileIdRoute
+  '/reminders/stop': typeof RemindersStopRoute
   '/reviews_/$connectionId': typeof ReviewsConnectionIdRoute
   '/staff_/admins': typeof StaffAdminsRoute
   '/staff_/catalogue': typeof StaffCatalogueRoute
@@ -595,6 +604,7 @@ export interface FileRouteTypes {
     | '/payments/history'
     | '/profiles/$profileId'
     | '/recommendations/$profileId'
+    | '/reminders/stop'
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
@@ -657,6 +667,7 @@ export interface FileRouteTypes {
     | '/payments/history'
     | '/profiles/$profileId'
     | '/recommendations/$profileId'
+    | '/reminders/stop'
     | '/reviews/$connectionId'
     | '/staff/admins'
     | '/staff/catalogue'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/payments_/history'
     | '/profiles_/$profileId'
     | '/recommendations_/$profileId'
+    | '/reminders/stop'
     | '/reviews_/$connectionId'
     | '/staff_/admins'
     | '/staff_/catalogue'
@@ -782,6 +794,7 @@ export interface RootRouteChildren {
   PaymentsHistoryRoute: typeof PaymentsHistoryRoute
   ProfilesProfileIdRoute: typeof ProfilesProfileIdRoute
   RecommendationsProfileIdRoute: typeof RecommendationsProfileIdRoute
+  RemindersStopRoute: typeof RemindersStopRoute
   ReviewsConnectionIdRoute: typeof ReviewsConnectionIdRoute
   StaffAdminsRoute: typeof StaffAdminsRoute
   StaffCatalogueRoute: typeof StaffCatalogueRoute
@@ -1044,6 +1057,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecommendationsProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reminders/stop': {
+      id: '/reminders/stop'
+      path: '/reminders/stop'
+      fullPath: '/reminders/stop'
+      preLoaderRoute: typeof RemindersStopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reviews_/$connectionId': {
       id: '/reviews_/$connectionId'
       path: '/reviews/$connectionId'
@@ -1270,6 +1290,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentsHistoryRoute: PaymentsHistoryRoute,
   ProfilesProfileIdRoute: ProfilesProfileIdRoute,
   RecommendationsProfileIdRoute: RecommendationsProfileIdRoute,
+  RemindersStopRoute: RemindersStopRoute,
   ReviewsConnectionIdRoute: ReviewsConnectionIdRoute,
   StaffAdminsRoute: StaffAdminsRoute,
   StaffCatalogueRoute: StaffCatalogueRoute,

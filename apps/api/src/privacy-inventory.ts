@@ -245,7 +245,7 @@ export async function personalExport(
       [hash],
     ),
     notification_preferences: await rows(
-      "SELECT enquiry_email,chat_email,availability_email,marketing_email,notice_version,updated_at FROM notification_preferences WHERE user_id=$1",
+      "SELECT enquiry_email,chat_email,availability_email,marketing_email,teaching_reminder_email,notice_version,updated_at FROM notification_preferences WHERE user_id=$1",
     ),
     notifications: await rows(
       "SELECT template,category,channel,status,created_at,sent_at FROM notification_outbox WHERE recipient_id=$1",

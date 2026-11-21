@@ -36,10 +36,15 @@ it("saves explicit optional preferences while financial service notices remain e
     (screen.getByLabelText("Financial and security notices") as HTMLInputElement).disabled,
   ).toBe(true);
   expect((screen.getByLabelText("Marketing updates") as HTMLInputElement).checked).toBe(false);
+  // Tutor ad reminders (ADR0023) are on unless turned off, even when an older API omits the field.
+  const reminders = screen.getByLabelText("Reminders to create my Tutor ad") as HTMLInputElement;
+  expect(reminders.checked).toBe(true);
+  fireEvent.click(reminders);
   fireEvent.click(chat);
   expect(body).toBeUndefined();
   fireEvent.click(screen.getByRole("button", { name: "Save preferences" }));
-  await waitFor(() => expect(body?.['chat_email']).toBe(false));
+  await waitFor(() => expect(body?.["chat_email"]).toBe(false));
+  expect(body?.["teaching_reminder_email"]).toBe(false);
   expect(body).not.toHaveProperty("service_email");
   expect(await screen.findByText("Preferences saved.")).toBeTruthy();
   expect(screen.getByText(/saved locally/)).toBeTruthy();
