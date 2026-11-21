@@ -284,3 +284,22 @@ it("shows the saved Settings portrait on the dashboard and navbar for the same a
   for (const avatar of navbarPhotos)
     expect(avatar).toHaveAttribute("src", photo.getAttribute("src"));
 });
+
+it("does not invite an account that chose Learn to teach, but still invites one that has not chosen", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles_chosen: true } },
+  });
+  mount(<LearnerDashboard />);
+  await screen.findByText("No enquiries yet");
+  expect(screen.queryByRole("heading", { name: "Become a Tutor" })).toBeNull();
+  cleanup();
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles_chosen: false } },
+  });
+  mount(<LearnerDashboard />);
+  expect(await screen.findByRole("heading", { name: "Become a Tutor" })).toBeVisible();
+});

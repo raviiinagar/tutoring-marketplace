@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SiteHeader } from "@/components/account/ui";
+import { SiteFooter, SiteHeader } from "@/components/account/ui";
 import { api, type Catalogue, type User } from "@/lib/api";
 const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
 const visibility = vi.hoisted(() => ({
@@ -266,12 +266,54 @@ it("an account that learns and teaches keeps learner links and reaches its teach
   );
   expect(within(menu).queryByRole("menuitem", { name: "Teaching dashboard" })).toBeNull();
 });
-it("a signed-in Learner enters unified onboarding without selecting a role first", async () => {
-  vi.mocked(api.me).mockResolvedValue({ ok: true, status: 200, data: { user } });
+it("a signed-in account that has not chosen Learn or Teach yet can still enter onboarding", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles_chosen: false } },
+  });
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   await within(nav).findByRole("button", { name: "T My account" });
   expect(within(nav).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
+    "href",
+    "/tutor",
+  );
+});
+it("an account that chose Learn sees no Become a Tutor in the header, menu or footer", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles_chosen: true } },
+  });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  render(
+    <QueryClientProvider client={client}>
+      <SiteHeader />
+      <SiteFooter />
+    </QueryClientProvider>,
+  );
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  await within(nav).findByRole("button", { name: "T My account" });
+  expect(screen.queryByRole("link", { name: "Become a Tutor" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Open menu$/ }));
+  expect(
+    within(screen.getByRole("navigation", { name: "Mobile navigation" })).queryByRole("link", {
+      name: "Become a Tutor",
+    }),
+  ).toBeNull();
+});
+it("signed-out visitors still see Become a Tutor in the footer", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  render(
+    <QueryClientProvider client={client}>
+      <SiteHeader />
+      <SiteFooter />
+    </QueryClientProvider>,
+  );
+  const footer = screen.getByRole("navigation", { name: "Footer navigation" });
+  await waitFor(() => expect(api.me).toHaveBeenCalled());
+  expect(within(footer).getByRole("link", { name: "Become a Tutor" })).toHaveAttribute(
     "href",
     "/tutor",
   );
