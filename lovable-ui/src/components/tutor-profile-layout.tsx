@@ -10,6 +10,7 @@ export function TutorProfileLayout({
   title,
   subjects,
   actions,
+  verification,
   summary,
   navigation,
   children,
@@ -19,6 +20,8 @@ export function TutorProfileLayout({
   title: string;
   subjects: string[];
   actions?: ReactNode;
+  /** Verification facts, shown under the photo and name (owner request, 21 Nov 2026). */
+  verification?: ReactNode;
   summary: ReactNode;
   navigation: { id: string; label: string }[];
   children: ReactNode;
@@ -101,6 +104,7 @@ export function TutorProfileLayout({
               />
             </div>
             <p className="break-words text-center font-display text-2xl font-semibold">{name}</p>
+            {verification && <div className="mt-4">{verification}</div>}
             {actions && <div className="mt-4 flex flex-wrap justify-center gap-2">{actions}</div>}
             <div className="mt-6 space-y-4 border-t border-amber-200/60 pt-5">{summary}</div>
           </aside>

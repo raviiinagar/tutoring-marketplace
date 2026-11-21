@@ -11,11 +11,14 @@ export function VerificationFacts({
   identityVerified,
   headingLevel = 2,
   id,
+  compact = false,
 }: {
   emailVerified?: boolean | undefined;
   identityVerified?: boolean | undefined;
   headingLevel?: 2 | 4;
   id?: string;
+  /** Smaller card for the profile photo panel. */
+  compact?: boolean;
 }) {
   const email = emailVerified === true,
     identity = identityVerified === true;
@@ -26,22 +29,28 @@ export function VerificationFacts({
     <section
       id={id}
       aria-labelledby={headingId}
-      className="scroll-mt-28 rounded-2xl bg-emerald-50/70 p-5"
+      className={`scroll-mt-28 rounded-2xl bg-emerald-50/70 ${compact ? "p-4" : "p-5"}`}
     >
       <Heading
         id={headingId}
-        className={headingLevel === 2 ? "text-2xl font-semibold" : "font-semibold"}
+        className={
+          compact
+            ? "text-base font-semibold"
+            : headingLevel === 2
+              ? "text-2xl font-semibold"
+              : "font-semibold"
+        }
       >
         Verification
       </Heading>
-      <ul className="mt-3 space-y-3">
+      <ul className={compact ? "mt-2 space-y-2" : "mt-3 space-y-3"}>
         {email && (
           <li>
             <p className="flex items-center gap-2 font-semibold text-emerald-900">
               <MailCheck aria-hidden className="size-5 shrink-0" />
               Email verified
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className={`mt-1 text-muted-foreground ${compact ? "text-xs" : "text-sm"}`}>
               The email address on this account was confirmed.
             </p>
           </li>
@@ -52,7 +61,7 @@ export function VerificationFacts({
               <ShieldCheck aria-hidden className="size-5 shrink-0" />
               Identity verified
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className={`mt-1 text-muted-foreground ${compact ? "text-xs" : "text-sm"}`}>
               Our team checked an identity document. Subjects and experience are described by the
               Tutor.
             </p>

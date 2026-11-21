@@ -66,6 +66,16 @@ function Profile() {
         { id: "teaching-offers", label: "Ads" },
         { id: "recommendations", label: "Tutor reviews" },
       ]}
+      verification={
+        /* Each fact comes from the server and appears only when true; the email address itself
+           stays behind the separate consent-based public contact below. */
+        <VerificationFacts
+          id="verification"
+          compact
+          emailVerified={p.email_verified}
+          identityVerified={p.identity_verified}
+        />
+      }
       actions={
         <>
           <SaveTutorButton
@@ -105,13 +115,6 @@ function Profile() {
         </>
       }
     >
-      {/* Each fact comes from the server and appears only when true; the email address itself
-          stays behind the separate consent-based public contact above. */}
-      <VerificationFacts
-        id="verification"
-        emailVerified={p.email_verified}
-        identityVerified={p.identity_verified}
-      />
       <section id="about" className="scroll-mt-28">
         <h2 className="text-2xl font-semibold">About {p.display_name}</h2>
         <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">
