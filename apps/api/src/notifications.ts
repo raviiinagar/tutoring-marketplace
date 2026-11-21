@@ -763,7 +763,7 @@ export class NotificationsService {
             job.body
               .replaceAll(
                 "[[choices]]",
-                teachChoicesText(this.config.teamContact ?? {}, permission.url!),
+                teachChoicesText(permission.url!),
               )
               .replaceAll("[[url]]", permission.url!)
               .replaceAll("[[reference]]", job.target_id)
@@ -782,7 +782,6 @@ export class NotificationsService {
             ? teachReminderHtml({
                 template: job.template,
                 name: permission.name ?? "",
-                team: this.config.teamContact ?? {},
                 createUrl: permission.url!,
                 stopUrl: permission.unsubscribe!,
               })

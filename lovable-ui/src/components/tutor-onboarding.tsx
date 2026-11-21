@@ -21,7 +21,14 @@ export function TutorOnboarding() {
     [editing, setEditing] = useState(true);
   const [resumeSimpleSetup, setResumeSimpleSetup] = useState(false);
   const [adOnline, setAdOnline] = useState(false);
-  const [path, setPath] = useState<TutorSetupPath>();
+  // "Send to our team" in a reminder email links to /tutor?way=team (ADR0023): it opens the team
+  // form, which records the request and consent that staff need, before any WhatsApp message.
+  const [wantsTeam] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("way") === "team",
+  );
+  const [path, setPath] = useState<TutorSetupPath | undefined>(wantsTeam ? "team" : undefined);
   const { loading, run } = useSingleFlight();
   const input = useRef<HTMLInputElement>(null);
   const client = useQueryClient();
@@ -144,12 +151,12 @@ export function TutorOnboarding() {
         intro="Complete one short form, preview your ad and publish for free."
       >
         <SimpleTutorSetup catalogue={catalogue} profile={p} />
-        <details className="mx-auto mt-6 max-w-3xl rounded-xl border p-4">
+        <details className="mx-auto mt-6 max-w-3xl rounded-xl border p-4" open={wantsTeam}>
           <summary className="cursor-pointer text-sm font-medium">
             Prefer our team to set it up?
           </summary>
           <div className="mt-4">
-            <TeamSetup hasProfile={!!p} />
+            <TeamSetup hasProfile={!!p} startOpen={wantsTeam} />
           </div>
         </details>
       </AuthShell>
@@ -171,7 +178,7 @@ export function TutorOnboarding() {
       ) : (
         <div className="space-y-6">
           {/* Once the profile is public, the team offer and progress steps are done (ADR0021). */}
-          <TeamSetup hasProfile={!!p} adOnline={adOnline} />
+          <TeamSetup hasProfile={!!p} adOnline={adOnline} startOpen={wantsTeam} />
           {p && !profilePublic && (
             <ol aria-label="Profile progress" className="grid gap-3 sm:grid-cols-3">
               {[

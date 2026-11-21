@@ -106,6 +106,18 @@ it("a new Tutor chooses between our team (recommended) and creating the ad thems
   ).toBeVisible();
 });
 
+it("the reminder email's team link opens the team form straight away (ADR0023)", async () => {
+  window.history.replaceState(null, "", "/tutor?way=team");
+  try {
+    mount(<TutorOnboarding />);
+    // The form records the request and consent, so staff see it in their onboarding queue.
+    expect(await screen.findByLabelText("Your WhatsApp number")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Become a Tutor", level: 1 })).toBeNull();
+  } finally {
+    window.history.replaceState(null, "", "/");
+  }
+});
+
 it("a Tutor who already started the one-form setup goes straight back to it", async () => {
   vi.mocked(api.tutorOnboardingDraft).mockResolvedValue(
     ok({ draft: { revision: 1, step: 0, data: { quick_setup: true } } }) as never,

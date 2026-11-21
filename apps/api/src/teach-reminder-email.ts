@@ -2,10 +2,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 /**
  * "Become a Tutor" reminders (ADR0023): both ways to create an ad, as plain text and as a simple
- * branded HTML email (owner's design B). Everything here is public site text; no account data
- * other than the first name goes into the message.
+ * branded HTML email (owner's design B). The team option links to the site's team form
+ * (/tutor?way=team), never straight to WhatsApp or email, so every request is recorded with the
+ * Tutor's consent and appears in the staff onboarding queue. No account data other than the first
+ * name goes into the message.
  */
-export type TeamContact = { whatsapp?: string | undefined; email?: string | undefined };
 export const TEACH_TEMPLATES = ["TEACH_REMINDER_1", "TEACH_REMINDER_2"] as const;
 
 const escapeHtml = (value: string) =>
@@ -13,27 +14,14 @@ const escapeHtml = (value: string) =>
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
-const displayPhone = (digits: string) =>
-  digits.length === 12 && digits.startsWith("91")
-    ? `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`
-    : "+" + digits;
-const whatsappLink = (digits: string) =>
-  `https://wa.me/${digits}?text=${encodeURIComponent("Hi! Please create my Tutor ad.")}`;
-const mailLink = (email: string) =>
-  `mailto:${email}?subject=${encodeURIComponent("Please create my Tutor ad")}`;
+/** The team form on /tutor (it records the request and consent before any WhatsApp message). */
+export const teamFormUrl = (createUrl: string) => createUrl + "?way=team";
 
 /** The two choices as plain text, replacing [[choices]] in the stored template. */
-export function teachChoicesText(team: TeamContact, createUrl: string) {
-  const contacts = [
-    team.whatsapp ? `   WhatsApp: ${displayPhone(team.whatsapp)}` : "",
-    team.email ? `   Email: ${team.email}` : "",
-  ].filter(Boolean);
-  const teamLine = contacts.length
-    ? contacts.join("\n")
-    : `   Open ${createUrl} and choose "Send to our team".`;
+export function teachChoicesText(createUrl: string) {
   return (
-    "1. Send your details to our team. We create the ad for you.\n" +
-    teamLine +
+    "1. Send your details to our team. We create the ad for you.\n   " +
+    teamFormUrl(createUrl) +
     "\n\n2. Create it yourself in one short form.\n   " +
     createUrl
   );
@@ -68,7 +56,6 @@ const COPY = {
 export function teachReminderHtml(options: {
   template: (typeof TEACH_TEMPLATES)[number];
   name: string;
-  team: TeamContact;
   createUrl: string;
   stopUrl: string;
 }) {
@@ -76,17 +63,6 @@ export function teachReminderHtml(options: {
   const btn =
     "display:inline-block;padding:12px 20px;border-radius:999px;font:600 15px Arial,sans-serif;text-decoration:none";
   const first = escapeHtml(options.name.trim().split(/\s+/)[0] || "there");
-  const team = [
-    options.team.whatsapp
-      ? `<a href="${escapeHtml(whatsappLink(options.team.whatsapp))}" style="${btn};background:#1c1714;color:#ffffff">WhatsApp ${escapeHtml(displayPhone(options.team.whatsapp))}</a>`
-      : "",
-    options.team.email
-      ? `<a href="${escapeHtml(mailLink(options.team.email))}" style="${btn};background:#ffffff;color:#1c1714;border:1.5px solid #1c1714">Email us</a>`
-      : "",
-  ].filter(Boolean);
-  const teamButtons = team.length
-    ? team.join("&nbsp; ")
-    : `<a href="${escapeHtml(options.createUrl)}" style="${btn};background:#1c1714;color:#ffffff">Send to our team</a>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;background:#fff8e1">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff8e1;padding:24px 0"><tr><td align="center">
@@ -98,8 +74,8 @@ export function teachReminderHtml(options: {
 <p style="margin:0 0 12px;font-weight:700;color:#1c1714">${escapeHtml(copy.ask)}</p></td></tr>
 <tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fff4cf;border-radius:16px"><tr><td style="padding:18px 20px;font:15px/1.5 Arial,sans-serif;color:#3d3530">
 <p style="margin:0 0 4px;font-weight:700;color:#1c1714">Send your details to our team</p>
-<p style="margin:0 0 14px">We create the ad for you. Free.</p>
-${teamButtons}
+<p style="margin:0 0 14px">Fill in a short form and we create the ad for you. Free.</p>
+<a href="${escapeHtml(teamFormUrl(options.createUrl))}" style="${btn};background:#1c1714;color:#ffffff">Send to our team</a>
 </td></tr></table></td></tr>
 <tr><td style="padding:12px 28px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eadfd3;border-radius:16px"><tr><td style="padding:18px 20px;font:15px/1.5 Arial,sans-serif;color:#3d3530">
 <p style="margin:0 0 4px;font-weight:700;color:#1c1714">Create it yourself</p>

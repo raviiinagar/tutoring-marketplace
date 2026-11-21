@@ -23,11 +23,11 @@ A reminder to all members would be marketing. Marketing email is opt-in and off 
 A withheld reminder is recorded as `SUPPRESSED` with the reason: `NOT_TEACHING`, `ALREADY_TEACHING` or `PREFERENCE_DISABLED`.
 
 **Content.** The subjects are "Your Tutor ad is one step away" and "Learners can't find you yet". Each email offers:
-1. Send your details to our team (WhatsApp and email), and the team creates the ad.
-2. Create it yourself in one short form (`/tutor`).
+1. **Send to our team**, which opens the team form on the site (`/tutor?way=team`). The team then creates the ad.
+2. **Create it yourself** in one short form (`/tutor`).
 
 It also says "Publishing an ad is free. Identity verification is optional." The HTML version uses the brand colours and buttons, and the same text is always sent as plain text. The only personal data used is the first name.
-- **Team contact:** set with `TEAM_WHATSAPP` (international digits) and `TEAM_EMAIL`. If neither is set, the email links to `/tutor`, where "Send to our team" shows the configured channels.
+- **No direct WhatsApp or email (owner, 21 Nov 2026).** The team option never opens WhatsApp or email directly. A message sent that way would create no request in the staff queue (`/staff/tutor-onboarding`). It would also record none of the consents staff need to act for the Tutor: adult, team publication and photo. The form records them and gives a `TM-` reference; only then does the page offer WhatsApp, prefilled with that reference.
 
 **Opt-out.**
 - **Stop link.** Every reminder ends with a signed "Stop these reminders" link (`/reminders/stop#token=…`). The token is bound to the account and its purpose, and needs no stored state. The page acts only when the button is pressed, so mail scanners cannot trigger it.

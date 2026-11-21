@@ -28,7 +28,7 @@ import {NotificationsService} from '../src/notifications.js';
 import {teachStopToken} from '../src/teach-reminder-email.js';
 before(async()=>{
  const socket=createServer();await new Promise<void>(r=>socket.listen(0,'127.0.0.1',r));const port=(socket.address() as {port:number}).port;await new Promise<void>(r=>socket.close(()=>r()));
- const dir=resolve('.local/tests',randomUUID());config=loadConfig({NODE_ENV:'test',DATABASE_URL:`postgres://test_user:${randomBytes(24).toString('hex')}@127.0.0.1:${port}/teach_reminders_test`,AUTH_SECRET:randomBytes(48).toString('hex'),WEB_ORIGIN:origin,MAIL_TRANSPORT:'capture',DEV_MAIL_DIR:join(dir,'mail'),EVIDENCE_SCANNER:'test',TEAM_WHATSAPP:'918233598649',TEAM_EMAIL:'team@example.test'});
+ const dir=resolve('.local/tests',randomUUID());config=loadConfig({NODE_ENV:'test',DATABASE_URL:`postgres://test_user:${randomBytes(24).toString('hex')}@127.0.0.1:${port}/teach_reminders_test`,AUTH_SECRET:randomBytes(48).toString('hex'),WEB_ORIGIN:origin,MAIL_TRANSPORT:'capture',DEV_MAIL_DIR:join(dir,'mail'),EVIDENCE_SCANNER:'test'});
  cluster=await startDatabase(config.databaseUrl,join(dir,'postgres'));db=new Database(config.databaseUrl);
  await migrate(db);app=await createApplication(config,db,now);
 });
@@ -53,11 +53,13 @@ test('choosing to teach schedules two reminders; they offer both ways and stop o
  clock=new Date(Date.now()+2*DAY);await drain();
  const [first]=await mails(a.email);assert.ok(first,'reminder 1 was sent');
  assert.equal(first.subject,'Your Tutor ad is one step away');
- assert.match(first.text,/1\. Send your details to our team\. We create the ad for you\.\n   WhatsApp: \+91 82335 98649\n   Email: team@example\.test/);
+ // The team option opens the site's team form (request and consent recorded), never WhatsApp or email directly.
+ assert.ok(first.text.includes('1. Send your details to our team. We create the ad for you.\n   '+origin+'/tutor?way=team'));
+ assert.doesNotMatch(first.text,/wa\.me|WhatsApp|mailto:/);
  assert.match(first.text,new RegExp('2\\. Create it yourself in one short form\\.\\n   '+origin+'/tutor'));
  assert.match(first.text,/Stop these reminders:\nhttp:\/\/localhost:3000\/reminders\/stop#token=[\w.-]+/);
  assert.ok(!first.text.includes('[['),'every placeholder is filled');
- assert.match(first.html,/Hi Fictional,/);assert.match(first.html,/https:\/\/wa\.me\/918233598649\?text=/);assert.match(first.html,/mailto:team@example\.test/);
+ assert.match(first.html,/Hi Fictional,/);assert.ok(first.html.includes('href="'+origin+'/tutor?way=team"'));assert.match(first.html,/>Send to our team</);assert.doesNotMatch(first.html,/wa\.me|mailto:/);
  assert.match(first.html,/>Create my ad</);assert.match(first.html,/>Stop these reminders</);
  // Once an ad is online the second reminder is withheld.
  await intro(a);const draft=(await post('/v1/me/listings',offer,a.cookie).expect(201)).body.listing;await post('/v1/me/listings/'+draft.id+'/actions/PUBLISH',{revision:draft.revision},a.cookie).expect(200);

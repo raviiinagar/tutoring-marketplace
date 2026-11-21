@@ -49,5 +49,5 @@ The create/fetch resource and acceptance semantics follow the official [Twilio M
 
 - Templates `TEACH_REMINDER_1` (1 day) and `TEACH_REMINDER_2` (7 days), category `TEACHING`, queued once per account when it gains the Tutor role.
 - Delivered only while the account still teaches, has no published ad and has not opted out; otherwise `SUPPRESSED` (`NOT_TEACHING`, `ALREADY_TEACHING`, `PREFERENCE_DISABLED`).
-- Sent as plain text with an HTML alternative. `TEAM_WHATSAPP` / `TEAM_EMAIL` provide the team contact.
+- Sent as plain text with an HTML alternative. The team option links to the site's team form (`/tutor?way=team`), never straight to WhatsApp or email, so each request reaches the staff onboarding queue with the Tutor's consent.
 - `teaching_reminder_email` (default true) is optional in `POST /v1/me/notification-preferences`; `POST /v1/me/teach-reminders/stop {token}` handles the signed email link without sign-in.
