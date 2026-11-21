@@ -6,7 +6,7 @@ export const teamContact = {
   /** WhatsApp number in international form, digits only, for wa.me links. */
   whatsapp: "918233598649",
   whatsappDisplay: "+91 82335 98649",
-  email: null as string | null,
+  email: "veer.work.localtest@gmail.com" as string | null,
 };
 
 export function whatsappLink(message: string) {
