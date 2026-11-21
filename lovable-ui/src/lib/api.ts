@@ -54,7 +54,7 @@ export type User = {
   email_verified: true;
   created_at: string;
   roles: ("LEARNER" | "TUTOR")[];
-  /** False until the account has chosen Learn, Teach or Both (ADR0021). Older responses omit it. */
+  /** False until the account has chosen Learn or Teach (ADR0021). Older responses omit it. */
   roles_chosen?: boolean;
 };
 export type AccountSession = {
@@ -685,6 +685,15 @@ export type ConnectionDetail = {
   learning_requirements: string;
   preferred_times: string;
   test_only: boolean;
+  /**
+   * Verification facts about the other participant, only inside an authorized active Connection.
+   * A Tutor peer reports email and identity; an adult Learner reports email only. Null when the
+   * other participant is a Guardian representing a child.
+   */
+  peer_verification?:
+    | { role: "TUTOR"; email_verified: boolean; identity_verified: boolean }
+    | { role: "ADULT_LEARNER"; email_verified: boolean }
+    | null;
 };
 export type ConnectionPeer = {
   display_name: string;
@@ -2642,6 +2651,8 @@ export type PublicTutor = {
   currency: string;
   identity_label: string;
   identity_verified?: boolean;
+  /** Whether the Tutor's account email is verified (users.email_verified_at). Never the address. */
+  email_verified?: boolean;
   expertise_label: string;
   photo_url: string | null;
   contact: { email: string; email_verified: boolean } | null;

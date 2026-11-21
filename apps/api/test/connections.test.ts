@@ -200,6 +200,22 @@ test('the Connection list names the other participant, shows only a public Tutor
  finally{await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1 AND blocked_id=$2',[s.owner.id,s.teacher.id]);}
 });
 
+test('an active Connection reports the other participant\'s verification facts only while access is authorized',async()=>{
+ const s=await accepted();const detail=async(cookie:string)=>(await get('/v1/me/connections/'+s.connection,cookie).expect(200)).body.connection;
+ // The Tutor sees the adult Learner's email verification only: Learners have no identity-document review.
+ const asTutor=await detail(s.teacher.cookie);assert.deepEqual(asTutor.peer_verification,{role:'ADULT_LEARNER',email_verified:true});
+ // The Learner sees the Tutor's email and identity independently, from the shared identity predicate.
+ const asLearner=await detail(s.owner.cookie);assert.deepEqual(asLearner.peer_verification,{role:'TUTOR',email_verified:true,identity_verified:true});
+ for(const view of [asTutor,asLearner])assert.ok(!JSON.stringify(view).includes(s.owner.email)&&!JSON.stringify(view).includes(s.teacher.email));
+ await database.pool.query("UPDATE tutor_claims SET expires_at=$2 WHERE user_id=$1 AND kind='IDENTITY'",[s.teacher.id,clock]);
+ assert.deepEqual((await detail(s.owner.cookie)).peer_verification,{role:'TUTOR',email_verified:true,identity_verified:false});
+ // A current block in either direction releases no detail, so no verification facts either.
+ await database.pool.query('INSERT INTO account_blocks(owner_id,blocked_id) VALUES($1,$2)',[s.teacher.id,s.owner.id]);
+ try{for(const cookie of [s.owner.cookie,s.teacher.cookie]){const denied=await get('/v1/me/connections/'+s.connection,cookie).expect(403);assert.equal(denied.body.connection,undefined);}}
+ finally{await database.pool.query('DELETE FROM account_blocks WHERE owner_id=$1 AND blocked_id=$2',[s.teacher.id,s.owner.id]);}
+ const stranger=await fixture(null);await get('/v1/me/connections/'+s.connection,stranger.cookie).expect(404);
+});
+
 test('failed conversation creation rolls back decision, Connection, participants and grant; retry can establish them once',async()=>{
  const s=await pending();await database.pool.query("CREATE FUNCTION reject_test_conversation() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'fictional crash'; END $$; CREATE TRIGGER reject_test_conversation BEFORE INSERT ON conversations FOR EACH ROW EXECUTE FUNCTION reject_test_conversation();");try{await decide(s.row.id,'ACCEPT',s.teacher.cookie).expect(500);assert.equal(await connectionCount(s.row.id),0);assert.equal((await database.pool.query('SELECT count(*) FROM contact_request_decisions WHERE request_id=$1',[s.row.id])).rows[0].count,'0');assert.equal((await database.pool.query('SELECT status FROM contact_requests WHERE id=$1',[s.row.id])).rows[0].status,'PENDING');}finally{await database.pool.query('DROP TRIGGER reject_test_conversation ON conversations; DROP FUNCTION reject_test_conversation();');}await decide(s.row.id,'ACCEPT',s.teacher.cookie).expect(200);assert.equal(await connectionCount(s.row.id),1);
 });

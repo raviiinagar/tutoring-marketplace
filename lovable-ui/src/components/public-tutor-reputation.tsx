@@ -10,8 +10,17 @@ export function PublicTutorReputation({ profileId }: { profileId: string }) {
   });
   const result = query.data?.ok ? query.data.data : undefined;
   return (
-    <section id="recommendations" className="scroll-mt-28 space-y-4 border-t pt-7">
-      <h2 className="text-2xl font-semibold">Tutor level & recommendations</h2>
+    <section
+      id="recommendations"
+      aria-labelledby="recommendations-title"
+      className="scroll-mt-28 space-y-4 border-t pt-7"
+    >
+      <h2 id="recommendations-title" className="text-2xl font-semibold">
+        Tutor reviews
+      </h2>
+      <p className="text-sm text-muted-foreground">
+        Recommendations are endorsements from people who know the Tutor.
+      </p>
       {result ? (
         <>
           <p>

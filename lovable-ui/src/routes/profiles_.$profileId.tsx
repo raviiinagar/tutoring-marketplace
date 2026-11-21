@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { SaveTutorButton } from "@/components/save-tutor-button";
 import { ShareTutorButton } from "@/components/share-tutor-button";
 import { ReportPhotoButton } from "@/components/report-photo-button";
-import { TutorProfileLayout, IdentityReviewNote } from "@/components/tutor-profile-layout";
+import { TutorProfileLayout } from "@/components/tutor-profile-layout";
+import { VerificationFacts } from "@/components/verification-facts";
 export const Route = createFileRoute("/profiles_/$profileId")({
   ssr: false,
   component: Profile,
@@ -63,7 +64,7 @@ function Profile() {
         { id: "about", label: "About" },
         { id: "availability", label: "Location & availability" },
         { id: "teaching-offers", label: "Ads" },
-        { id: "recommendations", label: "Recommendations" },
+        { id: "recommendations", label: "Tutor reviews" },
       ]}
       actions={
         <>
@@ -104,12 +105,13 @@ function Profile() {
         </>
       }
     >
-      {p.identity_verified && (
-        <IdentityReviewNote label="Identity verified">
-          Our team checked this Tutor's identity document. Subjects and experience are described by
-          the Tutor.
-        </IdentityReviewNote>
-      )}
+      {/* Each fact comes from the server and appears only when true; the email address itself
+          stays behind the separate consent-based public contact above. */}
+      <VerificationFacts
+        id="verification"
+        emailVerified={p.email_verified}
+        identityVerified={p.identity_verified}
+      />
       <section id="about" className="scroll-mt-28">
         <h2 className="text-2xl font-semibold">About {p.display_name}</h2>
         <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed text-muted-foreground">

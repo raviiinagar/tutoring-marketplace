@@ -42,8 +42,12 @@ for(const origin of [browserOrigin,aliasOrigin.origin])test(`Lovable account jou
   await page.screenshot({path:'.local/task20-notifications-mobile.png',fullPage:true});
   await page.setViewportSize({width:1280,height:720});
   await page.getByRole('link',{name:'Back to your account',exact:true}).click();await openRoles(page);
-  await chooseRoles(page,'Both');
-  await page.reload();await expect(page.locator('#roles').getByRole('radio',{name:/^Both/})).toBeChecked();
+  // "Both" is no longer a choice; switching to Teach and back to Learn saves each answer.
+  await expect(page.locator('#roles').getByRole('radio',{name:/^Both/})).toHaveCount(0);
+  await chooseRoles(page,'Teach');
+  await page.reload();await expect(page.locator('#roles').getByRole('radio',{name:/^Teach/})).toBeChecked();
+  await chooseRoles(page,'Learn');
+  await page.reload();await expect(page.locator('#roles').getByRole('radio',{name:/^Learn/})).toBeChecked();
   const browser=page.context().browser()!;
   const other=await browser.newContext();const device=await other.newPage();
   try {

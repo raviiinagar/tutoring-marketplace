@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ShieldCheck, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/account/ui";
 import { TutorPortrait } from "@/components/tutor-portrait";
 
@@ -110,22 +110,6 @@ export function TutorProfileLayout({
         </div>
       </main>
       <SiteFooter />
-    </div>
-  );
-}
-
-export function IdentityReviewNote({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="rounded-2xl bg-amber-50 p-5">
-      <p className="flex items-center gap-2 font-semibold">
-        {/not verified|unverified/i.test(label) ? (
-          <Info aria-hidden className="size-5 text-amber-800" />
-        ) : (
-          <ShieldCheck aria-hidden className="size-5 text-amber-800" />
-        )}
-        {label}
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{children}</p>
     </div>
   );
 }

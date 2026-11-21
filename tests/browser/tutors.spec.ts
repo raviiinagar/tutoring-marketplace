@@ -1,4 +1,4 @@
-import { chooseRoles, openRoles, openAdminArea, openAdminConsole } from "./navigation";
+import { keepBothRoles, openAdminArea, openAdminConsole } from "./navigation";
 import { fixtureBiography, fixtureDescription, completeFixtureOffer } from "../../apps/api/test/helpers/publication";
 import {auditAccessibility} from './accessibility';
 import {test,expect,type Page} from '@playwright/test';
@@ -23,8 +23,7 @@ test('fictional Tutor evidence, private reviewer download, approvals and revocat
 
     await signup(page,tutorEmail);
     const tutorId=(await (await page.request.get("/v1/me")).json()).user.id;
-    await openRoles(page);
-    await chooseRoles(page,"Both");
+    await keepBothRoles(page);
     const origin=process.env.PLAYWRIGHT_BASE_URL||"http://localhost:3100",headers={Origin:origin};
     // This journey exercises a returning Tutor's optional evidence/photo review
     // and ad management. First-ad creation is covered by the one-form journey.

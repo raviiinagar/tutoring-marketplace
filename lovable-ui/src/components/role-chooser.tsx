@@ -1,17 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Users } from "lucide-react";
+import { BookOpen, GraduationCap } from "lucide-react";
 import type { User } from "@/lib/api";
 
 type Choice = "LEARN" | "TEACH" | "BOTH";
-const roleSets: Record<Choice, User["roles"]> = {
+// The roles contract still accepts both roles, and existing dual-role accounts keep them,
+// but "Both" is no longer offered as a choice.
+const roleSets: Record<Exclude<Choice, "BOTH">, User["roles"]> = {
   LEARN: ["LEARNER"],
   TEACH: ["TUTOR"],
-  BOTH: ["LEARNER", "TUTOR"],
 };
 const options = [
   { value: "LEARN", label: "Learn", hint: "Find Tutors and message them", icon: BookOpen },
   { value: "TEACH", label: "Teach", hint: "Publish your teaching ad", icon: GraduationCap },
-  { value: "BOTH", label: "Both", hint: "Learn and teach from one account", icon: Users },
 ] as const;
 
 export function currentChoice(roles: User["roles"]): Choice {
@@ -19,8 +19,9 @@ export function currentChoice(roles: User["roles"]): Choice {
 }
 
 /**
- * "I want to: Learn, Teach or Both" (ADR0021). New accounts answer it on their first visit to
- * My Account; afterwards it stays here to change at any time.
+ * "I want to: Learn or Teach" (ADR0021, amended). New accounts answer it on their first visit to
+ * My Account; afterwards it stays here to change at any time. An existing account that both
+ * learns and teaches keeps its roles: nothing is selected or saved until it picks one.
  */
 export function RoleChooser({
   user,
@@ -49,9 +50,14 @@ export function RoleChooser({
           Choose one. You can change it here at any time.
         </p>
       )}
+      {!first && choice === "BOTH" && (
+        <p className="mt-1 text-sm text-muted-foreground" data-testid="roles-both-note">
+          You currently learn and teach from this account. Choosing one changes it.
+        </p>
+      )}
       <fieldset className="mt-5" disabled={busy}>
         <legend className="sr-only">I want to</legend>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {options.map(({ value, label, hint, icon: Icon }) => {
             const selected = !first && choice === value;
             return (

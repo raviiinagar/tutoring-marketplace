@@ -13,7 +13,7 @@ import {availableSql} from './discovery.js';
 import {identityVerifiedSql,publicTutorSql,publicPhotoSql} from './tutor-publication.js';
 import {currentTutorPro} from './tutor-pro-access.js';
 const noContact=(s:string)=>!/(?:https?:\/\/|www\.|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\+?\d[\d\s().-]{8,}\d)/i.test(s);
-const visible=`SELECT p.*,u.email,${identityVerifiedSql()} AS identity_verified,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at,photo.id AS photo_id FROM tutor_profiles p JOIN users u ON u.id=p.user_id LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id LEFT JOIN tutor_photos photo ON photo.user_id=p.user_id AND ${publicPhotoSql()} AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
+const visible=`SELECT p.*,u.email,u.email_verified_at,${identityVerifiedSql()} AS identity_verified,tp.location,tp.teaching_modes,tp.accepting_students,tp.weekly_slots,tp.revision AS presence_revision,tp.updated_at AS presence_updated_at,photo.id AS photo_id FROM tutor_profiles p JOIN users u ON u.id=p.user_id LEFT JOIN tutor_presence tp ON tp.user_id=p.user_id LEFT JOIN tutor_photos photo ON photo.user_id=p.user_id AND ${publicPhotoSql()} AND photo.scan_status='CLEAN' AND photo.encrypted_payload IS NOT NULL AND (NOT $2::boolean OR NOT photo.test_only)
  WHERE ${publicTutorSql()}
  AND cardinality(p.subject_ids)>0 AND p.hourly_rate_paise IS NOT NULL
  AND NOT EXISTS(SELECT 1 FROM safety_restrictions s WHERE s.target_type='ACCOUNT' AND s.target_id=u.id AND s.lifted_at IS NULL)
@@ -37,7 +37,9 @@ export class PublicTutors {
   // Free ads do not imply consent to publish contact details. ADR0014 retains
   // the separately agreed current Pro + explicit consent public-email rule.
   const contactEnabled=!!consent&&offers.length>0&&!!await currentTutorPro(client,p.user_id,this.now(),this.config.mode!=='production');
-  return {id:p.public_id,display_name:p.display_name,biography:p.biography,presence:publicPresence(p),subject_ids:p.subject_ids,hourly_rate_paise:p.hourly_rate_paise,currency:'INR',identity_verified:!!p.identity_verified,identity_label:p.identity_verified?'Identity and adult status reviewed':'Identity not verified',publication_status:p.publication_status,expertise_label:'Subjects, skills and experience are self-declared',photo_url:p.photo_id?`/v1/tutor-profiles/${p.public_id}/photos/${p.photo_id}`:null,contact:contactEnabled?{email:p.email,email_verified:true}:null,offers:offers.map(l=>({id:l.id,title:l.payload.title,rate_paise:l.payload.rate_paise,rate_unit:l.payload.rate_unit})),contact_status:contactEnabled?'PUBLIC':'NOT_PUBLIC'};
+  // email_verified is the account fact from users.email_verified_at, separate from the
+  // consent/Pro-gated public contact; it never carries the address itself.
+  return {id:p.public_id,display_name:p.display_name,biography:p.biography,presence:publicPresence(p),subject_ids:p.subject_ids,hourly_rate_paise:p.hourly_rate_paise,currency:'INR',identity_verified:!!p.identity_verified,email_verified:!!p.email_verified_at,identity_label:p.identity_verified?'Identity and adult status reviewed':'Identity not verified',publication_status:p.publication_status,expertise_label:'Subjects, skills and experience are self-declared',photo_url:p.photo_id?`/v1/tutor-profiles/${p.public_id}/photos/${p.photo_id}`:null,contact:contactEnabled?{email:p.email,email_verified:true}:null,offers:offers.map(l=>({id:l.id,title:l.payload.title,rate_paise:l.payload.rate_paise,rate_unit:l.payload.rate_unit})),contact_status:contactEnabled?'PUBLIC':'NOT_PUBLIC'};
  }
  async search(raw:unknown){const input=filters.safeParse(raw);if(!input.success)throw new ApiProblem(400,'INVALID_FILTER','Choose a valid Subject or page.');return this.database.transaction(async client=>{
   await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');

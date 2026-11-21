@@ -43,7 +43,8 @@ for (const width of [1280, 390]) {
     await expect(page).toHaveURL(/\/account\/settings/);
     const roles = page.locator("#roles");
     await expect(page.getByRole("heading", { name: "How will you use Tutor Marketplace?", exact: true })).toBeVisible();
-    for (const name of [/^Learn/, /^Teach/, /^Both/]) await expect(roles.getByRole("radio", { name })).not.toBeChecked();
+    for (const name of [/^Learn/, /^Teach/]) await expect(roles.getByRole("radio", { name })).not.toBeChecked();
+    await expect(roles.getByRole("radio", { name: /^Both/ })).toHaveCount(0);
 
     // The photo is managed right here, without a Tutor profile and without staff review.
     await page.getByRole("checkbox", { name: /This is a clear photo of me/ }).check();
