@@ -87,7 +87,7 @@ function SignUp() {
               text: "Book classes for your child from your own account.",
             },
           ]}
-          note="You choose Learn, Teach or Both after signing up, and can change it any time."
+          note="You choose Learn or Teach after signing up, and can change it any time."
         />
       }
       footer={

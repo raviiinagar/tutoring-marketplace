@@ -424,34 +424,68 @@ it("lets a Tutor type a subject that is not listed and saves it with the ad (ADR
   expect(screen.queryByRole("textbox", { name: "Your subject" })).not.toBeInTheDocument();
 });
 
-it("offers online and in person together, which needs a city and saves both modes", async () => {
-  const presence = {
-    revision: 3,
-    location: null,
-    teaching_modes: ["ONLINE" as const],
-    accepting_students: true,
-    weekly_slots: [],
-    timezone: "Asia/Kolkata" as const,
-    updated_at: null,
-  };
-  vi.mocked(api.tutorPresence).mockResolvedValue(success({ presence }));
-  vi.mocked(api.saveTutorPresence).mockImplementation(async (input) =>
-    success({
-      presence: { ...input, revision: 4, updated_at: "2026-11-20" },
-      offers_need_review: 0,
-    }),
-  );
+it("offers only single teaching modes when creating an ad", async () => {
   await openForm();
-  fireEvent.click(screen.getByRole("radio", { name: /Online and in person/ }));
-  fireEvent.submit(screen.getByRole("button", { name: "Preview my ad" }).closest("form")!);
-  await screen.findByText("Add the city where you teach. Only your city and area appear publicly.");
-  fireEvent.change(screen.getByLabelText("Your city", { exact: false }), {
-    target: { value: "Kota" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Preview my ad" }));
-  await screen.findByRole("heading", { name: "Check your ad before publishing" });
-  expect(screen.getByText("Online and in person")).toBeVisible();
-  expect(api.saveTutorPresence).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({ teaching_modes: ["ONLINE", "IN_PERSON"] }),
+  const modes = screen
+    .getAllByRole("radio")
+    .filter((r) => r.getAttribute("name") === "teaching_mode");
+  expect(modes.map((r) => (r as HTMLInputElement).value)).toEqual(["ONLINE", "IN_PERSON"]);
+  expect(screen.queryByRole("radio", { name: /Online and in person/ })).not.toBeInTheDocument();
+  expect(screen.queryByTestId("ad-mode-both-note")).not.toBeInTheDocument();
+});
+
+const bothAd: TeachingListing = {
+  ...existing,
+  id: "both-ad",
+  class_location: { city: "Kota", country: "India" },
+  offer: { ...existing.offer, teaching_mode: "BOTH" },
+};
+
+it("keeps an existing online-and-in-person ad's mode when editing an unrelated field", async () => {
+  ads = [bothAd];
+  vi.spyOn(api, "editListing").mockImplementation(async (id, revision, offer) =>
+    success({ listing: { ...bothAd, offer, revision: revision + 1 } }),
   );
+  mount();
+  // The saved mode is still described truthfully.
+  expect(await screen.findByText("Online and in person · Kota")).toBeVisible();
+  const modify = screen.getByRole("button", { name: "Modify ad title" });
+  await waitFor(() => expect(modify).toBeEnabled());
+  fireEvent.click(modify);
+  expect(api.editListing).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByRole("textbox", { name: "Ad title" }), {
+    target: {
+      value:
+        "Patient Physics lessons with clear worked examples for school students online or nearby",
+    },
+  });
+  submit("Save changes");
+  await waitFor(() => expect(api.editListing).toHaveBeenCalledTimes(1));
+  expect(api.editListing).toHaveBeenCalledWith(
+    "both-ad",
+    bothAd.revision,
+    expect.objectContaining({ teaching_mode: "BOTH" }),
+  );
+});
+
+it("shows an existing online-and-in-person ad's mode without a selectable both option", async () => {
+  ads = [bothAd];
+  vi.spyOn(api, "editListing");
+  mount();
+  const modify = await screen.findByRole("button", { name: "Modify venue" });
+  await waitFor(() => expect(modify).toBeEnabled());
+  fireEvent.click(modify);
+  expect(screen.getByTestId("ad-mode-both-note")).toHaveTextContent(
+    "This ad is currently online and in person.",
+  );
+  expect(screen.queryByRole("radio", { name: /Online and in person/ })).not.toBeInTheDocument();
+  const online = screen.getByRole("radio", { name: /^Online/ });
+  const inPerson = screen.getByRole("radio", { name: /^In person/ });
+  expect(online).not.toBeChecked();
+  expect(inPerson).not.toBeChecked();
+  // Choosing one mode is still possible; nothing is saved until the Tutor saves.
+  fireEvent.click(online);
+  expect(online).toBeChecked();
+  expect(screen.queryByTestId("ad-mode-both-note")).not.toBeInTheDocument();
+  expect(api.editListing).not.toHaveBeenCalled();
 });

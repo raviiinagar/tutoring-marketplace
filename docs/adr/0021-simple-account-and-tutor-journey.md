@@ -70,3 +70,7 @@ Looking at the choice creates nothing. A Tutor who has already started the one-f
 - **What comes from the profile:** subject, hourly rate, About text and teaching mode. Languages default to Hindi and English. The owner supplies the level and the board or exam.
 - **How it is applied:** a read-only plan comes first. Then each ad is created and published through the normal ad service acting for the Tutor, audited under the operator with the consent reason.
 - **Safety:** nothing bypasses the ad, photo or safety rules, and re-running never duplicates an ad.
+
+**Amendment on 21 November 2026.** My Account now offers Learn and Teach as separate choices.
+- `POST /v1/me/roles` still accepts both roles, and existing accounts with both keep them. Such an account sees a note that it currently learns and teaches, with neither option selected. Nothing is saved until it picks one.
+- Everything above about accounts with both roles (the "Switch to learning" link, menus) still applies to them.

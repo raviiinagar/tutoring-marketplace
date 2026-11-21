@@ -111,7 +111,7 @@ it("keeps the reference account cards truthful for a learner without identity or
   expect(screen.getByRole("button", { name: "Upload photo" })).toBeEnabled();
 });
 
-it("asks a new account once whether it learns, teaches or both, and saves the answer", async () => {
+it("asks a new account once whether it learns or teaches, and saves the answer", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
@@ -126,14 +126,49 @@ it("asks a new account once whether it learns, teaches or both, and saves the an
   expect(
     await screen.findByRole("heading", { name: "How will you use Tutor Marketplace?" }),
   ).toBeVisible();
-  for (const name of [/^Learn/, /^Teach/, /^Both/])
+  for (const name of [/^Learn/, /^Teach/])
     expect(screen.getByRole("radio", { name })).not.toBeChecked();
+  // "Both" is no longer offered as a choice.
+  expect(screen.queryByRole("radio", { name: /^Both/ })).toBeNull();
+  expect(screen.getAllByRole("radio")).toHaveLength(2);
   fireEvent.click(screen.getByRole("radio", { name: /^Teach/ }));
   await waitFor(() => expect(changeRoles).toHaveBeenCalledWith(["TUTOR"]));
   expect(await screen.findByRole("link", { name: "Go to your teaching" })).toHaveAttribute(
     "href",
     "/tutor",
   );
+});
+
+it("keeps an existing learn-and-teach account's roles until it explicitly picks one", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER", "TUTOR"], roles_chosen: true } },
+  });
+  vi.spyOn(api, "tutor").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { profile: null, claims: [], evidence: [] },
+  });
+  vi.spyOn(api, "tutorPresence").mockResolvedValue({ ok: false, error: { kind: "unavailable" } });
+  const changeRoles = vi.spyOn(api, "changeRoles").mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER"], roles_chosen: true } },
+  });
+  mount();
+  expect(await screen.findByTestId("roles-both-note")).toHaveTextContent(
+    "You currently learn and teach from this account.",
+  );
+  expect(screen.queryByRole("radio", { name: /^Both/ })).toBeNull();
+  const learn = screen.getByRole("radio", { name: /^Learn/ });
+  const teach = screen.getByRole("radio", { name: /^Teach/ });
+  expect(learn).not.toBeChecked();
+  expect(teach).not.toBeChecked();
+  // Rendering never rewrites the saved roles.
+  expect(changeRoles).not.toHaveBeenCalled();
+  fireEvent.click(learn);
+  await waitFor(() => expect(changeRoles).toHaveBeenCalledExactlyOnceWith(["LEARNER"]));
 });
 
 it("saves an account name through the backend and updates the shared signed-in account", async () => {
@@ -172,7 +207,7 @@ it("saves explicit notification choices while leaving financial and security not
   expect(screen.getByText("Security and financial notices remain enabled.")).toBeTruthy();
 });
 
-it("scrolls to and focuses the requested Learn / Teach / Both section without changing roles", async () => {
+it("scrolls to and focuses the requested Learn / Teach section without changing roles", async () => {
   window.history.replaceState(null, "", "/account/settings#roles");
   const scroll = vi.fn();
   const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");

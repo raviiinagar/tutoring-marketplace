@@ -58,6 +58,8 @@ test('explicit free ad publication works without identity or Pro, while drafts a
  const own=(await get('/v1/me/listings',a.cookie).expect(200)).body;assert.equal(own.publication_policy,'direct-ads-v1');assert.equal(own.identity_optional,true);assert.equal(own.free_publication,true);assert.deepEqual(own.eligible_subject_ids,['subject-physics','subject-other']);assert.equal(own.tutor_pro_active,false);
  let l=(await post('/v1/me/listings',offer,a.cookie).expect(201)).body.listing;await get('/v1/listings/'+l.id).expect(404);l=(await post('/v1/me/listings/'+l.id+'/actions/PUBLISH',{revision:l.revision},a.cookie).expect(200)).body.listing;assert.equal(l.status,'PUBLISHED');assert.equal(l.eligible,true);assert.equal(l.identity_verified,false);
  const publicProfile=(await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile;assert.equal(publicProfile.identity_label,'Identity not verified');assert.equal(publicProfile.contact,null);
+ // Email verification is reported from the account on its own: it never implies identity and never exposes the address.
+ assert.equal(publicProfile.email_verified,true);assert.equal(publicProfile.identity_verified,false);assert.ok(!JSON.stringify(publicProfile).includes(a.email));assert.equal(publicProfile.email_verified_at,undefined);
  const discovery=(await get('/v1/discovery/'+l.id).expect(200)).body.listing;assert.equal(discovery.identity_verified,false);assert.deepEqual(discovery.evidence_labels,[]);
  const current=(await get('/v1/me/tutor',a.cookie).expect(200)).body;assert.equal(current.profile.status,'DRAFT');assert.equal(current.profile.publication_status,'PUBLISHED');assert.equal(current.claims.length,0);assert.equal((await db.pool.query('SELECT count(*)::int n FROM tutor_pro_grants WHERE payer_id=$1',[a.id])).rows[0].n,0);
  const progression=(await get('/v1/me/tutor/progression',a.cookie).expect(200)).body;assert.equal(progression.level,'NEW');
@@ -104,9 +106,9 @@ test('account restrictions, inactive catalogue and both-direction blocks remain 
 });
 test('public contact still requires explicit consent and current Pro; staff can find free unverified profiles',async()=>{
  const tutor=await account(),reviewer=await staff();const p=await intro(tutor,{public_email_consent:true});const draft=(await post('/v1/me/listings',offer,tutor.cookie).expect(201)).body.listing;await post('/v1/me/listings/'+draft.id+'/actions/PUBLISH',{revision:draft.revision},tutor.cookie).expect(200);
- assert.equal((await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile.contact,null);
+ const withoutContact=(await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile;assert.equal(withoutContact.contact,null);assert.equal(withoutContact.email_verified,true);assert.ok(!JSON.stringify(withoutContact).includes(tutor.email));
  const queue=(await get('/v1/staff/tutors',reviewer.cookie).expect(200)).body.profiles;assert.ok(queue.some((x:{user_id:string;status:string;publication_status:string})=>x.user_id===tutor.id&&x.status==='DRAFT'&&x.publication_status==='PUBLISHED'));
- await grantTutorProFixture(db,config,tutor.email,clock);assert.equal((await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile.contact.email,tutor.email);
+ await grantTutorProFixture(db,config,tutor.email,clock);const withContact=(await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile;assert.equal(withContact.contact.email,tutor.email);assert.equal(withContact.email_verified,true);
  const current=(await get('/v1/me/tutor',tutor.cookie).expect(200)).body.profile;await intro(tutor,{public_email_consent:false,expected_public_revision:current.public_revision});assert.equal((await get('/v1/tutor-profiles/'+p.public_id).expect(200)).body.profile.contact,null);
 });
 test('historical requested ad changes require a revision, and staff restriction lifts never publish automatically',async()=>{

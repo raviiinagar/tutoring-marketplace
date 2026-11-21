@@ -43,3 +43,9 @@ This amends ADR0014's "catalogue rules still apply" for the subject of an ad onl
 - **Enquiries.** An enquiry names the ad's mode, which may be `BOTH`.
 
 The first ad created by onboarding still uses a single mode.
+
+**Amendment on 21 November 2026.** Online and In person are the two choices in the ad editor, including the staff-assisted form.
+- The API contract still accepts `BOTH`, and existing `BOTH` ads are unchanged.
+- Editing an existing `BOTH` ad shows that it is currently online and in person, with neither single mode selected. It keeps `BOTH` when unrelated fields are saved, and the Tutor may switch it to one mode.
+- Search, filters, enquiries and labels still describe the saved mode truthfully.
+- Teaching preferences still let a Tutor tick online and in person separately.

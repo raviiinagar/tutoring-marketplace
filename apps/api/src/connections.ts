@@ -1,7 +1,7 @@
 import {requestTiming} from './request-lifecycle.js';
 import {PaidAccess,testCoverage,coverageAllowed} from './paid-access.js';
 import {requireSafetyClear} from './safety-permissions.js';
-import {publicPhotoSql} from './tutor-publication.js';
+import {identityVerified,publicPhotoSql} from './tutor-publication.js';
 import {randomUUID} from 'node:crypto';
 import type {PoolClient} from 'pg';
 import {z} from 'zod';
@@ -115,7 +115,20 @@ export class ConnectionsService {
   // Review commands reuse current participant/consent/grant checks. A peer block
   // stops communication, but cannot prevent honest feedback or erase ratings.
   async withReview<T>(token:string|undefined,id:string,command:(client:PoolClient,context:ConnectionContext)=>Promise<T>):Promise<T>{return this.database.transaction(async client=>{const found=(await client.query(this.query()+' WHERE c.id=$1',[id])).rows[0];const {user}=await this.auth.authenticated(client,token,found?[found.payer_id,found.tutor_id]:[]);if(!found)throw missing();return command(client,await this.context(client,user,found,true));});}
-  async detail(token:string|undefined,id:string){return this.withConnection(token,id,async(_client,context)=>({connection:{id:context.connection.id,request_id:context.request.request_id,listing_id:context.request.listing_id,offer:context.request.offer_snapshot,status:context.connection.status,created_at:new Date(context.connection.created_at).toISOString(),your_role:context.actor.id===context.request.tutor_id?'TUTOR':'PAYER',learner_kind:context.learner.kind,...decrypt<Row>(context.request.encrypted_message,this.config.authSecret),test_only:testCoverage(context.request.coverage_snapshot)}}));}
+  async detail(token:string|undefined,id:string){return this.withConnection(token,id,async(client,context)=>({connection:{id:context.connection.id,request_id:context.request.request_id,listing_id:context.request.listing_id,offer:context.request.offer_snapshot,status:context.connection.status,created_at:new Date(context.connection.created_at).toISOString(),your_role:context.actor.id===context.request.tutor_id?'TUTOR':'PAYER',learner_kind:context.learner.kind,...decrypt<Row>(context.request.encrypted_message,this.config.authSecret),test_only:testCoverage(context.request.coverage_snapshot),peer_verification:await this.peerVerification(client,context)}}));}
+  // Verification facts about the other participant, released only inside the authorized active
+  // Connection above (blocked, restricted or pending Connections are refused before this runs).
+  // Email comes from users.email_verified_at; a Tutor's identity uses the shared trusted identity
+  // predicate. Learners have no identity-document review, so an adult Learner reports email only;
+  // a Guardian representing a child reports nothing.
+  private async peerVerification(client:PoolClient,context:ConnectionContext){
+    const tutorViewing=context.actor.id===context.request.tutor_id;
+    if(tutorViewing&&context.learner.kind!=='ADULT')return null;
+    const peerId=tutorViewing?context.request.payer_id:context.request.tutor_id;
+    const email_verified=!!(await client.query('SELECT email_verified_at FROM users WHERE id=$1',[peerId])).rows[0]?.email_verified_at;
+    if(tutorViewing)return {role:'ADULT_LEARNER' as const,email_verified};
+    return {role:'TUTOR' as const,email_verified,identity_verified:await identityVerified(client,peerId,this.now(),this.config.mode==='production')};
+  }
   async contacts(token:string|undefined,id:string,correlation:string){return this.withConnection(token,id,async(client,context)=>{const peerId=context.actor.id===context.request.tutor_id?context.request.payer_id:context.request.tutor_id;const peer=(await client.query("SELECT display_name,email FROM users WHERE id=$1 AND status='ACTIVE' AND email_verified_at IS NOT NULL",[peerId])).rows[0];if(!peer)throw denied('CONTACT_UNAVAILABLE','The verified adult contact is unavailable.');await this.audit(client,context.actor.id,'CONNECTION_CONTACTS_READ',id,correlation);return {peer:{display_name:peer.display_name,email:peer.email,email_verified:true,role:peerId===context.request.tutor_id?'TUTOR':context.learner.kind==='CHILD'?'GUARDIAN':'ADULT_LEARNER'}};});}
   async list(token:string|undefined,cursor?:string){return this.database.transaction(async client=>{
     const actor=await this.auth.sessionOwner(client,token);const rows=actor?(await client.query(this.query()+" JOIN connection_participants cp ON cp.connection_id=c.id WHERE cp.user_id=$1 AND ($2::uuid IS NULL OR c.id>$2::uuid) AND (NOT $3::boolean OR (r.coverage_snapshot->>'source' IN ('PAYMENT','COUPON') AND r.coverage_snapshot->>'test_only'='false')) ORDER BY c.id LIMIT 21",[actor,cursor||null,this.config.mode==='production'])).rows:[];

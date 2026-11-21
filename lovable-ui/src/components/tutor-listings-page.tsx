@@ -839,15 +839,25 @@ export function TutorListingsManager({
                     ))}
                   {showStep(4) && (
                     <div className="space-y-5">
-                      <fieldset className="grid gap-3 sm:grid-cols-3">
+                      <fieldset className="grid gap-3 sm:grid-cols-2">
                         <legend className="mb-2 font-medium">
                           Where do your classes take place?
                         </legend>
+                        {offer.teaching_mode === "BOTH" && (
+                          // An existing ad for both modes keeps that mode unless the
+                          // Tutor picks one; "both" is no longer offered as a choice.
+                          <p
+                            className="text-sm text-muted-foreground sm:col-span-2"
+                            data-testid="ad-mode-both-note"
+                          >
+                            This ad is currently online and in person. It stays that way unless you
+                            choose one mode.
+                          </p>
+                        )}
                         {(
                           [
                             ["ONLINE", "Online", "Classes by video call"],
                             ["IN_PERSON", "In person", "At your place or the learner's"],
-                            ["BOTH", "Online and in person", "Learners choose either"],
                           ] as const
                         ).map(([mode, label, help]) => (
                           <label

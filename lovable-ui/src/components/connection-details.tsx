@@ -4,6 +4,7 @@ import { api, describeFailure, type ConnectionDetail, type ConnectionPeer } from
 import { Notice, useSingleFlight } from "@/components/account/ui";
 import { Button } from "@/components/ui/button";
 import { connectionReason } from "@/components/connection-reason";
+import { VerificationFacts } from "@/components/verification-facts";
 
 /** Owner-authorized details; contact disclosure remains an explicit server-checked action. */
 export function ConnectionDetails({
@@ -98,6 +99,18 @@ export function ConnectionDetails({
                 confirm a booked or completed lesson.
               </p>
             </section>
+            {detail.peer_verification && (
+              <VerificationFacts
+                id="peer-verification"
+                headingLevel={4}
+                emailVerified={detail.peer_verification.email_verified}
+                identityVerified={
+                  detail.peer_verification.role === "TUTOR"
+                    ? detail.peer_verification.identity_verified
+                    : undefined
+                }
+              />
+            )}
             <section className="rounded-2xl border p-5">
               <h4 className="font-semibold">Verified email contact</h4>
               <p className="mt-2 text-sm text-muted-foreground">

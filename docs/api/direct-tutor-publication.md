@@ -56,4 +56,6 @@ Portrait policy adds `auto_publication: true`. A new clean portrait with explici
 
 Public email still requires explicit consent, verified account email, a currently eligible ad and current Tutor Pro. Free ads alone never expose contact details.
 
+`GET /v1/tutor-profiles/:id` (and the saved-Tutor projection that shares it) also reports `email_verified`, a boolean read from the account's `users.email_verified_at`. It is independent of the consent/Pro-gated `contact` above: it never carries the address or the verification time, and it never implies `identity_verified`. The public profile shows a "Verification" section listing "Email verified" and "Identity verified" separately, each only when its fact is true.
+
 Migration038 is additive. It preserves the historical required adult declaration from existing saves, without labelling it verified. Previously eligible approved non-test identities retain public publication. Test-only, draft, pending, revoked and rejected historical cases are not automatically published; adverse cases retain a separate staff hold. Existing identity decisions, payment records and ad history are not rewritten. Privacy export includes the new publication facts, and erasure pauses publication and clears the adult declaration.

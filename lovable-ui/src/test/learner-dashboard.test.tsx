@@ -192,20 +192,21 @@ it("always keeps one role and updates the shared session after an explicit role 
   vi.spyOn(api, "changeRoles").mockResolvedValue({
     ok: true,
     status: 200,
-    data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
+    data: { user: { ...user, roles: ["TUTOR"] } },
   });
   const client = mount(<AccountSettings />);
-  // Learn / Teach / Both always names at least one role, so an account can never end up with none.
+  // Learn / Teach always names at least one role, so an account can never end up with none.
   const current = await screen.findByRole("radio", { name: /^Learn/ });
   expect(current).toBeChecked();
   fireEvent.click(current);
   expect(api.changeRoles).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("radio", { name: /^Both/ }));
-  await waitFor(() => expect(api.changeRoles).toHaveBeenCalledWith(["LEARNER", "TUTOR"]));
+  expect(screen.queryByRole("radio", { name: /^Both/ })).toBeNull();
+  fireEvent.click(screen.getByRole("radio", { name: /^Teach/ }));
+  await waitFor(() => expect(api.changeRoles).toHaveBeenCalledWith(["TUTOR"]));
   await waitFor(() =>
     expect(client.getQueryData(accountSessionKey)).toMatchObject({
       ok: true,
-      data: { user: { roles: ["LEARNER", "TUTOR"] } },
+      data: { user: { roles: ["TUTOR"] } },
     }),
   );
   expect(screen.queryByText("Open admin dashboard")).toBeNull();
