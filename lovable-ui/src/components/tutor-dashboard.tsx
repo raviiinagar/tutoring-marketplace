@@ -9,10 +9,13 @@ import {
   Eye,
   Hourglass,
   Inbox,
+  Mail,
   MapPin,
   Megaphone,
+  MessageCircle,
   Sparkles,
 } from "lucide-react";
+import { teamContact, whatsappLink } from "@/lib/team-contact";
 import { AuthShell, Notice } from "./account/ui";
 import { Button } from "./ui/button";
 import { useTutorDashboard } from "@/lib/tutor-dashboard";
@@ -275,20 +278,53 @@ export function TutorDashboard() {
                 Tutor Pro
               </h2>
               <SectionData query={data.pro} label="Tutor Pro">
-                {(pro) => (
-                  <>
-                    <p className="md-pro-state">{pro.active ? "Active" : "Not active"}</p>
-                    <p>
-                      {pro.active
-                        ? `Valid until ${new Date(pro.active.ends_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.`
-                        : "Optional. Show your verified email on your profile. Your ads stay online without it."}
-                    </p>
-                  </>
-                )}
+                {(pro) =>
+                  pro.active ? (
+                    <>
+                      <p className="md-pro-state">Active</p>
+                      <p>
+                        {`Valid until ${new Date(pro.active.ends_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}.`}
+                      </p>
+                      <Link to="/tutor" hash="tutor-pro" className="md-pro-link">
+                        Learn more
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <p className="md-pro-state">Not active</p>
+                      {/* Truthful: Pro shows the verified email; enquiries stay free (ADR0014). */}
+                      <p>
+                        Subscribe now and learners can contact you directly: your verified email
+                        shows on your profile. Enquiries in My messages stay free.
+                      </p>
+                      <p>Ask us for a coupon code to subscribe.</p>
+                      <div className="md-pro-actions">
+                        <Link to="/tutor" hash="tutor-pro" className="md-pro-link">
+                          Subscribe now
+                        </Link>
+                        <a
+                          href={whatsappLink("Hi! Please send me a Tutor Pro coupon code.")}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="md-pro-link md-pro-soft"
+                        >
+                          <MessageCircle aria-hidden="true" className="size-4" />
+                          WhatsApp
+                        </a>
+                        {teamContact.email && (
+                          <a
+                            href={`mailto:${teamContact.email}?subject=${encodeURIComponent("Tutor Pro coupon code")}`}
+                            className="md-pro-link md-pro-soft"
+                          >
+                            <Mail aria-hidden="true" className="size-4" />
+                            Email
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  )
+                }
               </SectionData>
-              <Link to="/tutor" hash="tutor-pro" className="md-pro-link">
-                Learn more
-              </Link>
             </section>
           )}
         </div>

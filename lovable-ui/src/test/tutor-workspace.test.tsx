@@ -165,6 +165,17 @@ it("shows actual offer and Pro state without inventing revenue or visitor metric
   });
   mount();
   expect(await screen.findByText("Not active")).toBeTruthy();
+  // Pro asks for a coupon without implying that enquiries need Pro (they are free, ADR0014).
+  expect(screen.getByRole("link", { name: "Subscribe now" })).toHaveAttribute("href", "/tutor");
+  expect(screen.getByRole("link", { name: "WhatsApp" })).toHaveAttribute(
+    "href",
+    expect.stringMatching(/^https:\/\/wa\.me\/\d+\?text=.*coupon/),
+  );
+  expect(screen.getByText(/Enquiries in My messages stay free\./)).toBeVisible();
+  expect(screen.getByRole("link", { name: "Email" })).toHaveAttribute(
+    "href",
+    expect.stringMatching(/^mailto:[^?]+@[^?]+\?subject=Tutor%20Pro%20coupon%20code$/),
+  );
   // Approved dashboard (20 Nov 2026): enquiries are back; My ads has its own tab and the
   // Tutor level lives in Evaluations.
   expect(screen.getByRole("heading", { name: "Enquiries" })).toBeVisible();
