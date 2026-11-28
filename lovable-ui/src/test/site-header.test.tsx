@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SiteFooter, SiteHeader } from "@/components/account/ui";
 import { api, type Catalogue, type User } from "@/lib/api";
-const { navigate } = vi.hoisted(() => ({ navigate: vi.fn() }));
+const { navigate, route } = vi.hoisted(() => ({ navigate: vi.fn(), route: { pathname: "/" } }));
 const visibility = vi.hoisted(() => ({
   teachingOffers: true,
   howItWorks: true,
@@ -18,6 +18,11 @@ vi.mock("@tanstack/react-router", async () => {
   const React = await import("react");
   return {
     useNavigate: () => navigate,
+    useRouterState: ({
+      select,
+    }: {
+      select: (state: { location: { pathname: string } }) => unknown;
+    }) => select({ location: { pathname: route.pathname } }),
     Link: React.forwardRef<
       HTMLAnchorElement,
       React.AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; hash?: string }
@@ -73,6 +78,8 @@ beforeEach(() => {
   Object.defineProperty(window, "scrollY", { configurable: true, value: 0, writable: true });
   Object.defineProperty(window, "innerWidth", { configurable: true, value: 390, writable: true });
   vi.spyOn(api, "me").mockResolvedValue(anonymous);
+  vi.spyOn(api, "changeRoles");
+  navigate.mockClear();
   vi.spyOn(api, "communityPolicy").mockResolvedValue({
     ok: true,
     status: 200,
@@ -197,7 +204,7 @@ const adsOf = (...ads: { status: string; eligible: boolean }[]) =>
     status: 200,
     data: { listings: ads, eligible_subject_ids: [], tutor_pro_active: false },
   } as never);
-it("signed-in teaching-only Tutor sees only teaching links in a keyboard-accessible account menu", async () => {
+it("the account menu only switches between Student and Teacher, keyboard accessible (owner, 28 Nov 2026)", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
@@ -207,26 +214,46 @@ it("signed-in teaching-only Tutor sees only teaching links in a keyboard-accessi
   mount();
   const nav = screen.getByRole("navigation", { name: "Main navigation" });
   const account = await within(nav).findByRole("button", { name: "T My account" });
-  // ADR0021: once an ad is online the link becomes "Teaching dashboard".
+  // ADR0021: once an ad is online the header link becomes "Teaching dashboard".
   expect(await within(nav).findByRole("link", { name: "Teaching dashboard" })).toHaveAttribute(
     "href",
     "/tutor/dashboard",
   );
-  expect(within(nav).queryByRole("link", { name: "Become a Tutor" })).toBeNull();
   fireEvent.keyDown(account, { key: "ArrowDown" });
   const menu = await screen.findByRole("menu");
-  for (const name of ["Dashboard", "My Account", "My ads", "My messages"])
-    expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
-  expect(within(menu).getByRole("menuitem", { name: "Dashboard" })).toHaveAttribute(
-    "href",
-    "/tutor/dashboard",
-  );
-  // ADR0021: no learner pages for an account that only teaches.
-  for (const name of ["Saved Tutors", "My enquiries", "Become a Tutor"])
-    expect(within(menu).queryByRole("menuitem", { name })).toBeNull();
+  const student = within(menu).getByRole("menuitemradio", { name: /^Student/ });
+  const teacher = within(menu).getByRole("menuitemradio", { name: /^Teacher/ });
+  // A teaching-only account is on the teacher side; nothing else is listed in the menu.
+  expect(teacher).toHaveAttribute("aria-checked", "true");
+  expect(student).toHaveAttribute("aria-checked", "false");
+  expect(within(menu).queryAllByRole("menuitem")).toHaveLength(0);
+  fireEvent.click(teacher);
+  await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/tutor/dashboard" }));
+  expect(api.changeRoles).not.toHaveBeenCalled();
   expect(within(nav).queryByRole("link", { name: "Sign in" })).toBeNull();
-  fireEvent.keyDown(menu, { key: "Escape" });
-  await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+});
+it("choosing Student adds the Learner role without removing Teacher, so ads stay online", async () => {
+  vi.mocked(api.me).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["TUTOR"] } },
+  });
+  vi.mocked(api.changeRoles).mockResolvedValue({
+    ok: true,
+    status: 200,
+    data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
+  });
+  adsOf({ status: "PUBLISHED", eligible: true });
+  mount();
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  fireEvent.keyDown(await within(nav).findByRole("button", { name: "T My account" }), {
+    key: "ArrowDown",
+  });
+  fireEvent.click(
+    within(await screen.findByRole("menu")).getByRole("menuitemradio", { name: /^Student/ }),
+  );
+  await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/account" }));
+  expect(api.changeRoles).toHaveBeenCalledExactlyOnceWith(["TUTOR", "LEARNER"]);
 });
 it("a Tutor who has not published yet still sees Become a Tutor, opening their set-up", async () => {
   vi.mocked(api.me).mockResolvedValue({
@@ -245,26 +272,33 @@ it("a Tutor who has not published yet still sees Become a Tutor, opening their s
   );
   expect(within(nav).queryByRole("link", { name: "Teaching dashboard" })).toBeNull();
 });
-it("an account that learns and teaches keeps learner links and reaches its teaching set-up", async () => {
+it("an account that learns and teaches switches sides by page, without changing its roles", async () => {
   vi.mocked(api.me).mockResolvedValue({
     ok: true,
     status: 200,
     data: { user: { ...user, roles: ["LEARNER", "TUTOR"] } },
   });
   const listings = adsOf();
-  mount();
-  await waitFor(() => expect(listings).toHaveBeenCalled());
-  const nav = screen.getByRole("navigation", { name: "Main navigation" });
-  const account = await within(nav).findByRole("button", { name: "T My account" });
-  fireEvent.keyDown(account, { key: "ArrowDown" });
-  const menu = await screen.findByRole("menu");
-  for (const name of ["Dashboard", "My Account", "Saved Tutors", "My enquiries", "My messages"])
-    expect(within(menu).getByRole("menuitem", { name })).toBeVisible();
-  expect(within(menu).getByRole("menuitem", { name: "Become a Tutor" })).toHaveAttribute(
-    "href",
-    "/tutor",
-  );
-  expect(within(menu).queryByRole("menuitem", { name: "Teaching dashboard" })).toBeNull();
+  route.pathname = "/tutor/listings";
+  try {
+    mount();
+    await waitFor(() => expect(listings).toHaveBeenCalled());
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    fireEvent.keyDown(await within(nav).findByRole("button", { name: "T My account" }), {
+      key: "ArrowDown",
+    });
+    const menu = await screen.findByRole("menu");
+    // On a Tutor page the teacher side is the current one.
+    expect(within(menu).getByRole("menuitemradio", { name: /^Teacher/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    fireEvent.click(within(menu).getByRole("menuitemradio", { name: /^Student/ }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith({ to: "/account" }));
+    expect(api.changeRoles).not.toHaveBeenCalled();
+  } finally {
+    route.pathname = "/";
+  }
 });
 it("a signed-in account that has not chosen Learn or Teach yet can still enter onboarding", async () => {
   vi.mocked(api.me).mockResolvedValue({
