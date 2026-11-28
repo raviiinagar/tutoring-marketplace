@@ -46,12 +46,12 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { accountSessionKey } from "@/lib/session";
 import { useTeachingPresence } from "@/lib/teaching-presence";
-import { WorkspaceNavigation, workspaceLinks } from "@/components/workspace-navigation";
+import { AccountModeButtons, AccountModeMenu } from "@/components/account-mode-switch";
+import { WorkspaceNavigation } from "@/components/workspace-navigation";
 import { TutorWorkspaceNavigation } from "@/components/tutor-workspace-navigation";
 const AccountReady = createContext(false);
 
@@ -207,35 +207,6 @@ export function SiteHeader({
   const showSearch = !homepage || scrolled;
   // Each mode shows only its own links; teaching-only accounts have no learner pages.
   const learns = !user || user.roles.includes("LEARNER");
-  const menuLinks: { to: string; label: string }[] = learns
-    ? [
-        ...workspaceLinks,
-        { to: "/saved-tutors", label: "Saved Tutors" },
-        { to: "/requests", label: "My enquiries" },
-        ...(learnerOnly ? [] : [{ to: teacherPath, label: teacherLabel }]),
-      ]
-    : [
-        { to: "/tutor/dashboard", label: "Dashboard" },
-        { to: "/connections", label: "My messages" },
-        { to: "/tutor/listings", label: "My ads" },
-        { to: "/account/settings", label: "My Account" },
-      ];
-  const accountLinks = learns ? (
-    <>
-      <Link to="/account">Dashboard</Link>
-      <Link to="/saved-tutors">Saved Tutors</Link>
-      <Link to="/requests">My enquiries</Link>
-      <Link to="/connections">Messages</Link>
-      <Link to="/account/settings">My account</Link>
-    </>
-  ) : (
-    <>
-      <Link to="/tutor/dashboard">Dashboard</Link>
-      <Link to="/tutor/listings">My ads</Link>
-      <Link to="/connections">Messages</Link>
-      <Link to="/account/settings">My account</Link>
-    </>
-  );
   const openSearch = (button: HTMLButtonElement) => {
     searchButton.current = button;
     setOpen(false);
@@ -353,17 +324,15 @@ export function SiteHeader({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="min-w-48 rounded-xl p-2"
+                  className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl p-2"
                   onCloseAutoFocus={(event) => {
                     // Preserve the explicit destination after same-page start-teaching navigation.
                     if (document.activeElement?.closest("#roles")) event.preventDefault();
                   }}
                 >
-                  {menuLinks.map((item) => (
-                    <DropdownMenuItem key={item.label} asChild>
-                      <Link to={item.to}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
+                  {/* Only the Student / Teacher switch (owner, 28 Nov 2026): each side's
+                      dashboard navigation has the rest. */}
+                  <AccountModeMenu user={user} />
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -442,7 +411,7 @@ export function SiteHeader({
             {pending ? (
               <span role="status">Checking account...</span>
             ) : user ? (
-              accountLinks
+              <AccountModeButtons user={user} onDone={() => setOpen(false)} />
             ) : (
               <>
                 <Link to="/saved-tutors">Saved Tutors</Link>
